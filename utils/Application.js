@@ -379,6 +379,16 @@ class Application
 	static initApplicationStatus( theRequest )
 	{
 		//
+		// Init constants.
+		//
+		const kKey = K.setting.status.key;
+		const kAppKey = K.setting.status.app.key;
+		const kStatusOK = K.setting.status.app.state.ok;
+		const kStatusBUSY = K.setting.status.app.state.busy;
+		const kStatusDDICT = K.setting.status.app.state.ddict;
+		const kStatusSETTING = K.setting.status.app.state.setting;
+
+		//
 		// Init local storage.
 		//
 		let status_doc = null;
@@ -394,7 +404,7 @@ class Application
 			// Update session status.
 			//
 			theRequest.application.status = {
-				application : K.setting.status.app.state.setting
+				application : kStatusSETTING
 			};
 
 			return theRequest.application.status.application;						// ==>
@@ -405,7 +415,7 @@ class Application
 		//
 		try
 		{
-			status_doc = collection.document( K.setting.status.key );
+			status_doc = collection.document( kKey );
 		}
 		catch( error )
 		{
@@ -419,114 +429,71 @@ class Application
 		}
 
 		//
-		// Handle blocking status.
+		// Handle current status.
 		//
 		if( status_doc !== null )
 		{
+			//
+			// Handle blocking and overriding statuses.
+			//
 			switch( status_doc.application )
 			{
-				case K.setting.status.app.state.busy:
+				//
+				// Busy status.
+				//
+				case kStatusBUSY:
+
 					theRequest.application.status = {
-						application : K.setting.status.app.state.busy
+						application : kStatusBUSY
 					};
-					return K.setting.status.app.state.busy;							// ==>
+
+					return kStatusBUSY;												// ==>
 			}
 		}
-
 
 		//
 		// Check data dictionary.
 		//
 		status_value = ( this.createDataDictionary( false ) === false )
-			? 'DDICT'
-			: 'OK';
-
-
+					 ? kStatusDDICT
+					 : kStatusOK;
 
 		//
-		// Init status.
+		// Update settings.
+		//
+		try
+		{
+			//
+			// Insert.
+			//
+			if( status_doc === null )
+				collection.insert({
+					_key		: kKey,
+					application	: status_value
+				});
+
+			//
+			// Update.
+			//
+			if( status_doc.application !== status_value )
+				collection.update(
+					status_doc,
+					{ application : status_value }
+				);
+		}
+		catch( error )
+		{
+			throw( error );														// !@! ==>
+		}
+
+		//
+		// Set status in session.
 		//
 		theRequest.application.status = {
-			application : K.setting.status.app.state.ok	// Assume OK.
+			application : status_value
 		};
 
-
-		//
-		// Handle existing status.
-		//
-		if( status_doc !== null )
-		{
-		}
-
-		//
-		// Check data dictionary.
-		//
-		if( this.createDataDictionary( false ) === false )
-		{
-			//
-			// Set session status.
-			//
-			theRequest.application.status.application = K.setting.status.app.state.ddict;
-
-			//
-			// Update status.
-			//
-			try
-			{
-				//
-				// Insert new document.
-				//
-				if( )
-				collection.insert(
-					Object.assign(
-						{ _key : K.setting.status.key },
-						theRequest.application.status
-					)
-				);
-			}
-			catch( error )
-			{
-				throw( error );												// !@! ==>
-			}
-		}
-
-
-
-
-
-
-		//
-		// Check data dictionary.
-		//
-		for( const item of Collection.ddict )
-		{
-			const collection = db._collection( item.name );
-			if( (! collection)
-				|| (collection.count() === 0) )
-				throw(
-					new MyError(
-						'NoDataDictionary',					// Error name.
-						K.error.MissingCollection,			// Error code.
-						theRequest.application.language,	// Error language.
-						item.name							// Error data.
-					)
-				);																// !@! ==>
-		}
-
-		//
-		// Check data dictionary.
-		//
-		if( this.createDataDictionary( false ) === false )
-
-		if( result === false )
-			throw(
-				new MyError(
-					'NoDataDictionary',					// Error name.
-					K.error.MissingCollection,			// Error code.
-					theRequest.application.language,	// Error language.
-					item.name							// Error data.
-				)
-			);																	// !@! ==>
+		return status_value;														// ==>
 
 	}	// initApplicationStatus
 

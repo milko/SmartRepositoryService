@@ -74,7 +74,7 @@ module.context.use(
 			try
 			{
 				Application.initRequestSessionData( theRequest );
-				Application.init.status( theRequest );
+				Application.initApplicationStatus( theRequest );
 			}
 			catch( error )
 			{
@@ -84,7 +84,7 @@ module.context.use(
 			//
 			// Check status.
 			//
-			switch( theRequest.application.status[ K.setting.status.app.key ] )
+			switch( theRequest.application.status.application )
 			{
 				case K.setting.status.app.state.ddict:
 					theResponse.throw(
@@ -115,7 +115,7 @@ module.context.use(
 			// are only written against a current session user.
 			//
 			if( theRequest.path === "/users/logout" )
-				Log.write( stamp, Date.now(), theRequest, theResponse );
+				Log.writeEvent( stamp, Date.now(), theRequest, theResponse );
 
 			//
 			// Execute handler.
@@ -123,15 +123,15 @@ module.context.use(
 			theHandler();
 		}
 
-			//
-			// Execute final steps.
-			//
+		//
+		// Execute final steps.
+		//
 		finally
 		{
 			//
 			// Write log entry.
 			//
-			Log.write( stamp, Date.now(), theRequest, theResponse );
+			Log.writeEvent( stamp, Date.now(), theRequest, theResponse );
 		}
 	}
 );
