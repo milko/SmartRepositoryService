@@ -1,0 +1,254 @@
+[
+  {
+    "_key" : "e1",
+    "label" : {
+      "ISO:639:3:eng" : "missing required collection [@arg@]."
+    }
+  },
+  {
+    "_key" : "e2",
+    "label" : {
+      "ISO:639:3:eng" : "unable to handle session."
+    }
+  },
+  {
+    "_key" : "e3",
+    "label" : {
+      "ISO:639:3:eng" : "user not found [@arg@]."
+    }
+  },
+  {
+    "_key" : "e4",
+    "label" : {
+      "ISO:639:3:eng" : "password mismatch."
+    }
+  },
+  {
+    "_key" : "e5",
+    "label" : {
+      "ISO:639:3:eng" : "unable to create administrator user."
+    }
+  },
+  {
+    "_key" : "e6",
+    "label" : {
+      "ISO:639:3:eng" : "the administrator must be the first user."
+    }
+  },
+  {
+    "_key" : "e7",
+    "label" : {
+      "ISO:639:3:eng" : "users are managed by other users."
+    }
+  },
+  {
+    "_key" : "e8",
+    "label" : {
+      "ISO:639:3:eng" : "not authorised to manage users."
+    }
+  },
+  {
+    "_key" : "e9",
+    "label" : {
+      "ISO:639:3:eng" : "unable to create administrator."
+    }
+  },
+  {
+    "_key" : "e10",
+    "label" : {
+      "ISO:639:3:eng" : "the application cannot be used."
+    }
+  },
+  {
+    "_key" : "e11",
+    "label" : {
+      "ISO:639:3:eng" : "invalid input format."
+    }
+  },
+  {
+    "_key" : "e12",
+    "label" : {
+      "ISO:639:3:eng" : "invalid output format."
+    }
+  },
+  {
+    "_key" : "e13",
+    "label" : {
+      "ISO:639:3:eng" : "unsupported data type [@arg@]."
+    }
+  },
+  {
+    "_key" : "e14",
+    "label" : {
+      "ISO:639:3:eng" : "unsupported root data type [@arg@]."
+    }
+  },
+  {
+    "_key" : "e15",
+    "label" : {
+      "ISO:639:3:eng" : "unsupported data type validation field [@arg@]."
+    }
+  },
+  {
+    "_key" : "e16",
+    "label" : {
+      "ISO:639:3:eng" : "unsupported descriptor validation field [@arg@]."
+    }
+  },
+  {
+    "_key" : "e17",
+    "label" : {
+      "ISO:639:3:eng" : "unsupported format type [@arg@]."
+    }
+  },
+  {
+    "_key" : "e18",
+    "label" : {
+      "ISO:639:3:eng" : "unsupported traversal sense [@arg@]."
+    }
+  },
+  {
+    "_key" : "e19",
+    "label" : {
+      "ISO:639:3:eng" : "expecting [@arg@] entry in validation record."
+    }
+  },
+  {
+    "_key" : "e20",
+    "label" : {
+      "ISO:639:3:eng" : "term unknown in dictionary [@arg@]."
+    }
+  },
+  {
+    "_key" : "e21",
+    "label" : {
+      "ISO:639:3:eng" : "empty data type hierarchy [@arg@]."
+    }
+  },
+  {
+    "_key" : "e22",
+    "label" : {
+      "ISO:639:3:eng" : "not a number [@arg@]."
+    }
+  },
+  {
+    "_key" : "e23",
+    "label" : {
+      "ISO:639:3:eng" : "invalid date format [@arg@]."
+    }
+  },
+  {
+    "_key" : "e24",
+    "label" : {
+      "ISO:639:3:eng" : "invalid date [@arg@], expecting date in year, <month> and <day> format."
+    }
+  },
+  {
+    "_key" : "e25",
+    "label" : {
+      "ISO:639:3:eng" : "invalid month [@arg@], using year and month format."
+    }
+  },
+  {
+    "_key" : "e26",
+    "label" : {
+      "ISO:639:3:eng" : "invalid object reference, document [@arg@] not found in database."
+    }
+  },
+  {
+    "_key" : "e27",
+    "label" : {
+      "ISO:639:3:eng" : "invalid reference, document [@arg@] not found in collection."
+    }
+  },
+  {
+    "_key" : "e28",
+    "label" : {
+      "ISO:639:3:eng" : "unknown or invalid collection name [@arg@]."
+    }
+  },
+  {
+    "_key" : "e29",
+    "label" : {
+      "ISO:639:3:eng" : "required collection name is missing from validation record."
+    }
+  },
+  {
+    "_key" : "e30",
+    "label" : {
+      "ISO:639:3:eng" : "required enumerations list is missing from validation record."
+    }
+  },
+  {
+    "_key" : "e31",
+    "label" : {
+      "ISO:639:3:eng" : "term [@arg@] cannot be found in enumeration choices."
+    }
+  },
+  {
+    "_key" : "e32",
+    "label" : {
+      "ISO:639:3:eng" : "invalid reference, term [@arg@] is not an enumeration."
+    }
+  },
+  {
+    "_key" : "e33",
+    "label" : {
+      "ISO:639:3:eng" : "invalid object reference handle [@arg@]."
+    }
+  },
+  {
+    "_key" : "e34",
+    "label" : {
+      "ISO:639:3:eng" : "global identifier [@arg@] not found."
+    }
+  },
+  {
+    "_key" : "e35",
+    "label" : {
+      "ISO:639:3:eng" : "invalid mapped structure key [@arg@], not a term."
+    }
+  },
+  {
+    "_key" : "e36",
+    "label" : {
+      "ISO:639:3:eng" : "descriptor [@arg@] does not have a data type."
+    }
+  },
+  {
+    "_key" : "e37",
+    "label" : {
+      "ISO:639:3:eng" : "descriptor [@1arg@] has an unsupported data type [@2arg@]."
+    }
+  },
+  {
+    "_key" : "e38",
+    "label" : {
+      "ISO:639:3:eng" : "the value can only be managed by rank [@arg@]."
+    }
+  },
+  {
+    "_key" : "e39",
+    "label" : {
+      "ISO:639:3:eng" : "the value can only be managed by role [@arg@]."
+    }
+  },
+  {
+    "_key" : "e40",
+    "label" : {
+      "ISO:639:3:eng" : "term [@arg@] not found."
+    }
+  },
+  {
+    "_key" : "e41",
+    "label" : {
+      "ISO:639:3:eng" : "data dictionary is required."
+    }
+  },
+  {
+    "_key" : "e42",
+    "label" : {
+      "ISO:639:3:eng" : "the service is busy, try again later."
+    }
+  }
+]

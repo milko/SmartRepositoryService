@@ -1,0 +1,152 @@
+[
+  {
+    "_key" : "NoCurrentUser",
+    "label" : {
+      "ISO:639:3:eng" : "Session has no current user: "
+    }
+  },
+  {
+    "_key" : "EmptyCollection",
+    "label" : {
+      "ISO:639:3:eng" : "Collection [@arg@] is empty: "
+    }
+  },
+  {
+    "_key" : "NoSession",
+    "label" : {
+      "ISO:639:3:eng" : "Session is missing: "
+    }
+  },
+  {
+    "_key" : "AuthFailed",
+    "label" : {
+      "ISO:639:3:eng" : "Authentication failed: "
+    }
+  },
+  {
+    "_key" : "NoRoles",
+    "label" : {
+      "ISO:639:3:eng" : "Missing user roles: "
+    }
+  },
+  {
+    "_key" : "InsertUser",
+    "label" : {
+      "ISO:639:3:eng" : "Unable to insert user: "
+    }
+  },
+  {
+    "_key" : "HasUsers",
+    "label" : {
+      "ISO:639:3:eng" : "The users collection is not empty: "
+    }
+  },
+  {
+    "_key" : "AuthManageUser",
+    "label" : {
+      "ISO:639:3:eng" : "Not authorised to manage users: "
+    }
+  },
+  {
+    "_key" : "NoAuthFile",
+    "label" : {
+      "ISO:639:3:eng" : "Authentication data file is missing: "
+    }
+  },
+  {
+    "_key" : "ParseAuthFile",
+    "label" : {
+      "ISO:639:3:eng" : "Unable to parse authentication file: "
+    }
+  },
+  {
+    "_key" : "AuthFormat",
+    "label" : {
+      "ISO:639:3:eng" : "Invalid authentication file format: "
+    }
+  },
+  {
+    "_key" : "NoDataDictionary",
+    "label" : {
+      "ISO:639:3:eng" : "Data dictionary missing or incomplete: "
+    }
+  },
+  {
+    "_key" : "BusyDatabase",
+    "label" : {
+      "ISO:639:3:eng" : "Database is busy: "
+    }
+  },
+  {
+    "_key" : "Unimplemented",
+    "label" : {
+      "ISO:639:3:eng" : "Item is not implemented: "
+    }
+  },
+  {
+    "_key" : "Unknown",
+    "label" : {
+      "ISO:639:3:eng" : "Unknown symbol: "
+    }
+  },
+  {
+    "_key" : "BadParam",
+    "label" : {
+      "ISO:639:3:eng" : "Incorrect parameter value: "
+    }
+  },
+  {
+    "_key" : "BadValue",
+    "label" : {
+      "ISO:639:3:eng" : "Incorrect value: "
+    }
+  },
+  {
+    "_key" : "BadValueType",
+    "label" : {
+      "ISO:639:3:eng" : "Incorrect value type: "
+    }
+  },
+  {
+    "_key" : "BadValueFormat",
+    "label" : {
+      "ISO:639:3:eng" : "Incorrect value format: "
+    }
+  },
+  {
+    "_key" : "BadCollection",
+    "label" : {
+      "ISO:639:3:eng" : "Invalid collection: "
+    }
+  },
+  {
+    "_key" : "ValRecIncomplete",
+    "label" : {
+      "ISO:639:3:eng" : "Incomplete validation record: "
+    }
+  },
+  {
+    "_key" : "NotAuthorised",
+    "label" : {
+      "ISO:639:3:eng" : "Not authorised: "
+    }
+  },
+  {
+    "_key" : "NoCollection",
+    "label" : {
+      "ISO:639:3:eng" : "Missing collection: "
+    }
+  },
+  {
+    "_key" : "BadTermReference",
+    "label" : {
+      "ISO:639:3:eng" : "Unable to reference term: "
+    }
+  },
+  {
+    "_key" : "ApplicationInUse",
+    "label" : {
+      "ISO:639:3:eng" : "Application is locked: "
+    }
+  }
+]

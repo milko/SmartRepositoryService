@@ -1,0 +1,48 @@
+{
+    "name": "DatasetAggregator",
+    "version": "0.0.0",
+    "description": "Ontology wrapper for datasets",
+    "engines": {
+        "arangodb": "^3.0.0"
+    },
+    "author": "Milko Skofic",
+    "license": "Apache 2",
+    "main": "main.js",
+    "scripts": {
+        "setup": "scripts/setup.js",
+        "teardown": "scripts/teardown.js"
+    },
+    "configuration": {
+        "defaultLanguage": {
+            "description": "Default language ISO code.",
+            "type": "string",
+            "required": true,
+            "default": "ISO:639:3:eng"
+        },
+        "cookieSecret": {
+            "description": "Cookie secret",
+            "type": "string",
+            "required": true,
+            "default": "3XGUjvTzF46UJPY8LLY3q8n9ttPkUtv6vdKGPpqrXMPnxRGR"
+        },
+        "algorithm": {
+            "description": "Default encryption algorythm",
+            "type": "string",
+            "required": true,
+            "default": "HS384"
+        },
+        "page": {
+            "description": "Default page size",
+            "type": "integer",
+            "required": true,
+            "default": 4096
+        },
+        "buffer": {
+            "description": "Default buffer size",
+            "type": "integer",
+            "required": true,
+            "default": 819200
+        }
+    },
+    "tests": "test/**/*.js"
+}
