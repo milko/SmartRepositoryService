@@ -185,24 +185,24 @@ router.post(
 
 
 /**
- * Test Application.createRequestSessionData()
+ * Test Application.createSessionData()
  *
- * The service will test the Application.createRequestSessionData() method.
+ * The service will test the Application.createSessionData() method.
  *
- * @path		/createRequestSessionData
+ * @path		/createSessionData
  * @verb		get
  * @response	{Object}	The operation result.
  */
 router.get(
-	'/createRequestSessionData',
+	'/createSessionData',
 	(request, response) =>
 	{
 		const test_module = require( '../../utils/Application' );
-		test_module.createRequestSessionData( request );
+		test_module.createSessionData( request );
 
 		response.send({ result : request });
 	},
-	'createRequestSessionData'
+	'createSessionData'
 )
 	.response(
 		200,
@@ -210,7 +210,7 @@ router.get(
 		"The request: check if it contains the 'application' field."
 	)
 	.summary(
-		"Test Application.createRequestSessionData()"
+		"Test Application.createSessionData()"
 	)
 	.description(dd`
   The service will test the Application.createRequestSessionData() method.
@@ -218,24 +218,57 @@ router.get(
 
 
 /**
- * Test Application.initRequestSessionData()
+ * Test Application.createAuthFile()
  *
- * The service will test the Application.initRequestSessionData() method.
+ * The service will test the Application.createAuthFile() method.
  *
- * @path		/initRequestSessionData
+ * @path		/createAuthFile
  * @verb		get
  * @response	{Object}	The operation result.
  */
 router.get(
-	'/initRequestSessionData',
+	'/createAuthFile',
 	(request, response) =>
 	{
 		const test_module = require( '../../utils/Application' );
-		test_module.initRequestSessionData( request );
+		const result = test_module.createAuthFile();
+
+		response.send({ result : result });
+	},
+	'createAuthFile'
+)
+	.response(
+		200,
+		[ 'application/json' ],
+		"The method result."
+	)
+	.summary(
+		"Test Application.createAuthFile()"
+	)
+	.description(dd`
+  The service will test the Application.createAuthFile() method.
+`);
+
+
+/**
+ * Test Application.initSessionData()
+ *
+ * The service will test the Application.initSessionData() method.
+ *
+ * @path		/initSessionData
+ * @verb		get
+ * @response	{Object}	The operation result.
+ */
+router.get(
+	'/initSessionData',
+	(request, response) =>
+	{
+		const test_module = require( '../../utils/Application' );
+		test_module.initSessionData( request );
 
 		response.send({ result : request });
 	},
-	'initRequestSessionData'
+	'initSessionData'
 )
 	.response(
 		200,
@@ -246,7 +279,7 @@ router.get(
 			session, .
 	`)
 	.summary(
-		"Test Application.initRequestSessionData()"
+		"Test Application.initSessionData()"
 	)
 	.description(dd`
   The service will test the Application.initRequestSessionData() method.
@@ -269,7 +302,7 @@ router.get(
 		const test_module = require( '../../utils/Application' );
 
 		if( ! request.hasOwnProperty( 'application' ) )
-			test_module.createRequestSessionData( request );
+			test_module.createSessionData( request );
 		const result = test_module.initApplicationStatus( request );
 
 		response.send({ result : result });
@@ -286,4 +319,124 @@ router.get(
 	)
 	.description(dd`
   The service will test the Application.initApplicationStatus() method.
+`);
+
+
+/**
+ * Test Application.adminAuthentication()
+ *
+ * The service will test the Application.adminAuthentication() method.
+ *
+ * @path		/adminAuthentication
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post(
+	'/adminAuthentication',
+	(request, response) =>
+	{
+		const refresh = request.body.refresh;
+		const test_module = require( '../../utils/Application' );
+		const result = test_module.adminAuthentication( refresh );
+
+		response.send({ result : result });
+	},
+	'adminAuthentication'
+)
+	.body(
+		Joi.object({
+					   refresh : Joi.boolean().default(false).required()
+				   }),
+		"Refresh flag."
+	)
+	.response(
+		200,
+		[ 'application/json' ],
+		"Application.adminAuthentication() result"
+	)
+	.summary(
+		"Test Application.adminAuthentication()"
+	)
+	.description(dd`
+  The service will test the Application.adminAuthentication() method.
+`);
+
+
+/**
+ * Test Application.userAuthentication()
+ *
+ * The service will test the Application.userAuthentication() method.
+ *
+ * @path		/userAuthentication
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post(
+	'/userAuthentication',
+	(request, response) =>
+	{
+		const refresh = request.body.refresh;
+		const test_module = require( '../../utils/Application' );
+		const result = test_module.userAuthentication( refresh );
+
+		response.send({ result : result });
+	},
+	'userAuthentication'
+)
+	.body(
+		Joi.object({
+					   refresh : Joi.boolean().default(false).required()
+				   }),
+		"Refresh flag."
+	)
+	.response(
+		200,
+		[ 'application/json' ],
+		"Application.userAuthentication() result"
+	)
+	.summary(
+		"Test Application.userAuthentication()"
+	)
+	.description(dd`
+  The service will test the Application.userAuthentication() method.
+`);
+
+
+/**
+ * Test Application.cookieSecret()
+ *
+ * The service will test the Application.cookieSecret() method.
+ *
+ * @path		/userAuthentication
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post(
+	'/cookieSecret',
+	(request, response) =>
+	{
+		const refresh = request.body.refresh;
+		const test_module = require( '../../utils/Application' );
+		const result = test_module.cookieSecret( refresh );
+
+		response.send({ result : result });
+	},
+	'cookieSecret'
+)
+	.body(
+		Joi.object({
+					   refresh : Joi.boolean().default(false).required()
+				   }),
+		"Refresh flag."
+	)
+	.response(
+		200,
+		[ 'application/json' ],
+		"Application.cookieSecret() result"
+	)
+	.summary(
+		"Test Application.cookieSecret()"
+	)
+	.description(dd`
+  The service will test the Application.cookieSecret() method.
 `);

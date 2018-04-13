@@ -6,6 +6,7 @@
 const fs = require('fs');
 const db = require('@arangodb').db;
 const aql = require('@arangodb').aql;
+const crypto = require('@arangodb/crypto');
 const errors = require('@arangodb').errors;
 const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 
@@ -270,7 +271,7 @@ class Application
 	 *
 	 * @param theRequest	{Object}	The request.
 	 */
-	static createRequestSessionData( theRequest )
+	static createSessionData( theRequest )
 	{
 		//
 		// Set application data property.
@@ -280,7 +281,111 @@ class Application
 			language : module.context.configuration.defaultLanguage
 		};
 
-	}	// createRequestSessionData
+	}	// createSessionData
+
+	/**
+	 * Create authentication file
+	 *
+	 * This method will create and initialise the authentication file, which resides
+	 * in the data directory. If the file exists the method will return false; if it
+	 * doesn't exist, the method will create it, initialise the administrator, user
+	 * and cookies authentication data.
+	 *
+	 * The contained object is structured as follows:
+	 *
+	 * 	admin:	An object containing the system administrator codes.
+	 * 		key:	The token key.
+	 * 		code:	The code.
+	 * 		pass:	The password.
+	 * 	user:	An object containing the user codes.
+	 * 		key:	The token key.
+	 * 		code:	The code.
+	 * 		pass:	The password.
+	 * 	cookie:	An object containing the cookie codes.
+	 * 		key:	The cookie secret.
+	 *
+	 * The user codes are all 16 character long, the cookie secret is 48 characters.
+	 *
+	 * The method will return an object indexed by the authentication data key with as
+	 * value a boolean indicating whether the element was created.
+	 *
+	 * Note: the method must not throw or fail.
+	 *
+	 * @returns {Object}	The operation status.
+	 */
+	static createAuthFile()
+	{
+		//
+		// Init local storage.
+		//
+		const result = { admin : false, user : false, cookie : false };
+
+		//
+		// Ensure directory.
+		//
+		if( ! fs.isDirectory( K.defaultDirectories.kData ) )
+			fs.makeDirectory( K.defaultDirectories.kData );
+
+		//
+		// Set file path.
+		//
+		const file = K.defaultDirectories.kData
+				   + fs.pathSeparator
+				   + 'auth.json';
+
+		//
+		// Get file contents.
+		//
+		let auth = {};
+		if( fs.isFile( file ) )
+		{
+			const contents = fs.read( file );
+			auth = JSON.parse( contents );
+		}
+
+		//
+		// Handle admin authentication.
+		//
+		if( ! auth.hasOwnProperty( 'admin' ) )
+		{
+			auth.admin = {};
+			auth.admin.key = crypto.genRandomAlphaNumbers( 16 );
+			auth.admin.code = crypto.genRandomAlphaNumbers( 16 );
+			auth.admin.pass = crypto.genRandomAlphaNumbers( 16 );
+			result.admin = true;
+		}
+
+		//
+		// Handle user authentication.
+		//
+		if( ! auth.hasOwnProperty( 'user' ) )
+		{
+			auth.user = {};
+			auth.user.key = crypto.genRandomAlphaNumbers( 16 );
+			auth.user.code = crypto.genRandomAlphaNumbers( 16 );
+			auth.user.pass = crypto.genRandomAlphaNumbers( 16 );
+			result.user = true;
+		}
+
+		//
+		// Handle cookie authentication.
+		//
+		if( ! auth.hasOwnProperty( 'cookie' ) )
+		{
+			auth.cookie = {};
+			auth.cookie.key = crypto.genRandomAlphaNumbers( 48 );
+			result.cookie = true;
+		}
+
+		//
+		// Refresh/create file.
+		//
+		if( result.admin || result.user || result.cookie )
+			fs.write( file, JSON.stringify( auth ) );
+
+		return result;																// ==>
+
+	}	// createAuthFile
 
 	/**
 	 * Init request session data
@@ -300,7 +405,7 @@ class Application
 	 *
 	 * @param theRequest	{Object}	The request, will receive the status.
 	 */
-	static initRequestSessionData( theRequest )
+	static initSessionData( theRequest )
 	{
 		//
 		// Check session.
@@ -394,7 +499,7 @@ class Application
 				)
 			);																	// !@! ==>
 
-	}	// initRequestSessionData
+	}	// initSessionData
 
 	/**
 	 * Init application status
@@ -557,6 +662,139 @@ class Application
 		return status_value;														// ==>
 
 	}	// initApplicationStatus
+
+	/**
+	 * Get admin authentication data
+	 *
+	 * This method will return the system adinistrator's authentication record, the
+	 * method expects both the directory and file to exists (must have called
+	 * createAuthFile() before; see that method for information on the data format,
+	 * the method will return the 'admin' record element.
+	 *
+	 * If the doRefresh flag is true, the method will refresh the record before
+	 * returning it.
+	 *
+	 * @param doRefresh	{boolean}	If true, the function will refresh the file.
+	 * @returns {Object}			The System administrator's authentication record.
+	 */
+	static adminAuthentication( doRefresh )
+	{
+		//
+		// Get authentication data.
+		// MUST NOT FAIL.
+		//
+		const file = K.defaultDirectories.kData + fs.pathSeparator + 'auth.json';
+		const auth = JSON.parse( fs.read( file ) );
+
+		//
+		// Refresh data.
+		//
+		if( doRefresh )
+		{
+			//
+			// Refresh data.
+			//
+			auth.admin.key = crypto.genRandomAlphaNumbers( 16 );
+			auth.admin.code = crypto.genRandomAlphaNumbers( 16 );
+			auth.admin.pass = crypto.genRandomAlphaNumbers( 16 );
+
+			//
+			// Refresh file.
+			//
+			fs.write( file, JSON.stringify( auth ) );
+		}
+
+		return auth.admin;															// ==>
+
+	}	// adminAuthentication
+
+	/**
+	 * Get user authentication data
+	 *
+	 * This method will return the user's authentication record, the method expects
+	 * both the directory and file to exists (must have called createAuthFile()
+	 * before; see that method for information on the data format, the method will
+	 * return the 'user' record element.
+	 *
+	 * If the doRefresh flag is true, the method will refresh the record before
+	 * returning it.
+	 *
+	 * @param doRefresh	{boolean}	If true, the function will refresh the file.
+	 * @returns {Object}			The System user's authentication record.
+	 */
+	static userAuthentication( doRefresh )
+	{
+		//
+		// Get authentication data.
+		// MUST NOT FAIL.
+		//
+		const file = K.defaultDirectories.kData + fs.pathSeparator + 'auth.json';
+		const auth = JSON.parse( fs.read( file ) );
+
+		//
+		// Refresh data.
+		//
+		if( doRefresh )
+		{
+			//
+			// Refresh data.
+			//
+			auth.user.key = crypto.genRandomAlphaNumbers( 16 );
+			auth.user.code = crypto.genRandomAlphaNumbers( 16 );
+			auth.user.pass = crypto.genRandomAlphaNumbers( 16 );
+
+			//
+			// Refresh file.
+			//
+			fs.write( file, JSON.stringify( auth ) );
+		}
+
+		return auth.user;															// ==>
+
+	}	// userAuthentication
+
+	/**
+	 * Get cookie secret
+	 *
+	 * This method will return the cookie secret, the method expects both the
+	 * directory and file to exists (must have called createAuthFile() before; see
+	 * that method for information on the data format, the method will return the
+	 * the cookie secret string.
+	 *
+	 * If the doRefresh flag is true, the method will refresh the record before
+	 * returning it.
+	 *
+	 * @param doRefresh	{boolean}	If true, the function will refresh the file.
+	 * @returns {String}			The cookie secret.
+	 */
+	static cookieSecret( doRefresh )
+	{
+		//
+		// Get authentication data.
+		// MUST NOT FAIL.
+		//
+		const file = K.defaultDirectories.kData + fs.pathSeparator + 'auth.json';
+		const auth = JSON.parse( fs.read( file ) );
+
+		//
+		// Refresh data.
+		//
+		if( doRefresh )
+		{
+			//
+			// Refresh data.
+			//
+			auth.cookie.key = crypto.genRandomAlphaNumbers( 48 );
+
+			//
+			// Refresh file.
+			//
+			fs.write( file, JSON.stringify( auth ) );
+		}
+
+		return auth.cookie.key;														// ==>
+
+	}	// cookieSecret
 
 }	// Application.
 

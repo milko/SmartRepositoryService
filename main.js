@@ -36,7 +36,7 @@ const Application = require( './utils/Application' );
 //
 // Globals.
 //
-const secret = module.context.configuration.cookieSecret;	// Cookie secret.
+const secret = Application.cookieSecret();					// Cookie secret.
 const timeout = 60 * 60 * 24 * 7;							// One week.
 const algo = 'sha256';										// Algorythm.
 
@@ -88,14 +88,14 @@ module.context.use(
 			// Init request session application data.
 			// Note: must not fail.
 			//
-			Application.createRequestSessionData( theRequest );
+			Application.createSessionData( theRequest );
 
 			//
 			// Init request session.
 			//
 			try
 			{
-				Application.initRequestSessionData( theRequest );
+				Application.initSessionData( theRequest );
 				Application.initApplicationStatus( theRequest );
 			}
 			catch( error )

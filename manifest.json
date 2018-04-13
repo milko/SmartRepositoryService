@@ -19,12 +19,6 @@
             "required": true,
             "default": "ISO:639:3:eng"
         },
-        "cookieSecret": {
-            "description": "Cookie secret",
-            "type": "string",
-            "required": true,
-            "default": "3XGUjvTzF46UJPY8LLY3q8n9ttPkUtv6vdKGPpqrXMPnxRGR"
-        },
         "algorithm": {
             "description": "Default encryption algorythm",
             "type": "string",

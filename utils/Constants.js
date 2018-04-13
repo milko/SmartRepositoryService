@@ -254,6 +254,7 @@ module.exports = Object.freeze(
 		// the directory path.
 		//
 		defaultDirectories : {
+			kData		: module.context.basePath + fs.pathSeparator + 'data',
 			kDictionary : module.context.basePath + fs.pathSeparator + 'dictionary'
 		},
 

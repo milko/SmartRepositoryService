@@ -25,6 +25,19 @@ else
 	);
 
 //
+// Initialise authentication file.
+//
+result = Application.createAuthFile();
+if( result.length )
+	console.debug(
+		`Created the following directories: ${result.toString()}.`
+	);
+else
+	console.debug(
+		`All required directories exist.`
+	);
+
+//
 // Initialise document collections.
 //
 result = Application.createDocumentCollections();
