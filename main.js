@@ -1,15 +1,37 @@
 'use strict';
 
 //
+// Timestamp.
+//
+const stamp = Date.now();
+
+//
 // Routes.
 //
 module.context.use('/users', require('./routes/users'), 'users');
+
+//
+// Test routes.
+//
+module.context.use('/test/Log', require('./routes/test/Log'), 'testLog');
+module.context.use('/test/Utils', require('./routes/test/Utils'), 'testUtils');
+module.context.use('/test/Errors', require('./routes/test/MyError'), 'testErrors');
+module.context.use('/test/Application', require('./routes/test/Application'), 'testApplication');
 
 //
 // Frameworks.
 //
 const db = require('@arangodb').db;
 const sessionsMiddleware = require( '@arangodb/foxx/sessions' );
+const cookieTransport = require('@arangodb/foxx/sessions/transports/cookie');
+
+//
+// Application.
+//
+const K = require( './utils/Constants' );
+const Log = require( './utils/Log' );
+const MyError = require( './utils/MyError' );
+const Application = require( './utils/Application' );
 
 //
 // Globals.
@@ -101,8 +123,19 @@ module.context.use(
 					theResponse.throw(
 						503,
 						new MyError(
-							'BusyDatabase',
-							K.error.CannotUseApp,
+							'ApplicationInUse',
+							K.error.ApplicationBusy,
+							theRequest.application.language
+						)
+					);															// !@! ==>
+					break;
+
+				case K.setting.status.app.state.error:
+					theResponse.throw(
+						500,
+						new MyError(
+							'ApplicationInUse',
+							K.error.ApplicationError,
 							theRequest.application.language
 						)
 					);															// !@! ==>

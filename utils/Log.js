@@ -72,6 +72,7 @@ class Log
 	 * @param theEnd		{Number}	The end timestamp.
 	 * @param theRequest	{Object}	The request.
 	 * @param theResponse	{Object}	The response.
+	 * @returns {String}|{null}         The log _id or null if not written.
 	 */
 	static writeEvent( theStart, theEnd, theRequest, theResponse )
 	{
@@ -123,7 +124,9 @@ class Log
 				//
 				try
 				{
-					kCollection.insert( doc );
+					const result = kCollection.insert( doc );
+
+					return result;                                                  // ==>
 				}
 				catch( error )
 				{
@@ -131,6 +134,8 @@ class Log
 				}
 			}
 		}
+
+		return null;                                                                // ==>
 
 	}	// writeEvent
 

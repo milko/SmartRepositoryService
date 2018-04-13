@@ -1,5 +1,10 @@
 'use strict';
 
+//
+// Frameworks.
+//
+const fs = require('fs');
+
 /**
  * Constants
  *
@@ -249,18 +254,15 @@ module.exports = Object.freeze(
 		// the directory path.
 		//
 		defaultDirectories : {
-			kDictionary	: module.context.basePath
-						+ fs.pathSeparator
-						+ 'dictionary'
+			kDictionary : module.context.basePath + fs.pathSeparator + 'dictionary'
 		},
-
 
 		//
 		// Errors.
 		//
 		error: {
 			MissingCollection	:  1,
-			CannotSession		:  2,
+			MissingSession		:  2,
 			UserNotFound		:  3,
 			BadPassword			:  4,
 			CannotSaveAdmin		:  5,
@@ -300,7 +302,9 @@ module.exports = Object.freeze(
 			NoAuthRole			: 39,
 			TermNotFound		: 40,
 			NoDataDictionary	: 41,
-			ApplicationBusy		: 42
+			ApplicationBusy		: 42,
+			NoSessionUID        : 43,
+			ApplicationError    : 44
 		},
 
 		//
@@ -313,7 +317,7 @@ module.exports = Object.freeze(
 					key			: 'application',	// key.
 					state : {						// Status:
 						ok		: 'OK',				// application is usable,
-						err		: 'ERROR',			// application is in error,
+						error	: 'ERROR',			// application is in error,
 						setting	: 'SETTINGS',		// missing settings collection,
 						busy	: 'BUSY',			// application is busy,
 						ddict	: 'DDICT'			// missing data dictionary data.

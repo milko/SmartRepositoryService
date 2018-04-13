@@ -12,9 +12,9 @@
     }
   },
   {
-    "_key" : "NoSession",
+    "_key" : "BadSession",
     "label" : {
-      "ISO:639:3:eng" : "Session is missing: "
+      "ISO:639:3:eng" : "Session is missing or invalid: "
     }
   },
   {

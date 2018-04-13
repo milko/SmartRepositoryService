@@ -1,6 +1,6 @@
-# README #
+# Dataset Ontology #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+Ontology wrapper for datasets.
 
 ### What is this repository for? ###
 
@@ -27,3 +27,10 @@ This README would normally document whatever steps are necessary to get your app
 
 * Repo owner or admin
 * Other community or team contact
+
+
+# License
+
+Copyright (c) 2018 Milko Skofic
+
+License: Apache 2

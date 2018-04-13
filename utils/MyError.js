@@ -168,6 +168,11 @@ class MyError extends Error
 				err.e_data = theName;
 				err.e_exch = error;
 				Log.writeError( err, error );
+
+				//
+				// Add colon.
+				//
+				return message + ': ';                                              // ==>
 			}
 		}
 		else
@@ -220,7 +225,7 @@ class MyError extends Error
 		// Handle numeric message.
 		//
 		if( isFinite( theCode )
-		 && (! isNaN( parseInt( theCode ) )) )
+			&& (! isNaN( parseInt( theCode ) )) )
 		{
 			//
 			// Get messages collection.
