@@ -3,7 +3,7 @@
 /**
  * Test services
  *
- * This path is used to test services.
+ * This path is used to test utilities.
  */
 
 //
@@ -43,33 +43,6 @@ module.exports = router;
 // Set router tags.
 //
 router.tag( 'testUtils' );
-
-
-/**
- * Ping
- *
- * The service will return pong.
- *
- * @path		/ping
- * @verb		get
- * @response	{String}	"pong".
- */
-router.get(
-	'/ping',
-	(request, response) => { response.send( 'pong' ); },
-	'ping'
-)
-	.response(
-		200,
-		[ 'application/text' ],
-		"The ping response"
-	)
-	.summary(
-		"Check if there"
-	)
-	.description(dd`
-  Returns a ping response
-`);
 
 
 /**

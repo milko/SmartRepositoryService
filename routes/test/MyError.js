@@ -3,7 +3,7 @@
 /**
  * Test services
  *
- * This path is used to test services.
+ * This path is used to test the MyError class.
  */
 
 //
