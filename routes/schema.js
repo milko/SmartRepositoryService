@@ -27,7 +27,8 @@ const Handlers = require( '../handlers/Schema' );		// Schema handlers.
 //
 // Schemas.
 //
-const SchemaIsEnumChoice = require( '../models/isEnumChoice' );
+const SchemaIsEnumChoice = require( '../models/schema/isEnumChoice' );
+const SchemaIsEnumBranch = require( '../models/schema/isEnumBranch' );
 
 //
 // Instantiate router.
@@ -44,7 +45,7 @@ router.tag( 'schema' );
 /**
  * Check if term is an enumeration choice
  *
- * The service will chack whether the provided term is an enumeration choice,
+ * The service will check whether the provided term is an enumeration choice,
  * it expects two parameters in the post body:
  * 	- term:		The term reference _key, it can be a scalar or an array of
  * 				references.
@@ -54,12 +55,10 @@ router.tag( 'schema' );
  * If the enumerations list is empty, the service will check if the provided
  * reference is of the enumeration choice instance.
  *
- * The service will return an object with the following fields:
- * 	- result:	An object:
- * 		- key:		The provided term reference.
- * 		- value:	A boolean indicating whether the term is an enumeration.
- * 	- time:		A floating point number indicating the duration of the operation
- * 				in milliseconds.
+ * The service will return an object with the 'result' field:
+ * 	- If the term reference was provided as a scalar, the value will be a boolean.
+ * 	- If an array of term references was provided, the value will be an object with
+ * 	  key the provided teference element and as value the boolean result.
  *
  * The service may raise an exceprion, the HTTP code depends on the exception
  * class: if MyError and it contains the HTTP code, this will be used, in all
@@ -67,8 +66,8 @@ router.tag( 'schema' );
  *
  * @path		/enum/isChoice
  * @verb		post
- * @request		{Object}	Authentication parameters and administrator user.
- * @response	{Object}	The newly created user.
+ * @request		{Object}	Term reference(s) and optional enumerations list.
+ * @response	{Object}	The result.
  */
 router.post(
 
@@ -89,16 +88,75 @@ router.post(
 )
 	.body(
 		SchemaIsEnumChoice,
-		'User credentials.'
+		"term: the term reference as _key or _id, either as a scalar or an array;" +
+		" enums: the optional list of enumerations, or an empty array."
 	)
 	.response(
 		200,
 		SchemaIsEnumChoice,
-		'The created system administrator.'
+		"An object with the 'result' field, the value will be a boolean, if the term" +
+		" reference was provided as a scalar, or an object with as key the provided" +
+		" reference element and the boolean result as value, if an array of term" +
+		" references was provided."
 	)
 	.summary(
-		"Create system administrator"
+		"Check if a term is an enumeration choice."
 	)
 	.description(dd`
-  Create system administrator user.
+  Check if term(s) are an enumeration choice or not.
+`);
+
+
+/**
+ * Check if term is an enumeration branch
+ *
+ * The service will check whether the provided term is an enumeration choice,
+ * it expects one parameter in the post body:
+ * 	- term:		The term reference _key, it can be a scalar or an array of
+ * 				references.
+ *
+ * The service will return an object with the 'result' field:
+ * 	- If the term reference was provided as a scalar, the value will be a boolean.
+ * 	- If an array of term references was provided, the value will be an object with
+ * 	  key the provided teference element and as value the boolean result.
+ *
+ * @path		/enum/isBranch
+ * @verb		post
+ * @request		{Object}	Term reference(s).
+ * @response	{Object}	The result.
+ */
+router.post(
+
+	//
+	// Path.
+	//
+	'/enum/isBranch',
+
+	//
+	// Handler.
+	//
+	Handlers.isEnumBranch,
+
+	//
+	// Name.
+	//
+	'enumIsBranch'
+)
+	.body(
+		SchemaIsEnumBranch,
+		"term: the term reference as _key or _id, either as a scalar or an array."
+	)
+	.response(
+		200,
+		SchemaIsEnumBranch,
+		"An object with the 'result' field, the value will be a boolean, if the term" +
+		" reference was provided as a scalar, or an object with as key the provided" +
+		" reference element and the boolean result as value, if an array of term" +
+		" references was provided."
+	)
+	.summary(
+		"Check if a term is an enumeration branch."
+	)
+	.description(dd`
+  Check if term(s) are an enumeration branch or not.
 `);

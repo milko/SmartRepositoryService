@@ -40,9 +40,7 @@ module.exports = {
 	 *	- The User's roles.
 	 *	- The user status.
 	 *
-	 * @param theResponse	{Object}	The response is the object
-	 * 									{ result : <result> }, where the result is
-	 * 									either the full user record, or null.
+	 * @param theResponse	{Object}	The service response.
 	 * @returns {Object}				The filtered user record, or null.
 	 */
 	forClient( theResponse )

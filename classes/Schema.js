@@ -84,7 +84,7 @@ class Schema
 			// Handle exceptions.
 			//
 			if( (! error.isArangoError)
-			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				|| (error.errorNum !== ARANGO_NOT_FOUND) )
 				throw( error );													// !@! ==>
 
 			//
@@ -147,6 +147,68 @@ class Schema
 		return false;																// ==>
 
 	}	// isEnumerationChoice
+
+	/**
+	 * Check if the term is an enumeration branch.
+	 *
+	 * This method will check whether the provided term is an enumeration branch.
+	 *
+	 * The method expects the following parameters:
+	 * 	- theRequest:	Current request.
+	 * 	- theTerm:		The term to check as _id or _key field.
+	 *
+	 * The method will return a boolean, true if successful or false if not; if
+	 * yu provide an array in 'theTerm', the method will return an object
+	 * indexed by the array element and with the result as value.
+	 *
+	 * The method will not raise an exception if the provided term reference is not
+	 * found.
+	 *
+	 * The class expects the data dictionary to be initialised, this must be
+	 * checked beforehand by the caller.
+	 *
+	 * @param theRequest	{Object}			The current request.
+	 * @param theTerm		{String}|{Array}	The enumeration _key.
+	 * @returns {Boolean}|{Object}				True or false.
+	 */
+	static isEnumerationBranch( theRequest, theTerm )
+	{
+		//
+		// Handle array.
+		//
+		if( Array.isArray( theTerm ) )
+		{
+			const result = {};
+			for( const item of theTerm )
+				result[ item ] = this.isEnumerationBranch( theRequest, item );
+
+			return result;															// ==>
+		}
+
+		//
+		// Normalise term reference.
+		//
+		const term_name = 'terms/';
+		const term_ref  = ( theTerm.startsWith( term_name ) )
+						? theTerm
+						: term_name + theTerm;
+
+		//
+		// Query schemas.
+		//
+		const predicate = term_name + Dict.term.kPredicateEnumOf;
+		const result =
+			db._query( aql`
+				FOR item IN ${db._collection('schemas')}
+					FILTER item.predicate == ${predicate}
+					   AND ${term_ref} IN item.branches
+				LIMIT 1
+				RETURN item._key
+			`);
+
+		return( result.count() > 0 );												// ==>
+
+	}	// isEnumerationBranch
 
 }	// Schema.
 
