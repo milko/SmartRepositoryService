@@ -1,5 +1,19 @@
 'use strict';
 
+//
+// Framework.
+//
+const db = require('@arangodb').db;
+const createAuth = require('@arangodb/foxx/auth');
+
+//
+// Application.
+//
+const K = require( '../utils/Constants' );
+const Dict = require( '../dictionary/Dict' );
+const MyError = require( '../utils/MyError' );
+
+
 /**
  * Session services
  *
@@ -69,19 +83,6 @@ module.exports = {
 	 */
 	login : ( theRequest, theResponse ) =>
 	{
-		//
-		// Init framework.
-		//
-		const db = require('@arangodb').db;
-		const createAuth = require('@arangodb/foxx/auth');
-
-		//
-		// Init application.
-		//
-		const K = require( '../utils/Constants' );
-		const Dict = require( '../dictionary/Dict' );
-		const MyError = require( '../utils/MyError' );
-
 		//
 		// Get credentials.
 		//

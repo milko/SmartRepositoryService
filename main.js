@@ -4,6 +4,7 @@
 // Routes.
 //
 module.context.use( "/session", require( './routes/session'), 'session');
+module.context.use( "/schema", require( './routes/schema'), 'schema');
 
 //
 // Test routes.
