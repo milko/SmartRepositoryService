@@ -62,3 +62,20 @@ else
 	console.debug(
 		`All required edge collections exist.`
 	);
+
+//
+// Initialise data dictionary.
+//
+result = Application.createDataDictionary( false );
+if( result === true )
+	console.debug(
+		`Created the data dictionary.`
+	);
+else if( result === null )
+	console.debug(
+		`Data dictionary exists.`
+	);
+else
+	console.debug(
+		`Unable to create data dictionary.`
+	);
