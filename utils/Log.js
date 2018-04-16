@@ -26,6 +26,7 @@ const kCollection = db._collection( 'logs' );
  *
  * 	start:		Creation time stamp (request.stamp.start).
  * 	end:		Termination time stamp (request.stamp.end).
+ * 	time:		Service duration in milliseconds.
  * 	status:		Status code (response.statusCode).
  * 	session:	Session reference (session _key).
  * 	user:		User reference (request.session.uid).
@@ -57,6 +58,7 @@ class Log
 	 *
 	 * 	start:		Creation time stamp (request.stamp.start).
 	 * 	end:		Termination time stamp (request.stamp.end).
+	 * 	time:		Service duration in milliseconds.
 	 * 	status:		Status code (response.statusCode).
 	 * 	session:	Session reference (session _key).
 	 * 	user:		User reference (request.session.uid).
@@ -70,11 +72,12 @@ class Log
 	 *
 	 * @param theStart		{Number}	The start timestamp.
 	 * @param theEnd		{Number}	The end timestamp.
+	 * @param theDuration	{Number}	The duration in milliseconds.
 	 * @param theRequest	{Object}	The request.
 	 * @param theResponse	{Object}	The response.
 	 * @returns {String}|{null}         The log _id or null if not written.
 	 */
-	static writeEvent( theStart, theEnd, theRequest, theResponse )
+	static writeEvent( theStart, theEnd, theDuration, theRequest, theResponse )
 	{
 		//
 		// Check collection.
@@ -97,6 +100,7 @@ class Log
 				//
 				doc.start	= theStart;
 				doc.end		= theEnd;
+				doc.time	= theDuration;
 				doc.status	= theResponse.statusCode;
 
 				//

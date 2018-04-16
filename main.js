@@ -1,14 +1,9 @@
 'use strict';
 
 //
-// Timestamp.
-//
-const stamp = Date.now();
-
-//
 // Routes.
 //
-module.context.use('/users', require('./routes/users'), 'users');
+module.context.use( "/session", require( './routes/session'), 'session');
 
 //
 // Test routes.
@@ -22,6 +17,7 @@ module.context.use('/test/Application', require('./routes/test/Application'), 't
 // Frameworks.
 //
 const db = require('@arangodb').db;
+const time = require('@arangodb').time;
 const sessionsMiddleware = require( '@arangodb/foxx/sessions' );
 const cookieTransport = require('@arangodb/foxx/sessions/transports/cookie');
 
@@ -32,6 +28,12 @@ const K = require( './utils/Constants' );
 const Log = require( './utils/Log' );
 const MyError = require( './utils/MyError' );
 const Application = require( './utils/Application' );
+
+//
+// Timestamps.
+//
+const start = time();
+const stamp = Date.now();
 
 //
 // Globals.
@@ -145,10 +147,16 @@ module.context.use(
 			//
 			// Handle logout.
 			// Need to call it here, because logs
-			// are only written against a current session user.
+			// are only written with a current session user.
 			//
 			if( theRequest.path === "/users/logout" )
-				Log.writeEvent( stamp, Date.now(), theRequest, theResponse );
+				Log.writeEvent(
+					stamp,				// Start timestamp.
+					Date.now(),			// End timestamp.
+					time() - start,		// Duration in milliseconds.
+					theRequest,			// Request.
+					theResponse			// Response.
+				);
 
 			//
 			// Execute handler.
@@ -163,8 +171,15 @@ module.context.use(
 		{
 			//
 			// Write log entry.
+			// Will write only if there is a current user.
 			//
-			Log.writeEvent( stamp, Date.now(), theRequest, theResponse );
+			Log.writeEvent(
+				stamp,				// Start timestamp.
+				Date.now(),			// End timestamp.
+				time() - start,		// Duration in milliseconds.
+				theRequest,			// Request.
+				theResponse			// Response.
+			);
 		}
 	}
 );

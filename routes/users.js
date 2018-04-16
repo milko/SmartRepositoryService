@@ -1,3 +1,4 @@
+/*
 'use strict';
 
 
@@ -157,3 +158,4 @@ router.delete(':key', function (req, res) {
 	.description(dd`
   Deletes a user from the database.
 `);
+*/
