@@ -129,7 +129,7 @@ class Schema
 					FOR item IN ${db._collection('schemas')}
 						FILTER item._from == ${term._id}
 						   AND item.predicate == ${predicate}
-						   AND item.branches ANY IN ${theEnums}
+						   AND ${theEnums} ANY IN item.branches
 						LIMIT 1
 						RETURN item._key
 					`);
