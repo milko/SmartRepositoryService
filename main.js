@@ -149,7 +149,7 @@ module.context.use(
 			// Need to call it here, because logs
 			// are only written with a current session user.
 			//
-			if( theRequest.path === "/users/logout" )
+			if( theRequest.path === "/session/logout" )
 				Log.writeEvent(
 					stamp,				// Start timestamp.
 					Date.now(),			// End timestamp.

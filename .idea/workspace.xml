@@ -2,16 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6e2f10f2-5b87-4403-af59-695082c0e2a0" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/handlers/Session.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/models/SessionSchemas.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/models/login.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/models/whoami.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/routes/session.js" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/handlers/Session.js" afterPath="$PROJECT_DIR$/handlers/Session.js" />
       <change beforePath="$PROJECT_DIR$/main.js" afterPath="$PROJECT_DIR$/main.js" />
-      <change beforePath="$PROJECT_DIR$/models/user.js" afterPath="$PROJECT_DIR$/models/user.js" />
-      <change beforePath="$PROJECT_DIR$/routes/users.js" afterPath="$PROJECT_DIR$/routes/users.js" />
-      <change beforePath="$PROJECT_DIR$/utils/Log.js" afterPath="$PROJECT_DIR$/utils/Log.js" />
+      <change beforePath="$PROJECT_DIR$/routes/session.js" afterPath="$PROJECT_DIR$/routes/session.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -35,11 +28,23 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="main.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/main.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="520">
+              <caret line="151" column="45" lean-forward="false" selection-start-line="151" selection-start-column="45" selection-end-line="151" selection-end-column="45" />
+              <folding>
+                <marker date="1523882429527" expanded="true" signature="3387:3480" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="Session.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/handlers/Session.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1980">
-              <caret line="132" column="88" lean-forward="true" selection-start-line="132" selection-start-column="88" selection-end-line="132" selection-end-column="88" />
+            <state relative-caret-position="698">
+              <caret line="171" column="0" lean-forward="true" selection-start-line="171" selection-start-column="0" selection-end-line="171" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -58,8 +63,8 @@
       <file leaf-file-name="session.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/routes/session.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="459">
-              <caret line="172" column="14" lean-forward="true" selection-start-line="172" selection-start-column="14" selection-end-line="172" selection-end-column="14" />
+            <state relative-caret-position="263">
+              <caret line="199" column="18" lean-forward="true" selection-start-line="199" selection-start-column="18" selection-end-line="199" selection-end-column="18" />
               <folding />
             </state>
           </provider>
@@ -75,11 +80,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="whoami.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="whoami.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/models/whoami.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="5" column="74" lean-forward="false" selection-start-line="5" selection-start-column="74" selection-end-line="5" selection-end-column="74" />
+            <state relative-caret-position="315">
+              <caret line="21" column="18" lean-forward="true" selection-start-line="21" selection-start-column="18" selection-end-line="21" selection-end-column="18" />
               <folding />
             </state>
           </provider>
@@ -88,7 +93,7 @@
       <file leaf-file-name="login.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/models/login.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="144">
+            <state relative-caret-position="159">
               <caret line="22" column="0" lean-forward="true" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
               <folding />
             </state>
@@ -145,14 +150,14 @@
         <option value="$PROJECT_DIR$/models/schemaUser.js" />
         <option value="$PROJECT_DIR$/models/user.js" />
         <option value="$PROJECT_DIR$/routes/users.js" />
-        <option value="$PROJECT_DIR$/main.js" />
-        <option value="$PROJECT_DIR$/handlers/Session.js" />
-        <option value="$PROJECT_DIR$/routes/session.js" />
         <option value="$PROJECT_DIR$/models/Schemas.js" />
         <option value="$PROJECT_DIR$/models/sessionUser.js" />
         <option value="$PROJECT_DIR$/models/SessionSchemas.js" />
         <option value="$PROJECT_DIR$/models/login.js" />
         <option value="$PROJECT_DIR$/models/whoami.js" />
+        <option value="$PROJECT_DIR$/handlers/Session.js" />
+        <option value="$PROJECT_DIR$/routes/session.js" />
+        <option value="$PROJECT_DIR$/main.js" />
       </list>
     </option>
   </component>
@@ -301,7 +306,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="32888000" />
+    <option name="totallyTimeSpent" value="33571000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
@@ -390,7 +395,7 @@
         <state relative-caret-position="405">
           <caret line="27" column="2" lean-forward="false" selection-start-line="27" selection-start-column="2" selection-end-line="27" selection-end-column="2" />
           <folding>
-            <marker date="1523877088608" expanded="true" signature="3387:3480" ph="..." />
+            <marker date="1523882429527" expanded="true" signature="3387:3480" ph="..." />
           </folding>
         </state>
       </provider>
@@ -472,7 +477,7 @@
         <state relative-caret-position="1770">
           <caret line="118" column="0" lean-forward="false" selection-start-line="118" selection-start-column="0" selection-end-line="118" selection-end-column="0" />
           <folding>
-            <marker date="1523877088608" expanded="true" signature="3387:3480" ph="..." />
+            <marker date="1523882429527" expanded="true" signature="3387:3480" ph="..." />
           </folding>
         </state>
       </provider>
@@ -617,16 +622,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="16" column="14" lean-forward="true" selection-start-line="16" selection-start-column="14" selection-end-line="16" selection-end-column="14" />
-          <folding>
-            <marker date="1523877088608" expanded="true" signature="3387:3480" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/utils/Log.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3090">
@@ -643,26 +638,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/routes/session.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
-          <caret line="172" column="14" lean-forward="true" selection-start-line="172" selection-start-column="14" selection-end-line="172" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/Schemas.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1305">
           <caret line="87" column="0" lean-forward="false" selection-start-line="87" selection-start-column="0" selection-end-line="87" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/handlers/Session.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1980">
-          <caret line="132" column="88" lean-forward="true" selection-start-line="132" selection-start-column="88" selection-end-line="132" selection-end-column="88" />
           <folding />
         </state>
       </provider>
@@ -701,17 +680,43 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/models/login.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
+        <state relative-caret-position="159">
           <caret line="22" column="0" lean-forward="true" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/handlers/Session.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="698">
+          <caret line="171" column="0" lean-forward="true" selection-start-line="171" selection-start-column="0" selection-end-line="171" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/models/whoami.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" column="74" lean-forward="false" selection-start-line="5" selection-start-column="74" selection-end-line="5" selection-end-column="74" />
+        <state relative-caret-position="315">
+          <caret line="21" column="18" lean-forward="true" selection-start-line="21" selection-start-column="18" selection-end-line="21" selection-end-column="18" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/session.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="263">
+          <caret line="199" column="18" lean-forward="true" selection-start-line="199" selection-start-column="18" selection-end-line="199" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="520">
+          <caret line="151" column="45" lean-forward="false" selection-start-line="151" selection-start-column="45" selection-end-line="151" selection-end-column="45" />
+          <folding>
+            <marker date="1523882429527" expanded="true" signature="3387:3480" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>

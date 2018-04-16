@@ -33,6 +33,7 @@ module.exports = {
 	 *
 	 * @param theRequest	{Object}	The current request.
 	 * @param theResponse	{Object}	The current response.
+	 * @returns {Object}				The object { result : <user>|null }.
 	 */
 	whoami : ( theRequest, theResponse ) =>
 	{
@@ -58,8 +59,13 @@ module.exports = {
 	 *
 	 * Logs user in and returns its record: { user ; <user> }.
 	 *
+	 * The service throws the following exceptions:
+	 * 	- User not found: 404.
+	 * 	- Invalid credentials: 403.
+	 *
 	 * @param theRequest	{Object}	username and password.
 	 * @param theResponse	{Object}	The user.
+	 * @returns {Object}				The object { result : <user> }.
 	 */
 	login : ( theRequest, theResponse ) =>
 	{
@@ -130,7 +136,39 @@ module.exports = {
 		//
 		theRequest.application.user = user;
 
-		theResponse.send({ result : user });											// ==>
+		theResponse.send({ result : user });										// ==>
 
 	},	// login
+
+	/**
+	 * Logout
+	 *
+	 * Logout user and return former user: { user : <former user>|null }.
+	 *
+	 * @param theRequest	{Object}	Current request.
+	 * @param theResponse	{Object}	Current response.
+	 * @returns {Object}				The object { result : <former user>|null }.
+	 */
+	logout : ( theRequest, theResponse ) =>
+	{
+		//
+		// Logout user.
+		//
+		theRequest.session.uid = null;
+		theRequest.session.data = {};
+		theRequest.sessionStorage.save( theRequest.session );
+
+		//
+		// Save current user.
+		//
+		const user = theRequest.application.user;
+
+		//
+		// Reset user in request.
+		//
+		theRequest.application.user = null;
+
+		theResponse.send({ result : user });										// ==>
+
+	},	// logout
 };

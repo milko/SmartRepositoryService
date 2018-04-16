@@ -189,3 +189,43 @@ router.post(
 	.description(dd`
   Login user and return record.
 `);
+
+
+/**
+ * Logout
+ *
+ * The service will logout the current user and return the former user record;
+ * if there was no former user, the service will return a null 'username' property.
+ *
+ * @path		/logout
+ * @verb		get
+ * @response	{Object}	Former user record.
+ */
+router.get(
+
+	//
+	// Path.
+	//
+	'/logout',
+
+	//
+	// Handler.
+	//
+	Handlers.logout,
+
+	//
+	// Name.
+	//
+	'logout'
+)
+	.response(
+		200,
+		SchemaWhoami,
+		'The former user record.'
+	)
+	.summary(
+		"Logout current user"
+	)
+	.description(dd`
+  Logout and return former current user.
+`);
