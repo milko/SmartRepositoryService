@@ -2,17 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6e2f10f2-5b87-4403-af59-695082c0e2a0" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/models/schema/getEnumPath.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/Dictionary.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/Schema.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Schema.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handlers/Schema.js" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/Schema.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/schema/isEnumBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/schema/isEnumBranch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/schema/isEnumChoice.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/schema/isEnumChoice.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paw/Schema.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Schema.paw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/schema.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/schema.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/test/Schema.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/test/Schema.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -24,13 +14,16 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FavoritesManager">
+    <favorites_list name="APP" />
+  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Schema.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Schema.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/classes/Schema.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3179">
-              <caret line="504" column="40" lean-forward="true" selection-start-line="504" selection-start-column="40" selection-end-line="504" selection-end-column="40" />
+            <state relative-caret-position="237">
+              <caret line="568" column="34" lean-forward="true" selection-start-line="568" selection-start-column="34" selection-end-line="568" selection-end-column="34" />
             </state>
           </provider>
         </entry>
@@ -38,7 +31,7 @@
       <file leaf-file-name="Schema.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/routes/test/Schema.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="501">
+            <state relative-caret-position="4905">
               <caret line="327" selection-start-line="318" selection-end-line="327" />
             </state>
           </provider>
@@ -47,7 +40,7 @@
       <file leaf-file-name="Dictionary.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils/Dictionary.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="545">
+            <state relative-caret-position="780">
               <caret line="52" column="5" lean-forward="true" selection-start-line="52" selection-start-column="5" selection-end-line="52" selection-end-column="5" />
             </state>
           </provider>
@@ -56,7 +49,7 @@
       <file leaf-file-name="Schema.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/handlers/Schema.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-250">
+            <state relative-caret-position="1875">
               <caret line="125" column="50" lean-forward="true" selection-start-line="125" selection-start-column="50" selection-end-line="125" selection-end-column="50" />
             </state>
           </provider>
@@ -65,12 +58,8 @@
       <file leaf-file-name="schema.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/routes/schema.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1538">
+            <state relative-caret-position="4545">
               <caret line="303" column="25" selection-start-line="303" selection-start-column="25" selection-end-line="303" selection-end-column="25" />
-              <folding>
-                <element signature="e#1506#1511#0" expanded="true" />
-                <element signature="e#1676#1681#0" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -78,16 +67,16 @@
       <file leaf-file-name="isEnumChoice.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/models/schema/isEnumChoice.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="291">
+            <state relative-caret-position="300">
               <caret line="20" selection-start-line="16" selection-end-line="20" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="getEnumPath.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="getEnumPath.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/models/schema/getEnumPath.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="246">
+            <state relative-caret-position="525">
               <caret line="35" column="28" selection-start-line="35" selection-start-column="28" selection-end-line="35" selection-end-column="28" />
             </state>
           </provider>
@@ -182,13 +171,13 @@
         <option value="$PROJECT_DIR$/models/login.js" />
         <option value="$PROJECT_DIR$/utils/Constants.js" />
         <option value="$PROJECT_DIR$/utils/Dictionary.js" />
-        <option value="$PROJECT_DIR$/classes/Schema.js" />
         <option value="$PROJECT_DIR$/routes/test/Schema.js" />
         <option value="$PROJECT_DIR$/models/schema/isEnumChoice.js" />
         <option value="$PROJECT_DIR$/models/schema/isEnumBranch.js" />
         <option value="$PROJECT_DIR$/handlers/Schema.js" />
         <option value="$PROJECT_DIR$/routes/schema.js" />
         <option value="$PROJECT_DIR$/models/schema/getEnumPath.js" />
+        <option value="$PROJECT_DIR$/classes/Schema.js" />
       </list>
     </option>
   </component>
@@ -335,50 +324,51 @@
       <workItem from="1523951017212" duration="9979000" />
       <workItem from="1523966160790" duration="38000" />
       <workItem from="1523966258018" duration="11486000" />
+      <workItem from="1523980503618" duration="3300000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="62946000" />
+    <option name="totallyTimeSpent" value="66246000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.32724383" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49943247" weight="0.32724383" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info id="Structure" order="2" weight="0.2494043" />
+      <window_info active="true" id="Structure" order="2" visible="true" weight="0.2494043" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info id="Favorites" order="1" side_tool="true" />
+      <window_info id="Favorites" order="1" sideWeight="0.50056756" side_tool="true" weight="0.32724383" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.3295583" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3295583" />
     </layout>
     <layout-to-restore>
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Docker" order="10" show_stripe_button="false" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.32803813" />
       <window_info id="Structure" order="1" weight="0.2494043" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3295583" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Terminal" order="9" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
-      <window_info anchor="bottom" id="Version Control" order="8" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.3295583" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Message" order="0" />
       <window_info id="Favorites" order="2" side_tool="true" />
     </layout-to-restore>
   </component>
@@ -398,10 +388,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2055">
           <caret line="137" column="25" selection-start-line="137" selection-start-column="25" selection-end-line="137" selection-end-column="25" />
-          <folding>
-            <element signature="e#1506#1511#0" expanded="true" />
-            <element signature="e#1676#1681#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -627,23 +613,16 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Schema.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3179">
-          <caret line="504" column="40" lean-forward="true" selection-start-line="504" selection-start-column="40" selection-end-line="504" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/routes/test/Schema.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="501">
+        <state relative-caret-position="4905">
           <caret line="327" selection-start-line="318" selection-end-line="327" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/Dictionary.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="545">
+        <state relative-caret-position="780">
           <caret line="52" column="5" lean-forward="true" selection-start-line="52" selection-start-column="5" selection-end-line="52" selection-end-column="5" />
         </state>
       </provider>
@@ -657,33 +636,36 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/models/schema/isEnumChoice.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="291">
+        <state relative-caret-position="300">
           <caret line="20" selection-start-line="16" selection-end-line="20" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/handlers/Schema.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-250">
+        <state relative-caret-position="1875">
           <caret line="125" column="50" lean-forward="true" selection-start-line="125" selection-start-column="50" selection-end-line="125" selection-end-column="50" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/routes/schema.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1538">
+        <state relative-caret-position="4545">
           <caret line="303" column="25" selection-start-line="303" selection-start-column="25" selection-end-line="303" selection-end-column="25" />
-          <folding>
-            <element signature="e#1506#1511#0" expanded="true" />
-            <element signature="e#1676#1681#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/models/schema/getEnumPath.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="246">
+        <state relative-caret-position="525">
           <caret line="35" column="28" selection-start-line="35" selection-start-column="28" selection-end-line="35" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Schema.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="237">
+          <caret line="568" column="34" lean-forward="true" selection-start-line="568" selection-start-column="34" selection-end-line="568" selection-end-column="34" />
         </state>
       </provider>
     </entry>
