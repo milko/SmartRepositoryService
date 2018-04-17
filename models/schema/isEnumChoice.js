@@ -3,13 +3,7 @@
 //
 // Frameworks.
 //
-const _ = require('lodash');							// WTF?
 const Joi = require('joi');								// Validation framework.
-
-//
-// Application.
-//
-const Dict = require( '../../dictionary/Dict' );			// Dictionary.
 
 //
 // Schema.
@@ -18,12 +12,13 @@ module.exports = {
 
 	/**
 	 * Parameters schema
-	 *
-	 * Ensure username and password are provided.
 	 */
 	schema : {
-		term : Joi.any().required(),
-		enums: Joi.array().items(Joi.string())
+		term : Joi.alternatives().try(
+			Joi.string().required(),
+			Joi.array().items(Joi.string())
+		).required(),
+		enums: Joi.array().default([])
 	},
 
 	/**
@@ -43,7 +38,7 @@ module.exports = {
 	 * Transform request
 	 *
 	 * Transform the service parameters request.
-	 * We normalise the parameters
+	 * We do nothing here.
 	 *
 	 * @param theRequest	{*}	The service parameters.
 	 * @returns {*}				No transformation.
