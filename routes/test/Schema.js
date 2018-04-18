@@ -279,9 +279,10 @@ router.post
 			const result =
 				Schema.getEnumPath(
 					request,
-					request.body.leaf,
-					request.body.branch,
 					request.body.root,
+					request.body.branch,
+					request.body.minDepth,
+					request.body.maxDepth,
 					request.body.vField,
 					request.body.eField,
 					request.body.doRoot,
@@ -316,15 +317,16 @@ router.post
 )
 	.body(
 		Joi.object({
-			leaf		: Joi.string().required(),
-			branch		: Joi.string().required(),
 			root		: Joi.string().required(),
+			branch		: Joi.string().required(),
+			minDepth	: Joi.any().required(),
+			maxDepth	: Joi.any().required(),
 			vField		: Joi.any().required(),
 			eField		: Joi.any().required(),
 			doRoot		: Joi.boolean().required(),
 			doChoice	: Joi.boolean().required(),
 			doLanguage	: Joi.boolean().required(),
-			doEdge	: Joi.boolean().required()
+			doEdge		: Joi.boolean().required()
 		}),
 		"Method parameters."
 	)
@@ -377,19 +379,6 @@ router.post
 			//
 			// Make test.
 			//
-			/*
-			 theRequest,
-			 theRoot,
-			 theBranch = null,
-			 theMinDepth = null,
-			 theMaxDepth = null,
-			 theVertexFld = null,
-			 theEdgeFld = null,
-			 doRoot = true,
-			 doChoices = false,
-			 doLanguage = false,
-			 doEdge = false
-			 */
 			const result =
 				Schema.getEnumList(
 					request,
@@ -406,9 +395,9 @@ router.post
 				);
 
 			response.send({
-							  what : result,
-							  time : time() - stamp
-						  });
+				what : result,
+				time : time() - stamp
+			});
 		}
 		catch( error )
 		{

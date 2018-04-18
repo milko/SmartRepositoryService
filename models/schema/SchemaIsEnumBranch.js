@@ -5,20 +5,28 @@
 //
 const Joi = require('joi');								// Validation framework.
 
-//
-// Schema.
-//
+/**
+ * Check if term is an enumeration
+ *
+ * This schema expects one parameter:
+ *
+ * 	- term:	The term to check, it must be a term _id or _key or an array of such
+ * 			references.
+ *
+ * @type {Object}
+ */
 module.exports = {
 
 	/**
 	 * Parameters schema
+	 *
+	 * Ensure username and password are provided.
 	 */
 	schema : {
 		term : Joi.alternatives().try(
 			Joi.string().required(),
-			Joi.array().items(Joi.string())
-		).required(),
-		enums: Joi.array().default([])
+			Joi.array().items(Joi.string()).required()
+		).required()
 	},
 
 	/**
@@ -40,8 +48,8 @@ module.exports = {
 	 * Transform the service parameters request.
 	 * We do nothing here.
 	 *
-	 * @param theRequest	{*}	The service parameters.
-	 * @returns {*}				No transformation.
+	 * @param theRequest	{Object}	The service parameters.
+	 * @returns {Object}				No transformation.
 	 */
 	fromClient( theRequest )
 	{
