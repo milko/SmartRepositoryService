@@ -6,20 +6,20 @@
 const Joi = require('joi');
 
 /**
- * Get enumerations list
+ * Get enumerations tree
  *
- * This schema is used to check parameters destined to the getEnumList and getEnumPath
- * services, it defines the following fields:
+ * This schema is used to check parameters destined to the getEnumTree service, it
+ * defines the following fields:
  *
  * 	- origin:		Determines the traversal origin node, it must be provided as
  * 					the term _id or _key.
  * 	- branch:		Determines which branch to follow, it must be provided as the
  * 					term _id or _key.
  * 	- minDepth:		Represents the minimum depth of the traversal, it must be
- * 					provided as an integer, or can be null, to ignore it. (default is
+ * 					provided as an integer, or can be 0, to ignore it. (default is
  * 					null).
  * 	- maxDepth:		Represents the maximum depth of the traversal, it must be
- * 					provided as an integer, or can be null, to ignore it. (default is
+ * 					provided as an integer, or can be 0, to ignore it. (default is
  * 					null).
  * 	- vField:		References the field(s) that should be included in the vertex.
  * 					The value can be a string representing the requested vertex field,
@@ -30,9 +30,6 @@ const Joi = require('joi');
  * 					This parameter behaves exactly as the previous one, except
  * 					that it refers to edges; this parameter is only relevant if
  * 					the 'doEdge' parameter is true.
- * 	- doChoices:	A boolean flag, if this parameter is true, only enumeration choices,
- * 					nodes pointed by the 'enum-of' predicate, will be included in the
- * 					results. (default is false).
  * 	- doLanguage:	If this parameter is true, the label, definition, description,
  * 					note and example of both the vertex and the edge, if
  * 					requested, will be set to the current session language. This
@@ -68,7 +65,6 @@ module.exports = {
 			Joi.array().items(Joi.string()),
 			null
 		).default(null),
-		doChoice	: Joi.boolean().default(false),
 		doLanguage	: Joi.boolean().default(false),
 		doEdge		: Joi.boolean().default(false)
 	},
