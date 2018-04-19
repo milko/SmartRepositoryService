@@ -25,13 +25,14 @@ module.exports = {
 	 */
 	schema : {
 		term : Joi.alternatives().try(
-			Joi.string().required(),
+			Joi.string(),
 			Joi.array().items(Joi.string())
 		).required(),
 		enum: Joi.alternatives().try(
+			Joi.string(),
 			Joi.array().items(Joi.string()),
 			null
-		).default(null)
+		).default([])
 	},
 
 	/**
@@ -51,13 +52,26 @@ module.exports = {
 	 * Transform request
 	 *
 	 * Transform the service parameters request.
-	 * We do nothing here.
+	 * We cast an eventual enumeration scalar to an array.
 	 *
 	 * @param theRequest	{Object}	The service parameters.
 	 * @returns {Object}				No transformation.
 	 */
 	fromClient( theRequest )
 	{
+		//
+		// Aet enumeration choices if missing.
+		//
+		if( ! theRequest.hasOwnProperty( 'enum' ) )
+			theRequest.enum = [];
+
+		//
+		// Cast enumerations list to array.
+		//
+		else if( (theRequest.enum !== null)
+			  && (! Array.isArray( theRequest.enum )) )
+			theRequest.enum = [ theRequest.enum ];
+
 		return theRequest;															// ==>
 	}
 };

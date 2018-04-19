@@ -11,7 +11,7 @@ const Joi = require('joi');								// Validation framework.
  * This schema is used to check parameters destined to the getEnumList and getEnumPath
  * services, it defines the following fields:
  *
- * 	- root:			Determines the traversal origin node, it must be provided as
+ * 	- origin:		Determines the traversal origin node, it must be provided as
  * 					the term _id or _key.
  * 	- branch:		Determines which branch to follow, it must be provided as the
  * 					term _id or _key.
@@ -56,23 +56,23 @@ module.exports = {
 	 * Ensure username and password are provided.
 	 */
 	schema : {
-		root		: Joi.string().required(),
+		origin		: Joi.string().required(),
 		branch		: Joi.string().required(),
 		minDepth	: Joi.alternatives().try(
-			Joi.number().integer().required(),
+			Joi.number().integer(),
 			null
 		).default(null),
 		maxDepth	: Joi.alternatives().try(
-			Joi.number().integer().required(),
+			Joi.number().integer(),
 			null
 		).default(null),
 		vField		: Joi.alternatives().try(
-			Joi.string().required(),
+			Joi.string(),
 			Joi.array().items(Joi.string()),
 			null
 		).default(null),
 		eField		: Joi.alternatives().try(
-			Joi.string().required(),
+			Joi.string(),
 			Joi.array().items(Joi.string()),
 			null
 		).default(null),

@@ -51,7 +51,7 @@ module.exports = {
 				 result : Schema.isEnumerationChoice(
 					 theRequest,
 					 theRequest.body.term,
-					 theRequest.body.enums
+					 theRequest.body.enum
 				 )
 			});
 		}
@@ -137,7 +137,7 @@ module.exports = {
 	 *
 	 * The service expects the following parameters from the body:
 	 *
-	 * 	- leaf:			The leaf vertex of the graph, provided as a term _key or _id.
+	 * 	- origin:		The leaf vertex of the graph, provided as a term _key or _id.
 	 * 	- branch:		The graph branch to traverse, provided as a term _key or _id.
 	 * 	- root:			The root vertex of the graph, provided as a term _key or _id.
 	 * 	- vField:		The vertex property field name(s) to be returned. The value
@@ -193,7 +193,7 @@ module.exports = {
 			theResponse.send({
 				 result : Schema.getEnumPath(
 				 	theRequest,
-					theRequest.body.root,
+					theRequest.body.origin,
 					theRequest.body.branch,
 					theRequest.body.minDepth,
 					theRequest.body.maxDepth,
@@ -233,7 +233,7 @@ module.exports = {
 	 *
 	 * The service expects the following parameters from the body:
 	 *
-	 * 	- leaf:			The leaf vertex of the graph, provided as a term _key or _id.
+	 * 	- origin:		The leaf vertex of the graph, provided as a term _key or _id.
 	 * 	- branch:		The graph branch to traverse, provided as a term _key or _id.
 	 * 	- root:			The root vertex of the graph, provided as a term _key or _id.
 	 * 	- vField:		The vertex property field name(s) to be returned. The value
@@ -289,7 +289,7 @@ module.exports = {
 			theResponse.send({
 				 result : Schema.getEnumList(
 					 theRequest,
-					 theRequest.body.root,
+					 theRequest.body.origin,
 					 theRequest.body.branch,
 					 theRequest.body.minDepth,
 					 theRequest.body.maxDepth,
