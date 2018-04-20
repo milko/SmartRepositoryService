@@ -653,6 +653,55 @@ class Schema
 	}	// getEnumTree
 
 	/**
+	 * Get type hierarchy
+	 *
+	 * This method will return an array of terms documents corresponding to the type
+	 * hierarchy provided in 'theType'.
+	 *
+	 * 'theType' must be provided as a term _id or _key.
+	 *
+	 * If the provided type cannot be resolved, the method will raise an exception.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theType		{String}	The type reference.
+	 * @return {Array}					Type hierarchy.
+	 */
+	static getTypeHierarchy( theRequest, theType )
+	{
+		//
+		// Resolve type.
+		//
+		let type = null;
+		try
+		{
+			type = db._collection( 'terms' ).document( theType );
+		}
+		catch( error )
+		{
+			//
+			// Handle exceptions.
+			//
+			if( (! error.isArangoError)
+				|| (error.errorNum !== ARANGO_NOT_FOUND) )
+				throw( error );													// !@! ==>
+
+			//
+			// Handle not found.
+			//
+			throw(
+				new MyError(
+					'BadTermReference',					// Error name.
+					K.error.TermNotFound,				// Message code.
+					theRequest.application.language,	// Language.
+					theRoot,							// Error value.
+					404									// HTTP error code.
+				)
+			);																	// !@! ==>
+		}
+
+	}	// getTypeHierarchy
+
+	/**
 	 * Traverse enumeration
 	 *
 	 * This method will perform an inbound or outbound traversal of the schemas graph
