@@ -92,7 +92,7 @@ class Dictionary
 			// Handle property.
 			//
 			if( theDocument.hasOwnProperty( property )
-				&& theDocument[ property ].hasOwnProperty( theLanguage ) )
+			 && theDocument[ property ].hasOwnProperty( theLanguage ) )
 				theDocument[ property ] = theDocument[ property ][ theLanguage ];
 		}
 

@@ -796,6 +796,68 @@ class Application
 
 	}	// cookieSecret
 
+	/**
+	 * Get service description
+	 *
+	 * This method can be used to retrieve the descriptions associated with a specific
+	 * service module, service, service part and language.
+	 *
+	 * 'theModule' indicates the service module to check, it should be the source code
+	 * file name in the 'routes' directory; this element is used to disambiguate
+	 * synonym service names.
+	 *
+	 * 'theService' indicates the service tag in the module.
+	 *
+	 * 'thePart' indicates which part of the service to retrieve:
+	 *
+	 * 	- description:	The service description.
+	 * 	- response:		The service response.
+	 * 	- body:			The service body parameters.
+	 *
+	 * 'theLanguage' indicates in which language the message should be retrieved.
+	 *
+	 * The descriptions are found in the 'messages' collection, their key is composed
+	 * by prefixing an 's', followed by the module and followed by the part, all
+	 * separated by a colon.
+	 *
+	 * If the message cannot be found, or the part or language cannot be matched, the
+	 * method will return 'N/A'.
+	 *
+	 * @param theModule		{string}	The service module.
+	 * @param theService	{string}	The service name.
+	 * @param thePart		{string}	The service part.
+	 * @param theLanguage	{string}	The language.
+	 * @return {string}					The description.
+	 */
+	static getServiceDescription( theModule, theService, thePart, theLanguage )
+	{
+		//
+		// Get description.
+		//
+		try
+		{
+			const message =
+				db._collection( 'messages' )
+					.document( `s:${theModule}:${theService}` );
+
+			if( message.hasOwnProperty( thePart )
+			 && message[ thePart ].hasOwnProperty( theLanguage ) )
+				return message[ thePart ][ theLanguage ];							// ==>
+		}
+		catch( error )
+		{
+			//
+			// Handle exception.
+			//
+			if( (!error.isArangoError)
+			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				throw( error );													// !@! ==>
+		}
+
+		return "N/A";																// ==>
+
+	}	// getServiceDescription
+
 }	// Application.
 
 module.exports = Application;

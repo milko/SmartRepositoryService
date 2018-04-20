@@ -18,6 +18,7 @@ const createRouter = require('@arangodb/foxx/router');	// Router class.
 // Application.
 //
 const K = require( '../utils/Constants' );				// Constants.
+const Application = require( '../utils/Application' );	// Application.
 
 //
 // Models.
@@ -52,36 +53,22 @@ router.tag( 'session' );
  * @verb		get
  * @response	{Object}	{ response : 'pong }.
  */
-router.get(
-
-	//
-	// Path.
-	//
-	'/ping',
-
-	//
-	// Handler.
-	//
-	Handlers.ping,
-
-	//
-	// Name.
-	//
-	'ping'
-)
+router.get( '/ping', Handlers.ping, 'ping' )
 	.response(
 		200,
 		Joi.object({
 			result : Joi.any().valid('pong').required()
 		}),
-		"The object { result : 'pong' }."
+		Application.getServiceDescription(
+			'session', 'ping', 'response', module.context.configuration.defaultLanguage )
 	)
 	.summary(
-		"Check if application responds"
+		"Check if services are responding."
 	)
-	.description(dd`
-  Check if the application is responding, expect the object { result : 'pong' }.
-`);
+	.description(
+		Application.getServiceDescription(
+			'session', 'ping', 'description', module.context.configuration.defaultLanguage )
+	);
 
 
 /**
@@ -95,34 +82,20 @@ router.get(
  * @verb		get
  * @response	{Object}	{ result : <current user record>|null }.
  */
-router.get(
-
-	//
-	// Path.
-	//
-	'/whoami',
-
-	//
-	// Handler.
-	//
-	Handlers.whoami,
-
-	//
-	// Name.
-	//
-	'whoami'
-)
+router.get( '/whoami', Handlers.whoami, 'whoami' )
 	.response(
 		200,
 		SchemaWhoami,
-		'The user profile, or a null "result" property.'
+		Application.getServiceDescription(
+			'session', 'whoami', 'response', module.context.configuration.defaultLanguage )
 	)
 	.summary(
 		"Get current user"
 	)
-	.description(dd`
-  Return the current user.
-`);
+	.description(
+		Application.getServiceDescription(
+			'session', 'whoami', 'description', module.context.configuration.defaultLanguage )
+	);
 
 
 /**
