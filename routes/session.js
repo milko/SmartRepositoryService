@@ -21,12 +21,6 @@ const K = require( '../utils/Constants' );				// Constants.
 const Application = require( '../utils/Application' );	// Application.
 
 //
-// Models.
-//
-const SchemaWhoami = require( '../models/whoami' );		// WhoamI schema.
-const SchemaLogin = require( '../models/login' );		// LogIn schema.
-
-//
 // Handlers.
 //
 const Handlers = require( '../handlers/Session' );		// Session handlers.
@@ -85,7 +79,7 @@ router.get( '/ping', Handlers.ping, 'ping' )
 router.get( '/whoami', Handlers.whoami, 'whoami' )
 	.response(
 		200,
-		SchemaWhoami,
+		require( '../models/whoami' ),
 		Application.getServiceDescription(
 			'session', 'whoami', 'response', module.context.configuration.defaultLanguage )
 	)
@@ -122,31 +116,17 @@ router.get( '/whoami', Handlers.whoami, 'whoami' )
  * @request		{Object}	Authentication parameters from body.
  * @response	{Object}	The current user record, or exception.
  */
-router.post(
-
-	//
-	// Path.
-	//
-	'/login',
-
-	//
-	// Handler.
-	//
-	Handlers.login,
-
-	//
-	// Name.
-	//
-	'login'
-)
+router.post( '/login', Handlers.login, 'login' )
 	.body(
-		SchemaLogin,
-		'User credentials: username and password.'
+		require( '../models/login' ),
+		Application.getServiceDescription(
+			'session', 'login', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
-		SchemaLogin,
-		'The user record.'
+		require( '../models/login' ),
+		Application.getServiceDescription(
+			'session', 'login', 'response', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		404,
@@ -154,14 +134,15 @@ router.post(
 	)
 	.response(
 		403,
-		'Invalid password.'
+		'Invalid credentials.'
 	)
 	.summary(
 		"Login user"
 	)
-	.description(dd`
-  Login user and return record.
-`);
+	.description(
+		Application.getServiceDescription(
+			'session', 'login', 'description', module.context.configuration.defaultLanguage )
+	);
 
 
 /**
@@ -174,27 +155,12 @@ router.post(
  * @verb		get
  * @response	{Object}	Former user record.
  */
-router.get(
-
-	//
-	// Path.
-	//
-	'/logout',
-
-	//
-	// Handler.
-	//
-	Handlers.logout,
-
-	//
-	// Name.
-	//
-	'logout'
-)
+router.get( '/logout', Handlers.logout, 'logout' )
 	.response(
 		200,
-		SchemaWhoami,
-		'The former user record.'
+		require( '../models/whoami' ),
+		Application.getServiceDescription(
+			'session', 'logout', 'response', module.context.configuration.defaultLanguage )
 	)
 	.summary(
 		"Logout current user"

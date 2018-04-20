@@ -62,77 +62,17 @@ router.tag( 'schema' );
  * @request		{Object}	Term reference(s) and optional enumerations list.
  * @response	{Object}	The result.
  */
-router.post(
-
-	//
-	// Path.
-	//
-	'/enum/isChoice',
-
-	//
-	// Handler.
-	//
-	Handlers.isEnumChoice,
-
-	//
-	// Name.
-	//
-	'enumIsChoice'
-)
+router.post( '/enum/isChoice', Handlers.isEnumChoice, 'enumIsChoice' )
 	.body(
 		require( '../models/schema/SchemaIsEnumChoice' ),
-<<<<<<< Updated upstream
-		Application.
-`
-<p>The service expects two parameters from the request body:</p>
-<ul>
-	<li>
-		<strong>term</strong>: The reference(s) to the term to test as its
-		<code>_id</code> or <code>_key</code>: it can be provided as a <em>string</em>,
-		or as an <em>array</em> of strings.
-	</li>
-	<li>
-		<strong>enum</strong>: An array of term <code>_id</code> or <code>_key</code>
-		values which represent the set of enumerations to which the term should belong.
-		To ignore enumeration membership, provide either an <em>empty array</em> or
-		<code>null</code>, which is the default choice.
-	</li>
-</ul>
-`
-=======
 		Application.getServiceDescription(
 			'schema', 'enumIsChoice', 'body', module.context.configuration.defaultLanguage )
->>>>>>> Stashed changes
 	)
 	.response(
 		200,
 		require( '../models/schema/SchemaIsEnumChoice' ),
-<<<<<<< Updated upstream
-`
-<p>
-	The service will return an object as such, <code>{ result : &lt;value&gt; }</code>,
-	where <em>value</em> depends on the format in which you provided the term parameter:
-</p>
-<ul>
-	<li>
-		If <strong>term</strong> was provided as a <em>scalar</em>, <em>value</em>
-		will be a <em>boolean</em>.
-	</li>
-	<li>
-		If <strong>term</strong> was provided as an <em>array</em>, <em>value</em>
-		will be an <em>object</em> indexed by the elements of the provided array with as
-		value a <em>boolean</em>.
-	</li>
-</ul>
-<p>
-	A value of <code>true</code> means the term <em>is</em> an enumeration choice,
-	either of any enumeration, or of at least one of the provided enumeration references.
-</p>
-`
-=======
 		Application.getServiceDescription(
 			'schema', 'enumIsChoice', 'response', module.context.configuration.defaultLanguage )
->>>>>>> Stashed changes
 	)
 	.summary(
 		"Check if term(s) are an enumeration selection."
@@ -161,70 +101,17 @@ router.post(
  * @request		{Object}	Term reference(s).
  * @response	{Object}	The result.
  */
-router.post(
-
-	//
-	// Path.
-	//
-	'/enum/isBranch',
-
-	//
-	// Handler.
-	//
-	Handlers.isEnumBranch,
-
-	//
-	// Name.
-	//
-	'enumIsBranch'
-)
+router.post( '/enum/isBranch', Handlers.isEnumBranch, 'enumIsBranch' )
 	.body(
 		require( '../models/schema/SchemaIsEnumBranch' ),
-<<<<<<< Updated upstream
-		`
-<p>The service expects one parameter from the request body:</p>
-<ul>
-	<li>
-		<strong>term</strong>: The reference(s) to the term to test as its
-		<code>_id</code> or <code>_key</code>: it can be provided as a <em>string</em>,
-		or as an <em>array</em> of strings.
-	</li>
-</ul>
-`
-=======
 		Application.getServiceDescription(
 			'schema', 'enumIsBranch', 'body', module.context.configuration.defaultLanguage )
->>>>>>> Stashed changes
 	)
 	.response(
 		200,
 		require( '../models/schema/SchemaIsEnumBranch' ),
-<<<<<<< Updated upstream
-`
-<p>
-	The service will return an object as such, <code>{ result : &lt;value&gt; }</code>,
-	where <em>value</em> depends on the format in which you provided the term parameter:
-</p>
-<ul>
-	<li>
-		If <strong>term</strong> was provided as a <em>scalar</em>, <em>value</em>
-		will be a <em>boolean</em>.
-	</li>
-	<li>
-		If <strong>term</strong> was provided as an <em>array</em>, <em>value</em>
-		will be an <em>object</em> indexed by the elements of the provided array with as
-		value a <em>boolean</em>.
-	</li>
-</ul>
-<p>
-	A value of <code>true</code> means the term <em>is</em> an enumeration,
-	or the root of a controlled vocabulary.
-</p>
-`
-=======
 		Application.getServiceDescription(
 			'schema', 'enumIsBranch', 'response', module.context.configuration.defaultLanguage )
->>>>>>> Stashed changes
 	)
 	.summary(
 		"Check if a term(s) are an enumeration definition."
@@ -290,162 +177,17 @@ router.post(
  * @request		{Object}	Term reference(s).
  * @response	{Object}	The result.
  */
-router.post(
-
-	//
-	// Path.
-	//
-	'/enum/path',
-
-	//
-	// Handler.
-	//
-	Handlers.getEnumPath,
-
-	//
-	// Name.
-	//
-	'enumGetPath'
-)
+router.post( '/enum/path', Handlers.getEnumPath, 'enumGetPath' )
 	.body(
 		require( '../models/schema/schemaEnumList' ),
-<<<<<<< Updated upstream
-`
-<p>The service expects the following parameters from the body:</p>
-<ul>
-	<li>
-		<strong>origin</strong>: the <em>leaf vertex</em> of the tree, provided as a term
-		<code>_key</code> or <code>_id</code>.
-	</li>
-	<li>
-		<strong>branch</strong>: the <em>root node</em> of the tree, provided as a term
-		<code>_key</code> or <code>_id</code>.
-	</li>
-	<li>
-		<strong>minDepth</strong>: an <em>integer</em> indicating the
-		<em>minimum depth</em> of the traversal, it determines at what level the traversal
-		will <em>start</em>.<br />
-		<em>Defaults to <code>0</code></em>.
-	</li>
-	<li>
-		<strong>maxDepth</strong>: an <em>integer</em> indicating the <em>maximum depth</em>
-		of the traversal, it determines at what level the traversal will <em>stop</em>;
-		a level of <code>0</code> means no level limit.<br />
-		<em>Defaults to <code>0</code></em>.
-	</li>
-	<li>
-		<strong>vField</strong>: the vertex field name(s) to be returned in the result,
-		provided as a term <code>_key</code> or <code>_id</code>.<br />
-		The value may be provided as a <em>string</em>, as an <em>array</em>, or it can be
-		<code>null</code>.<br />
-		<em>Defaults to <code>null</code>.</em>
-	</li>
-	<li>
-		<strong>eField</strong>: the <em>edge field name(s)</em> to be returned in the result,
-		provided as a term <code>_key</code> or <code>_id</code>. This parameter behaves
-		exactly as the previous <strong>vField</strong> parameter, except that it applies to
-		returned <em>edges</em>; this parameter is only relevant if the <strong>doEdge</strong>
-		parameter is set.<br />
-		<em>Defaults to <code>null</code>.</em>
-	</li>
-	<li>
-		<strong>doChoice</strong>: this is a <em>boolean</em> flag that indicates whether to
-		filter <em>enumeration choice elements</em>: if <code>true</code>, only enumeration
-		choice elements will be included in the result.<br />
-		Please refer to the <code>/enum/isChoice</code> service for a description.<br />
-		<em>Defaults to <code>false</code>.</em>
-	</li>
-	<li>
-		<strong>doLanguage</strong>: this is a <em>boolean</em> flag that indicates whether
-		to restrict description fields to the <em>current session language</em>, it applies to
-		the <code>label</code>, <code>definition</code>, <code>description</code>,
-		<code>note</code> and <code>example</code> fields.<br />
-		If <code>true</code>, the above-mentioned fields will contain the value matching
-		the session language code; if the field does not have an entry corresponding to the
-		session language, it will remain untouched.<br />
-		<em>Defaults to <code>false</code>.</em>
-	</li>
-	<li>
-		<strong>doEdge</strong>: this is a <em>boolean</em> flag that indicates whether to
-		<em>include the edge in the result</em>. If <code>true</code>, the elements of the
-		result array will contain the <em>vertex</em> and the <em>edge</em>.<br />
-		<em>Defaults to <code>false</code>.</em>
-	</li>
-</ul>
-`
-=======
 		Application.getServiceDescription(
 			'schema', 'enumGetPath', 'body', module.context.configuration.defaultLanguage )
->>>>>>> Stashed changes
 	)
 	.response(
 		200,
 		require( '../models/schema/schemaEnumList' ),
-<<<<<<< Updated upstream
-`
-<p>
-	The service will return an <em>array</em> of elements whose structure depends on the
-	provided parameters:
-</p>
-<ul>
-	<li>
-		<strong>doEdge</strong>:
-		<ul>
-			<li>
-				if this parameter is <code>false</code>:
-				<ul>
-					<li>
-						The element will contain the <em>path vertices</em> formatted according
-						to the <strong>vField</strong> parameter:
-						<ul>
-							<li>
-								If <code>null</code> or omitted the <em>vertex</em> will be the
-								<em>original document</em>.
-							</li>
-							<li>
-								If a <em>string</em>, the element will contain the <em>value</em>
-								of the <em>vertex document field</em> whose
-								<em>name matches the string</em>; if no field matches, the value
-								will be <code>null</code>.
-							</li>
-							<li>
-								If an <em>array</em>, the element will contain the
-								<em>vertex document</em> comprised of only those <em>fields</em>
-								that <em>march the provided array elements</em>.
-							</li>
-						</ul>
-					</li>
-				</ul>
-			</li>
-			<li>
-				if the parameter is <code>true</code>:
-				<ul>
-					<li>
-						The element will contain an <em>object</em> with the following properties:
-						<ul>
-							<li>
-								<strong>term</strong>: will contain the <em>vertex</em> formatted
-								according to the <strong>vField</strong> parameter
-								<em>(see above)</em>.
-							</li>
-							<li>
-								<strong>edge</strong>: will contain the <em>edge</em> formatted
-								according to the <strong>eField</strong> parameter
-								<em>(refer to vField)</em>; if there is no edge, this will occur
-								for the tree root, this property will not be included.
-							</li>
-						</ul>
-					</li>
-				</ul>
-			</li>
-		</ul>
-	</li>
-</ul>
-`
-=======
 		Application.getServiceDescription(
 			'schema', 'enumGetPath', 'response', module.context.configuration.defaultLanguage )
->>>>>>> Stashed changes
 	)
 	.summary(
 		"Return the enumeration hierarchy from the provided origin to its root."
@@ -510,163 +252,17 @@ router.post(
  * @request		{Object}	Term reference(s).
  * @response	{Object}	The result.
  */
-router.post(
-
-	//
-	// Path.
-	//
-	'/enum/list',
-
-	//
-	// Handler.
-	//
-	Handlers.getEnumList,
-
-	//
-	// Name.
-	//
-	'enumGetList'
-)
+router.post( '/enum/list', Handlers.getEnumList, 'enumGetList' )
 	.body(
 		require( '../models/schema/schemaEnumList' ),
-<<<<<<< Updated upstream
-		`
-<p>The service expects the following parameters from the body:</p>
-<ul>
-	<li>
-		<strong>origin</strong>: the <em>vertex</em> of the tree whose siblings are to be
-		returned, provided as a term <code>_key</code> or <code>_id</code>.
-	</li>
-	<li>
-		<strong>branch</strong>: the <em>root node</em> of the tree, provided as a term
-		<code>_key</code> or <code>_id</code>.
-	</li>
-	<li>
-		<strong>minDepth</strong>: an <em>integer</em> indicating the
-		<em>minimum depth</em> of the traversal, it determines at what level the traversal
-		will <em>start</em>.<br />
-		<em>Defaults to <code>0</code></em>.
-	</li>
-	<li>
-		<strong>maxDepth</strong>: an <em>integer</em> indicating the <em>maximum depth</em>
-		of the traversal, it determines at what level the traversal will <em>stop</em>;
-		a level of <code>0</code> means no level limit.<br />
-		<em>Defaults to <code>0</code></em>.
-	</li>
-	<li>
-		<strong>vField</strong>: the vertex field name(s) to be returned in the result,
-		provided as a term <code>_key</code> or <code>_id</code>.<br />
-		The value may be provided as a <em>string</em>, as an <em>array</em>, or it can be
-		<code>null</code>.<br />
-		<em>Defaults to <code>null</code>.</em>
-	</li>
-	<li>
-		<strong>eField</strong>: the <em>edge field name(s)</em> to be returned in the result,
-		provided as a term <code>_key</code> or <code>_id</code>. This parameter behaves
-		exactly as the previous <strong>vField</strong> parameter, except that it applies to
-		returned <em>edges</em>; this parameter is only relevant if the <strong>doEdge</strong>
-		parameter is set.<br />
-		<em>Defaults to <code>null</code>.</em>
-	</li>
-	<li>
-		<strong>doChoice</strong>: this is a <em>boolean</em> flag that indicates whether to
-		filter <em>enumeration choice elements</em>: if <code>true</code>, only enumeration
-		choice elements will be included in the result.<br />
-		Please refer to the <code>/enum/isChoice</code> service for a description.<br />
-		<em>Defaults to <code>false</code>.</em>
-	</li>
-	<li>
-		<strong>doLanguage</strong>: this is a <em>boolean</em> flag that indicates whether
-		to restrict description fields to the <em>current session language</em>, it applies to
-		the <code>label</code>, <code>definition</code>, <code>description</code>,
-		<code>note</code> and <code>example</code> fields.<br />
-		If <code>true</code>, the above-mentioned fields will contain the value matching
-		the session language code; if the field does not have an entry corresponding to the
-		session language, it will remain untouched.<br />
-		<em>Defaults to <code>false</code>.</em>
-	</li>
-	<li>
-		<strong>doEdge</strong>: this is a <em>boolean</em> flag that indicates whether to
-		<em>include the edge in the result</em>. If <code>true</code>, the elements of the
-		result array will contain the <em>vertex</em> and the <em>edge</em>.<br />
-		<em>Defaults to <code>false</code>.</em>
-	</li>
-</ul>
-`
-=======
 		Application.getServiceDescription(
 			'schema', 'enumGetList', 'body', module.context.configuration.defaultLanguage )
->>>>>>> Stashed changes
 	)
 	.response(
 		200,
 		require( '../models/schema/schemaEnumList' ),
-<<<<<<< Updated upstream
-		`
-<p>
-	The service will return the flattened <em>array</em> of siblings of the provided 
-	root node in the provided branch of the graph; the nodes structure depends on the 
-	following parameters:
-</p>
-<ul>
-	<li>
-		<strong>doEdge</strong>:
-		<ul>
-			<li>
-				if this parameter is <code>false</code>:
-				<ul>
-					<li>
-						The element will contain the <em>path vertices</em> formatted according
-						to the <strong>vField</strong> parameter:
-						<ul>
-							<li>
-								If <code>null</code> or omitted the <em>vertex</em> will be the
-								<em>original document</em>.
-							</li>
-							<li>
-								If a <em>string</em>, the element will contain the <em>value</em>
-								of the <em>vertex document field</em> whose
-								<em>name matches the string</em>; if no field matches, the value
-								will be <code>null</code>.
-							</li>
-							<li>
-								If an <em>array</em>, the element will contain the
-								<em>vertex document</em> comprised of only those <em>fields</em>
-								that <em>march the provided array elements</em>.
-							</li>
-						</ul>
-					</li>
-				</ul>
-			</li>
-			<li>
-				if the parameter is <code>true</code>:
-				<ul>
-					<li>
-						The element will contain an <em>object</em> with the following properties:
-						<ul>
-							<li>
-								<strong>term</strong>: will contain the <em>vertex</em> formatted
-								according to the <strong>vField</strong> parameter
-								<em>(see above)</em>.
-							</li>
-							<li>
-								<strong>edge</strong>: will contain the <em>edge</em> formatted
-								according to the <strong>eField</strong> parameter
-								<em>(refer to vField)</em>; if there is no edge, this will occur
-								for the tree root, this property will not be included.
-							</li>
-						</ul>
-					</li>
-				</ul>
-			</li>
-		</ul>
-	</li>
-</ul>
-`
-=======
 		Application.getServiceDescription(
 			'schema', 'enumGetList', 'response', module.context.configuration.defaultLanguage )
->>>>>>> Stashed changes
 	)
 	.summary(
 		"Return all the enumeration siblings of the provided root."
@@ -728,159 +324,17 @@ router.post(
  * @request		{Object}	Term reference(s).
  * @response	{Object}	The result.
  */
-router.post(
-
-	//
-	// Path.
-	//
-	'/enum/tree',
-
-	//
-	// Handler.
-	//
-	Handlers.getEnumTree,
-
-	//
-	// Name.
-	//
-	'enumGetTree'
-)
+router.post( '/enum/tree', Handlers.getEnumTree, 'enumGetTree' )
 	.body(
 		require( '../models/schema/schemaEnumTree' ),
-<<<<<<< Updated upstream
-		`
-<p>The service expects the following parameters from the body:</p>
-<ul>
-	<li>
-		<strong>origin</strong>: the <em>vertex</em> of the tree whose siblings are to be
-		returned, provided as a term <code>_key</code> or <code>_id</code>.
-	</li>
-	<li>
-		<strong>branch</strong>: the <em>root node</em> of the tree, provided as a term
-		<code>_key</code> or <code>_id</code>.
-	</li>
-	<li>
-		<strong>minDepth</strong>: an <em>integer</em> indicating the
-		<em>minimum depth</em> of the traversal, it determines at what level the traversal
-		will <em>start</em>.<br />
-		<em>Defaults to <code>0</code></em>.
-	</li>
-	<li>
-		<strong>maxDepth</strong>: an <em>integer</em> indicating the <em>maximum depth</em>
-		of the traversal, it determines at what level the traversal will <em>stop</em>;
-		a level of <code>0</code> means no level limit.<br />
-		<em>Defaults to <code>0</code></em>.
-	</li>
-	<li>
-		<strong>vField</strong>: the vertex field name(s) to be returned in the result,
-		provided as a term <code>_key</code> or <code>_id</code>.<br />
-		The value may be provided as a <em>string</em>, as an <em>array</em>, or it can be
-		<code>null</code>.<br />
-		<em>Defaults to <code>null</code>.</em>
-	</li>
-	<li>
-		<strong>eField</strong>: the <em>edge field name(s)</em> to be returned in the result,
-		provided as a term <code>_key</code> or <code>_id</code>. This parameter behaves
-		exactly as the previous <strong>vField</strong> parameter, except that it applies to
-		returned <em>edges</em>; this parameter is only relevant if the <strong>doEdge</strong>
-		parameter is set.<br />
-		<em>Defaults to <code>null</code>.</em>
-	</li>
-	<li>
-		<strong>doLanguage</strong>: this is a <em>boolean</em> flag that indicates whether
-		to restrict description fields to the <em>current session language</em>, it applies to
-		the <code>label</code>, <code>definition</code>, <code>description</code>,
-		<code>note</code> and <code>example</code> fields.<br />
-		If <code>true</code>, the above-mentioned fields will contain the value matching
-		the session language code; if the field does not have an entry corresponding to the
-		session language, it will remain untouched.<br />
-		<em>Defaults to <code>false</code>.</em>
-	</li>
-	<li>
-		<strong>doEdge</strong>: this is a <em>boolean</em> flag that indicates whether to
-		<em>include the edge in the result</em>. If <code>true</code>, the elements of the
-		result array will contain the <em>vertex</em> and the <em>edge</em>.<br />
-		<em>Defaults to <code>false</code>.</em>
-	</li>
-</ul>
-`
-=======
 		Application.getServiceDescription(
 			'schema', 'enumGetTree', 'body', module.context.configuration.defaultLanguage )
->>>>>>> Stashed changes
 	)
 	.response(
 		200,
 		require( '../models/schema/schemaEnumTree' ),
-<<<<<<< Updated upstream
-		`
-<p>
-	The service will return the hierarchy of the provided root <em>siblings</em>, the 
-	top nodes will have a property, <code>_children</code>, which is an array that will
-	contain the list of the node's children. If the minimum depth level is <code>0</code>,
-	the result will be an array with a single node: the root. If the level is greater than
-	<code>0</code>, the result will be an array of nodes from which the traversal started.
-	The format of the nodes depends on the following parameters:
-</p>
-<ul>
-	<li>
-		<strong>doEdge</strong>:
-		<ul>
-			<li>
-				if this parameter is <code>false</code>:
-				<ul>
-					<li>
-						The element will contain the <em>path vertices</em> formatted according
-						to the <strong>vField</strong> parameter:
-						<ul>
-							<li>
-								If <code>null</code> or omitted the <em>vertex</em> will be the
-								<em>original document</em>.
-							</li>
-							<li>
-								If a <em>string</em>, the element will contain the <em>value</em>
-								of the <em>vertex document field</em> whose
-								<em>name matches the string</em>; if no field matches, the value
-								will be <code>null</code>.
-							</li>
-							<li>
-								If an <em>array</em>, the element will contain the
-								<em>vertex document</em> comprised of only those <em>fields</em>
-								that <em>march the provided array elements</em>.
-							</li>
-						</ul>
-					</li>
-				</ul>
-			</li>
-			<li>
-				if the parameter is <code>true</code>:
-				<ul>
-					<li>
-						The element will contain an <em>object</em> with the following properties:
-						<ul>
-							<li>
-								<strong>term</strong>: will contain the <em>vertex</em> formatted
-								according to the <strong>vField</strong> parameter
-								<em>(see above)</em>.
-							</li>
-							<li>
-								<strong>edge</strong>: will contain the <em>edge</em> formatted
-								according to the <strong>eField</strong> parameter
-								<em>(refer to vField)</em>; if there is no edge, this will occur
-								for the tree root, this property will not be included.
-							</li>
-						</ul>
-					</li>
-				</ul>
-			</li>
-		</ul>
-	</li>
-</ul>
-`
-=======
 		Application.getServiceDescription(
 			'schema', 'enumGetTree', 'response', module.context.configuration.defaultLanguage )
->>>>>>> Stashed changes
 	)
 	.summary(
 		"Return the hierarchy of the enumeration siblings of the provided root."
