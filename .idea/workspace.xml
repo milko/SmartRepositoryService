@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6e2f10f2-5b87-4403-af59-695082c0e2a0" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/data/messages.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/messages.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/schema.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/schema.js" afterDir="false" />
-    </list>
+    <list default="true" id="6e2f10f2-5b87-4403-af59-695082c0e2a0" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
     <ignored path="$PROJECT_DIR$/tmp/" />
@@ -77,8 +74,8 @@
       <file leaf-file-name="Application.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/utils/Application.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="696">
-              <caret line="798" column="13" selection-start-line="798" selection-start-column="13" selection-end-line="798" selection-end-column="13" />
+            <state relative-caret-position="291">
+              <caret line="771" column="10" lean-forward="true" selection-start-line="771" selection-start-column="10" selection-end-line="771" selection-end-column="10" />
             </state>
           </provider>
         </entry>
@@ -358,11 +355,10 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="119738000" />
+    <option name="totallyTimeSpent" value="120008000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.6061294" visible="true" weight="0.32644957" />
       <window_info anchor="bottom" id="TODO" order="10" />
@@ -696,8 +692,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/Application.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="696">
-          <caret line="798" column="13" selection-start-line="798" selection-start-column="13" selection-end-line="798" selection-end-column="13" />
+        <state relative-caret-position="291">
+          <caret line="771" column="10" lean-forward="true" selection-start-line="771" selection-start-column="10" selection-end-line="771" selection-end-column="10" />
         </state>
       </provider>
     </entry>
