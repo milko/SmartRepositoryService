@@ -25,14 +25,6 @@ const Application = require( '../utils/Application' );	// Application.
 const Handlers = require( '../handlers/Schema' );		// Schema handlers.
 
 //
-// Schemas.
-//
-const SchemaEnumList = require( '../models/schema/schemaEnumList' );
-const SchemaEnumTree = require( '../models/schema/schemaEnumTree' );
-const SchemaIsEnumChoice = require( '../models/schema/SchemaIsEnumChoice' );
-const SchemaIsEnumBranch = require( '../models/schema/SchemaIsEnumBranch' );
-
-//
 // Instantiate router.
 //
 const router = createRouter();
@@ -88,7 +80,8 @@ router.post(
 	'enumIsChoice'
 )
 	.body(
-		SchemaIsEnumChoice,
+		require( '../models/schema/SchemaIsEnumChoice' ),
+		Application.
 `
 <p>The service expects two parameters from the request body:</p>
 <ul>
@@ -108,7 +101,7 @@ router.post(
 	)
 	.response(
 		200,
-		SchemaIsEnumChoice,
+		require( '../models/schema/SchemaIsEnumChoice' ),
 `
 <p>
 	The service will return an object as such, <code>{ result : &lt;value&gt; }</code>,
@@ -213,7 +206,7 @@ router.post(
 	'enumIsBranch'
 )
 	.body(
-		SchemaIsEnumBranch,
+		require( '../models/schema/SchemaIsEnumBranch' ),
 		`
 <p>The service expects one parameter from the request body:</p>
 <ul>
@@ -227,7 +220,7 @@ router.post(
 	)
 	.response(
 		200,
-		SchemaIsEnumBranch,
+		require( '../models/schema/SchemaIsEnumBranch' ),
 `
 <p>
 	The service will return an object as such, <code>{ result : &lt;value&gt; }</code>,
@@ -363,7 +356,7 @@ router.post(
 	'enumGetPath'
 )
 	.body(
-		SchemaEnumList,
+		require( '../models/schema/schemaEnumList' ),
 `
 <p>The service expects the following parameters from the body:</p>
 <ul>
@@ -430,7 +423,7 @@ router.post(
 	)
 	.response(
 		200,
-		SchemaEnumList,
+		require( '../models/schema/schemaEnumList' ),
 `
 <p>
 	The service will return an <em>array</em> of elements whose structure depends on the
@@ -675,7 +668,7 @@ router.post(
 	'enumGetList'
 )
 	.body(
-		SchemaEnumList,
+		require( '../models/schema/schemaEnumList' ),
 		`
 <p>The service expects the following parameters from the body:</p>
 <ul>
@@ -742,7 +735,7 @@ router.post(
 	)
 	.response(
 		200,
-		SchemaEnumList,
+		require( '../models/schema/schemaEnumList' ),
 		`
 <p>
 	The service will return the flattened <em>array</em> of siblings of the provided 
@@ -987,7 +980,7 @@ router.post(
 	'enumGetTree'
 )
 	.body(
-		SchemaEnumTree,
+		require( '../models/schema/schemaEnumTree' ),
 		`
 <p>The service expects the following parameters from the body:</p>
 <ul>
@@ -1047,7 +1040,7 @@ router.post(
 	)
 	.response(
 		200,
-		SchemaEnumTree,
+		require( '../models/schema/schemaEnumTree' ),
 		`
 <p>
 	The service will return the hierarchy of the provided root <em>siblings</em>, the 
