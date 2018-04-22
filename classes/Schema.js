@@ -674,7 +674,9 @@ class Schema
 		let type = null;
 		try
 		{
-			type = db._collection( 'terms' ).document( theType );
+			type =
+				db._collection( 'terms' )
+					.document( theType );
 		}
 		catch( error )
 		{
@@ -682,7 +684,7 @@ class Schema
 			// Handle exceptions.
 			//
 			if( (! error.isArangoError)
-				|| (error.errorNum !== ARANGO_NOT_FOUND) )
+			 || (error.errorNum !== ARANGO_NOT_FOUND) )
 				throw( error );													// !@! ==>
 
 			//
@@ -698,6 +700,38 @@ class Schema
 				)
 			);																	// !@! ==>
 		}
+
+		//
+		// Inir query parameters.
+		//
+		const identifier = type._id;
+		const predicate = 'terms/' + Dict.term.kPredicateTypeOf;
+
+		//
+		// Query schemas.
+		//
+		const result =
+			db._query( aql`
+				FOR vertex, edge, path
+					IN 0..10
+					INBOUND ${identifier}
+					schemas
+					OPTIONS {
+						"uniqueEdges"	 : "path",
+						"uniqueVertices" : "path"
+					}
+					FILTER path.edges[*].predicate ALL == ${predicate}
+					   AND ${identifier} IN path.edges[*].branches[**]
+				RETURN vertex
+			`).toArray();
+
+		//
+		// Prepend target type and remove root.
+		//
+		result.unshift( type );
+		result.pop();
+
+		return result;																// ==>
 
 	}	// getTypeHierarchy
 

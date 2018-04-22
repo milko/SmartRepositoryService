@@ -542,3 +542,88 @@ router.post
 	.description(dd`
   Returns the result of Schema.getEnumTree().
 `);
+
+
+/**
+ * Test Schema.getTypeHierarchy()
+ *
+ * The service will check the Schema.getTypeHierarchy() method.
+ *
+ * The service returns an object as { what : <result> } where result is the
+ * value returned by the tested method.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/getTypeHierarchy
+ * @verb		post
+ * @response	{ what : <result> }.
+ */
+router.post
+(
+	'/getTypeHierarchy',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+
+		//
+		// Test method.
+		//
+		try
+		{
+			//
+			// Make test.
+			//
+			const result =
+				Schema.getTypeHierarchy(
+					request,
+					request.body.type
+				);
+
+			response.send({
+				what : result,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'getTypeHierarchy'
+)
+	.body(
+		Joi.object({
+			type : Joi.string().required()
+		}),
+		"Method parameters."
+	)
+	.response(
+		200,
+		Joi.object({
+			what : Joi.any(),
+			time : Joi.number()
+		}),
+		"The result: 'what' contains the method return value, 'time' contains the elapsed time."
+	)
+	.summary(
+		"Get tree of enumeration elements starting from root in branch."
+	)
+	.description(dd`
+  Returns the result of Schema.getTypeHierarchy().
+`);
