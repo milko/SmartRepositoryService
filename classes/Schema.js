@@ -633,7 +633,7 @@ class Schema
 			// Handle exceptions.
 			//
 			if( (! error.isArangoError)
-				|| (error.errorNum !== ARANGO_NOT_FOUND) )
+			 || (error.errorNum !== ARANGO_NOT_FOUND) )
 				throw( error );													// !@! ==>
 
 			//
@@ -655,12 +655,17 @@ class Schema
 	/**
 	 * Get type hierarchy
 	 *
-	 * This method will return an array of terms documents corresponding to the type
-	 * hierarchy provided in 'theType'.
+	 * This method will return an array containing the type hierarchy corresponding to
+	 * the provided data type. The list will start with the provided type and end with
+	 * the root data type below the enumeration root, which means that the hierarchy
+	 * will follow types starting from the most specific to the most general.
 	 *
-	 * 'theType' must be provided as a term _id or _key.
+	 * The provided type reference must be the '_id' or the '_key' of the term, if the
+	 * reference cannot be resolved, the method will raise an exception.
 	 *
-	 * If the provided type cannot be resolved, the method will raise an exception.
+	 * Nite: if the method returns an empty array, this means that the provided term
+	 * reference is correct, but that it is not a data type, including if you provide
+	 * the enumeration root: in this case the caller is responsible for taking action.
 	 *
 	 * @param theRequest	{Object}	The current request.
 	 * @param theType		{String}	The type reference.
@@ -695,7 +700,7 @@ class Schema
 					'BadTermReference',					// Error name.
 					K.error.TermNotFound,				// Message code.
 					theRequest.application.language,	// Language.
-					theRoot,							// Error value.
+					theType,							// Error value.
 					404									// HTTP error code.
 				)
 			);																	// !@! ==>
