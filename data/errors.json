@@ -144,6 +144,18 @@
     }
   },
   {
+    "_key" : "BadTypeReference",
+    "label" : {
+      "ISO:639:3:eng" : "Invalid data type reference: "
+    }
+  },
+  {
+    "_key" : "BadBaseType",
+    "label" : {
+      "ISO:639:3:eng" : "Invalid base data type: "
+    }
+  },
+  {
     "_key" : "ApplicationInUse",
     "label" : {
       "ISO:639:3:eng" : "Application is locked: "

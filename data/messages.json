@@ -264,6 +264,48 @@
     }
   },
   {
+    "_key" : "e45",
+    "label" : {
+      "ISO:639:3:eng" : "the provided term [@arg@] is not a data type."
+    }
+  },
+  {
+    "_key" : "e46",
+    "label" : {
+      "ISO:639:3:eng" : "the type [@arg@] is not a base data type."
+    }
+  },
+  {
+    "_key" : "e47",
+    "label" : {
+      "ISO:639:3:eng" : "the provided term object requires the [_id] field."
+    }
+  },
+  {
+    "_key" : "e48",
+    "label" : {
+      "ISO:639:3:eng" : "the provided term object requires the [_key] field."
+    }
+  },
+  {
+    "_key" : "e49",
+    "label" : {
+      "ISO:639:3:eng" : "the provided term object requires the [var] field."
+    }
+  },
+  {
+    "_key" : "e50",
+    "label" : {
+      "ISO:639:3:eng" : "the provided object key type is missing the data type."
+    }
+  },
+  {
+    "_key" : "e51",
+    "label" : {
+      "ISO:639:3:eng" : "the object key type must be a scalar [@arg@]."
+    }
+  },
+  {
     "_key": "s:schema:enumIsChoice",
     "body": {
       "ISO:639:3:eng": "<p>The service expects two parameters from the request body:</p><ul><li><strong>term</strong>: The reference(s) to the term to test as its <code>_id</code> or <code>_key</code>: it can be provided as a <em>string</em>, or as an <em>array</em> of strings.</li><li><strong>enum</strong>: An array of term <code>_id</code> or <code>_key</code> values which represent the set of enumerations to which the term should belong. To ignore enumeration membership, provide either an <em>empty array</em> or <code>null</code>, which is the default choice.</li></ul>"

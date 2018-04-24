@@ -305,7 +305,14 @@ module.exports = Object.freeze(
 			NoDataDictionary	: 41,
 			ApplicationBusy		: 42,
 			NoSessionUID        : 43,
-			ApplicationError    : 44
+			ApplicationError    : 44,
+			NotDataType			: 45,
+			NotBaseDataType		: 46,
+			MissingId			: 47,
+			MissingKey			: 48,
+			MissingVar			: 49,
+			MissinObjectKeyType	: 50,
+			MustBeScalar		: 51
 		},
 
 		//

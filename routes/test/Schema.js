@@ -42,7 +42,6 @@ const Schema = require( '../../classes/Schema' );
 //
 // Instantiate router.
 //
-const auth = createAuth();
 const router = createRouter();
 module.exports = router;
 
@@ -102,9 +101,9 @@ router.post
 				);
 
 			response.send({
-				  what : result,
-				  time : time() - stamp
-			  });
+							  what : result,
+							  time : time() - stamp
+						  });
 		}
 		catch( error )
 		{
@@ -127,17 +126,17 @@ router.post
 )
 	.body(
 		Joi.object({
-		   term	: Joi.any().required(),
-		   enums : Joi.any().required()
-	   }),
+			term	: Joi.any().required(),
+			enums : Joi.any().required()
+		}),
 		'Term reference(s) and optional list of enumerations references; provide _id or _key.'
 	)
 	.response(
 		200,
 		Joi.object({
-		   what : Joi.any(),
-		   time : Joi.number()
-	   }),
+			what : Joi.any(),
+			time : Joi.number()
+		}),
 		"The result: 'what' contains the method return value, 'time' contains the elapsed time."
 	)
 	.summary(
@@ -609,9 +608,10 @@ router.post
 )
 	.body(
 		Joi.object({
-			type : Joi.string().required()
+			type : Joi.any().required()
 		}),
-		"Method parameters."
+		"Method parameters: either a term reference or a term object which includes at" +
+		" least _id and _key."
 	)
 	.response(
 		200,

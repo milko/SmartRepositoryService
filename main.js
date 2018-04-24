@@ -13,6 +13,7 @@ module.context.use('/test/Log', require('./routes/test/Log'), 'testLog');
 module.context.use('/test/Utils', require('./routes/test/Utils'), 'testUtils');
 module.context.use('/test/Errors', require('./routes/test/MyError'), 'testErrors');
 module.context.use('/test/Schema', require('./routes/test/Schema'), 'testSchema');
+module.context.use('/test/Descriptor', require('./routes/test/Descriptor'), 'testDescriptor');
 module.context.use('/test/Application', require('./routes/test/Application'), 'testApplication');
 
 //

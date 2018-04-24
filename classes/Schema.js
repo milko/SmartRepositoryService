@@ -660,10 +660,13 @@ class Schema
 	 * the root data type below the enumeration root, which means that the hierarchy
 	 * will follow types starting from the most specific to the most general.
 	 *
-	 * The provided type reference must be the '_id' or the '_key' of the term, if the
-	 * reference cannot be resolved, the method will raise an exception.
+	 * The provided type reference must be the '_id', or the '_key' of the term, if
+	 * the reference cannot be resolved, the method will raise an exception; it can also
+	 * be an object, in which case it must have the _id , _key and 'var' fields. This last
+	 * option is relevant when this method is called while creating descriptor
+	 * validation records, since in that case type records are created by hand.
 	 *
-	 * Nite: if the method returns an empty array, this means that the provided term
+	 * Note: if the method returns an empty array, this means that the provided term
 	 * reference is correct, but that it is not a data type, including if you provide
 	 * the enumeration root: in this case the caller is responsible for taking action.
 	 *
@@ -677,33 +680,86 @@ class Schema
 		// Resolve type.
 		//
 		let type = null;
-		try
+
+		//
+		// Handle term reference.
+		//
+		if( (typeof theType === 'string')
+		 || (theType instanceof String) )
 		{
-			type =
-				db._collection( 'terms' )
-					.document( theType );
+			try
+			{
+				type = db._collection( 'terms' ).document( theType );
+			}
+			catch( error )
+			{
+				//
+				// Handle exceptions.
+				//
+				if( (! error.isArangoError)
+					|| (error.errorNum !== ARANGO_NOT_FOUND) )
+					throw( error );												// !@! ==>
+
+				//
+				// Handle not found.
+				//
+				throw(
+					new MyError(
+						'BadTermReference',					// Error name.
+						K.error.TermNotFound,				// Message code.
+						theRequest.application.language,	// Language.
+						theType,							// Error value.
+						404									// HTTP error code.
+					)
+				);																// !@! ==>
+			}
 		}
-		catch( error )
+
+		//
+		// Handle provided object.
+		//
+		else
 		{
 			//
-			// Handle exceptions.
+			// Check required fields.
 			//
-			if( (! error.isArangoError)
-			 || (error.errorNum !== ARANGO_NOT_FOUND) )
-				throw( error );													// !@! ==>
+			if( ! theType.hasOwnProperty( '_id' ) )
+				throw(
+					new MyError(
+						'BadParam',							// Error name.
+						K.error.MissingId,					// Message code.
+						theRequest.application.language,	// Language.
+						theType,							// Error value.
+						500									// HTTP error code.
+					)
+				);																// !@! ==>
+
+			if( ! theType.hasOwnProperty( '_key' ) )
+				throw(
+					new MyError(
+						'BadParam',							// Error name.
+						K.error.MissingKey,					// Message code.
+						theRequest.application.language,	// Language.
+						theType,							// Error value.
+						500									// HTTP error code.
+					)
+				);																// !@! ==>
+
+			if( ! theType.hasOwnProperty( 'var' ) )
+				throw(
+					new MyError(
+						'BadParam',							// Error name.
+						K.error.MissingVar,					// Message code.
+						theRequest.application.language,	// Language.
+						theType,							// Error value.
+						500									// HTTP error code.
+					)
+				);																// !@! ==>
 
 			//
-			// Handle not found.
+			// Set type.
 			//
-			throw(
-				new MyError(
-					'BadTermReference',					// Error name.
-					K.error.TermNotFound,				// Message code.
-					theRequest.application.language,	// Language.
-					theType,							// Error value.
-					404									// HTTP error code.
-				)
-			);																	// !@! ==>
+			type = theType;
 		}
 
 		//
@@ -726,7 +782,7 @@ class Schema
 						"uniqueVertices" : "path"
 					}
 					FILTER path.edges[*].predicate ALL == ${predicate}
-					   AND ${identifier} IN path.edges[*].branches[**]
+					   AND ${identifier} IN edge.branches[*]
 				RETURN vertex
 			`).toArray();
 

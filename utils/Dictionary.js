@@ -18,6 +18,7 @@ const ARANGO_CONFLICT = errors.ERROR_ARANGO_CONFLICT.code;
 const K = require( './Constants' );					// Application constants.
 const MyError = require( './MyError' );				// Custom errors.
 const Dict = require( '../dictionary/Dict' );		// Data dictionary.
+const Schema = require( '../classes/Schema' );		// Schema class.
 
 /**
  * Data dictionary class
@@ -86,7 +87,7 @@ class Dictionary
 		//
 		// Iterate properties.
 		//
-		for( const property of this.listLanguageFields() )
+		for( const property of this.listLanguageFields )
 		{
 			//
 			// Handle property.
@@ -128,6 +129,478 @@ class Dictionary
 	}	// restrictEdgeLanguage
 
 	/**
+	 * Text field validation record compiler
+	 *
+	 * This method will populate the provided validation record with the validation
+	 * fields of the provided data type term.
+	 *
+	 * It will handle:
+	 *
+	 * 	- kLength:	Set length or normalise two lengths.
+	 * 	- kRegex:	Add regular expression to record.
+	 *
+	 * The following custom fields will be set:
+	 *
+	 * 	- isRef:	Set to true if the type is a reference.
+	 * 	- isUrl:	Set to true if the type is an URL.
+	 * 	- isHex:	Set to true if the type is hexadecimal.
+	 * 	- isEmail:	Set to true if the type is an e-mail.
+	 *
+	 * @param theRecord	{Object}	The validation record.
+	 * @param theType	{Object}	The data type.
+	 */
+	static compileTextValidationRecord( theRecord, theType )
+	{
+		//
+		// Length.
+		//
+		let field = Dict.descriptor.kLength;
+		if( theType.hasOwnProperty( field ) )
+			theRecord[ field ]
+				= ( theRecord.hasOwnProperty( field ) )
+				  ? this.combineRanges(
+					theType[ field ],
+					theRecord[ field ]
+				)
+				  : theType[ field ];
+
+		//
+		// Regex.
+		//
+		field = Dict.descriptor.kRegex;
+		if( theType.hasOwnProperty( field ) )
+		{
+			if( ! theRecord.hasOwnProperty( field ) )
+				theRecord[ field ] = [];
+
+			theRecord[ field ]
+				.push( theType[ field ] );
+		}
+
+		//
+		// Reference.
+		//
+		if( this.listBaseReferenceDataTypes.includes( theType._key ) )
+			theRecord.isRef = true;
+
+		//
+		// HEX.
+		//
+		if( theType._key === Dict.term.kTypeValueUrl )
+			theRecord.isUrl = true;
+
+		//
+		// URL.
+		//
+		if( theType._key === Dict.term.kTypeValueHex )
+			theRecord.isHex = true;
+
+		//
+		// E-mail.
+		//
+		if( theType._key === Dict.term.kTypeValueEmail )
+			theRecord.isEmail = true;
+
+	}	// compileTextValidationRecord
+
+	/**
+	 * Numeric field validation record compiler
+	 *
+	 * This method will populate the provided validation record with the validation
+	 * fields of the provided data type term.
+	 *
+	 * It will handle:
+	 *
+	 * 	- kRange:		Set range or normalise two ranges.
+	 * 	- kDecimals:	Set decimals.
+	 *
+	 * The following custom fields will be set:
+	 *
+	 * 	- isInt:		Set to true if the type is integer.
+	 * 	- isStamp:		Set to true if the type is a time-stamp.
+	 *
+	 * @param theRecord	{Object}	The validation record.
+	 * @param theType	{Object}	The data type.
+	 */
+	static compileNumericValidationRecord( theRecord, theType )
+	{
+		//
+		// Range.
+		//
+		let field = Dict.descriptor.kRange;
+		if( theType.hasOwnProperty( field ) )
+			theRecord[ field ]
+				= ( theRecord.hasOwnProperty( field ) )
+				  ? this.combineRanges(
+					theType[ field ],
+					theRecord[ field ]
+				)
+				  : theType[ field ];
+
+		//
+		// Decimals.
+		//
+		field = Dict.descriptor.kDecimals;
+		if( theType.hasOwnProperty( field ) )
+		{
+			if( (! theRecord.hasOwnProperty( field ))
+				|| (theType[ field ] < theRecord[ field ]) )
+				theRecord[ field ] = theType[ field ];
+		}
+
+		//
+		// Integer.
+		//
+		if( theType._key === Dict.term.kTypeValueInt )
+			theRecord.isInt = true;
+
+		//
+		// Timestamp.
+		//
+		if( theType._key === Dict.term.kTypeValueStamp )
+			theRecord.isStamp = true;
+
+	}	// compileNumericValidationRecord
+
+	/**
+	 * List field validation record compiler
+	 *
+	 * This method will populate the provided validation record with the validation
+	 * fields of the provided data type term.
+	 *
+	 * It will handle:
+	 *
+	 * 	- kSize:		Set size or normalise two sizes.
+	 *
+	 * The following custom fields will be set:
+	 *
+	 * 	- isSet:		Set to true if the type is set.
+	 *
+	 * @param theRecord	{Object}	The validation record.
+	 * @param theType	{Object}	The data type.
+	 */
+	static compileListValidationRecord( theRecord, theType )
+	{
+		//
+		// Range.
+		//
+		let field = Dict.descriptor.kSize;
+		if( theType.hasOwnProperty( field ) )
+			theRecord[ field ]
+				= ( theRecord.hasOwnProperty( field ) )
+				  ? this.combineRanges(
+					theType[ field ],
+					theRecord[ field ]
+				)
+				  : theType[ field ];
+
+		//
+		// Set.
+		//
+		if( theType._key === Dict.term.kTypeValueSet )
+			theRecord.isSet = true;
+
+	}	// compileListValidationRecord
+
+	/**
+	 * Reference field validation record compiler
+	 *
+	 * This method will populate the provided validation record with the validation
+	 * fields of the provided data type term.
+	 *
+	 * It will handle:
+	 *
+	 * 	- kCollection:	Set collection (will be replaced).
+	 * 	- kInstance:	Set instance (will be replaced).
+	 * 	- kEnumTerm:	Terms enumerations (will be replaced).
+	 * 	- kEnumField:	Field enumerations (will be replaced).
+	 *
+	 * @param theRecord	{Object}	The validation record.
+	 * @param theType	{Object}	The data type.
+	 */
+	static compileReferenceValidationRecord( theRecord, theType )
+	{
+		//
+		// Iterate fields.
+		//
+		for( const field of this.listReferenceValidationFields )
+		{
+			if( theType.hasOwnProperty( field ) )
+				theRecord[ field ] = theType[ field ];
+		}
+
+	}	// compileReferenceValidationRecord
+
+	/**
+	 * Object key type field validation record compiler
+	 *
+	 * This method will return the validation record for the provided object
+	 * 'type-key' structure.
+	 *
+	 * The second parameter represents the 'type-key' field from the term data type,
+	 * or from the descriptor record. This field is a structure that must contain the
+	 * 'type' field which references the object key data type.
+	 *
+	 * The method will first ensure the type is a scalar, it will then load the
+	 * type hierarchy and inject the validation option fields into the hierarchy, it
+	 * will finally compile the validation record and return it.
+	 *
+	 * The provided data type structure must have at least the 'type' field which
+	 * determines the key type.
+	 *
+	 * @param theRequest	{Object}	The current service request.
+	 * @param theType		{Object}	The data type structure.
+	 */
+	static compileObjectKeyValidationRecord( theRequest, theType )
+	{
+		//
+		// Check type.
+		//
+		if( theType.hasOwnProperty( Dict.descriptor.kType ) )
+		{
+			//
+			// Get scalar types list.
+			//
+			const scalars =
+				Schema.getEnumList(
+					theRequest,						// Current request.
+					Dict.term.kTypeScalar,			// Root node.
+					Dict.term.kTypeValue,			// Graph branch.
+					null,							// Minimum depth.
+					null,							// Maximum depth.
+					'_key',							// Vertex field.
+					null,							// Edge field.
+					true,							// Only choices.
+					false,							// Restrict langyage.
+					false							// Include edge.
+				);
+
+			//
+			// Ensure type is scalar.
+			//
+			if( scalars.includes( theType[ Dict.descriptor.kType ] ) )
+			{
+				//
+				// Load type hierarchy.
+				//
+				const hierarchy = Schema.getTypeHierarchy( theRequest, theType._key );
+				if( hierarchy.length === 0 )
+					throw(
+						new MyError(
+							'BadTypeReference',					// Error name.
+							K.error.NotDataType,				// Message code.
+							theRequest.application.language,	// Language.
+							theType[ Dict.descriptor.kType ]	// Error value.
+						)
+					);															// !@! ==>
+
+				//
+				// Inject scalar validation fields.
+				//
+				Dictionary.injectScalarValidationFields( hierarchy, theType );
+
+			}	// Is scalar.
+
+			else
+				throw(
+					new MyError(
+						'BadValueType',						// Error name.
+						K.error.MustBeScalar,				// Message code.
+						theRequest.application.language,	// Language.
+						theType[ Dict.descriptor.kType ],	// Error value.
+						500									// HTTP error code.
+					)
+				);																// !@! ==>
+
+		}	// Has type.
+
+		throw(
+			new MyError(
+				'BadParam',							// Error name.
+				K.error.MissinObjectKeyType,		// Message code.
+				theRequest.application.language,	// Language.
+				theType,							// Error value.
+				500									// HTTP error code.
+			)
+		);																		// !@! ==>
+
+	}	// compileObjectKeyValidationRecord
+
+	/**
+	 * Inject scalar validation fields
+	 *
+	 * This method expects two parameters: the first represents the type hierarchy and
+	 * the second represents a structure containing validation option fields.
+	 *
+	 * The method will locate the scalar base type and inject the relevant validation
+	 * option fields.
+	 *
+	 * Note that the data types are updated in place.
+	 *
+	 * @param theHierarchy	{Array}		The types hierarchy.
+	 * @param theOptions	{Object}	The structure containing the validation fields.
+	 */
+	static injectScalarValidationFields( theHierarchy, theOptions )
+	{
+		//
+		// Set scalar validation fields.
+		// Note that we are modifying the original item.
+		//
+		const base_type = theHierarchy[ theHierarchy.length - 1 ];
+
+		//
+		// Add scalar validation fields.
+		//
+		let fields = null;
+		switch( base_type.var )
+		{
+			case 'kTypeDataAny':
+			case 'kTypeDataBool':
+				// Do nothin'.
+				break;
+
+			case 'kTypeDataText':
+
+				//
+				// Get validation fields.
+				//
+				fields =
+					this.listTextValidationFields
+						.concat( this.listReferenceValidationFields );
+
+				//
+				// Remove validation fields,
+				// and set from provided structure.
+				//
+				for( const field of fields )
+				{
+					if( base_type.hasOwnProperty( field ) )
+						delete base_type[ field ];
+
+					if( theOptions.hasOwnProperty( field ) )
+						base_type[ field ] = theOptions[ field ];
+				}
+
+				break;
+
+			case 'kTypeDataNumeric':
+
+				//
+				// Copy validation fields.
+				//
+				for( const field of this.listNumericValidationFields )
+				{
+					if( base_type.hasOwnProperty( field ) )
+						delete base_type[ field ];
+
+					if( theOptions.hasOwnProperty( field ) )
+						base_type[ field ] = theOptions[ field ];
+				}
+
+				break;
+		}
+
+	}	// injectScalarValidationFields
+
+	/**
+	 * Custom field validation record compiler
+	 *
+	 * This method will populate the provided validation record with the validation
+	 * fields of the provided data type term.
+	 *
+	 * It will handle:
+	 *
+	 * 	- kTypeCast:	Set cast function (will be added).
+	 * 	- kTypeCustom:	Set custom function (will be added).
+	 *
+	 * @param theRecord	{Object}	The validation record.
+	 * @param theType	{Object}	The data type.
+	 */
+	static compileCustomValidationRecord( theRecord, theType )
+	{
+		//
+		// Iterate fields.
+		//
+		for( const field of this.listCustomValidationFields )
+		{
+			if( theType.hasOwnProperty( field ) )
+			{
+				if( ! theRecord.hasOwnProperty( field ) )
+					theRecord[ field ] = [];
+
+				theRecord[ field ].push( theType[ field ] );
+			}
+		}
+
+	}	// compileCustomValidationRecord
+
+	/**
+	 * Combine length range
+	 *
+	 * This method will return the combined length range of the two provided ranges,
+	 * the method will ensure that the smallest value will be taken:
+	 *
+	 * 	- Minimum length:	the largest length, or, if equal, the one that does not
+	 * 						include the limit will be selected.
+	 * 	- Maximum length:	the smallest length, or, if equal, the one that does not
+	 * 						include	the limit will be taken.
+	 *
+	 * The method expects the ranges to be arrays of 4 elements: the first and second
+	 * must be integers, the third and fourth must be booleans; the method assumes the
+	 * ranges to be correct.
+	 *
+	 * @param theRange1	{Array}	First range.
+	 * @param theRange2	{Array}	Second range.
+	 * @returns {Array}			The combined range.
+	 */
+	static combineRanges( theRange1, theRange2 )
+	{
+		//
+		// Init local storage.
+		//
+		const range = [];
+
+		//
+		// Handle minimum bound.
+		//
+		if( theRange1[ 0 ] > theRange2[ 0 ] )
+		{
+			range[ 0 ] = theRange1[ 0 ];
+			range[ 2 ] = theRange1[ 2 ];
+		}
+		else if( theRange1[ 0 ] < theRange2[ 0 ] )
+		{
+			range[ 0 ] = theRange2[ 0 ];
+			range[ 2 ] = theRange2[ 2 ];
+		}
+		else
+		{
+			range[ 0 ] = theRange1[ 0 ];
+			range[ 2 ] = ( theRange1[ 2 ] && theRange2 [ 2 ] );
+		}
+
+		//
+		// Handle maximum bound.
+		//
+		if( theRange1[ 1 ] < theRange2[ 1 ] )
+		{
+			range[ 1 ] = theRange1[ 1 ];
+			range[ 3 ] = theRange1[ 3 ];
+		}
+		else if( theRange1[ 1 ] > theRange2[ 1 ] )
+		{
+			range[ 1 ] = theRange2[ 1 ];
+			range[ 3 ] = theRange2[ 3 ];
+		}
+		else
+		{
+			range[ 1 ] = theRange1[ 1 ];
+			range[ 3 ] = ( theRange1[ 3 ] && theRange2 [ 3 ] );
+		}
+
+	}	// combineRanges
+
+	/**
 	 * List language description fields.
 	 *
 	 * This method will return the descriptor _key names of all description
@@ -138,7 +611,7 @@ class Dictionary
 	 *
 	 * @returns {string[]}	List of language string field _keys.
 	 */
-	static listLanguageFields()
+	static get listLanguageFields()
 	{
 		return [
 			Dict.descriptor.kLabel,			// Label.
@@ -149,6 +622,133 @@ class Dictionary
 		];																			// ==>
 
 	}	// listLanguageFields
+
+	/**
+	 * List base data types.
+	 *
+	 * This method will return the list of base data types as variable names.
+	 *
+	 * @returns {string[]}	List of base data type var field names.
+	 */
+	static get listBaseDataTypes()
+	{
+		return [
+			Dict.term.kTypeDataAny,			// Any type.
+			Dict.term.kTypeDataBool,		// Boolean.
+			Dict.term.kTypeDataText,		// Text.
+			Dict.term.kTypeDataNumeric,		// Number.
+			Dict.term.kTypeDataList,		// Array.
+			Dict.term.kTypeDataStruct,		// Structure.
+			Dict.term.kTypeDataObject		// Object.
+		];																			// ==>
+
+	}	// listBaseDataTypes
+
+	/**
+	 * List base reference data types.
+	 *
+	 * This method will return the list of base reference data types as variable names.
+	 *
+	 * @returns {string[]}	List of base reference data type var field names.
+	 */
+	static get listBaseReferenceDataTypes()
+	{
+		return [
+			Dict.term.kTypeValueRefId,		// _id reference.
+			Dict.term.kTypeValueRefKey,		// _key reference.
+			Dict.term.kTypeValueRefGid,		// gid reference.
+			Dict.term.kTypeValueTerm,		// Term reference.
+			Dict.term.kTypeValueField,		// Field reference.
+			Dict.term.kTypeValueEnum		// Enumeration reference.
+		];																			// ==>
+
+	}	// listBaseReferenceDataTypes
+
+	/**
+	 * List scalar text validation fields.
+	 *
+	 * This method will return the list of scalar text validation fields as an array of
+	 * descriptor _key.
+	 *
+	 * @returns {string[]}	List of scalar text validation field _key.
+	 */
+	static get listTextValidationFields()
+	{
+		return [
+			Dict.descriptor.kLength,		// String length range.
+			Dict.descriptor.kRegex			// Regular expression.
+		];																			// ==>
+
+	}	// listTextValidationFields
+
+	/**
+	 * List scalar numeric validation fields.
+	 *
+	 * This method will return the list of scalar numeric validation fields as an array of
+	 * descriptor _key.
+	 *
+	 * @returns {string[]}	List of scalar numeric validation field _key.
+	 */
+	static get listNumericValidationFields()
+	{
+		return [
+			Dict.descriptor.kRange,			// Value range.
+			Dict.descriptor.kDecimals		// Decimal positions.
+		];																			// ==>
+
+	}	// listNumericValidationFields
+
+	/**
+	 * List scalar reference validation fields.
+	 *
+	 * This method will return the list of scalar reference validation fields as an array of
+	 * descriptor _key.
+	 *
+	 * @returns {string[]}	List of scalar reference validation field _key.
+	 */
+	static get listReferenceValidationFields()
+	{
+		return [
+			Dict.descriptor.kCollection,	// Collection.
+			Dict.descriptor.kInstance,		// Instance.
+			Dict.descriptor.kEnumTerm,		// Enumerations.
+			Dict.descriptor.kEnumField		// Field enumerations.
+		];																			// ==>
+
+	}	// listReferenceValidationFields
+
+	/**
+	 * List array validation fields.
+	 *
+	 * This method will return the list of array validation fields as an array of
+	 * descriptor _key.
+	 *
+	 * @returns {string[]}	List of array validation field _key.
+	 */
+	static get listArrayValidationFields()
+	{
+		return [
+			Dict.descriptor.kSize		// Array size.
+		];																			// ==>
+
+	}	// listArrayValidationFields
+
+	/**
+	 * List custom validation fields.
+	 *
+	 * This method will return the list of custom validation fields as an array of
+	 * descriptor _key.
+	 *
+	 * @returns {string[]}	List of custom validation field _key.
+	 */
+	static get listCustomValidationFields()
+	{
+		return [
+			Dict.descriptor.kTypeCast,	// Cast function.
+			Dict.descriptor.kTypeCustom	// Custom function.
+		];																			// ==>
+
+	}	// listCustomValidationFields
 }
 
 module.exports = Dictionary;
