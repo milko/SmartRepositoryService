@@ -187,7 +187,15 @@ router.post
 			//
 			// Resolve references.
 			//
-			const param = collection.document( request.body.descriptor );
+			let param = null;
+			try
+			{
+				param = collection.document( request.body.descriptor );
+			}
+			catch( error )
+			{
+				response.throw( 400, `Unable to reference descriptor [${request.body.descriptor}].` )
+			}
 
 			//
 			// Make test.

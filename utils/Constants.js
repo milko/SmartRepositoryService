@@ -312,7 +312,7 @@ module.exports = Object.freeze(
 			MissingKey			: 48,
 			MissingVar			: 49,
 			MissinObjectKeyType	: 50,
-			MustBeScalar		: 51
+			MustBeText			: 51
 		},
 
 		//

@@ -302,7 +302,7 @@
   {
     "_key" : "e51",
     "label" : {
-      "ISO:639:3:eng" : "the object key type must be a scalar [@arg@]."
+      "ISO:639:3:eng" : "the object key type must be a text type [@arg@]."
     }
   },
   {

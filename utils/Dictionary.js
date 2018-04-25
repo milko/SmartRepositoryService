@@ -87,7 +87,7 @@ class Dictionary
 		//
 		// Iterate properties.
 		//
-		for( const property of this.listLanguageFields )
+		for( const property of Dictionary.listLanguageFields )
 		{
 			//
 			// Handle property.
@@ -115,13 +115,13 @@ class Dictionary
 		//
 		// Process top level properties.
 		//
-		this.restrictLanguage( theDocument, theLanguage );
+		Dictionary.restrictLanguage( theDocument, theLanguage );
 
 		//
 		// Process modifier properties.
 		//
 		if( theDocument.hasOwnProperty( Dict.descriptor.kModifiers ) )
-			this.restrictLanguage(
+			Dictionary.restrictLanguage(
 				theDocument[ Dict.descriptor.kModifiers ],
 				theLanguage
 			);
@@ -158,10 +158,10 @@ class Dictionary
 		if( theType.hasOwnProperty( field ) )
 			theRecord[ field ]
 				= ( theRecord.hasOwnProperty( field ) )
-				  ? this.combineRanges(
-					theType[ field ],
-					theRecord[ field ]
-				)
+				  ? Dictionary.combineRanges(
+						theType[ field ],
+						theRecord[ field ]
+					)
 				  : theType[ field ];
 
 		//
@@ -180,7 +180,7 @@ class Dictionary
 		//
 		// Reference.
 		//
-		if( this.listBaseReferenceDataTypes.includes( theType._key ) )
+		if( Dictionary.listBaseReferenceDataTypes.includes( theType._key ) )
 			theRecord.isRef = true;
 
 		//
@@ -231,10 +231,10 @@ class Dictionary
 		if( theType.hasOwnProperty( field ) )
 			theRecord[ field ]
 				= ( theRecord.hasOwnProperty( field ) )
-				  ? this.combineRanges(
-					theType[ field ],
-					theRecord[ field ]
-				)
+				  ? Dictionary.combineRanges(
+						theType[ field ],
+						theRecord[ field ]
+					)
 				  : theType[ field ];
 
 		//
@@ -288,10 +288,10 @@ class Dictionary
 		if( theType.hasOwnProperty( field ) )
 			theRecord[ field ]
 				= ( theRecord.hasOwnProperty( field ) )
-				  ? this.combineRanges(
-					theType[ field ],
-					theRecord[ field ]
-				)
+				  ? Dictionary.combineRanges(
+						theType[ field ],
+						theRecord[ field ]
+					)
 				  : theType[ field ];
 
 		//
@@ -323,7 +323,7 @@ class Dictionary
 		//
 		// Iterate fields.
 		//
-		for( const field of this.listReferenceValidationFields )
+		for( const field of Dictionary.listReferenceValidationFields )
 		{
 			if( theType.hasOwnProperty( field ) )
 				theRecord[ field ] = theType[ field ];
@@ -427,6 +427,49 @@ class Dictionary
 	}	// compileObjectKeyValidationRecord
 
 	/**
+	 * Inject validation fields
+	 *
+	 * This method expects two parameters: the first represents the type hierarchy and
+	 * the second represents a structure containing validation option fields.
+	 *
+	 * The method will locate the scalar base type and inject the relevant validation
+	 * option fields.
+	 *
+	 * Note that the data types are updated in place.
+	 *
+	 * @param theHierarchy	{Array}		The types hierarchy.
+	 * @param theOptions	{Object}	The structure containing the validation fields.
+	 */
+	static injectValidationFields( theHierarchy, theOptions )
+	{
+		//
+		// Set scalar validation fields.
+		//
+		Dictionary.injectScalarValidationFields( theHierarchy, theOptions );
+
+		//
+		// Set reference validation fields.
+		//
+		Dictionary.injectReferenceValidationFields( theHierarchy, theOptions );
+
+		//
+		// Set list validation fields.
+		//
+		Dictionary.injectListValidationFields( theHierarchy, theOptions );
+
+		//
+		// Handle objects.
+		//
+		// - Load key validation hierarchy (where?).
+		// - Load value validation hierarchy (where?).
+		// - Inject options in key hierarchy.
+		// - Inject options in value hierarchy.
+		//
+		// Dictionary.injectObjectValidationFields( theHierarchy, theOptions );
+
+	}	// injectValidationFields
+
+	/**
 	 * Inject scalar validation fields
 	 *
 	 * This method expects two parameters: the first represents the type hierarchy and
@@ -443,7 +486,7 @@ class Dictionary
 	static injectScalarValidationFields( theHierarchy, theOptions )
 	{
 		//
-		// Set scalar validation fields.
+		// Locate base scalar type.
 		// Note that we are modifying the original item.
 		//
 		const base_type = theHierarchy[ theHierarchy.length - 1 ];
@@ -451,8 +494,7 @@ class Dictionary
 		//
 		// Add scalar validation fields.
 		//
-		let fields = null;
-		switch( base_type.var )
+		switch( base_type[ Dict.descriptor.kVariable] )
 		{
 			case 'kTypeDataAny':
 			case 'kTypeDataBool':
@@ -462,17 +504,10 @@ class Dictionary
 			case 'kTypeDataText':
 
 				//
-				// Get validation fields.
-				//
-				fields =
-					this.listTextValidationFields
-						.concat( this.listReferenceValidationFields );
-
-				//
 				// Remove validation fields,
 				// and set from provided structure.
 				//
-				for( const field of fields )
+				for( const field of Dictionary.listTextValidationFields )
 				{
 					if( base_type.hasOwnProperty( field ) )
 						delete base_type[ field ];
@@ -488,7 +523,7 @@ class Dictionary
 				//
 				// Copy validation fields.
 				//
-				for( const field of this.listNumericValidationFields )
+				for( const field of Dictionary.listNumericValidationFields )
 				{
 					if( base_type.hasOwnProperty( field ) )
 						delete base_type[ field ];
@@ -501,6 +536,120 @@ class Dictionary
 		}
 
 	}	// injectScalarValidationFields
+
+	/**
+	 * Inject list validation fields
+	 *
+	 * This method expects two parameters: the first represents the type hierarchy and
+	 * the second represents a structure containing validation option fields.
+	 *
+	 * The method will locate the list base type and inject the relevant validation
+	 * option fields. The hierarchy search will start from the last element until the
+	 * first, this means that, in case of nested lists, the top-most list type will be
+	 * affected. If the type is not found, the method will do nothing.
+	 *
+	 * Note that the data types are updated in place.
+	 *
+	 * @param theHierarchy	{Array}		The types hierarchy.
+	 * @param theOptions	{Object}	The structure containing the validation fields.
+	 */
+	static injectListValidationFields( theHierarchy, theOptions )
+	{
+		//
+		// Init base list type.
+		//
+		let base_type = null;
+
+		//
+		// Locate list base type.
+		// Note that we are modifying the original item.
+		//
+		for( let i = (theHierarchy.length - 1); i >= 0; i-- )
+		{
+			if( theHierarchy[ i ].var === 'kTypeDataList' )
+			{
+				base_type = theHierarchy[ i ];
+				break;															// =>
+			}
+		}
+
+		//
+		// Handle list base type.
+		//
+		if( base_type !== null )
+		{
+			//
+			// Copy validation fields.
+			//
+			for( const field of Dictionary.listArrayValidationFields )
+			{
+				if( base_type.hasOwnProperty( field ) )
+					delete base_type[ field ];
+
+				if( theOptions.hasOwnProperty( field ) )
+					base_type[ field ] = theOptions[ field ];
+			}
+
+		}	// Found list base type.
+
+	}	// injectListValidationFields
+
+	/**
+	 * Inject reference validation fields
+	 *
+	 * This method expects two parameters: the first represents the type hierarchy and
+	 * the second represents a structure containing validation option fields.
+	 *
+	 * The method will locate the reference base type and inject the relevant validation
+	 * option fields. The hierarchy search will start from the last element until the
+	 * first, until it finds the kTypeValueRef type. If the type is not found, the
+	 * method will do nothing.
+	 *
+	 * Note that the data types are updated in place.
+	 *
+	 * @param theHierarchy	{Array}		The types hierarchy.
+	 * @param theOptions	{Object}	The structure containing the validation fields.
+	 */
+	static injectReferenceValidationFields( theHierarchy, theOptions )
+	{
+		//
+		// Init base reference type.
+		//
+		let base_type = null;
+
+		//
+		// Locate reference base type.
+		// Note that we are modifying the original item.
+		//
+		for( let i = (theHierarchy.length - 1); i >= 0; i-- )
+		{
+			if( theHierarchy[ i ].var === 'kTypeValueRef' )
+			{
+				base_type = theHierarchy[ i ];
+				break;															// =>
+			}
+		}
+
+		//
+		// Handle reference base type.
+		//
+		if( base_type !== null )
+		{
+			//
+			// Copy validation fields.
+			//
+			for( const field of Dictionary.listReferenceValidationFields )
+			{
+				if( base_type.hasOwnProperty( field ) )
+					delete base_type[ field ];
+
+				if( theOptions.hasOwnProperty( field ) )
+					base_type[ field ] = theOptions[ field ];
+			}
+
+		}	// Found reference base type.
+
+	}	// injectReferenceValidationFields
 
 	/**
 	 * Custom field validation record compiler
@@ -521,7 +670,7 @@ class Dictionary
 		//
 		// Iterate fields.
 		//
-		for( const field of this.listCustomValidationFields )
+		for( const field of Dictionary.listCustomValidationFields )
 		{
 			if( theType.hasOwnProperty( field ) )
 			{
@@ -654,6 +803,7 @@ class Dictionary
 	static get listBaseReferenceDataTypes()
 	{
 		return [
+			Dict.term.kTypeValueRef,		// Reference.
 			Dict.term.kTypeValueRefId,		// _id reference.
 			Dict.term.kTypeValueRefKey,		// _key reference.
 			Dict.term.kTypeValueRefGid,		// gid reference.

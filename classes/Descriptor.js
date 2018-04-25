@@ -80,6 +80,13 @@ class Descriptor
 	static getDescriptorValidationRecord( theRequest, theDescriptor )
 	{
 		//
+		// Init local storage.
+		//
+		let types = null;
+		let hierarchy = null;
+		let is_obj = false;
+
+		//
 		// Handle array.
 		//
 		if( Array.isArray( theDescriptor ) )
@@ -92,12 +99,12 @@ class Descriptor
 		}
 
 		//
-		// Get type hierarchy.
+		// Get base type hierarchy.
 		//
-		const types =
+		types =
 			Schema.getTypeHierarchy(
 				theRequest,
-				theDescriptor[ Dict.descriptor.kType]
+				theDescriptor[ Dict.descriptor.kType ]
 			);
 
 		//
@@ -114,24 +121,124 @@ class Descriptor
 			);																	// !@! ==>
 
 		//
-		// Set scalar validation fields.
+		// Handle object key and value types.
 		//
-		Dictionary.injectScalarValidationFields( types, theDescriptor );
+		// We do this only if the descriptor type is object,
+		// and not a type derived from object.
+		//
+		// This means that the hierarchy (types variable) will be one element.
+		//
+		if( theDescriptor[ Dict.descriptor.kType ] === Dict.term.kTypeDataObject )
+		{
+			//
+			// Init local storage.
+			//
+			is_obj = true;
+			let field = null;
+
+			//
+			// Handle key type.
+			//
+			field = Dict.descriptor.kTypeKey;
+			if( theDescriptor.hasOwnProperty( field ) )
+			{
+				//
+				// Get type hierarchy.
+				//
+				hierarchy =
+					Schema.getTypeHierarchy(
+						theRequest,
+						theDescriptor[ field ][ Dict.descriptor.kType ]
+					);
+
+				//
+				// Ensure it is text.
+				//
+				const temp = hierarchy[ hierarchy.length - 1 ][ Dict.descriptor.kVariable ];
+				if( temp !== 'kTypeDataText' )
+					throw(
+						new MyError(
+							'BadValueType',						// Error name.
+							K.error.MustBeText,					// Message code.
+							theRequest.application.language,	// Language.
+							temp,								// Error value.
+							500									// HTTP error code.
+						)
+					);															// !@! ==>
+
+				//
+				// Inject descriptor validation options.
+				//
+				Dictionary.injectValidationFields( hierarchy, theDescriptor[ field ] );
+
+				//
+				// Set hierarchy in object type.
+				//
+				types[ 0 ][ field ] = hierarchy;
+			}
+
+			//
+			// Handle value type.
+			//
+			field = Dict.descriptor.kTypeValue;
+			if( theDescriptor.hasOwnProperty( field ) )
+			{
+				//
+				// Get type hierarchy.
+				//
+				hierarchy =
+					Schema.getTypeHierarchy(
+						theRequest,
+						theDescriptor[ field ][ Dict.descriptor.kType ]
+					);
+
+				//
+				// Inject descriptor validation options.
+				//
+				Dictionary.injectValidationFields( hierarchy, theDescriptor[ field ]  );
+
+				//
+				// Set hierarchy in object type.
+				//
+				types[ 0 ][ field ] = hierarchy;
+			}
+		}
 
 		//
-		// Set list validation fields.
+		// Get format hierarchy.
 		//
-		// Dictionary.injectListValidationFields( types, theDescriptor );
+		hierarchy = null;
+		switch( theDescriptor[ Dict.descriptor.kFormat ] )
+		{
+			case Dict.term.kTypeFormatList:
+				hierarchy =
+					Schema.getTypeHierarchy(
+						theRequest,
+						Dict.term.kTypeDataList
+					);
+				break;
+
+			case Dict.term.kTypeFormatSet:
+				hierarchy =
+					Schema.getTypeHierarchy(
+						theRequest,
+						Dict.term.kTypeValueSet
+					);
+				break;
+		}
 
 		//
-		// Handle objects.
+		// Add list type.
 		//
-		// - Load key validation hierarchy (where?).
-		// - Load value validation hierarchy (where?).
-		// - Inject options in key hierarchy.
-		// - Inject options in value hierarchy.
+		if( hierarchy !== null )
+			types = types.concat( hierarchy );
+
 		//
-		// Dictionary.injectObjectValidationFields( types, theDescriptor );
+		// Inject validation options fields.
+		// Note that we do this only for non-object fields.
+		//
+		if( ! is_obj )
+			Dictionary.injectValidationFields( types, theDescriptor );
 
 		return this.getValidationRecord( theRequest, types );						// ==>
 
@@ -287,8 +394,7 @@ class Descriptor
 		//
 		// Init local storage.
 		//
-		let rec = {};
-		let temp_rec = {};
+		const record = {};
 		const base_types = Dictionary.listBaseDataTypes;
 		const object_types = [
 			Dict.descriptor.kTypeKey,
@@ -298,6 +404,7 @@ class Descriptor
 		//
 		// Iterate hierarchy.
 		//
+		let current = record;
 		while( theHierarchy.length > 0 )
 		{
 			//
@@ -308,35 +415,38 @@ class Descriptor
 
 			//
 			// Handle base type.
+			// This should only occur when creating the first type,
+			// or when switching from a list to a scalar.
 			//
 			if( base_types.includes( type._key ) )
 			{
 				//
 				// Handle child type.
+				// This if current record has no type.
 				//
-				if( rec.hasOwnProperty( 'type' ) )
+				if( current.hasOwnProperty( Dict.descriptor.kType ) )
 				{
 					//
-					// Save current record.
+					// Create child placeholder.
 					//
-					temp_rec = JSON.parse(JSON.stringify(rec));
+					current._child = {};
 
 					//
-					// Init new record.
+					// Point to child.
 					//
-					rec = { _child : temp_rec };
+					current = current._child;
 				}
 
 				//
 				// Set data type.
 				//
-				rec[ Dict.descriptor.kType ] = type.var;
+				current[ Dict.descriptor.kType ] = type[ Dict.descriptor.kVariable ];
 			}
 
 			//
 			// Parse by type.
 			//
-			switch( rec.type )
+			switch( current[ Dict.descriptor.kType ] )
 			{
 				case 'kTypeDataAny':
 				case 'kTypeDataBool':
@@ -345,20 +455,20 @@ class Descriptor
 
 				case 'kTypeDataText':
 
-					Dictionary.compileTextValidationRecord( rec, type );
-					Dictionary.compileReferenceValidationRecord( rec, type );
+					Dictionary.compileTextValidationRecord( current, type );
+					Dictionary.compileReferenceValidationRecord( current, type );
 
 					break;
 
 				case 'kTypeDataNumeric':
 
-					Dictionary.compileNumericValidationRecord( rec, type );
+					Dictionary.compileNumericValidationRecord( current, type );
 
 					break;
 
 				case 'kTypeDataList':
 
-					Dictionary.compileListValidationRecord( rec, type );
+					Dictionary.compileListValidationRecord( current, type );
 
 					break;
 
@@ -371,8 +481,8 @@ class Descriptor
 					for( const obj_type of object_types )
 					{
 						if( type.hasOwnProperty( obj_type ) )
-							rec[ obj_type ] =
-								this.getTypeValidationRecord(
+							current[ obj_type ] =
+								this.getValidationRecord(
 									theRequest,
 									type[ obj_type ] );
 					}
@@ -393,10 +503,10 @@ class Descriptor
 			//
 			// Set custom validation fields.
 			//
-			Dictionary.compileCustomValidationRecord( rec, type );
+			Dictionary.compileCustomValidationRecord( current, type );
 		}
 
-		return rec;																	// ==>
+		return record;																	// ==>
 
 	}	// getValidationRecord
 

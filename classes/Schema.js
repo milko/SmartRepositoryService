@@ -697,7 +697,7 @@ class Schema
 				// Handle exceptions.
 				//
 				if( (! error.isArangoError)
-					|| (error.errorNum !== ARANGO_NOT_FOUND) )
+				 || (error.errorNum !== ARANGO_NOT_FOUND) )
 					throw( error );												// !@! ==>
 
 				//
