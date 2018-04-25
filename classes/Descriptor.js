@@ -510,6 +510,122 @@ class Descriptor
 
 	}	// getValidationRecord
 
+	/**
+	 * Get validation structure
+	 *
+	 * This method can be used to convert a validation record into a validation
+	 * structure, it expects the current request and the validation record.
+	 *
+	 * The method expects the validation record to contain the following fields:
+	 *
+	 * 	- type:			The base data type.
+	 * 	- type-key:		The object key validation record.
+	 * 	- type-value:	The object value validation record.
+	 * 	- type-cast:	The term referencing the value cast function.
+	 * 	- type-custom:	The term referencing the value custom function.
+	 * 	- size:			The array size range.
+	 * 	- range:		The value range.
+	 * 	- length:		The string length range.
+	 * 	- decimals:		The number of significant decimals.
+	 * 	- regex:		The string regular expression.
+	 * 	- terms:		The list of term enumerations.
+	 * 	- fields:		The list of field enumerations.
+	 * 	- collection:	The reference collection name.
+	 * 	- instance:		The reference instance.
+	 * 	- isRef:		True if reference.
+	 * 	- isSet:		True if array set.
+	 * 	- isInt:		True if integer.
+	 * 	- isStamp:		True if time stamp.
+	 * 	- isHex:		True if hexadecimal string.
+	 * 	- isUrl:		True if URI.
+	 * 	- isEmail:		True if e-mail.
+	 * 	- _child:		Child type container.
+	 *
+	 * @param theRequest	{Object}	Current request.
+	 * @param theRecord		{Object}	Validation record.
+	 * @return {Object}					Validation structure.
+	 */
+	static getValidationStructure( theRequest, theRecord )
+	{
+		//
+		// Init local storage.
+		//
+		const structure = {};
+
+		//
+		// Parse Joi validation string.
+		//
+		structure[ Dict.descriptor.kJoi ] =
+			Dictionary.parseJoi( theRecord );
+
+		//
+		// Parse functions.
+		//
+		let fields = [
+			Dict.descriptor.kTypeCast,
+			Dict.descriptor.kTypeCustom
+		];
+		for( const field of fields )
+		{
+			if( theRecord.hasOwnProperty( field ) )
+				structure[ field ] =
+					theRecord[ field ];
+			else if( (theRecord[ Dict.descriptor.kType ] === 'kTypeDataList')
+				  && theRecord.hasOwnProperty( '_child' )
+				  && theRecord._child.hasOwnProperty( field ) )
+				structure[ field ] =
+					theRecord._child[ field ];
+		}
+
+		//
+		// Parse reference elements.
+		//
+		if( theRecord.hasOwnProperty( 'isRef' )
+		 && (theRecord.isRef === true) )
+		{
+			for( const field of Dictionary.listReferenceValidationFields )
+			{
+				if( theRecord.hasOwnProperty( field ) )
+					structure[ field ] = theRecord[ field ];
+			}
+		}
+
+		//
+		// Handle object.
+		//
+		if( theRecord[ Dict.descriptor.kType ] === 'kTypeDataObject' )
+		{
+			//
+			// Set key Joi string.
+			//
+			if( theRecord.hasOwnProperty( Dict.descriptor.kTypeKey ) )
+				structure[ Dict.descriptor.kTypeKey ] =
+					Descriptor.getValidationStructure(
+						theRequest,
+						theRecord[ Dict.descriptor.kTypeKey ]
+					);
+
+			//
+			// Set value Joi string.
+			//
+			if( theRecord.hasOwnProperty( Dict.descriptor.kTypeValue ) )
+				structure[ Dict.descriptor.kTypeValue ] =
+					Descriptor.getValidationStructure(
+						theRequest,
+						theRecord[ Dict.descriptor.kTypeValue ]
+					);
+		}
+
+		//
+		// Add custom function.
+		//
+		// structure[ Dict.descriptor.kTypeCustom ] =
+		// 	Dictionary.parseCustomFunction( theRecord );
+
+		return structure;															// ==>
+
+	}	// getValidationStructure
+
 }	// Descriptor.
 
 module.exports = Descriptor;

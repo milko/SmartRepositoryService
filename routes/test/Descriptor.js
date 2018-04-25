@@ -247,3 +247,224 @@ router.post
   Returns the result of Descriptor.getDescriptorValidationRecord()
   against the provided descriptor reference in 'descriptor'.
 `);
+
+
+/**
+ * Test Descriptor.getValidationStructure()
+ *
+ * The service will return the validation structure(s) of the provided validation
+ * record(s). The service expects a descriptor reference or an array of references.
+ *
+ * The service returns an object as { what : <result> } where result is the
+ * value returned by the tested method.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/getValidationStructure
+ * @verb		post
+ * @response	{ what : <result> }.
+ */
+router.post
+(
+	'/getValidationStructure',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+
+		//
+		// Test method.
+		//
+		const collection = db._collection( 'descriptors' );
+		try
+		{
+			//
+			// Resolve references.
+			//
+			let param = null;
+			try
+			{
+				param = collection.document( request.body.descriptor );
+			}
+			catch( error )
+			{
+				response.throw( 400, `Unable to reference descriptor [${request.body.descriptor}].` )
+			}
+
+			//
+			// Make test.
+			//
+			const record = Descriptor.getDescriptorValidationRecord( request, param );
+			const result = Descriptor.getValidationStructure( request, record );
+
+			response.send({
+				what : result,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'getValidationStructure'
+)
+	.body(
+		Joi.object({
+			descriptor : Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string()))
+		}),
+		'Object { descriptor : value } with descriptor reference(s) as _id or _key.'
+	)
+	.response(
+		200,
+		Joi.object({
+			what : Joi.any(),
+			time : Joi.number()
+		}),
+		"The result: 'what' contains the method return value, 'time' contains the elapsed time."
+	)
+	.summary(
+		"Get validation structures for the provided descriptor(s)."
+	)
+	.description(dd`
+  Returns the result of Descriptor.getValidationStructure()
+  against the provided descriptor reference in 'descriptor'.
+`);
+
+
+/**
+ * Test all descriptor validation records
+ *
+ * The service will scan all descriptors and create the validation records returning
+ * all validation record field names and their respective counts.
+ *
+ * This service should be used to check if validation record generation works for all
+ * descriptors.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/testDescriptorValidationRecords
+ * @verb		get
+ * @response	{ what : <result> }.
+ */
+router.get
+(
+	'/testDescriptorValidationRecords',
+	(request, response) =>
+	{
+		//
+		// Init framework.
+		//
+		const Dict = require( '../../dictionary/Dict' );
+		const collect = (theResult, theStruct) => {
+			for( const item in theStruct )
+			{
+				if( theResult.hasOwnProperty( item ) )
+					theResult[ item ]++;
+				else
+					theResult[ item ] = 1;
+			}
+		};
+		const traverse = (theResult, theStruct) => {
+			collect(theResult, theStruct);
+			if( theStruct.hasOwnProperty(Dict.descriptor.kTypeKey) )
+				collect(theResult, theStruct[ Dict.descriptor.kTypeKey ]);
+			if( theStruct.hasOwnProperty(Dict.descriptor.kTypeValue) )
+				collect(theResult, theStruct[ Dict.descriptor.kTypeValue ]);
+			if( theStruct.hasOwnProperty('_child') )
+				return theStruct._child;
+			else
+				return null;
+		};
+
+		//
+		// Init timer.
+		//
+		const stamp = time();
+
+		//
+		// Get all descriptors.
+		//
+		const cursor = db._collection( 'descriptors' ).all();
+
+		//
+		// Init result.
+		//
+		const result = {};
+
+		//
+		// Iterate descriptors.
+		//
+		let temp = null;
+		try
+		{
+			while( cursor.hasNext() )
+			{
+				//
+				// Get validation record.
+				//
+				temp = Descriptor.getDescriptorValidationRecord( request, cursor.next() );
+
+				//
+				// Traverse record.
+				//
+				let current = temp;
+				while( current !== null )
+					current = traverse( result, current );
+			}
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+				&& error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+
+			response.throw( http, error );										// !@! ==>
+		}
+
+		response.send({
+			what : result,
+			time : time() - stamp
+		});
+	},
+	'testDescriptorValidationRecords'
+)
+	.response(
+		200,
+		Joi.object({
+			what : Joi.any(),
+			time : Joi.number()
+		}),
+		"The result: 'what' contains an object with as key the validation record field" +
+		" and as key the occurrence count, 'time' contains the elapsed time."
+	)
+	.summary(
+		"Test validation record generation for all descriptors."
+	)
+	.description(dd`
+  Returns the list of all fields in the validation records for all descriptors.
+`);

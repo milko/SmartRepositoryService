@@ -332,101 +332,6 @@ class Dictionary
 	}	// compileReferenceValidationRecord
 
 	/**
-	 * Object key type field validation record compiler
-	 *
-	 * This method will return the validation record for the provided object
-	 * 'type-key' structure.
-	 *
-	 * The second parameter represents the 'type-key' field from the term data type,
-	 * or from the descriptor record. This field is a structure that must contain the
-	 * 'type' field which references the object key data type.
-	 *
-	 * The method will first ensure the type is a scalar, it will then load the
-	 * type hierarchy and inject the validation option fields into the hierarchy, it
-	 * will finally compile the validation record and return it.
-	 *
-	 * The provided data type structure must have at least the 'type' field which
-	 * determines the key type.
-	 *
-	 * @param theRequest	{Object}	The current service request.
-	 * @param theType		{Object}	The data type structure.
-	 */
-	static compileObjectKeyValidationRecord( theRequest, theType )
-	{
-		//
-		// Check type.
-		//
-		if( theType.hasOwnProperty( Dict.descriptor.kType ) )
-		{
-			//
-			// Get scalar types list.
-			//
-			const scalars =
-				Schema.getEnumList(
-					theRequest,						// Current request.
-					Dict.term.kTypeScalar,			// Root node.
-					Dict.term.kTypeValue,			// Graph branch.
-					null,							// Minimum depth.
-					null,							// Maximum depth.
-					'_key',							// Vertex field.
-					null,							// Edge field.
-					true,							// Only choices.
-					false,							// Restrict langyage.
-					false							// Include edge.
-				);
-
-			//
-			// Ensure type is scalar.
-			//
-			if( scalars.includes( theType[ Dict.descriptor.kType ] ) )
-			{
-				//
-				// Load type hierarchy.
-				//
-				const hierarchy = Schema.getTypeHierarchy( theRequest, theType._key );
-				if( hierarchy.length === 0 )
-					throw(
-						new MyError(
-							'BadTypeReference',					// Error name.
-							K.error.NotDataType,				// Message code.
-							theRequest.application.language,	// Language.
-							theType[ Dict.descriptor.kType ]	// Error value.
-						)
-					);															// !@! ==>
-
-				//
-				// Inject scalar validation fields.
-				//
-				Dictionary.injectScalarValidationFields( hierarchy, theType );
-
-			}	// Is scalar.
-
-			else
-				throw(
-					new MyError(
-						'BadValueType',						// Error name.
-						K.error.MustBeScalar,				// Message code.
-						theRequest.application.language,	// Language.
-						theType[ Dict.descriptor.kType ],	// Error value.
-						500									// HTTP error code.
-					)
-				);																// !@! ==>
-
-		}	// Has type.
-
-		throw(
-			new MyError(
-				'BadParam',							// Error name.
-				K.error.MissinObjectKeyType,		// Message code.
-				theRequest.application.language,	// Language.
-				theType,							// Error value.
-				500									// HTTP error code.
-			)
-		);																		// !@! ==>
-
-	}	// compileObjectKeyValidationRecord
-
-	/**
 	 * Inject validation fields
 	 *
 	 * This method expects two parameters: the first represents the type hierarchy and
@@ -456,16 +361,6 @@ class Dictionary
 		// Set list validation fields.
 		//
 		Dictionary.injectListValidationFields( theHierarchy, theOptions );
-
-		//
-		// Handle objects.
-		//
-		// - Load key validation hierarchy (where?).
-		// - Load value validation hierarchy (where?).
-		// - Inject options in key hierarchy.
-		// - Inject options in value hierarchy.
-		//
-		// Dictionary.injectObjectValidationFields( theHierarchy, theOptions );
 
 	}	// injectValidationFields
 
@@ -650,6 +545,273 @@ class Dictionary
 		}	// Found reference base type.
 
 	}	// injectReferenceValidationFields
+
+	/**
+	 * Parse validation record into a Joi command chain
+	 *
+	 * @param theRecord	{Object}	Validation record.
+	 * @return {String}				Joi commands chain as a string.
+	 */
+	static parseJoi( theRecord )
+	{
+		//
+		// Init result.
+		//
+		let result = "";
+
+		//
+		// Parse by base type.
+		//
+		switch( theRecord[ Dict.descriptor.kType ] )
+		{
+			case 'kTypeDataAny':
+				result = "Joi.any()";
+				break;
+
+			case 'kTypeDataBool':
+				result = "Joi.boolean()";
+				break;
+
+			case 'kTypeDataText':
+				result = Dictionary.parseJoiString( theRecord );
+				break;
+
+			case 'kTypeDataNumeric':
+				result = Dictionary.parseJoiNumber( theRecord );
+				break;
+
+			case 'kTypeDataList':
+				result = Dictionary.parseJoiArray( theRecord );
+				break;
+
+			case 'kTypeDataStruct':
+			case 'kTypeDataObject':
+				result = "Joi.Object()";
+				break;
+		}
+
+		return result;																// ==>
+
+	}	// parseJoi
+
+	/**
+	 * Parse a text validation record into a Joi command chain string
+	 *
+	 * The method will convert the provided validation record into a Joi chain of
+	 * commands as a string to be evaluated.
+	 *
+	 * @param theRecord	{Object}	The validation record.
+	 * @returns {String}			The Joi chain of commands as string.
+	 */
+	static parseJoiString( theRecord )
+	{
+		//
+		// Init result.
+		//
+		let result = "Joi.string()";
+
+		//
+		// Handle length.
+		//
+		// MILKO - Very strange bug: the below didn't work!!!
+		//
+		if( theRecord.hasOwnProperty( Dict.descriptor.kLength ) )
+			result += Dictionary.length2JoiString( theRecord[ Dict.descriptor.kLength ] );
+		//
+		// if( theRecord[ Dict.descriptor.kLength ] !== undefined )
+		// 	result += Dictionary.length2JoiString( theRecord[ Dict.descriptor.kLength ] );
+
+		//
+		// Handle regular expression.
+		//
+		if( theRecord.hasOwnProperty( Dict.descriptor.kRegex ) )
+		{
+			for( const item of theRecord[ Dict.descriptor.kRegex ] )
+				result += (".regex(" + item + ")");
+		}
+
+		//
+		// Handle URL.
+		//
+		if( theRecord.hasOwnProperty( 'isUrl' )
+		 && (theRecord.isUrl === true) )
+			result += ".uri()";
+
+		//
+		// Handle HEX.
+		//
+		if( theRecord.hasOwnProperty( 'isUrl' )
+		 && (theRecord.isHex === true) )
+			result += ".hex()";
+
+		//
+		// Handle e-mail.
+		//
+		if( theRecord.hasOwnProperty( 'isEmail' )
+		 && (theRecord.isEmail === true) )
+			result += ".email()";
+
+		return result;																// ==>
+
+	}	// parseJoiString
+
+	/**
+	 * Parse a numeric validation record into a Joi command chain string
+	 *
+	 * The method will convert the provided validation record into a Joi chain of
+	 * commands as a string to be evaluated.
+	 *
+	 * @param theRecord	{Object}	The validation record.
+	 * @returns {String}			The Joi chain of commands as string.
+	 */
+	static parseJoiNumber( theRecord )
+	{
+		//
+		// Init result.
+		//
+		let result = "Joi.number()";
+
+		//
+		// Handle integer.
+		//
+		if( theRecord.hasOwnProperty( 'isInt' )
+		 && (theRecord.isInt === true) )
+			result += ".integer()";
+
+		//
+		// Handle range.
+		//
+		if( theRecord.hasOwnProperty( Dict.descriptor.kRange ) )
+			result += Dictionary.range2JoiString( theRecord[ Dict.descriptor.kRange ] );
+
+		return result;																// ==>
+
+	}	// parseJoiNumber
+
+	/**
+	 * Parse an array validation record into a Joi command chain string
+	 *
+	 * The method will convert the provided validation record into a Joi chain of
+	 * commands as a string to be evaluated.
+	 *
+	 * @param theRecord	{Object}	The validation record.
+	 * @returns {String}			The Joi chain of commands as string.
+	 */
+	static parseJoiArray( theRecord )
+	{
+		//
+		// Init result.
+		//
+		let result = "Joi.array()";
+
+		//
+		// Handle size.
+		//
+		if( theRecord.hasOwnProperty( Dict.descriptor.kSize ) )
+			result += Dictionary.length2JoiString( theRecord[ Dict.descriptor.kSize ] );
+
+		//
+		// Handle items.
+		//
+		if( theRecord.hasOwnProperty( '_child' ) )
+			result += (".items(" + Dictionary.parseJoi( theRecord._child ) + ")" );
+
+		//
+		// Handle set.
+		//
+		if( (theRecord.hasOwnProperty( 'isSet' ))
+		 && (theRecord.isSet === true) )
+			result += ".unique()";
+
+		return result;																// ==>
+
+	}	// parseJoiArray
+
+	/**
+	 * Return Joi options string for length and size
+	 *
+	 * This method will return a sequence of Joi commands as a string
+	 * corresponding to the provided size element; the size element must be
+	 * either a string length or an array size.
+	 *
+	 * The method expects the provided size not to be empty.
+	 *
+	 * @param theOption	{Array}	The size option.
+	 * @return {string}			The Joi commands as a string.
+	 */
+	static length2JoiString( theOption )
+	{
+		//
+		// Get limits.
+		//
+		let min = theOption[ 0 ];
+		let max = theOption[ 1 ];
+
+		//
+		// Handle single limit
+		if( min === max )
+			return ".length(" + min + ")";											// ==>
+
+		//
+		// Adjust limits.
+		//
+		if( ! theOption[ 2 ] )
+			min++;
+		if( ! theOption[ 3 ] )
+			max--;
+
+		//
+		// Build options.
+		//
+		let opts = '';
+		opts += (".min(" + min + ")");
+		opts += (".max(" + max + ")");
+
+		return opts;																// ==>
+
+	}	// length2JoiString
+
+	/**
+	 * Return Joi options string for range
+	 *
+	 * This method will return a sequence of Joi commands as a string
+	 * corresponding to the provided size element; the size element must be
+	 * a range.
+	 *
+	 * The method expects the provided size not to be empty.
+	 *
+	 * @param theOption	{Array}	The size option.
+	 * @return {string}			The Joi commands as a string.
+	 */
+	static range2JoiString( theOption )
+	{
+		//
+		// Init local storage.
+		//
+		let opts = '';
+
+		//
+		// Get limits.
+		//
+		let min = theOption[ 0 ];
+		let max = theOption[ 1 ];
+
+		//
+		// Set limits.
+		//
+		if( theOption[ 2 ] )
+			opts += (".min(" + min + ")");
+		else
+			opts += ("greater(" + min + ")");
+
+		if( theOption[ 3 ] )
+			opts += (".max(" + max + ")");
+		else
+			opts += ("less(" + max + ")");
+
+		return opts;																// ==>
+
+	}	// range2JoiString
 
 	/**
 	 * Custom field validation record compiler
