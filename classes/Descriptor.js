@@ -159,7 +159,7 @@ class Descriptor
 					throw(
 						new MyError(
 							'BadValueType',						// Error name.
-							K.error.MustBeText,					// Message code.
+							K.error.KeyMustBeText,					// Message code.
 							theRequest.application.language,	// Language.
 							temp,								// Error value.
 							500									// HTTP error code.

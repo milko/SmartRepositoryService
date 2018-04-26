@@ -312,7 +312,8 @@ module.exports = Object.freeze(
 			MissingKey			: 48,
 			MissingVar			: 49,
 			MissinObjectKeyType	: 50,
-			MustBeText			: 51
+			KeyMustBeText		: 51,
+			ValueMustBeNumeric	: 52
 		},
 
 		//

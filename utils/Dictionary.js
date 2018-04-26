@@ -859,6 +859,24 @@ class Dictionary
 	static combineRanges( theRange1, theRange2 )
 	{
 		//
+		// Init local storage.
+		//
+		let temp = null;
+
+		//
+		// Normalise range.
+		//
+		if( theRange1[ 0 ] > theRange1[ 1 ] )
+		{
+			temp = theRange1[ 0 ];
+			theRange1[ 0 ] = theRange1[ 1 ];
+			theRange1[ 1 ] = temp;
+			temp = theRange1[ 2 ];
+			theRange1[ 2 ] = theRange1[ 3 ];
+			theRange1[ 3 ] = temp;
+		}
+
+		//
 		// Assert second range.
 		//
 		if( ! Array.isArray( theRange2 ) )
@@ -868,6 +886,19 @@ class Dictionary
 		// Init local storage.
 		//
 		const range = [];
+
+		//
+		// Normalise range.
+		//
+		if( theRange2[ 0 ] > theRange2[ 1 ] )
+		{
+			temp = theRange2[ 0 ];
+			theRange2[ 0 ] = theRange2[ 1 ];
+			theRange2[ 1 ] = temp;
+			temp = theRange2[ 2 ];
+			theRange2[ 2 ] = theRange2[ 3 ];
+			theRange2[ 3 ] = temp;
+		}
 
 		//
 		// Handle minimum bound.
