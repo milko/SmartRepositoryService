@@ -616,12 +616,6 @@ class Descriptor
 					);
 		}
 
-		//
-		// Add custom function.
-		//
-		// structure[ Dict.descriptor.kTypeCustom ] =
-		// 	Dictionary.parseCustomFunction( theRecord );
-
 		return structure;															// ==>
 
 	}	// getValidationStructure

@@ -156,13 +156,11 @@ class Dictionary
 		//
 		let field = Dict.descriptor.kLength;
 		if( theType.hasOwnProperty( field ) )
-			theRecord[ field ]
-				= ( theRecord.hasOwnProperty( field ) )
-				  ? Dictionary.combineRanges(
-						theType[ field ],
-						theRecord[ field ]
-					)
-				  : theType[ field ];
+			theRecord[ field ] =
+				Dictionary.combineRanges(
+					theType[ field ],
+					theRecord[ field ]
+				);
 
 		//
 		// Regex.
@@ -229,13 +227,11 @@ class Dictionary
 		//
 		let field = Dict.descriptor.kRange;
 		if( theType.hasOwnProperty( field ) )
-			theRecord[ field ]
-				= ( theRecord.hasOwnProperty( field ) )
-				  ? Dictionary.combineRanges(
-						theType[ field ],
-						theRecord[ field ]
-					)
-				  : theType[ field ];
+			theRecord[ field ] =
+				Dictionary.combineRanges(
+					theType[ field ],
+					theRecord[ field ]
+				);
 
 		//
 		// Decimals.
@@ -286,13 +282,11 @@ class Dictionary
 		//
 		let field = Dict.descriptor.kSize;
 		if( theType.hasOwnProperty( field ) )
-			theRecord[ field ]
-				= ( theRecord.hasOwnProperty( field ) )
-				  ? Dictionary.combineRanges(
-						theType[ field ],
-						theRecord[ field ]
-					)
-				  : theType[ field ];
+			theRecord[ field ] =
+				Dictionary.combineRanges(
+					theType[ field ],
+					theRecord[ field ]
+				);
 
 		//
 		// Set.
@@ -615,11 +609,11 @@ class Dictionary
 		//
 		// MILKO - Very strange bug: the below didn't work!!!
 		//
-		if( theRecord.hasOwnProperty( Dict.descriptor.kLength ) )
-			result += Dictionary.length2JoiString( theRecord[ Dict.descriptor.kLength ] );
-		//
-		// if( theRecord[ Dict.descriptor.kLength ] !== undefined )
+		// if( theRecord.hasOwnProperty( Dict.descriptor.kLength ) )
 		// 	result += Dictionary.length2JoiString( theRecord[ Dict.descriptor.kLength ] );
+		//
+		if( theRecord[ Dict.descriptor.kLength ] !== undefined )
+			result += Dictionary.length2JoiString( theRecord[ Dict.descriptor.kLength ] );
 
 		//
 		// Handle regular expression.
@@ -640,15 +634,15 @@ class Dictionary
 		//
 		// Handle HEX.
 		//
-		if( theRecord.hasOwnProperty( 'isUrl' )
-		 && (theRecord.isHex === true) )
+		else if( theRecord.hasOwnProperty( 'isHex' )
+			  && (theRecord.isHex === true) )
 			result += ".hex()";
 
 		//
 		// Handle e-mail.
 		//
-		if( theRecord.hasOwnProperty( 'isEmail' )
-		 && (theRecord.isEmail === true) )
+		else if( theRecord.hasOwnProperty( 'isEmail' )
+			  && (theRecord.isEmail === true) )
 			result += ".email()";
 
 		return result;																// ==>
@@ -860,12 +854,21 @@ class Dictionary
 	 * must be integers, the third and fourth must be booleans; the method assumes the
 	 * ranges to be correct.
 	 *
-	 * @param theRange1	{Array}	First range.
-	 * @param theRange2	{Array}	Second range.
-	 * @returns {Array}			The combined range.
+	 * If the second range is not an array, it means that there is no second range and the
+	 * first range will be set.
+	 *
+	 * @param theRange1	{Array}				First range.
+	 * @param theRange2	{Array}|{undefined}	Second range.
+	 * @returns {Array}						The combined range.
 	 */
 	static combineRanges( theRange1, theRange2 )
 	{
+		//
+		// Assert second range.
+		//
+		if( ! Array.isArray( theRange2 ) )
+			return theRange1;														// ==>
+
 		//
 		// Init local storage.
 		//
@@ -908,6 +911,8 @@ class Dictionary
 			range[ 1 ] = theRange1[ 1 ];
 			range[ 3 ] = ( theRange1[ 3 ] && theRange2 [ 3 ] );
 		}
+
+		return range;																// ==>
 
 	}	// combineRanges
 
