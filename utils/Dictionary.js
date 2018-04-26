@@ -607,12 +607,7 @@ class Dictionary
 		//
 		// Handle length.
 		//
-		// MILKO - Very strange bug: the below didn't work!!!
-		//
-		// if( theRecord.hasOwnProperty( Dict.descriptor.kLength ) )
-		// 	result += Dictionary.length2JoiString( theRecord[ Dict.descriptor.kLength ] );
-		//
-		if( theRecord[ Dict.descriptor.kLength ] !== undefined )
+		if( theRecord.hasOwnProperty( Dict.descriptor.kLength ) )
 			result += Dictionary.length2JoiString( theRecord[ Dict.descriptor.kLength ] );
 
 		//
