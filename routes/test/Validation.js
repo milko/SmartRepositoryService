@@ -82,7 +82,7 @@ router.post
 		let result = null;
 		try
 		{
-			result = Validation.validateGeoJSON( request, request.body );
+			result = Validation.validateGeoJSON( request, null, request.body );
 
 			response.send({
 				what : result,
@@ -147,7 +147,7 @@ router.post
 		let result = null;
 		try
 		{
-			result = Validation.validateDate( request, request.body );
+			result = Validation.validateDate( request, null, request.body );
 
 			response.send({
 				what : result,
@@ -192,7 +192,7 @@ router.post
  * If the method raises an exception, the service will forward it using the
  * HTTP code if the exception is of class MyError.
  *
- * @path		/validateDate
+ * @path		/validateIdReference
  * @verb		post
  * @response	{ what : <result> }.
  */
@@ -212,7 +212,7 @@ router.post
 		let result = null;
 		try
 		{
-			result = Validation.validateIdReference( request, request.body );
+			result = Validation.validateIdReference( request, null, request.body );
 
 			response.send({
 				what : result,
@@ -243,5 +243,81 @@ router.post
 	)
 	.description(dd`
   Returns the result of Validation.validateIdReference()
+  against the provided string in the body.
+`);
+
+
+/**
+ * Test Validation.validateKeyReference()
+ *
+ * The service will test the provided object in the body against the Validation.validateKeyReference()
+ * script: the service will return an object as { what : <result> } where result is the
+ * value returned by the tested method.
+ *
+ * The method expects two parameters in the body: record, which contains the
+ * validation structure and value which contains the value.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/validateKeyReference
+ * @verb		post
+ * @response	{ what : <result> }.
+ */
+router.post
+(
+	'/validateKeyReference',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+
+		//
+		// Test.
+		//
+		let result = null;
+		try
+		{
+			result =
+				Validation.validateKeyReference(
+					request,
+					request.body.record,
+					request.body.value
+				);
+
+			response.send({
+				what : result,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			response.throw( 500, error );
+		}
+	},
+	'validateKeyReference'
+)
+	.body(
+		Joi.object({
+			record: Joi.object().required(),
+			value:	Joi.string().required()
+		}),
+		'The body should contain the validation record and the value.'
+	)
+	.response(
+		200,
+		Joi.object({
+			what : Joi.any(),
+			time : Joi.number()
+		}),
+		"The result: 'what' contains the method return value, 'time' contains the elapsed time."
+	)
+	.summary(
+		"Check key reference."
+	)
+	.description(dd`
+  Returns the result of Validation.validateKeyReference()
   against the provided string in the body.
 `);

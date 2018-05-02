@@ -14,7 +14,9 @@ const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 // Application.
 //
 const K = require( './Constants' );
+const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
+const Schema = require( '../classes/Schema' );
 
 
 /**
@@ -30,7 +32,7 @@ class Validation
 	 * This method will cast the provided value to string.
 	 *
 	 * @param theRequest	{Object}	The current request.
-	 * @param theValue	{*}				The value to cast.
+	 * @param theValue		{*}			The value to cast.
 	 * @returns {String}				The value cast to a string.
 	 */
 	static castString( theRequest, theValue )
@@ -47,7 +49,7 @@ class Validation
 	 * If the cast failes, the method will return undefined.
 	 *
 	 * @param theRequest	{Object}	The current request.
-	 * @param theValue	{*}				The value to cast.
+	 * @param theValue		{*}			The value to cast.
 	 * @returns {Number}|{undefined}	The value cast to a number.
 	 */
 	static castNumber( theRequest, theValue )
@@ -73,7 +75,7 @@ class Validation
 	 * This method will cast the provided value to a boolean.
 	 *
 	 * @param theRequest	{Object}	The current request.
-	 * @param theValue	{*}				The value to cast.
+	 * @param theValue		{*}			The value to cast.
 	 * @returns {Boolean}				The value cast to a boolean.
 	 */
 	static castBoolean( theRequest, theValue )
@@ -91,7 +93,7 @@ class Validation
 	 * lowercase, so that comparing hex strings will work.
 	 *
 	 * @param theRequest	{Object}	The current request.
-	 * @param theValue	{*}				The value to cast.
+	 * @param theValue		{*}			The value to cast.
 	 * @returns {String}				The value cast to a hexadecimal.
 	 */
 	static castHexadecimal( theRequest, theValue )
@@ -120,10 +122,11 @@ class Validation
 	 * if the validation fails.
 	 *
 	 * @param theRequest	{Object}	The current request.
-	 * @param theValue	{String}		The value to check.
+	 * @param theRecord		{Object}	The validation structure.
+	 * @param theValue		{String}	The value to check.
 	 * @returns {String}				The normalised value.
 	 */
-	static validateUrl( theRequest, theValue )
+	static validateUrl( theRequest, theRecord, theValue )
 	{
 		return theValue;															// ==>
 
@@ -145,10 +148,11 @@ class Validation
 	 * if the validation fails.
 	 *
 	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
 	 * @returns {String}				The normalised value.
 	 */
-	static validateHex( theRequest, theValue )
+	static validateHex( theRequest, theRecord, theValue )
 	{
 		return theValue;															// ==>
 
@@ -170,10 +174,11 @@ class Validation
 	 * if the validation fails.
 	 *
 	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
 	 * @returns {Number}				The normalised value.
 	 */
-	static validateInt( theRequest, theValue )
+	static validateInt( theRequest, theRecord, theValue )
 	{
 		return theValue;															// ==>
 
@@ -195,10 +200,11 @@ class Validation
 	 * if the validation fails.
 	 *
 	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
 	 * @returns {String}				The normalised value.
 	 */
-	static validateEmail( theRequest, theValue )
+	static validateEmail( theRequest, theRecord, theValue )
 	{
 		return theValue;															// ==>
 
@@ -219,10 +225,11 @@ class Validation
 	 * if the validation fails.
 	 *
 	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{Array}		The value to check.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateRange( theRequest, theValue )
+	static validateRange( theRequest, theRecord, theValue )
 	{
 		return theValue;															// ==>
 
@@ -243,10 +250,11 @@ class Validation
 	 * if the validation fails.
 	 *
 	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{Array}		The value to check.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateSizeRange( theRequest, theValue )
+	static validateSizeRange( theRequest, theRecord, theValue )
 	{
 		return theValue;															// ==>
 
@@ -264,10 +272,11 @@ class Validation
 	 * if the validation fails.
 	 *
 	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{Object}	The value to check.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateGeoJSON( theRequest, theValue )
+	static validateGeoJSON( theRequest, theRecord, theValue )
 	{
 		//
 		// Load framework.
@@ -326,10 +335,11 @@ class Validation
 	 * if the validation fails.
 	 *
 	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateDate( theRequest, theValue )
+	static validateDate( theRequest, theRecord, theValue )
 	{
 		//
 		// Init local storage.
@@ -510,10 +520,11 @@ class Validation
 	 * if the validation fails.
 	 *
 	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{Number}	The value to check.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateTimeStamp( theRequest, theValue )
+	static validateTimeStamp( theRequest, theRecord, theValue )
 	{
 		return theValue;															// ==>
 
@@ -534,10 +545,11 @@ class Validation
 	 * if the validation fails.
 	 *
 	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateIdReference( theRequest, theValue )
+	static validateIdReference( theRequest, theRecord, theValue )
 	{
 		//
 		// Check reference.
@@ -573,6 +585,117 @@ class Validation
 		return doc._id;																// ==>
 
 	}	// validateIdReference
+
+	/**
+	 * Validate _key reference
+	 *
+	 * This method will validate a _key reference.
+	 *
+	 * The method will check if the provided string corresponds to a document key and
+	 * will raise an exception if not.
+	 *
+	 * The method returns the provided value.
+	 *
+	 * Note that the method expects the provided value to be of the correct type, here
+	 * we only check if the contents are valid. The method should raise an exception
+	 * if the validation fails.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
+	 * @param theValue		{String}	The value to check.
+	 * @returns {Array}					The normalised value.
+	 */
+	static validateKeyReference( theRequest, theRecord, theValue )
+	{
+		//
+		// Check validation record.
+		//
+		if( ! theRecord.hasOwnProperty( Dict.descriptor.kCollection ) )
+			throw(
+				new MyError(
+					'BadParam',							// Error name.
+					K.error.NoCollectionInRec,			// Message code.
+					theRequest.application.language,	// Language.
+					theValue,							// Error value.
+					500									// HTTP error code.
+				)
+			);																	// !@! ==>
+
+		//
+		// Get collection name.
+		//
+		const collection =
+			db._collection( 'terms' )
+				.document( theRecord[ Dict.descriptor.kCollection ] )
+					[ Dict.descriptor.kLID ];
+
+		//
+		// Check enumeration choice.
+		//
+		if( theRecord.hasOwnProperty( Dict.descriptor.kEnumTerm ) )
+		{
+			//
+			// Make check.
+			//
+			const result =
+				Schema.isEnumerationChoice(
+					theRequest,
+					theValue,
+					theRecord[ Dict.descriptor.kEnumTerm ]
+				);
+
+			//
+			// Handle error.
+			//
+			if( ! result )
+				throw(
+					new MyError(
+						'BadValue',							// Error name.
+						K.error.InvalidObjReference,		// Message code.
+						theRequest.application.language,	// Language.
+						theValue,							// Error value.
+						404									// HTTP error code.
+					)
+				);																// !@! ==>
+		}
+
+		//
+		// Check term.
+		//
+		else
+		{
+			try
+			{
+				const result = db._collection( collection ).document( theValue );
+				theValue = result._key;
+			}
+			catch( error )
+			{
+				//
+				// Handle exceptions.
+				//
+				if( (! error.isArangoError)
+				 || (error.errorNum !== ARANGO_NOT_FOUND) )
+					throw( error );												// !@! ==>
+
+				//
+				// Handle not found.
+				//
+				throw(
+					new MyError(
+						'BadValue',							// Error name.
+						K.error.InvalidObjReference,		// Message code.
+						theRequest.application.language,	// Language.
+						theValue,							// Error value.
+						404									// HTTP error code.
+					)
+				);																// !@! ==>
+			}
+		}
+
+		return theValue;															// ==>
+
+	}	// validateKeyReference
 
 }	// validateSizeRange.
 
