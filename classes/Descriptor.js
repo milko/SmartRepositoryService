@@ -595,6 +595,17 @@ class Descriptor
 					structure[ field ] = theRecord[ field ];
 			}
 		}
+		else if( (theRecord[ Dict.descriptor.kType ] === 'kTypeDataList')
+			  && theRecord.hasOwnProperty( '_child' )
+			  && theRecord._child.hasOwnProperty( 'isRef' )
+			  && (theRecord._child.isRef === true) )
+		{
+			for( const field of Dictionary.listReferenceValidationFields )
+			{
+				if( theRecord._child.hasOwnProperty( field ) )
+					structure[ field ] = theRecord._child[ field ];
+			}
+		}
 
 		//
 		// Handle object.

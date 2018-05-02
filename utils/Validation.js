@@ -595,6 +595,9 @@ class Validation
 	 * will raise an exception if not. If the record contains a list of enumerations,
 	 * the method will also check that the term belongs to at least one of them.
 	 *
+	 * If the record has the instance property, the method will also check if the
+	 * referenced document belongs to that instance.
+	 *
 	 * The method returns the provided value.
 	 *
 	 * Note that the method expects the provided value to be of the correct type, here
@@ -670,7 +673,14 @@ class Validation
 		{
 			try
 			{
+				//
+				// Get document.
+				//
 				const result = db._collection( collection ).document( theValue );
+
+				//
+				// Update reference.
+				//
 				theValue = result._key;
 			}
 			catch( error )
@@ -771,6 +781,118 @@ class Validation
 		return theValue;															// ==>
 
 	}	// validateGidReference
+
+	/**
+	 * Validate instance reference
+	 *
+	 * This method will validate an instance reference.
+	 *
+	 * The method will check if the provided reference corresponds to the provided
+	 * instance and will raise an exception if not.
+	 *
+	 * The method returns the provided value.
+	 *
+	 * Note that the method expects the provided value to be of the correct type, here
+	 * we only check if the contents are valid. The method should raise an exception
+	 * if the validation fails.
+	 *
+	 * The method will also raise an exception if the collection or instance properties
+	 * of the provided record are missing.
+	 *
+	 * Note that we expect the reference to be either the _id or the _key.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
+	 * @param theValue		{String}	The value to check.
+	 * @returns {Array}					The normalised value.
+	 */
+	static validateInstanceReference( theRequest, theRecord, theValue )
+	{
+		//
+		// Check collection.
+		//
+		if( ! theRecord.hasOwnProperty( Dict.descriptor.kCollection ) )
+			throw(
+				new MyError(
+					'BadParam',							// Error name.
+					K.error.NoCollectionInRec,			// Message code.
+					theRequest.application.language,	// Language.
+					theValue,							// Error value.
+					500									// HTTP error code.
+				)
+			);																	// !@! ==>
+
+		//
+		// Check instance.
+		//
+		if( ! theRecord.hasOwnProperty( Dict.descriptor.kInstance ) )
+			throw(
+				new MyError(
+					'BadParam',							// Error name.
+					K.error.NoInstanceRefInRec,			// Message code.
+					theRequest.application.language,	// Language.
+					theValue,							// Error value.
+					500									// HTTP error code.
+				)
+			);																	// !@! ==>
+
+		//
+		// Get collection name.
+		//
+		const collection =
+			db._collection( 'terms' )
+				.document( theRecord[ Dict.descriptor.kCollection ] )
+					[ Dict.descriptor.kLID ];
+
+		//
+		// Get reference.
+		//
+		let result = null;
+		try
+		{
+			result = db._collection( collection ).document( theValue );
+		}
+		catch( error )
+		{
+			//
+			// Handle exceptions.
+			//
+			if( (! error.isArangoError)
+			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				throw( error );													// !@! ==>
+
+			//
+			// Handle not found.
+			//
+			throw(
+				new MyError(
+					'BadValue',							// Error name.
+					K.error.InvalidObjReference,		// Message code.
+					theRequest.application.language,	// Language.
+					theValue,							// Error value.
+					404									// HTTP error code.
+				)
+			);																	// !@! ==>
+		}
+
+		//
+		// Check instance.
+		//
+		if( (! result.hasOwnProperty( Dict.descriptor.kInstances ))
+		 || (! result[ Dict.descriptor.kInstances ].includes( theRecord[ Dict.descriptor.kInstance ] )) )
+			throw(
+				new MyError(
+					'BadValue',												// Error name.
+					K.error.NotInstanceOf,									// Message code.
+					theRequest.application.language,						// Language.
+					[ theValue, theRecord[ Dict.descriptor.kInstance ] ],	// Error value.
+					404														// HTTP error code.
+				)
+			);																	// !@! ==>
+
+		return theValue;															// ==>
+
+	}	// validateInstanceReference
 
 }	// validateSizeRange.
 
