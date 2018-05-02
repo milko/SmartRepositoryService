@@ -592,13 +592,17 @@ class Validation
 	 * This method will validate a _key reference.
 	 *
 	 * The method will check if the provided string corresponds to a document key and
-	 * will raise an exception if not.
+	 * will raise an exception if not. If the record contains a list of enumerations,
+	 * the method will also check that the term belongs to at least one of them.
 	 *
 	 * The method returns the provided value.
 	 *
 	 * Note that the method expects the provided value to be of the correct type, here
 	 * we only check if the contents are valid. The method should raise an exception
 	 * if the validation fails.
+	 *
+	 * The method will also raise an exception if the collection property of the
+	 * provided record is missing.
 	 *
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
@@ -608,7 +612,7 @@ class Validation
 	static validateKeyReference( theRequest, theRecord, theValue )
 	{
 		//
-		// Check validation record.
+		// Check collection.
 		//
 		if( ! theRecord.hasOwnProperty( Dict.descriptor.kCollection ) )
 			throw(
@@ -696,6 +700,77 @@ class Validation
 		return theValue;															// ==>
 
 	}	// validateKeyReference
+
+	/**
+	 * Validate gid reference
+	 *
+	 * This method will validate a gid reference.
+	 *
+	 * The method will check if the provided string corresponds to a document gid and
+	 * will raise an exception if not.
+	 *
+	 * The method returns the provided value.
+	 *
+	 * Note that the method expects the provided value to be of the correct type, here
+	 * we only check if the contents are valid. The method should raise an exception
+	 * if the validation fails.
+	 *
+	 * The method will also raise an exception if the collection property of the
+	 * provided record is missing.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The validation structure.
+	 * @param theValue		{String}	The value to check.
+	 * @returns {Array}					The normalised value.
+	 */
+	static validateGidReference( theRequest, theRecord, theValue )
+	{
+		//
+		// Check collection.
+		//
+		if( ! theRecord.hasOwnProperty( Dict.descriptor.kCollection ) )
+			throw(
+				new MyError(
+					'BadParam',							// Error name.
+					K.error.NoCollectionInRec,			// Message code.
+					theRequest.application.language,	// Language.
+					theValue,							// Error value.
+					500									// HTTP error code.
+				)
+			);																	// !@! ==>
+
+		//
+		// Get collection name.
+		//
+		const collection =
+			db._collection( 'terms' )
+				.document( theRecord[ Dict.descriptor.kCollection ] )
+					[ Dict.descriptor.kLID ];
+
+		//
+		// Check gid.
+		//
+		const result =
+			db._collection( collection )
+				.firstExample( Dict.descriptor.kGID, theValue );
+
+		//
+		// Handle not found.
+		//
+		if( result === null )
+			throw(
+				new MyError(
+					'BadValue',							// Error name.
+					K.error.InvalidObjReference,		// Message code.
+					theRequest.application.language,	// Language.
+					theValue,							// Error value.
+					404									// HTTP error code.
+				)
+			);																	// !@! ==>
+
+		return theValue;															// ==>
+
+	}	// validateGidReference
 
 }	// validateSizeRange.
 

@@ -321,3 +321,79 @@ router.post
   Returns the result of Validation.validateKeyReference()
   against the provided string in the body.
 `);
+
+
+/**
+ * Test Validation.validateGidReference()
+ *
+ * The service will test the provided object in the body against the Validation.validateGidReference()
+ * script: the service will return an object as { what : <result> } where result is the
+ * value returned by the tested method.
+ *
+ * The method expects two parameters in the body: record, which contains the
+ * validation structure and value which contains the value.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/validateGidReference
+ * @verb		post
+ * @response	{ what : <result> }.
+ */
+router.post
+(
+	'/validateGidReference',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+
+		//
+		// Test.
+		//
+		let result = null;
+		try
+		{
+			result =
+				Validation.validateGidReference(
+					request,
+					request.body.record,
+					request.body.value
+				);
+
+			response.send({
+				what : result,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			response.throw( 500, error );
+		}
+	},
+	'validateGidReference'
+)
+	.body(
+		Joi.object({
+			record: Joi.object().required(),
+			value:	Joi.string().required()
+		}),
+		'The body should contain the validation record and the value.'
+	)
+	.response(
+		200,
+		Joi.object({
+			what : Joi.any(),
+			time : Joi.number()
+		}),
+		"The result: 'what' contains the method return value, 'time' contains the elapsed time."
+	)
+	.summary(
+		"Check key reference."
+	)
+	.description(dd`
+  Returns the result of Validation.validateGidReference()
+  against the provided string in the body.
+`);
