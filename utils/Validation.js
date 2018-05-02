@@ -314,6 +314,187 @@ class Validation
 
 	}	// validateGeoJSON
 
+	/**
+	 * Validate date
+	 *
+	 * This method will validate a string date.
+	 *
+	 * The method returns the provided value with eventual modifications.
+	 *
+	 * Note that the method expects the provided value to be of the correct type, here
+	 * we only check if the contents are valid. The method should raise an exception
+	 * if the validation fails.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue		{String}	The value to check.
+	 * @returns {Array}					The normalised value.
+	 */
+	static validateDate( theRequest, theValue )
+	{
+		//
+		// Init local storage.
+		//
+		let sep   = null;
+		let day   = null;
+		let month = null;
+		let year  = null;
+		let parts = null;
+		let seps  = [ '/', '-', '.' ];
+
+		//
+		// Check separator.
+		//
+		for( const item of seps )
+		{
+			parts = theValue.split( item );
+			if( parts.length > 1 )
+			{
+				sep = item;
+				seps = seps.filter( item => item !== sep );
+				break;														// =>
+			}
+		}
+
+		//
+		// Handle separator.
+		//
+		if( sep !== null )
+		{
+			//
+			// Parse by elements.
+			//
+			switch( parts.length )
+			{
+				case 3:
+					day = parts[ 2 ];
+				case 2:
+					month = parts[ 1 ];
+					year = parts[ 0 ];
+					break;
+
+				default:
+					throw(
+						new MyError(
+							'BadValueFormat',
+							K.error.BadDateFormat,
+							theRequest.application.language,
+							theValue
+						)
+					);															// !@! ==>
+			}
+
+			//
+			// Check parts.
+			//
+			for( const item of parts )
+			{
+				for( const element of seps )
+				{
+					if( item.includes( element ) )
+						throw(
+							new MyError(
+								'BadValueFormat',
+								K.error.BadDateFormat,
+								theRequest.application.language,
+								theValue
+							)
+						);														// !@! ==>
+				}
+			}
+		}
+
+		//
+		// Handle without separator.
+		//
+		else
+		{
+			//
+			// Parse by length.
+			// Note that regex guarantees
+			// these will be the only possible formats.
+			//
+			switch( theValue.length )
+			{
+				case 8:
+					day = theValue.substr( 6, 2 );
+				case 6:
+					month = theValue.substr( 4, 2 );
+				case 4:
+					year = theValue.substr( 0, 4 );
+					break;
+			}
+		}
+
+		//
+		// Handle full date.
+		//
+		if( day !== null )
+		{
+			const target = parseInt(day).toString();
+			const date = new Date( `${year}-${month}-${day}` );
+			if( (! Boolean(+date))
+			 || (date.getDate().toString() !== target) )
+				throw(
+					new MyError(
+						'BadValue',
+						K.error.InvalidDate,
+						theRequest.application.language,
+						theValue
+					)
+				);																// !@! ==>
+		}
+
+		//
+		// Handle partial date.
+		//
+		else
+		{
+			//
+			// Check month.
+			//
+			if( month !== null )
+			{
+				const month_num = parseInt(month);
+				if( (month_num < 1)
+				 || (month_num > 12) )
+					throw(
+						new MyError(
+							'BadValue',
+							K.error.InvalidMonth,
+							theRequest.application.language,
+							theValue
+						)
+					);															// !@! ==>
+			}
+		}
+
+		//
+		// Format date.
+		//
+		let date = null;
+		if( day !== null )
+			date = new Date( parseInt(year), parseInt(month) - 1, parseInt(day) );
+		else if( month !== null )
+			date = new Date( parseInt(year), parseInt(month) - 1 );
+		else {
+			date = new Date( `${year}-01-01` );
+			return date.getFullYear().toString();									// ==>
+		}
+
+		//
+		// Handle parts.
+		//
+		year = date.getFullYear().toString();
+		if( month === null )
+			return year;															// ==>
+		month = date.getMonth() < 9 ? "0" + (date.getMonth() + 1) : (date.getMonth() + 1);
+		if( day === null )
+			return year + month;													// ==>
+		day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+		return year + month + day;													// ==>
+
+	}	// validateDate
+
 }	// validateSizeRange.
 
 module.exports = Validation;

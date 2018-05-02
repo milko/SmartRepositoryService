@@ -53,78 +53,6 @@ router.tag( 'testValidation' );
 
 
 /**
- * Test GeoJSONValidation
- *
- * The service will test the provided object in the body against the GeoJSONValidation
- * script: the service will return an object as { what : <result> } where result is the
- * value returned by the tested method.
- *
- * If the method raises an exception, the service will forward it using the
- * HTTP code if the exception is of class MyError.
- *
- * @path		/validateGeoJSON
- * @verb		post
- * @response	{ what : <result> }.
- */
-router.post
-(
-	'/GeoJSONValidation',
-	(request, response) =>
-	{
-		const value = request.body;
-		const validator = require( '../../utils/GeoJSONValidation' );
-		validator.define( "Position", (position) =>{
-			let errors = [];
-			if( (position[0] < -180)
-				|| (position[0] > 180) )
-				errors.push( "invalid longitude [" + position[0] + "]" );
-			if( (position[1] < -90)
-				|| (position[1] > 90) )
-				errors.push( "invalid latitude [" + position[1] + "]" );
-			return errors;
-		});
-
-		try
-		{
-			validator.valid( value, (valid, error) =>
-			{
-				if(valid)
-					response.send({ result: "OK" });
-				else {
-					const errors = error.join( '. ' );
-					response.throw(400, errors);
-				}
-			});
-		}
-		catch( error )
-		{
-			response.throw( 500, error );
-		}
-	},
-	'GeoJSONValidation'
-)
-	.body(
-		Joi.object().required(),
-		'The object should be a GeoJSON structure.'
-	)
-	.response(
-		200,
-		Joi.object({
-			what : Joi.any(),
-			time : Joi.number()
-		}),
-		"The result: 'what' contains the method return value, 'time' contains the elapsed time."
-	)
-	.summary(
-		"Check GeoJSON structure."
-	)
-	.description(dd`
-  Returns the result of GeoJSONValidation
-  against the provided GeoJSON structure provided in the body.
-`);
-
-
-/**
  * Test Validation.validateGeoJSON()
  *
  * The service will test the provided object in the body against the Validation.validateGeoJSON()
@@ -186,4 +114,69 @@ router.post
 	.description(dd`
   Returns the result of Validation.validateGeoJSON()
   against the provided GeoJSON structure provided in the body.
+`);
+
+
+/**
+ * Test Validation.validateDate()
+ *
+ * The service will test the provided object in the body against the Validation.validateDate()
+ * script: the service will return an object as { what : <result> } where result is the
+ * value returned by the tested method.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/validateDate
+ * @verb		post
+ * @response	{ what : <result> }.
+ */
+router.post
+(
+	'/validateDate',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+
+		//
+		// Test.
+		//
+		let result = null;
+		try
+		{
+			result = Validation.validateDate( request, request.body );
+
+			response.send({
+				what : result,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			response.throw( 500, error );
+		}
+	},
+	'validateDate'
+)
+	.body(
+		Joi.string().required(),
+		'The body should contain a string.'
+	)
+	.response(
+		200,
+		Joi.object({
+			what : Joi.any(),
+			time : Joi.number()
+		}),
+		"The result: 'what' contains the method return value, 'time' contains the elapsed time."
+	)
+	.summary(
+		"Check string date."
+	)
+	.description(dd`
+  Returns the result of Validation.validateDate()
+  against the provided string in the body.
 `);
