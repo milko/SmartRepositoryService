@@ -222,11 +222,11 @@ class Validation
 	 * @param theValue		{Array}		The value to check.
 	 * @returns {Array}					The normalised value.
 	 */
-	static ValidateRange( theRequest, theValue )
+	static validateRange( theRequest, theValue )
 	{
 		return theValue;															// ==>
 
-	}	// ValidateRange
+	}	// validateRange
 
 	/**
 	 * Validate size range
@@ -264,7 +264,7 @@ class Validation
 	 * if the validation fails.
 	 *
 	 * @param theRequest	{Object}	The current request.
-	 * @param theValue		{Array}		The value to check.
+	 * @param theValue		{Object}	The value to check.
 	 * @returns {Array}					The normalised value.
 	 */
 	static validateGeoJSON( theRequest, theValue )
@@ -494,6 +494,85 @@ class Validation
 		return year + month + day;													// ==>
 
 	}	// validateDate
+
+	/**
+	 * Validate time stamp
+	 *
+	 * This method will validate a time stamp.
+	 *
+	 * The method currently does not do anything, if it did, it would raise an
+	 * exception if the value was invalid. Timestamps are handled by Joi.
+	 *
+	 * The method returns the provided value with eventual modifications.
+	 *
+	 * Note that the method expects the provided value to be of the correct type, here
+	 * we only check if the contents are valid. The method should raise an exception
+	 * if the validation fails.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue		{Number}	The value to check.
+	 * @returns {Array}					The normalised value.
+	 */
+	static validateTimeStamp( theRequest, theValue )
+	{
+		return theValue;															// ==>
+
+	}	// validateTimeStamp
+
+	/**
+	 * Validate _id reference
+	 *
+	 * This method will validate an _id reference.
+	 *
+	 * The method will check if the provided string corresponds to a document and
+	 * will raise an exception if not.
+	 *
+	 * The method returns the provided value.
+	 *
+	 * Note that the method expects the provided value to be of the correct type, here
+	 * we only check if the contents are valid. The method should raise an exception
+	 * if the validation fails.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue		{String}	The value to check.
+	 * @returns {Array}					The normalised value.
+	 */
+	static validateIdReference( theRequest, theValue )
+	{
+		//
+		// Check reference.
+		//
+		let doc = null;
+		try
+		{
+			doc = db._document( theValue );
+		}
+		catch( error )
+		{
+			//
+			// Handle exceptions.
+			//
+			if( (! error.isArangoError)
+			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				throw( error );													// !@! ==>
+
+			//
+			// Handle not found.
+			//
+			throw(
+				new MyError(
+					'BadValue',							// Error name.
+					K.error.InvalidObjReference,		// Message code.
+					theRequest.application.language,	// Language.
+					theValue,							// Error value.
+					404									// HTTP error code.
+				)
+			);																	// !@! ==>
+		}
+
+		return doc._id;																// ==>
+
+	}	// validateIdReference
 
 }	// validateSizeRange.
 
