@@ -14,6 +14,7 @@ const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 // Application.
 //
 const K = require( './Constants' );
+const MyError = require( '../utils/MyError' );
 
 
 /**
@@ -28,10 +29,11 @@ class Validation
 	 *
 	 * This method will cast the provided value to string.
 	 *
-	 * @param theValue	{*}	The value to cast.
-	 * @returns {String}	The value cast to a string.
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue	{*}				The value to cast.
+	 * @returns {String}				The value cast to a string.
 	 */
-	static castString( theValue )
+	static castString( theRequest, theValue )
 	{
 		return theValue.toString();													// ==>
 
@@ -44,10 +46,11 @@ class Validation
 	 *
 	 * If the cast failes, the method will return undefined.
 	 *
+	 * @param theRequest	{Object}	The current request.
 	 * @param theValue	{*}				The value to cast.
 	 * @returns {Number}|{undefined}	The value cast to a number.
 	 */
-	static castNumber( theValue )
+	static castNumber( theRequest, theValue )
 	{
 		//
 		// Cast.
@@ -69,10 +72,11 @@ class Validation
 	 *
 	 * This method will cast the provided value to a boolean.
 	 *
-	 * @param theValue	{*}	The value to cast.
-	 * @returns {Boolean}	The value cast to a boolean.
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue	{*}				The value to cast.
+	 * @returns {Boolean}				The value cast to a boolean.
 	 */
-	static castBoolean( theValue )
+	static castBoolean( theRequest, theValue )
 	{
 		return Boolean( theValue );													// ==>
 
@@ -86,10 +90,11 @@ class Validation
 	 * The method doesn't cast the value to hexadecimal, it rather sets the string to
 	 * lowercase, so that comparing hex strings will work.
 	 *
-	 * @param theValue	{*}	The value to cast.
-	 * @returns {String}	The value cast to a hexadecimal.
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue	{*}				The value to cast.
+	 * @returns {String}				The value cast to a hexadecimal.
 	 */
-	static castHexadecimal( theValue )
+	static castHexadecimal( theRequest, theValue )
 	{
 		//
 		// Cast to string.
@@ -114,10 +119,11 @@ class Validation
 	 * we only check if the contents are valid. The method should raise an exception
 	 * if the validation fails.
 	 *
-	 * @param theValue	{String}	The value to check.
-	 * @returns {String}			The normalised value.
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue	{String}		The value to check.
+	 * @returns {String}				The normalised value.
 	 */
-	static validateUrl( theValue )
+	static validateUrl( theRequest, theValue )
 	{
 		return theValue;															// ==>
 
@@ -138,10 +144,11 @@ class Validation
 	 * we only check if the contents are valid. The method should raise an exception
 	 * if the validation fails.
 	 *
-	 * @param theValue	{String}	The value to check.
-	 * @returns {String}			The normalised value.
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue		{String}	The value to check.
+	 * @returns {String}				The normalised value.
 	 */
-	static validateHex( theValue )
+	static validateHex( theRequest, theValue )
 	{
 		return theValue;															// ==>
 
@@ -162,10 +169,11 @@ class Validation
 	 * we only check if the contents are valid. The method should raise an exception
 	 * if the validation fails.
 	 *
-	 * @param theValue	{String}	The value to check.
-	 * @returns {Number}			The normalised value.
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue		{String}	The value to check.
+	 * @returns {Number}				The normalised value.
 	 */
-	static validateInt( theValue )
+	static validateInt( theRequest, theValue )
 	{
 		return theValue;															// ==>
 
@@ -186,10 +194,11 @@ class Validation
 	 * we only check if the contents are valid. The method should raise an exception
 	 * if the validation fails.
 	 *
-	 * @param theValue	{String}	The value to check.
-	 * @returns {String}			The normalised value.
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue		{String}	The value to check.
+	 * @returns {String}				The normalised value.
 	 */
-	static validateEmail( theValue )
+	static validateEmail( theRequest, theValue )
 	{
 		return theValue;															// ==>
 
@@ -209,10 +218,11 @@ class Validation
 	 * we only check if the contents are valid. The method should raise an exception
 	 * if the validation fails.
 	 *
-	 * @param theValue	{Array}	The value to check.
-	 * @returns {Array}			The normalised value.
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue		{Array}		The value to check.
+	 * @returns {Array}					The normalised value.
 	 */
-	static ValidateRange( theValue )
+	static ValidateRange( theRequest, theValue )
 	{
 		return theValue;															// ==>
 
@@ -232,14 +242,77 @@ class Validation
 	 * we only check if the contents are valid. The method should raise an exception
 	 * if the validation fails.
 	 *
-	 * @param theValue	{Array}	The value to check.
-	 * @returns {Array}			The normalised value.
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue		{Array}		The value to check.
+	 * @returns {Array}					The normalised value.
 	 */
-	static validateSizeRange( theValue )
+	static validateSizeRange( theRequest, theValue )
 	{
 		return theValue;															// ==>
 
 	}	// ValidateRange
+
+	/**
+	 * Validate GeoJSON
+	 *
+	 * This method will validate a GeoJSON structure.
+	 *
+	 * The method returns the provided value with eventual modifications.
+	 *
+	 * Note that the method expects the provided value to be of the correct type, here
+	 * we only check if the contents are valid. The method should raise an exception
+	 * if the validation fails.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theValue		{Array}		The value to check.
+	 * @returns {Array}					The normalised value.
+	 */
+	static validateGeoJSON( theRequest, theValue )
+	{
+		//
+		// Load framework.
+		//
+		const validator = require( '../utils/GeoJSONValidation' );
+
+		//
+		// Define position checker.
+		//
+		validator.define( "Position", (position) =>
+		{
+			let errors = [];
+
+			if( (position[0] < -180)
+			 || (position[0] > 180) )
+				errors.push( "invalid longitude [" + position[0] + "]" );
+
+			if( (position[1] < -90)
+			 || (position[1] > 90) )
+				errors.push( "invalid latitude [" + position[1] + "]" );
+
+			return errors;
+		});
+
+		//
+		// Validate.
+		//
+		validator.valid( theValue, (valid, error) =>
+		{
+			if( ! valid )
+			{
+				const errors = error.join( '. ' );
+				throw(
+					new MyError(
+						'BadValue',							// Error name.
+						errors,								// Message.
+						theRequest.application.language		// Language.
+					)
+				);																// !@! ==>
+			}
+		});
+
+		return theValue;															// ==>
+
+	}	// validateGeoJSON
 
 }	// validateSizeRange.
 

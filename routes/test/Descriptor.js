@@ -468,3 +468,127 @@ router.get
 	.description(dd`
   Returns the list of all fields in the validation records for all descriptors.
 `);
+
+
+/**
+ * Test all descriptor validation structures
+ *
+ * The service will scan all descriptors and create the validation structures returning
+ * all validation structure field names and their respective counts.
+ *
+ * This service should be used to check if validation structure generation works for all
+ * descriptors.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/testDescriptorValidationStructures
+ * @verb		get
+ * @response	{ what : <result> }.
+ */
+router.get
+(
+	'/testDescriptorValidationStructures',
+	(request, response) =>
+	{
+		//
+		// Init framework.
+		//
+		const Dict = require( '../../dictionary/Dict' );
+		const collect = (theResult, theStruct) => {
+			for( const item in theStruct )
+			{
+				if( theResult.hasOwnProperty( item ) )
+					theResult[ item ]++;
+				else
+					theResult[ item ] = 1;
+			}
+		};
+		const traverse = (theResult, theStruct) => {
+			collect(theResult, theStruct);
+			if( theStruct.hasOwnProperty(Dict.descriptor.kTypeKey) )
+				collect(theResult, theStruct[ Dict.descriptor.kTypeKey ]);
+			if( theStruct.hasOwnProperty(Dict.descriptor.kTypeValue) )
+				collect(theResult, theStruct[ Dict.descriptor.kTypeValue ]);
+			if( theStruct.hasOwnProperty('_child') )
+				return theStruct._child;
+			else
+				return null;
+		};
+
+		//
+		// Init timer.
+		//
+		const stamp = time();
+
+		//
+		// Get all descriptors.
+		//
+		const cursor = db._collection( 'descriptors' ).all();
+
+		//
+		// Init result.
+		//
+		const result = {};
+
+		//
+		// Iterate descriptors.
+		//
+		let temp = null;
+		try
+		{
+			while( cursor.hasNext() )
+			{
+				//
+				// Get validation record.
+				//
+				const record = Descriptor.getDescriptorValidationRecord( request, cursor.next() );
+				temp = Descriptor.getValidationStructure( request, record );
+
+				//
+				// Traverse record.
+				//
+				let current = temp;
+				while( current !== null )
+					current = traverse( result, current );
+			}
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+
+			response.throw( http, error );										// !@! ==>
+		}
+
+		response.send({
+						  what : result,
+						  time : time() - stamp
+					  });
+	},
+	'testDescriptorValidationStructures'
+)
+	.response(
+		200,
+		Joi.object({
+					   what : Joi.any(),
+					   time : Joi.number()
+				   }),
+		"The result: 'what' contains an object with as key the validation structure" +
+		" field and as key the occurrence count, 'time' contains the elapsed time."
+	)
+	.summary(
+		"Test validation structure generation for all descriptors."
+	)
+	.description(dd`
+  Returns the list of all fields in the validation structures for all descriptors.
+`);

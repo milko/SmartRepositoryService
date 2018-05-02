@@ -553,6 +553,12 @@ class Descriptor
 		const structure = {};
 
 		//
+		// Set base type.
+		//
+		structure[ Dict.descriptor.kType ] =
+			Dict.term[ theRecord[ Dict.descriptor.kType ] ];
+
+		//
 		// Parse Joi validation string.
 		//
 		structure[ Dict.descriptor.kJoi ] =
@@ -619,6 +625,36 @@ class Descriptor
 		return structure;															// ==>
 
 	}	// getValidationStructure
+
+	/**
+	 * Validate
+	 *
+	 * This method will validate the provided value using the provided validation
+	 * structure, the method will return the value, eventually normalised, if the test
+	 * passes, or raise an exception if the test doesn't pass.
+	 *
+	 * @param theRequest	{Object}	The current resuest.
+	 * @param theValidation	{Object}	The validation structure.
+	 * @param theValue		{*}			The value to test.
+	 * @returns {boolean}				True, if successful.
+	 */
+	static validate( theRequest, theValidation, theValue )
+	{
+		//
+		// Parse by base data type.
+		//
+		switch( theValidation[ Dict.descriptor.kType ] )
+		{
+			case Dict.term.kTypeDataAny:
+				break;
+
+			case Dict.term.kTypeDataBool:
+				break;
+		}
+
+		return true;																// ==>
+
+	}	// validate
 
 }	// Descriptor.
 
