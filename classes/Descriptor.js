@@ -585,6 +585,7 @@ class Descriptor
 
 		//
 		// Parse reference elements.
+		// MILKO - Might need to check for other cases.
 		//
 		if( theRecord.hasOwnProperty( 'isRef' )
 		 && (theRecord.isRef === true) )

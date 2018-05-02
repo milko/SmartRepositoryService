@@ -314,17 +314,11 @@
   {
     "_key" : "e53",
     "label" : {
-      "ISO:639:3:eng" : "the reference [@arg1@] is not an instance of [@arg2@]."
+      "ISO:639:3:eng" : "the reference [@1arg@] is not an instance of [@2arg@]."
     }
   },
   {
     "_key" : "e54",
-    "label" : {
-      "ISO:639:3:eng" : "the reference [@arg1@] is not an instance of [@arg2@]."
-    }
-  },
-  {
-    "_key" : "e55",
     "label" : {
       "ISO:639:3:eng" : "required instance reference is missing from validation record."
     }

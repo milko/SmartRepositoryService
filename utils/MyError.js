@@ -71,7 +71,8 @@ class MyError extends Error
 		//
 		// Normalise data.
 		//
-		if( theArgument !== null )
+		if( (! Array.isArray( theArgument ))
+		 && (theArgument !== null) )
 			theArgument = theArgument.toString();
 		else
 			theArgument = "N/A";
