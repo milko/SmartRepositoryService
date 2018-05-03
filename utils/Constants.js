@@ -315,7 +315,11 @@ module.exports = Object.freeze(
 			KeyMustBeText		: 51,
 			ValueMustBeNumeric	: 52,
 			NotInstanceOf		: 53,
-			NoInstanceRefInRec	: 54
+			NoInstanceRefInRec	: 54,
+			MustBeObject		: 55,
+			DescriptorNotFound	: 56,
+			UnknownCastFunc		: 57,
+			MustBeArray			: 58
 		},
 
 		//

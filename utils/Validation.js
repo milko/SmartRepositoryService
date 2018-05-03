@@ -4,6 +4,7 @@
 // Frameworks.
 //
 const fs = require('fs');
+const Joi = require('joi');
 const db = require('@arangodb').db;
 const aql = require('@arangodb').aql;
 const crypto = require('@arangodb/crypto');
@@ -27,15 +28,685 @@ const Schema = require( '../classes/Schema' );
 class Validation
 {
 	/**
+	 * Validate structure
+	 *
+	 * This method will validate the provided object and return the normalised object.
+	 *
+	 * If the validation fails, the method will raise an exception that will contain a
+	 * property, path, which contains the path of the offending property. Errors that
+	 * are not caught by validation will not have that property.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theObject		{Object}	The object.
+	 * @param thePath		{String}	The property path.
+	 * @returns {Object}				The eventually normalised object.
+	 */
+	static validateStructure( theRequest, theObject, thePath = null )
+	{
+		//
+		// Assert structure.
+		//
+		if( ! K.function.isObject( theObject ) )
+		{
+			//
+			// Compile error.
+			//
+			const error =
+				new MyError(
+					'BadValue',							// Error name.
+					K.error.MustBeObject,				// Message code.
+					theRequest.application.language,	// Language.
+					null,								// Error value.
+					400									// HTTP error code.
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
+
+		//
+		// Traverse object.
+		//
+		for( const property in theObject )
+		{
+			//
+			// Determine path.
+			//
+			thePath = ( thePath === null )
+					? property
+					: (thePath + '.' + property);
+
+			//
+			// Validate property.
+			//
+			theObject[ property ] =
+				Validation.validateProperty(
+					theRequest,
+					property,
+					theObject[ property ],
+					thePath
+				);
+		}
+
+		return theObject;															// ==>
+
+	}	// validateStructure
+
+	/**
+	 * Validate property
+	 *
+	 * This method will validate the value associated to the provided property.
+	 *
+	 * If the validation fails, the method will raise an exception that will contain a
+	 * property, path, which contains the path of the offending property. Errors that
+	 * are not caught by validation will not have that property.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theProperty	{String}	The property name.
+	 * @param theValue		{*}			The property value.
+	 * @param thePath		{String}	The property path.
+	 * @returns {*}						The eventually normalised property value.
+	 */
+	static validateProperty( theRequest, theProperty, theValue, thePath )
+	{
+		//
+		// Handle property.
+		//
+		let descriptor = null;
+		try
+		{
+			//
+			// Resolve property.
+			//
+			descriptor = db._collection( 'descriptors' ).document( theProperty );
+		}
+		catch( exception )
+		{
+			//
+			// Handle exceptions.
+			//
+			if( (! exception.isArangoError)
+			 || (exception.errorNum !== ARANGO_NOT_FOUND) )
+				throw( exception );												// !@! ==>
+
+			//
+			// Compile error.
+			//
+			const error =
+				new MyError(
+					'BadDescriptor',					// Error name.
+					K.error.DescriptorNotFound,			// Message code.
+					theRequest.application.language,	// Language.
+					theProperty,						// Error value.
+					404									// HTTP error code.
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
+
+		//
+		// Init local storage.
+		//
+		const type = descriptor[ Dict.descriptor.kType ];
+		const base_type = descriptor[ Dict.descriptor.kValidation ][ Dict.descriptor.kType ];
+
+		//
+		// Handle list of containers.
+		// MILKO - this might not work: need to test thoroughly.
+		//
+		if( ( (type === Dict.term.kTypeDataStruct)		// Descriptor type is structure
+		   || (type === Dict.term.kTypeDataObject) )	// or object,
+		 && (base_type === Dict.term.kTypeDataList)		// and base type is list,
+		 && Array.isArray( theValue ) )					// and value is array (skip
+		{												// when recursing).
+			//
+			// Iterate array elements.
+			//
+			for( let i = 0; i < theValue.length; i++ )
+			{
+				switch( type )
+				{
+					case Dict.term.kTypeDataStruct:
+						theValue[ i ] =
+							Validation.validateStructure(
+								theRequest,
+								theValue[ i ],
+								thePath
+							);
+						break;
+
+					case Dict.term.kTypeDataObject:
+						theValue[ i ] =
+							Validation.validateObject(
+								theRequest,
+								theValidation,
+								theValue[ i ],
+								thePath
+							);
+						break;
+				}
+			}
+
+		}	// Value is array.
+
+		//
+		// Handle scalars.
+		//
+		else
+			theValue =
+				Validation.validateValue(
+					theRequest,
+					descriptor[ Dict.descriptor.kValidation ],
+					theValue,
+					thePath
+				);
+
+		return theValue;															// ==>
+
+	}	// validateProperty
+
+	/**
+	 * Validate value
+	 *
+	 * This method will validate the provided value using the provided validation
+	 * structure, the method will return the value, eventually normalised, if the test
+	 * passes, or raise an exception if the test doesn't pass.
+	 *
+	 * @param theRequest	{Object}	The current resuest.
+	 * @param theValidation	{Object}	The validation structure.
+	 * @param theValue		{*}			The value to test.
+	 * @param thePath		{String}	The property path.
+	 * @returns {*}						The eventually normalised property value.
+	 */
+	static validateValue( theRequest, theValidation, theValue, thePath )
+	{
+		//
+		// Parse by type.
+		//
+		switch( theValidation[ Dict.descriptor.kType ] )
+		{
+			case Dict.term.kTypeDataAny:
+				break;
+
+			case Dict.term.kTypeDataBool:
+			case Dict.term.kTypeDataText:
+			case Dict.term.kTypeDataNumeric:
+				theValue =
+					Validation.validateScalar(
+						theRequest,
+						theValidation,
+						theValue,
+						thePath
+					);
+				break;
+
+			case Dict.term.kTypeDataList:
+				theValue =
+					Validation.validateArray(
+						theRequest,
+						theValidation,
+						theValue,
+						thePath
+					);
+				break;
+
+			case Dict.term.kTypeDataStruct:
+				theValue =
+					Validation.validateStructure(
+						theRequest,
+						theValue,
+						thePath
+					);
+				break;
+
+			case Dict.term.kTypeDataObject:
+				theValue =
+					Validation.validateObject(
+						theRequest,
+						theValidation,
+						theValue,
+						thePath
+					);
+				break;
+
+			default:
+				throw(
+					new MyError(
+						'Unimplemented',						// Error name.
+						K.error.InvalidDataType,				// Message code.
+						theRequest.application.language,		// Language.
+						theValidation[ Dict.descriptor.kType ],	// Error value.
+						500										// HTTP error code.
+					)
+				);													// !@! ==>
+		}
+
+		return theValue;															// ==>
+
+	}	// validateValue
+
+	/**
+	 * Validate scalar
+	 *
+	 * This method will validate the provided scalar value using the provided validation
+	 * structure, the method will return the value, eventually normalised, if the test
+	 * passes, or raise an exception if the test doesn't pass.
+	 *
+	 * @param theRequest	{Object}	The current resuest.
+	 * @param theValidation	{Object}	The validation structure.
+	 * @param theValue		{*}			The value to test.
+	 * @param thePath		{String}	The property path.
+	 * @returns {*}						The eventually normalised property value.
+	 */
+	static validateScalar( theRequest, theValidation, theValue, thePath )
+	{
+		//
+		// Cast value.
+		//
+		theValue =
+			Validation.validateCastValue(
+				theRequest,
+				theValidation,
+				theValue,
+				thePath
+			);
+
+		//
+		// Joi validation.
+		//
+		theValue =
+			Validation.validateJoiValue(
+				theRequest,
+				theValidation,
+				theValue,
+				thePath
+			);
+
+		//
+		// Custom validation.
+		//
+		theValue =
+			Validation.validateCustomValue(
+				theRequest,
+				theValidation,
+				theValue,
+				thePath
+			);
+
+		return theValue;															// ==>
+
+	}	// validateScalar
+
+	/**
+	 * Validate array
+	 *
+	 * This method will validate the provided array value using the provided validation
+	 * structure, the method will return the value, eventually normalised, if the test
+	 * passes, or raise an exception if the test doesn't pass.
+	 *
+	 * @param theRequest	{Object}	The current resuest.
+	 * @param theValidation	{Object}	The validation structure.
+	 * @param theValue		{Array}		The value to test.
+	 * @param thePath		{String}	The property path.
+	 * @returns {*}						The eventually normalised property value.
+	 */
+	static validateArray( theRequest, theValidation, theValue, thePath )
+	{
+		//
+		// Assert array.
+		//
+		if( ! Array.isArray( theValue ) )
+		{
+			//
+			// Compile error.
+			//
+			const error =
+				new MyError(
+					'BadValue',							// Error name.
+					K.error.MustBeArray,				// Message code.
+					theRequest.application.language,	// Language.
+					null,								// Error value.
+					400									// HTTP error code.
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
+
+		//
+		// Cast value.
+		//
+		theValue =
+			Validation.validateCastValue
+			(
+				theRequest,
+				theValidation,
+				theValue,
+				thePath
+			);
+
+		//
+		// Joi validation.
+		//
+		theValue =
+			Validation.validateJoiValue
+			(
+				theRequest,
+				theValidation,
+				theValue,
+				thePath
+			);
+
+		//
+		// Custom validation.
+		//
+		theValue =
+			theValue.map(
+				x => Validation.validateCustomValue
+				(
+					theRequest,
+					theValidation,
+					x,
+					thePath
+				)
+			);
+
+		return theValue;															// ==>
+
+	}	// validateArray
+
+	/**
+	 * Validate object
+	 *
+	 * This method will validate the provided object value using the provided validation
+	 * structure, it will use the key and value parts of the validation structure to
+	 * check all the object elements. The method will return the value, eventually
+	 * normalised, if the test passes, or raise an exception if the test doesn't pass.
+	 *
+	 * @param theRequest	{Object}	The current resuest.
+	 * @param theValidation	{Object}	The validation structure.
+	 * @param theValue		{Object}	The value to test.
+	 * @param thePath		{String}	The property path.
+	 * @returns {*}						The eventually normalised property value.
+	 */
+	static validateObject( theRequest, theValidation, theValue, thePath )
+	{
+		//
+		// Assert structure.
+		//
+		if( ! K.function.isObject( theValue ) )
+		{
+			//
+			// Compile error.
+			//
+			const error =
+				new MyError(
+					'BadValue',							// Error name.
+					K.error.MustBeObject,				// Message code.
+					theRequest.application.language,	// Language.
+					null,								// Error value.
+					400									// HTTP error code.
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
+
+		return theValue;															// ==>
+
+	}	// validateObject
+
+	/**
+	 * Cast value
+	 *
+	 * This method will cast the provided value according to the contents of the
+	 * validation record, if the record contains a cast function term, the method will
+	 * execute it and return the casted value; if the cast cannot be performed, the
+	 * method will raise an exception.
+	 *
+	 * The method handles lists internally, it will call the cast function with each
+	 * array element.
+	 *
+	 * Note that this method may recurse when container data types are encountered.
+	 *
+	 * @param theRequest	{Object}	The current resuest.
+	 * @param theValidation	{Object}	The validation structure.
+	 * @param theValue		{*}			The value to test.
+	 * @param thePath		{String}	The property path.
+	 * @returns {*}						The normalised value.
+	 */
+	static validateCastValue( theRequest, theValidation, theValue, thePath )
+	{
+		//
+		// Check cast function term.
+		//
+		if( theValidation.hasOwnProperty( Dict.descriptor.kTypeCast ) )
+		{
+			//
+			// Iterate cast functions.
+			//
+			for( const name of theValidation[ Dict.descriptor.kTypeCast ] )
+			{
+				//
+				// Locate term.
+				//
+				const term =
+					db._collection( 'terms' )
+						.document( name )
+							[ Dict.descriptor.kLID ];
+
+				//
+				// Locate cast function.
+				//
+				const cast = Validation.castFunction( theRequest, term );
+
+				//
+				// Parse by base type.
+				//
+				switch( theValidation[ Dict.descriptor.kType ] )
+				{
+					case Dict.term.kTypeDataAny:
+						break;
+
+					case Dict.term.kTypeDataBool:
+					case Dict.term.kTypeDataText:
+					case Dict.term.kTypeDataNumeric:
+						//
+						// Cast scalar.
+						//
+						theValue = cast( theRequest, theValue, thePath );
+
+						break;
+
+					case Dict.term.kTypeDataList:
+						//
+						// Assert array.
+						//
+						if( ! Array.isArray( theValue ) )
+						{
+							//
+							// Compile error.
+							//
+							const error =
+								new MyError(
+									'BadValue',							// Error name.
+									K.error.MustBeArray,				// Message code.
+									theRequest.application.language,	// Language.
+									null,								// Error value.
+									400									// HTTP error code.
+								);
+
+							//
+							// Add path.
+							//
+							error.path = thePath;
+
+							throw( error );										// !@! ==>
+						}
+
+						//
+						// Cast array elements.
+						//
+						theValue = theValue.map( x => cast( theRequest, x, thePath ) );
+
+						break;
+
+					case Dict.term.kTypeDataStruct:
+						throw( "SHOULDN'T GET HERE!" );							// !@! ==>
+
+					case Dict.term.kTypeDataObject:
+						throw( "SHOULDN'T GET HERE!" );							// !@! ==>
+
+					default:
+						//
+						// Compile error.
+						//
+						const error =
+							new MyError(
+								'Unimplemented',						// Error name.
+								K.error.InvalidDataType,				// Message code.
+								theRequest.application.language,		// Language.
+								theValidation[ Dict.descriptor.kType ],	// Error value.
+								500										// HTTP error.
+							);
+
+						//
+						// Add path.
+						//
+						error.path = thePath;
+
+						throw( error );											// !@! ==>
+				}
+
+			}	// Iterating cast functions.
+
+		}	// Has cast function reference.
+
+		return theValue;															// ==>
+
+	}	// validateCastValue
+
+	/**
+	 * Joi validation
+	 *
+	 * This method will perform the Joi validation by evaluating the Joi chain of
+	 * commands and will return the eventually normalised value, or raise an exception
+	 * if the validation fails.
+	 *
+	 * Note that this method may recurse when container data types are encountered.
+	 *
+	 * @param theRequest	{Object}	The current resuest.
+	 * @param theValidation	{Object}	The validation structure.
+	 * @param theValue		{*}			The value to test.
+	 * @param thePath		{String}	The property path.
+	 * @returns {*}						The normalised value.
+	 */
+	static validateJoiValue( theRequest, theValidation, theValue, thePath )
+	{
+		//
+		// Check Joi command.
+		//
+		if( theValidation.hasOwnProperty( Dict.descriptor.kJoi ) )
+		{
+			//
+			// Instantiate Joi schema.
+			//
+			const schema = eval( theValidation[ Dict.descriptor.kJoi ] );
+
+			//
+			// Validate.
+			//
+			const result = Joi.validate( theValue, schema );
+		}
+
+		return theValue;															// ==>
+
+	}	// validateJoiValue
+
+	/**
+	 * Custom validation
+	 *
+	 * This method will perform the custom validation by calling all eventual custom
+	 * validation functions in the validation record and return the eventually
+	 * normalised value; if the validation fails an exception will be raised.
+	 *
+	 * Note that this method may recurse when container data types are encountered.
+	 *
+	 * @param theRequest	{Object}	The current resuest.
+	 * @param theValidation	{Object}	The validation structure.
+	 * @param theValue		{*}			The value to test.
+	 * @param thePath		{String}	The property path.
+	 * @returns {*}						The normalised value.
+	 */
+	static validateCustomValue( theRequest, theValidation, theValue, thePath )
+	{
+		return theValue;															// ==>
+
+	}	// validateCustomValue
+
+	/**
+	 * Return cast function
+	 *
+	 * This method will return the address of the static method corresponding to the
+	 * provided method name.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theFunction	{String}	Method name.
+	 * @returns {Function}				Method address.
+	 */
+	static castFunction( theRequest, theFunction )
+	{
+		//
+		// Parse by method name.
+		//
+		switch( theFunction )
+		{
+			case 'castString':		return Validation.castString;					// ==>
+			case 'castNumber':		return Validation.castNumber;					// ==>
+			case 'castBoolean':		return Validation.castBoolean;					// ==>
+			case 'castHexadecimal':	return Validation.castHexadecimal;				// ==>
+
+			default:
+				throw(
+					new MyError(
+						'BadParam',
+						K.error.UnknownCastFunc,
+						theRequest.application.language,
+						theFunction
+					)
+				);																// !@! ==>
+		}
+
+	}	// castFunction
+
+	/**
 	 * Cast to string
 	 *
 	 * This method will cast the provided value to string.
 	 *
 	 * @param theRequest	{Object}	The current request.
 	 * @param theValue		{*}			The value to cast.
+	 * @param thePath		{String}	The property path.
 	 * @returns {String}				The value cast to a string.
 	 */
-	static castString( theRequest, theValue )
+	static castString( theRequest, theValue, thePath )
 	{
 		return theValue.toString();													// ==>
 
@@ -44,15 +715,15 @@ class Validation
 	/**
 	 * Cast to number
 	 *
-	 * This method will cast the provided value to a number.
-	 *
-	 * If the cast failes, the method will return undefined.
+	 * This method will cast the provided value to a number, if the cast failes, the
+	 * method will raise an exception.
 	 *
 	 * @param theRequest	{Object}	The current request.
 	 * @param theValue		{*}			The value to cast.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Number}|{undefined}	The value cast to a number.
 	 */
-	static castNumber( theRequest, theValue )
+	static castNumber( theRequest, theValue, thePath )
 	{
 		//
 		// Cast.
@@ -63,7 +734,26 @@ class Validation
 		// Assert correct.
 		//
 		if( isNaN( value ) )
-			return undefined;														// ==>
+		{
+			//
+			// Compile error.
+			//
+			const error =
+				new MyError(
+					'BadValue',							// Error name.
+					K.error.NotNumber,					// Message code.
+					theRequest.application.language,	// Language.
+					theValue,							// Error value.
+					400									// HTTP error code.
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
 
 		return value;																// ==>
 
@@ -76,9 +766,10 @@ class Validation
 	 *
 	 * @param theRequest	{Object}	The current request.
 	 * @param theValue		{*}			The value to cast.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Boolean}				The value cast to a boolean.
 	 */
-	static castBoolean( theRequest, theValue )
+	static castBoolean( theRequest, theValue, thePath )
 	{
 		return Boolean( theValue );													// ==>
 
@@ -94,9 +785,10 @@ class Validation
 	 *
 	 * @param theRequest	{Object}	The current request.
 	 * @param theValue		{*}			The value to cast.
+	 * @param thePath		{String}	The property path.
 	 * @returns {String}				The value cast to a hexadecimal.
 	 */
-	static castHexadecimal( theRequest, theValue )
+	static castHexadecimal( theRequest, theValue, thePath )
 	{
 		//
 		// Cast to string.
@@ -124,9 +816,10 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {String}				The normalised value.
 	 */
-	static validateUrl( theRequest, theRecord, theValue )
+	static validateUrl( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
@@ -150,9 +843,10 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {String}				The normalised value.
 	 */
-	static validateHex( theRequest, theRecord, theValue )
+	static validateHex( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
@@ -176,9 +870,10 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Number}				The normalised value.
 	 */
-	static validateInt( theRequest, theRecord, theValue )
+	static validateInt( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
@@ -202,9 +897,10 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {String}				The normalised value.
 	 */
-	static validateEmail( theRequest, theRecord, theValue )
+	static validateEmail( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
@@ -227,9 +923,10 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{Array}		The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateRange( theRequest, theRecord, theValue )
+	static validateRange( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
@@ -252,9 +949,10 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{Array}		The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateSizeRange( theRequest, theRecord, theValue )
+	static validateSizeRange( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
@@ -274,9 +972,10 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{Object}	The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateGeoJSON( theRequest, theRecord, theValue )
+	static validateGeoJSON( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Load framework.
@@ -308,14 +1007,29 @@ class Validation
 		{
 			if( ! valid )
 			{
+				//
+				// Join error messages.
+				//
 				const errors = error.join( '. ' );
-				throw(
+
+				//
+				// Compile error.
+				//
+				const error =
 					new MyError(
 						'BadValue',							// Error name.
 						errors,								// Message.
-						theRequest.application.language		// Language.
-					)
-				);																// !@! ==>
+						theRequest.application.language,	// Language.
+						null,							// Error value.
+						400									// HTTP error code.
+					);
+
+				//
+				// Add path.
+				//
+				error.path = thePath;
+
+				throw( error );														// !@! ==>
 			}
 		});
 
@@ -337,9 +1051,10 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateDate( theRequest, theRecord, theValue )
+	static validateDate( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Init local storage.
@@ -383,14 +1098,24 @@ class Validation
 					break;
 
 				default:
-					throw(
+					//
+					// Compile error.
+					//
+					const error =
 						new MyError(
-							'BadValueFormat',
-							K.error.BadDateFormat,
-							theRequest.application.language,
-							theValue
-						)
-					);															// !@! ==>
+							'BadValueFormat',					// Error name.
+							K.error.BadDateFormat,				// Message code.
+							theRequest.application.language,	// Language.
+							theValue,							// Error value.
+							400									// HTTP error code.
+						);
+
+					//
+					// Add path.
+					//
+					error.path = thePath;
+
+					throw( error );												// !@! ==>
 			}
 
 			//
@@ -401,14 +1126,26 @@ class Validation
 				for( const element of seps )
 				{
 					if( item.includes( element ) )
-						throw(
+					{
+						//
+						// Compile error.
+						//
+						const error =
 							new MyError(
-								'BadValueFormat',
-								K.error.BadDateFormat,
-								theRequest.application.language,
-								theValue
-							)
-						);														// !@! ==>
+								'BadValueFormat',					// Error name.
+								K.error.BadDateFormat,				// Message code.
+								theRequest.application.language,	// Language.
+								theValue,							// Error value.
+								400									// HTTP error code.
+							);
+
+						//
+						// Add path.
+						//
+						error.path = thePath;
+
+						throw( error );											// !@! ==>
+					}
 				}
 			}
 		}
@@ -444,14 +1181,26 @@ class Validation
 			const date = new Date( `${year}-${month}-${day}` );
 			if( (! Boolean(+date))
 			 || (date.getDate().toString() !== target) )
-				throw(
+			{
+				//
+				// Compile error.
+				//
+				const error =
 					new MyError(
-						'BadValue',
-						K.error.InvalidDate,
-						theRequest.application.language,
-						theValue
-					)
-				);																// !@! ==>
+						'BadValueFormat',					// Error name.
+						K.error.InvalidDate,				// Message code.
+						theRequest.application.language,	// Language.
+						theValue,							// Error value.
+						400									// HTTP error code.
+					);
+
+				//
+				// Add path.
+				//
+				error.path = thePath;
+
+				throw( error );													// !@! ==>
+			}
 		}
 
 		//
@@ -467,14 +1216,26 @@ class Validation
 				const month_num = parseInt(month);
 				if( (month_num < 1)
 				 || (month_num > 12) )
-					throw(
+				{
+					//
+					// Compile error.
+					//
+					const error =
 						new MyError(
-							'BadValue',
-							K.error.InvalidMonth,
-							theRequest.application.language,
-							theValue
-						)
-					);															// !@! ==>
+							'BadValueFormat',					// Error name.
+							K.error.InvalidMonth,				// Message code.
+							theRequest.application.language,	// Language.
+							theValue,							// Error value.
+							400									// HTTP error code.
+						);
+
+					//
+					// Add path.
+					//
+					error.path = thePath;
+
+					throw( error );													// !@! ==>
+				}
 			}
 		}
 
@@ -522,9 +1283,10 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{Number}	The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateTimeStamp( theRequest, theRecord, theValue )
+	static validateTimeStamp( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
@@ -547,9 +1309,10 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateIdReference( theRequest, theRecord, theValue )
+	static validateIdReference( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Check reference.
@@ -559,27 +1322,33 @@ class Validation
 		{
 			doc = db._document( theValue );
 		}
-		catch( error )
+		catch( exception )
 		{
 			//
 			// Handle exceptions.
 			//
-			if( (! error.isArangoError)
-			 || (error.errorNum !== ARANGO_NOT_FOUND) )
-				throw( error );													// !@! ==>
+			if( (! exception.isArangoError)
+			 || (exception.errorNum !== ARANGO_NOT_FOUND) )
+				throw( exception );												// !@! ==>
 
 			//
-			// Handle not found.
+			// Compile error.
 			//
-			throw(
+			const error =
 				new MyError(
 					'BadValue',							// Error name.
 					K.error.InvalidObjReference,		// Message code.
 					theRequest.application.language,	// Language.
 					theValue,							// Error value.
 					404									// HTTP error code.
-				)
-			);																	// !@! ==>
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
 		}
 
 		return doc._id;																// ==>
@@ -610,23 +1379,35 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateKeyReference( theRequest, theRecord, theValue )
+	static validateKeyReference( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Check collection.
 		//
 		if( ! theRecord.hasOwnProperty( Dict.descriptor.kCollection ) )
-			throw(
+		{
+			//
+			// Compile error.
+			//
+			const error =
 				new MyError(
 					'BadParam',							// Error name.
 					K.error.NoCollectionInRec,			// Message code.
 					theRequest.application.language,	// Language.
 					theValue,							// Error value.
 					500									// HTTP error code.
-				)
-			);																	// !@! ==>
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
 
 		//
 		// Get collection name.
@@ -655,15 +1436,26 @@ class Validation
 			// Handle error.
 			//
 			if( ! result )
-				throw(
+			{
+				//
+				// Compile error.
+				//
+				const error =
 					new MyError(
 						'BadValue',							// Error name.
 						K.error.InvalidObjReference,		// Message code.
 						theRequest.application.language,	// Language.
 						theValue,							// Error value.
 						404									// HTTP error code.
-					)
-				);																// !@! ==>
+					);
+
+				//
+				// Add path.
+				//
+				error.path = thePath;
+
+				throw( error );													// !@! ==>
+			}
 		}
 
 		//
@@ -683,27 +1475,33 @@ class Validation
 				//
 				theValue = result._key;
 			}
-			catch( error )
+			catch( exception )
 			{
 				//
 				// Handle exceptions.
 				//
-				if( (! error.isArangoError)
-				 || (error.errorNum !== ARANGO_NOT_FOUND) )
-					throw( error );												// !@! ==>
+				if( (! exception.isArangoError)
+				 || (exception.errorNum !== ARANGO_NOT_FOUND) )
+					throw( exception );											// !@! ==>
 
 				//
-				// Handle not found.
+				// Compile error.
 				//
-				throw(
+				const error =
 					new MyError(
 						'BadValue',							// Error name.
 						K.error.InvalidObjReference,		// Message code.
 						theRequest.application.language,	// Language.
 						theValue,							// Error value.
 						404									// HTTP error code.
-					)
-				);																// !@! ==>
+					);
+
+				//
+				// Add path.
+				//
+				error.path = thePath;
+
+				throw( error );													// !@! ==>
 			}
 		}
 
@@ -731,23 +1529,35 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateGidReference( theRequest, theRecord, theValue )
+	static validateGidReference( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Check collection.
 		//
 		if( ! theRecord.hasOwnProperty( Dict.descriptor.kCollection ) )
-			throw(
+		{
+			//
+			// Compile error.
+			//
+			const error =
 				new MyError(
 					'BadParam',							// Error name.
 					K.error.NoCollectionInRec,			// Message code.
 					theRequest.application.language,	// Language.
 					theValue,							// Error value.
 					500									// HTTP error code.
-				)
-			);																	// !@! ==>
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
 
 		//
 		// Get collection name.
@@ -768,15 +1578,26 @@ class Validation
 		// Handle not found.
 		//
 		if( result === null )
-			throw(
+		{
+			//
+			// Compile error.
+			//
+			const error =
 				new MyError(
 					'BadValue',							// Error name.
 					K.error.InvalidObjReference,		// Message code.
 					theRequest.application.language,	// Language.
 					theValue,							// Error value.
 					404									// HTTP error code.
-				)
-			);																	// !@! ==>
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
 
 		return theValue;															// ==>
 
@@ -804,37 +1625,60 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theRecord		{Object}	The validation structure.
 	 * @param theValue		{String}	The value to check.
+	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateInstanceReference( theRequest, theRecord, theValue )
+	static validateInstanceReference( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Check collection.
 		//
 		if( ! theRecord.hasOwnProperty( Dict.descriptor.kCollection ) )
-			throw(
+		{
+			//
+			// Compile error.
+			//
+			const error =
 				new MyError(
 					'BadParam',							// Error name.
 					K.error.NoCollectionInRec,			// Message code.
 					theRequest.application.language,	// Language.
 					theValue,							// Error value.
 					500									// HTTP error code.
-				)
-			);																	// !@! ==>
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
 
 		//
 		// Check instance.
 		//
 		if( ! theRecord.hasOwnProperty( Dict.descriptor.kInstance ) )
-			throw(
+		{
+			//
+			// Compile error.
+			//
+			const error =
 				new MyError(
 					'BadParam',							// Error name.
 					K.error.NoInstanceRefInRec,			// Message code.
 					theRequest.application.language,	// Language.
 					theValue,							// Error value.
 					500									// HTTP error code.
-				)
-			);																	// !@! ==>
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
 
 		//
 		// Get collection name.
@@ -852,27 +1696,33 @@ class Validation
 		{
 			result = db._collection( collection ).document( theValue );
 		}
-		catch( error )
+		catch( exception )
 		{
 			//
 			// Handle exceptions.
 			//
-			if( (! error.isArangoError)
-			 || (error.errorNum !== ARANGO_NOT_FOUND) )
-				throw( error );													// !@! ==>
+			if( (! exception.isArangoError)
+			 || (exception.errorNum !== ARANGO_NOT_FOUND) )
+				throw( exception );												// !@! ==>
 
 			//
-			// Handle not found.
+			// Compile error.
 			//
-			throw(
+			const error =
 				new MyError(
 					'BadValue',							// Error name.
 					K.error.InvalidObjReference,		// Message code.
 					theRequest.application.language,	// Language.
 					theValue,							// Error value.
 					404									// HTTP error code.
-				)
-			);																	// !@! ==>
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
 		}
 
 		//
@@ -880,15 +1730,26 @@ class Validation
 		//
 		if( (! result.hasOwnProperty( Dict.descriptor.kInstances ))
 		 || (! result[ Dict.descriptor.kInstances ].includes( theRecord[ Dict.descriptor.kInstance ] )) )
-			throw(
+		{
+			//
+			// Compile error.
+			//
+			const error =
 				new MyError(
 					'BadValue',												// Error name.
 					K.error.NotInstanceOf,									// Message code.
 					theRequest.application.language,						// Language.
 					[ theValue, theRecord[ Dict.descriptor.kInstance ] ],	// Error value.
 					404														// HTTP error code.
-				)
-			);																	// !@! ==>
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
 
 		return theValue;															// ==>
 

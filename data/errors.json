@@ -160,5 +160,11 @@
     "label" : {
       "ISO:639:3:eng" : "Application is locked: "
     }
+  },
+  {
+    "_key" : "BadDescriptor",
+    "label" : {
+      "ISO:639:3:eng" : "Invalid descriptor: "
+    }
   }
 ]

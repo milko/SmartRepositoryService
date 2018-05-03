@@ -473,3 +473,95 @@ router.post
   Returns the result of Validation.validateInstanceReference()
   against the provided string in the body.
 `);
+
+
+/**
+ * Test Validation.validateProperty()
+ *
+ * The service will test the Descriptor.validateProperty() method, the service
+ * expects the following properties in the request body:
+ *
+ * 	- descriptor:	A descriptor reference.
+ * 	- value:		The value to test.
+ *
+ * The service will return an object, { what : <result> }, where result is the value
+ * returned by Descriptor.validateProperty().
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/validateProperty
+ * @verb		post
+ * @response	{ what : <result> }.
+ */
+router.post
+(
+	'/validateProperty',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+
+		//
+		// Test method.
+		//
+		const collection = db._collection( 'descriptors' );
+		try
+		{
+			//
+			// Make test.
+			//
+			const result =
+				Validation.validateProperty(
+					request,
+					request.body.descriptor,
+					request.body.value );
+
+			response.send({
+				what : result,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'validateProperty'
+)
+	.body(
+		Joi.object({
+			descriptor : Joi.string().required(),
+			value	   : Joi.any().required()
+		}),
+		'Provide descriptor reference and value to test.'
+	)
+	.response(
+		200,
+		Joi.object({
+			what : Joi.any(),
+			time : Joi.number()
+		}),
+		"The result: 'what' contains the method return value, 'time' contains the elapsed time."
+	)
+	.summary(
+		"Check Descriptor.validateProperty() method."
+	)
+	.description(dd`
+  Returns the result of Descriptor.validateProperty()
+  against the provided descriptor reference in 'descriptor' and value in 'value'.
+`);
