@@ -565,46 +565,32 @@ class Descriptor
 			Dictionary.parseJoi( theRecord );
 
 		//
+		// Point to scalar definition.
+		//
+		let record = ( (theRecord[ Dict.descriptor.kType ] === 'kTypeDataList')
+					&& theRecord.hasOwnProperty( '_child' ) )
+				   ? theRecord._child
+				   : theRecord;
+
+		//
 		// Parse functions.
 		//
-		let fields = [
-			Dict.descriptor.kTypeCast,
-			Dict.descriptor.kTypeCustom
-		];
-		for( const field of fields )
+		for( const field of [ Dict.descriptor.kTypeCast, Dict.descriptor.kTypeCustom ] )
 		{
-			if( theRecord.hasOwnProperty( field ) )
-				structure[ field ] =
-					theRecord[ field ];
-			else if( (theRecord[ Dict.descriptor.kType ] === 'kTypeDataList')
-				  && theRecord.hasOwnProperty( '_child' )
-				  && theRecord._child.hasOwnProperty( field ) )
-				structure[ field ] =
-					theRecord._child[ field ];
+			if( record.hasOwnProperty( field ) )
+				structure[ field ] = record[ field ];
 		}
 
 		//
-		// Parse reference elements.
-		// MILKO - Might need to check for other cases.
+		// Parse references.
 		//
-		if( theRecord.hasOwnProperty( 'isRef' )
-		 && (theRecord.isRef === true) )
+		if( record.hasOwnProperty( 'isRef' )
+		 && (record.isRef === true) )
 		{
 			for( const field of Dictionary.listReferenceValidationFields )
 			{
-				if( theRecord.hasOwnProperty( field ) )
-					structure[ field ] = theRecord[ field ];
-			}
-		}
-		else if( (theRecord[ Dict.descriptor.kType ] === 'kTypeDataList')
-			  && theRecord.hasOwnProperty( '_child' )
-			  && theRecord._child.hasOwnProperty( 'isRef' )
-			  && (theRecord._child.isRef === true) )
-		{
-			for( const field of Dictionary.listReferenceValidationFields )
-			{
-				if( theRecord._child.hasOwnProperty( field ) )
-					structure[ field ] = theRecord._child[ field ];
+				if( record.hasOwnProperty( field ) )
+					structure[ field ] = record[ field ];
 			}
 		}
 
