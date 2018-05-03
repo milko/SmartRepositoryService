@@ -153,6 +153,106 @@ router.post
 
 
 /**
+ * Test type validation structure
+ *
+ * The service will return the validation structure(s) of the provided data type(s). The
+ * data type(s) must be provided as a term _id, or _key reference.
+ *
+ * The service returns an object as { what : <result> } where result is the
+ * validation structure.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/getTypeValidationStructure
+ * @verb		post
+ * @response	{ what : <result> }.
+ */
+router.post
+(
+	'/getTypeValidationStructure',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+
+		//
+		// Test method.
+		//
+		let param = null;
+		const collection = db._collection( 'terms' );
+		try
+		{
+			//
+			// Resolve references.
+			//
+			if( (typeof request.body.term === 'string')
+			 || (request.body.term instanceof String) )
+				param = collection.document( request.body.term );
+			else
+				param = request.body.term;
+
+			//
+			// Make test.
+			//
+			const record = Descriptor.getTypeValidationRecord( request, param );
+			const result = Descriptor.getValidationStructure( request, record );
+
+			response.send({
+				what : result,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'getTypeValidationStructure'
+)
+	.body(
+		Joi.object({
+			term : Joi.alternatives().try(
+				Joi.string(),
+				Joi.array().items(Joi.string()),
+				Joi.object(),
+				Joi.array().items(Joi.object())
+			)
+		}),
+		'Object { term : value } where value is either a term reference or a term' +
+		' object, or an array of the prior two.'
+	)
+	.response(
+		200,
+		Joi.object({
+			what : Joi.any(),
+			time : Joi.number()
+		}),
+		"The result: 'what' contains the method return value, 'time' contains the elapsed time."
+	)
+	.summary(
+		"Get validation records for the provided data types."
+	)
+	.description(dd`
+  Returns the validation structure of the provided term reference in 'term'.
+`);
+
+
+/**
  * Test Descriptor.getDescriptorValidationRecord()
  *
  * The service will return the validation record(s) of the provided data type(s). The

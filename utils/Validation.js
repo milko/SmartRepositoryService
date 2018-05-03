@@ -110,7 +110,7 @@ class Validation
 	/**
 	 * Validate URL
 	 *
-	 * This method will validate an URL.
+	 * This method will validateValue an URL.
 	 *
 	 * The method currently does not do anything, if it did, it would raise an
 	 * exception if the URL was invalid.
@@ -135,7 +135,7 @@ class Validation
 	/**
 	 * Validate HEX
 	 *
-	 * This method will validate a hexadecimal string.
+	 * This method will validateValue a hexadecimal string.
 	 *
 	 * The method currently does not do anything, if it did, it would raise an
 	 * exception if the value was invalid. Hexadecimal strings are handled by the cast
@@ -161,7 +161,7 @@ class Validation
 	/**
 	 * Validate integer
 	 *
-	 * This method will validate an integer value.
+	 * This method will validateValue an integer value.
 	 *
 	 * The method currently does not do anything, if it did, it would raise an
 	 * exception if the value was invalid. Integers are handled by the cast
@@ -187,7 +187,7 @@ class Validation
 	/**
 	 * Validate e-mail
 	 *
-	 * This method will validate an e-mail address.
+	 * This method will validateValue an e-mail address.
 	 *
 	 * The method currently does not do anything, if it did, it would raise an
 	 * exception if the value was invalid. E-mails are handled by the cast
@@ -213,7 +213,7 @@ class Validation
 	/**
 	 * Validate range
 	 *
-	 * This method will validate a range.
+	 * This method will validateValue a range.
 	 *
 	 * The method currently does not do anything, if it did, it would raise an
 	 * exception if the value was invalid. Ranges are handled by Joi.
@@ -238,7 +238,7 @@ class Validation
 	/**
 	 * Validate size range
 	 *
-	 * This method will validate a size range.
+	 * This method will validateValue a size range.
 	 *
 	 * The method currently does not do anything, if it did, it would raise an
 	 * exception if the value was invalid. Ranges are handled by Joi.
@@ -263,7 +263,7 @@ class Validation
 	/**
 	 * Validate GeoJSON
 	 *
-	 * This method will validate a GeoJSON structure.
+	 * This method will validateValue a GeoJSON structure.
 	 *
 	 * The method returns the provided value with eventual modifications.
 	 *
@@ -326,7 +326,7 @@ class Validation
 	/**
 	 * Validate date
 	 *
-	 * This method will validate a string date.
+	 * This method will validateValue a string date.
 	 *
 	 * The method returns the provided value with eventual modifications.
 	 *
@@ -508,7 +508,7 @@ class Validation
 	/**
 	 * Validate time stamp
 	 *
-	 * This method will validate a time stamp.
+	 * This method will validateValue a time stamp.
 	 *
 	 * The method currently does not do anything, if it did, it would raise an
 	 * exception if the value was invalid. Timestamps are handled by Joi.
@@ -533,7 +533,7 @@ class Validation
 	/**
 	 * Validate _id reference
 	 *
-	 * This method will validate an _id reference.
+	 * This method will validateValue an _id reference.
 	 *
 	 * The method will check if the provided string corresponds to a document and
 	 * will raise an exception if not.
@@ -589,7 +589,7 @@ class Validation
 	/**
 	 * Validate _key reference
 	 *
-	 * This method will validate a _key reference.
+	 * This method will validateValue a _key reference.
 	 *
 	 * The method will check if the provided string corresponds to a document key and
 	 * will raise an exception if not. If the record contains a list of enumerations,
@@ -714,7 +714,7 @@ class Validation
 	/**
 	 * Validate gid reference
 	 *
-	 * This method will validate a gid reference.
+	 * This method will validateValue a gid reference.
 	 *
 	 * The method will check if the provided string corresponds to a document gid and
 	 * will raise an exception if not.
@@ -785,7 +785,7 @@ class Validation
 	/**
 	 * Validate instance reference
 	 *
-	 * This method will validate an instance reference.
+	 * This method will validateValue an instance reference.
 	 *
 	 * The method will check if the provided reference corresponds to the provided
 	 * instance and will raise an exception if not.

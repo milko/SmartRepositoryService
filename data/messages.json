@@ -414,12 +414,24 @@
     }
   },
   {
-    "_key" : "s:session:logout",
-    "response" : {
-      "ISO:639:3:eng" : "If there was a previous session user, the service will return an object, <code>{ result : value }</code>, in which <code>value</code> will be the previous user record, or <code>null</code>, if there was no current session user."
+    "_key": "s:session:logout",
+    "response": {
+      "ISO:639:3:eng": "If there was a previous session user, the service will return an object, <code>{ result : value }</code>, in which <code>value</code> will be the previous user record, or <code>null</code>, if there was no current session user."
+    },
+    "description": {
+      "ISO:639:3:eng": "The service can be used to logout the current session user, will return an object, <code>{ result : value }</code>, where <code>value</code> will contain the previous session user record, or <code>null</code>, if no user was previously logged in."
+    }
   },
-  "description" : {
-  "ISO:639:3:eng" : "The service can be used to logout the current session user, will return an object, <code>{ result : value }</code>, where <code>value</code> will contain the previous session user record, or <code>null</code>, if no user was previously logged in."
+  {
+    "_key" : "s:descriptor:updateValidation",
+    "body" : {
+      "ISO:639:3:eng" : "Provide one of the following in the request POST body:<ul><li><strong><em>A string</em></strong>: the descriptor <code>_id</code> or <code>_key</code>.</li><li><strong><em>An array of strings</em></strong>: a list of descriptor <em>references</em> as their <code>_id</code> or <code>_key</code>.</li><li><strong><em>An empty array</em></strong>: in this case, <em>all</em> descriptors will be updated.</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the number of updated descriptors."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service can be used to update the validation structure of descriptors, it expects the following information in the request POST body:</p><ul><li><strong><em>A string</em></strong>: the descriptor <code>_id</code> or <code>_key</code>.</li><li><strong><em>An array of strings</em></strong>: a list of descriptor <em>references</em> as their <code>_id</code> or <code>_key</code>.</li><li><strong><em>An empty array</em></strong>: in this case, <em>all</em> descriptors will be updated.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the number of updated descriptors."
+    }
   }
-}
 ]
