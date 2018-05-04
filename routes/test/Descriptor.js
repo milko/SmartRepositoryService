@@ -355,8 +355,8 @@ router.post
  * The service will return the validation structure(s) of the provided validation
  * record(s). The service expects a descriptor reference or an array of references.
  *
- * The service returns an object as { what : <result> } where result is the
- * value returned by the tested method.
+ * The service returns an object as { type : <type>, what : <result> } where type is
+ * the descriptor data type and result is the value returned by the tested method.
  *
  * If the method raises an exception, the service will forward it using the
  * HTTP code if the exception is of class MyError.
@@ -401,6 +401,7 @@ router.post
 			const result = Descriptor.getValidationStructure( request, record );
 
 			response.send({
+				type : param.type,
 				what : result,
 				time : time() - stamp
 			});
@@ -433,6 +434,7 @@ router.post
 	.response(
 		200,
 		Joi.object({
+			type : Joi.string(),
 			what : Joi.any(),
 			time : Joi.number()
 		}),

@@ -319,7 +319,9 @@ module.exports = Object.freeze(
 			MustBeObject		: 55,
 			DescriptorNotFound	: 56,
 			UnknownCastFunc		: 57,
-			MustBeArray			: 58
+			MustBeArray			: 58,
+			UnknownCustomFunc	: 59,
+			MustBeScalar		: 60
 		},
 
 		//

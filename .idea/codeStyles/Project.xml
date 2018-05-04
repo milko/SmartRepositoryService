@@ -17,7 +17,6 @@
     <codeStyleSettings language="JavaScript">
       <option name="CLASS_BRACE_STYLE" value="5" />
       <option name="METHOD_BRACE_STYLE" value="5" />
-      <option name="ALIGN_MULTILINE_PARAMETERS_IN_CALLS" value="true" />
       <option name="ALIGN_MULTILINE_TERNARY_OPERATION" value="true" />
       <option name="SPACE_WITHIN_PARENTHESES" value="true" />
       <option name="SPACE_WITHIN_METHOD_CALL_PARENTHESES" value="true" />
@@ -38,6 +37,8 @@
       <option name="METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE" value="true" />
       <option name="TERNARY_OPERATION_WRAP" value="1" />
       <option name="TERNARY_OPERATION_SIGNS_ON_NEXT_LINE" value="true" />
+      <option name="KEEP_SIMPLE_BLOCKS_IN_ONE_LINE" value="true" />
+      <option name="KEEP_SIMPLE_METHODS_IN_ONE_LINE" value="true" />
       <option name="ARRAY_INITIALIZER_WRAP" value="1" />
       <option name="WRAP_COMMENTS" value="true" />
       <option name="WRAP_ON_TYPING" value="1" />

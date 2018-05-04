@@ -71,11 +71,10 @@ class MyError extends Error
 		//
 		// Normalise data.
 		//
-		if( (! Array.isArray( theArgument ))
-		 && (theArgument !== null) )
-			theArgument = theArgument.toString();
-		else
-			theArgument = "N/A";
+		if( ! Array.isArray( theArgument ) )
+			theArgument = ( theArgument === null )
+						? "N/A"
+						: theArgument.toString();
 		if( theLanguage === null )
 			theLanguage = module.context.configuration.defaultLanguage;
 
@@ -226,7 +225,7 @@ class MyError extends Error
 		// Handle numeric message.
 		//
 		if( isFinite( theCode )
-			&& (! isNaN( parseInt( theCode ) )) )
+		 && (! isNaN( parseInt( theCode ) )) )
 		{
 			//
 			// Get messages collection.
@@ -326,7 +325,7 @@ class MyError extends Error
 			//
 			// Check placeholders.
 			//
-			const matched = /(@[0-9]+arg@)/g[Symbol.match](strings);
+			const matched = /(@[0-9]+arg@)/g[Symbol.match](theString);
 			if( matched !== null )
 			{
 				//

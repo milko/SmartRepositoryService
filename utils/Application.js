@@ -151,6 +151,92 @@ class Application
 	}	// createEdgeCollections
 
 	/**
+	 * Erase document collections
+	 *
+	 * This method will drop all required document collections,
+	 * the method will return the list of dropped collections.
+	 *
+	 * @returns {Array}	The list of dropped collections.
+	 */
+	static dropDocumentCollections()
+	{
+		//
+		// Init local storage.
+		//
+		const dropped = [];
+		const collections = K.defaultDocumentCollections;
+
+		//
+		// Iterate collections.
+		//
+		for( const name of Object.keys( collections ) )
+		{
+			//
+			// Check collection.
+			//
+			const collection = db._collection( name );
+			if( collection )
+			{
+				//
+				// Drop collection.
+				//
+				collection.drop();
+
+				//
+				// Add to list.
+				//
+				dropped.push( name );
+			}
+		}
+
+		return dropped;																// ==>
+
+	}	// dropDocumentCollections
+
+	/**
+	 * Erase edge collections
+	 *
+	 * This method will drop all required edge collections,
+	 * the method will return the list of dropped collections.
+	 *
+	 * @returns {Array}	The list of dropped collections.
+	 */
+	static dropEdgeCollections()
+	{
+		//
+		// Init local storage.
+		//
+		const dropped = [];
+		const collections = K.defaultEdgeCollections;
+
+		//
+		// Iterate collections.
+		//
+		for( const name of Object.keys( collections ) )
+		{
+			//
+			// Check collection.
+			//
+			const collection = db._collection( name );
+			if( collection )
+			{
+				//
+				// Drop collection.
+				//
+				collection.drop();
+
+				//
+				// Add to list.
+				//
+				dropped.push( name );
+			}
+		}
+
+		return dropped;																// ==>
+
+	}	// dropEdgeCollections
+
+	/**
 	 * Create data dictionary
 	 *
 	 * This function will initialise the Dict.js file if not already there, this file

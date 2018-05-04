@@ -580,7 +580,7 @@ class Dictionary
 
 			case 'kTypeDataStruct':
 			case 'kTypeDataObject':
-				result = "Joi.Object()";
+				result = "Joi.object()";
 				break;
 		}
 

@@ -76,9 +76,9 @@ class Validation
 			//
 			// Determine path.
 			//
-			thePath = ( thePath === null )
-					? property
-					: (thePath + '.' + property);
+			const path = ( thePath === null )
+					   ? property
+					   : `${thePath}.${property}`;
 
 			//
 			// Validate property.
@@ -88,7 +88,7 @@ class Validation
 					theRequest,
 					property,
 					theObject[ property ],
-					thePath
+					path
 				);
 		}
 
@@ -240,18 +240,9 @@ class Validation
 			case Dict.term.kTypeDataBool:
 			case Dict.term.kTypeDataText:
 			case Dict.term.kTypeDataNumeric:
-				theValue =
-					Validation.validateScalar(
-						theRequest,
-						theValidation,
-						theValue,
-						thePath
-					);
-				break;
-
 			case Dict.term.kTypeDataList:
 				theValue =
-					Validation.validateArray(
+					Validation.validateScalar(
 						theRequest,
 						theValidation,
 						theValue,
@@ -347,88 +338,6 @@ class Validation
 	}	// validateScalar
 
 	/**
-	 * Validate array
-	 *
-	 * This method will validate the provided array value using the provided validation
-	 * structure, the method will return the value, eventually normalised, if the test
-	 * passes, or raise an exception if the test doesn't pass.
-	 *
-	 * @param theRequest	{Object}	The current resuest.
-	 * @param theValidation	{Object}	The validation structure.
-	 * @param theValue		{Array}		The value to test.
-	 * @param thePath		{String}	The property path.
-	 * @returns {*}						The eventually normalised property value.
-	 */
-	static validateArray( theRequest, theValidation, theValue, thePath )
-	{
-		//
-		// Assert array.
-		//
-		if( ! Array.isArray( theValue ) )
-		{
-			//
-			// Compile error.
-			//
-			const error =
-				new MyError(
-					'BadValue',							// Error name.
-					K.error.MustBeArray,				// Message code.
-					theRequest.application.language,	// Language.
-					null,								// Error value.
-					400									// HTTP error code.
-				);
-
-			//
-			// Add path.
-			//
-			error.path = thePath;
-
-			throw( error );														// !@! ==>
-		}
-
-		//
-		// Cast value.
-		//
-		theValue =
-			Validation.validateCastValue
-			(
-				theRequest,
-				theValidation,
-				theValue,
-				thePath
-			);
-
-		//
-		// Joi validation.
-		//
-		theValue =
-			Validation.validateJoiValue
-			(
-				theRequest,
-				theValidation,
-				theValue,
-				thePath
-			);
-
-		//
-		// Custom validation.
-		//
-		theValue =
-			theValue.map(
-				x => Validation.validateCustomValue
-				(
-					theRequest,
-					theValidation,
-					x,
-					thePath
-				)
-			);
-
-		return theValue;															// ==>
-
-	}	// validateArray
-
-	/**
 	 * Validate object
 	 *
 	 * This method will validate the provided object value using the provided validation
@@ -469,9 +378,127 @@ class Validation
 			throw( error );														// !@! ==>
 		}
 
+		//
+		// Joi validation.
+		//
+		theValue =
+			Validation.validateJoiValue
+			(
+				theRequest,
+				theValidation,
+				theValue,
+				thePath
+			);
+
+		//
+		// Iterate data members.
+		//
+		for( let property in theValue )
+		{
+			//
+			// Set current path.
+			//
+			const path = thePath + '.' + property;
+
+			//
+			// Handle key.
+			//
+			if( theValidation.hasOwnProperty( Dict.descriptor.kTypeKey ) )
+					Validation.validateScalar(
+						theRequest,
+						theValidation[ Dict.descriptor.kTypeKey ],
+						property,
+						path
+					);
+
+			//
+			// Handle value.
+			//
+			if( theValidation.hasOwnProperty( Dict.descriptor.kTypeValue ) )
+				theValue[ property ] =
+					Validation.validateValue(
+						theRequest,
+						theValidation[ Dict.descriptor.kTypeValue ],
+						theValue[ property ],
+						path
+					);
+		}
+
 		return theValue;															// ==>
 
 	}	// validateObject
+
+	/**
+	 * Joi validation
+	 *
+	 * This method will perform the Joi validation by evaluating the Joi chain of
+	 * commands and will return the eventually normalised value, or raise an exception
+	 * if the validation fails.
+	 *
+	 * Note that this method may recurse when container data types are encountered.
+	 *
+	 * @param theRequest	{Object}	The current resuest.
+	 * @param theValidation	{Object}	The validation structure.
+	 * @param theValue		{*}			The value to test.
+	 * @param thePath		{String}	The property path.
+	 * @returns {*}						The normalised value.
+	 */
+	static validateJoiValue( theRequest, theValidation, theValue, thePath )
+	{
+		//
+		// Check Joi command.
+		//
+		if( theValidation.hasOwnProperty( Dict.descriptor.kJoi ) )
+		{
+			//
+			// Instantiate Joi schema.
+			//
+			const schema = eval( theValidation[ Dict.descriptor.kJoi ] );
+
+			//
+			// Validate.
+			//
+			const result = Joi.validate( theValue, schema );
+
+			//
+			// Handle errors.
+			//
+			if( result.error !== null )
+			{
+				//
+				// Compile error message.
+				//
+				const messages = [];
+				for( const details of result.error.details )
+					messages.push( details.message );
+				const message = messages.join( '. ' );
+
+				//
+				// Compile error.
+				//
+				const error =
+					new MyError(
+						result.error.name,					// Error name.
+						message,							// Message.
+						theRequest.application.language,	// Language.
+						null,								// Error value.
+						400									// HTTP error code.
+					);
+
+				//
+				// Add path.
+				//
+				error.path = thePath;
+
+				throw( error );													// !@! ==>
+			}
+			else
+				theValue = result.value;
+		}
+
+		return theValue;															// ==>
+
+	}	// validateJoiValue
 
 	/**
 	 * Cast value
@@ -510,12 +537,12 @@ class Validation
 				const term =
 					db._collection( 'terms' )
 						.document( name )
-							[ Dict.descriptor.kLID ];
+						[ Dict.descriptor.kLID ];
 
 				//
 				// Locate cast function.
 				//
-				const cast = Validation.castFunction( theRequest, term );
+				const cast = Validation.functionCast( theRequest, term );
 
 				//
 				// Parse by base type.
@@ -528,6 +555,32 @@ class Validation
 					case Dict.term.kTypeDataBool:
 					case Dict.term.kTypeDataText:
 					case Dict.term.kTypeDataNumeric:
+						//
+						// Assert scalar.
+						//
+						if( Array.isArray( theValue )
+						 || K.function.isObject( theValue ) )
+						{
+							//
+							// Compile error.
+							//
+							const error =
+								new MyError(
+									'BadValueFormat',					// Error name.
+									K.error.MustBeScalar,				// Message code.
+									theRequest.application.language,	// Language.
+									theValue,							// Error value.
+									400									// HTTP error code.
+								);
+
+							//
+							// Add path.
+							//
+							error.path = thePath;
+
+							throw( error );										// !@! ==>
+						}
+
 						//
 						// Cast scalar.
 						//
@@ -604,43 +657,6 @@ class Validation
 	}	// validateCastValue
 
 	/**
-	 * Joi validation
-	 *
-	 * This method will perform the Joi validation by evaluating the Joi chain of
-	 * commands and will return the eventually normalised value, or raise an exception
-	 * if the validation fails.
-	 *
-	 * Note that this method may recurse when container data types are encountered.
-	 *
-	 * @param theRequest	{Object}	The current resuest.
-	 * @param theValidation	{Object}	The validation structure.
-	 * @param theValue		{*}			The value to test.
-	 * @param thePath		{String}	The property path.
-	 * @returns {*}						The normalised value.
-	 */
-	static validateJoiValue( theRequest, theValidation, theValue, thePath )
-	{
-		//
-		// Check Joi command.
-		//
-		if( theValidation.hasOwnProperty( Dict.descriptor.kJoi ) )
-		{
-			//
-			// Instantiate Joi schema.
-			//
-			const schema = eval( theValidation[ Dict.descriptor.kJoi ] );
-
-			//
-			// Validate.
-			//
-			const result = Joi.validate( theValue, schema );
-		}
-
-		return theValue;															// ==>
-
-	}	// validateJoiValue
-
-	/**
 	 * Custom validation
 	 *
 	 * This method will perform the custom validation by calling all eventual custom
@@ -657,6 +673,111 @@ class Validation
 	 */
 	static validateCustomValue( theRequest, theValidation, theValue, thePath )
 	{
+		//
+		// Check custom function term.
+		//
+		if( theValidation.hasOwnProperty( Dict.descriptor.kTypeCustom ) )
+		{
+			//
+			// Iterate custom functions.
+			//
+			for( const name of theValidation[ Dict.descriptor.kTypeCustom ] )
+			{
+				//
+				// Locate term.
+				//
+				const term =
+					db._collection( 'terms' )
+						.document( name )
+						[ Dict.descriptor.kLID ];
+
+				//
+				// Locate cast function.
+				//
+				const custom = Validation.functionCustom( theRequest, term );
+
+				//
+				// Parse by base type.
+				//
+				switch( theValidation[ Dict.descriptor.kType ] )
+				{
+					case Dict.term.kTypeDataAny:
+						break;
+
+					case Dict.term.kTypeDataBool:
+					case Dict.term.kTypeDataText:
+					case Dict.term.kTypeDataNumeric:
+						//
+						// Validate scalar.
+						//
+						theValue = custom( theRequest, theValidation, theValue, thePath );
+
+						break;
+
+					case Dict.term.kTypeDataList:
+						//
+						// Assert array.
+						//
+						if( ! Array.isArray( theValue ) )
+						{
+							//
+							// Compile error.
+							//
+							const error =
+								new MyError(
+									'BadValue',							// Error name.
+									K.error.MustBeArray,				// Message code.
+									theRequest.application.language,	// Language.
+									null,								// Error value.
+									400									// HTTP error code.
+								);
+
+							//
+							// Add path.
+							//
+							error.path = thePath;
+
+							throw( error );										// !@! ==>
+						}
+
+						//
+						// Validate array elements.
+						//
+						theValue = theValue.map( x => custom( theRequest, theValidation, x, thePath ) );
+
+						break;
+
+					case Dict.term.kTypeDataStruct:
+						throw( "SHOULDN'T GET HERE!" );							// !@! ==>
+
+					case Dict.term.kTypeDataObject:
+						throw( "SHOULDN'T GET HERE!" );							// !@! ==>
+
+					default:
+						//
+						// Compile error.
+						//
+						const error =
+							new MyError(
+								'Unimplemented',						// Error name.
+								K.error.InvalidDataType,				// Message code.
+								theRequest.application.language,		// Language.
+								theValidation[ Dict.descriptor.kType ],	// Error value.
+								500										// HTTP error.
+							);
+
+						//
+						// Add path.
+						//
+						error.path = thePath;
+
+						throw( error );											// !@! ==>
+				}
+
+			}	// Iterating custom functions.
+
+		}	// Has custom function reference.
+
 		return theValue;															// ==>
 
 	}	// validateCustomValue
@@ -671,7 +792,7 @@ class Validation
 	 * @param theFunction	{String}	Method name.
 	 * @returns {Function}				Method address.
 	 */
-	static castFunction( theRequest, theFunction )
+	static functionCast( theRequest, theFunction )
 	{
 		//
 		// Parse by method name.
@@ -694,7 +815,51 @@ class Validation
 				);																// !@! ==>
 		}
 
-	}	// castFunction
+	}	// functionCast
+
+	/**
+	 * Return custom function
+	 *
+	 * This method will return the address of the static method corresponding to the
+	 * provided method name.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theFunction	{String}	Method name.
+	 * @returns {Function}				Method address.
+	 */
+	static functionCustom( theRequest, theFunction )
+	{
+		//
+		// Parse by method name.
+		//
+		switch( theFunction )
+		{
+			case 'customUrl':			return Validation.customUrl;				// ==>
+			case 'customHex':			return Validation.customHex;				// ==>
+			case 'customInt':			return Validation.customInt;				// ==>
+			case 'customEmail':			return Validation.customEmail;				// ==>
+			case 'customRange':			return Validation.customRange;				// ==>
+			case 'customSizeRange':		return Validation.customSizeRange;			// ==>
+			case 'customGeoJSON':		return Validation.customGeoJSON;			// ==>
+			case 'customDate':			return Validation.customDate;				// ==>
+			case 'customTimeStamp':		return Validation.customTimeStamp;			// ==>
+			case 'customIdReference':	return Validation.customIdReference;		// ==>
+			case 'customKeyReference':	return Validation.customKeyReference;		// ==>
+			case 'customGidReference':	return Validation.customGidReference;		// ==>
+			case 'customInstance':		return Validation.customInstance;			// ==>
+
+			default:
+				throw(
+					new MyError(
+						'BadParam',
+						K.error.UnknownCustomFunc,
+						theRequest.application.language,
+						theFunction
+					)
+				);																// !@! ==>
+		}
+
+	}	// functionCustom
 
 	/**
 	 * Cast to string
@@ -819,11 +984,11 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {String}				The normalised value.
 	 */
-	static validateUrl( theRequest, theRecord, theValue, thePath )
+	static customUrl( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
-	}	// validateUrl
+	}	// customUrl
 
 	/**
 	 * Validate HEX
@@ -846,11 +1011,11 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {String}				The normalised value.
 	 */
-	static validateHex( theRequest, theRecord, theValue, thePath )
+	static customHex( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
-	}	// validateHex
+	}	// customHex
 
 	/**
 	 * Validate integer
@@ -873,11 +1038,11 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {Number}				The normalised value.
 	 */
-	static validateInt( theRequest, theRecord, theValue, thePath )
+	static customInt( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
-	}	// validateInt
+	}	// customInt
 
 	/**
 	 * Validate e-mail
@@ -900,11 +1065,11 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {String}				The normalised value.
 	 */
-	static validateEmail( theRequest, theRecord, theValue, thePath )
+	static customEmail( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
-	}	// validateEmail
+	}	// customEmail
 
 	/**
 	 * Validate range
@@ -926,11 +1091,11 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateRange( theRequest, theRecord, theValue, thePath )
+	static customRange( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
-	}	// validateRange
+	}	// customRange
 
 	/**
 	 * Validate size range
@@ -952,7 +1117,7 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateSizeRange( theRequest, theRecord, theValue, thePath )
+	static customSizeRange( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
@@ -975,7 +1140,7 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateGeoJSON( theRequest, theRecord, theValue, thePath )
+	static customGeoJSON( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Load framework.
@@ -1035,7 +1200,7 @@ class Validation
 
 		return theValue;															// ==>
 
-	}	// validateGeoJSON
+	}	// customGeoJSON
 
 	/**
 	 * Validate date
@@ -1054,7 +1219,7 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateDate( theRequest, theRecord, theValue, thePath )
+	static customDate( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Init local storage.
@@ -1264,7 +1429,7 @@ class Validation
 		day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
 		return year + month + day;													// ==>
 
-	}	// validateDate
+	}	// customDate
 
 	/**
 	 * Validate time stamp
@@ -1286,11 +1451,11 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateTimeStamp( theRequest, theRecord, theValue, thePath )
+	static customTimeStamp( theRequest, theRecord, theValue, thePath )
 	{
 		return theValue;															// ==>
 
-	}	// validateTimeStamp
+	}	// customTimeStamp
 
 	/**
 	 * Validate _id reference
@@ -1312,7 +1477,7 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateIdReference( theRequest, theRecord, theValue, thePath )
+	static customIdReference( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Check reference.
@@ -1353,7 +1518,7 @@ class Validation
 
 		return doc._id;																// ==>
 
-	}	// validateIdReference
+	}	// customIdReference
 
 	/**
 	 * Validate _key reference
@@ -1362,7 +1527,9 @@ class Validation
 	 *
 	 * The method will check if the provided string corresponds to a document key and
 	 * will raise an exception if not. If the record contains a list of enumerations,
-	 * the method will also check that the term belongs to at least one of them.
+	 * the method will also check that the term belongs to at least one of them. In
+	 * this case, the method will also check if the term endorses another term, which
+	 * will replace the original value.
 	 *
 	 * If the record has the instance property, the method will also check if the
 	 * referenced document belongs to that instance.
@@ -1382,7 +1549,7 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateKeyReference( theRequest, theRecord, theValue, thePath )
+	static customKeyReference( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Check collection.
@@ -1443,7 +1610,7 @@ class Validation
 				const error =
 					new MyError(
 						'BadValue',							// Error name.
-						K.error.InvalidObjReference,		// Message code.
+						K.error.NotInEnumsList,				// Message code.
 						theRequest.application.language,	// Language.
 						theValue,							// Error value.
 						404									// HTTP error code.
@@ -1455,6 +1622,18 @@ class Validation
 				error.path = thePath;
 
 				throw( error );													// !@! ==>
+			}
+
+			//
+			// Handle endorsed.
+			//
+			const example = { _from : collection + '/' + theValue };
+			example[ Dict.descriptor.kPredicate ] = "terms/" + Dict.term.kPredicateEndorse;
+			const edge = db._collection( 'schemas' ).firstExample( example );
+			if( edge !== null )
+			{
+				const endorsed = db._document( edge._to );
+				theValue = endorsed._key;
 			}
 		}
 
@@ -1507,7 +1686,7 @@ class Validation
 
 		return theValue;															// ==>
 
-	}	// validateKeyReference
+	}	// customKeyReference
 
 	/**
 	 * Validate gid reference
@@ -1532,7 +1711,7 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateGidReference( theRequest, theRecord, theValue, thePath )
+	static customGidReference( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Check collection.
@@ -1601,7 +1780,7 @@ class Validation
 
 		return theValue;															// ==>
 
-	}	// validateGidReference
+	}	// customGidReference
 
 	/**
 	 * Validate instance reference
@@ -1628,7 +1807,7 @@ class Validation
 	 * @param thePath		{String}	The property path.
 	 * @returns {Array}					The normalised value.
 	 */
-	static validateInstanceReference( theRequest, theRecord, theValue, thePath )
+	static customInstance( theRequest, theRecord, theValue, thePath )
 	{
 		//
 		// Check collection.
@@ -1753,8 +1932,8 @@ class Validation
 
 		return theValue;															// ==>
 
-	}	// validateInstanceReference
+	}	// customInstance
 
-}	// validateSizeRange.
+}	// Validation.
 
 module.exports = Validation;
