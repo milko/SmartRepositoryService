@@ -878,6 +878,7 @@ router.get
 		// Init local storage.
 		//
 		const stamp = time();
+		let count = 0;
 		let object = null;
 		let reference = null;
 
@@ -889,7 +890,6 @@ router.get
 			//
 			// Init local storage.
 			//
-			let count = 0;
 			const collection = db._collection( 'terms' );
 
 			//
@@ -947,7 +947,7 @@ router.get
 				// Handle MyError exceptions.
 				//
 				if( (error.constructor.name === 'MyError')
-					&& error.hasOwnProperty( 'param_http' ) )
+				 && error.hasOwnProperty( 'param_http' ) )
 					http = error.param_http;
 
 				response.throw( http, error );										// !@! ==>
@@ -958,6 +958,7 @@ router.get
 			//
 			else
 				response.send({
+					count	  : count,
 					reference : reference,
 					error	  : error,
 					object	  : object,
