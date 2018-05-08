@@ -1589,15 +1589,28 @@ class Validation
 		//
 		if( theRecord.hasOwnProperty( Dict.descriptor.kEnumTerm ) )
 		{
-			//
-			// Make check.
-			//
-			const result =
-				Schema.isEnumerationChoice(
-					theRequest,
-					theValue,
-					theRecord[ Dict.descriptor.kEnumTerm ]
-				);
+			let result = false;
+			try
+			{
+				//
+				// Make check.
+				//
+				result =
+					Schema.isEnumerationChoice(
+						theRequest,
+						theValue,
+						theRecord[ Dict.descriptor.kEnumTerm ]
+					);
+			}
+			catch( error )
+			{
+				//
+				// Add path.
+				//
+				error.path = thePath;
+
+				throw( error );													// !@! ==>
+			}
 
 			//
 			// Handle error.
