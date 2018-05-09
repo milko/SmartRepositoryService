@@ -817,7 +817,7 @@ router.get
 				 && error.hasOwnProperty( 'param_http' ) )
 					http = error.param_http;
 
-				response.throw( http, error );										// !@! ==>
+				response.throw( http, error );									// !@! ==>
 			}
 
 			//
@@ -898,6 +898,7 @@ router.get
 			const cursor =
 				db._query( aql`
 					FOR doc in ${collection}
+					SORT doc._key ASC
 					RETURN doc
 				`);
 
@@ -913,9 +914,12 @@ router.get
 				reference = object._id;
 
 				//
-				// Validate.
+				// Validate and skip exceptions.
+				// - Default namespace.
 				//
-				const value = Validation.validateStructure( request, object );
+				let value = null;
+				if( reference !== "terms/:" )
+					value = Validation.validateStructure( request, object );
 
 				//
 				// Update counter.
@@ -950,7 +954,7 @@ router.get
 				 && error.hasOwnProperty( 'param_http' ) )
 					http = error.param_http;
 
-				response.throw( http, error );										// !@! ==>
+				response.throw( http, error );									// !@! ==>
 			}
 
 			//
@@ -979,4 +983,556 @@ router.get
 	)
 	.description(dd`
   Will validate all terms, returning the number of documents processed, or the eventual error.
+`);
+
+
+/**
+ * Validate schemas
+ *
+ * The service will validate all schemas.
+ *
+ * The service will return an object, { what : <result> }, where result is the number
+ * of documents validated.
+ *
+ * If a validation error occurs, the method will return an object,
+ * { reference : <reference>, error : <error> } where reference is the document _id
+ * and error is the raised exception.
+ *
+ * @path		/validateAllSchemas
+ * @verb		get
+ * @response	{ what : <result> }.
+ */
+router.get
+(
+	'/validateAllSchemas',
+	(request, response) =>
+	{
+		//
+		// Debug flag.
+		//
+		const debug = false;
+
+		//
+		// Init local storage.
+		//
+		const stamp = time();
+		let count = 0;
+		let object = null;
+		let reference = null;
+
+		//
+		// Test method.
+		//
+		try
+		{
+			//
+			// Init local storage.
+			//
+			const collection = db._collection( 'schemas' );
+
+			//
+			// Query descriptors.
+			//
+			const cursor =
+				db._query( aql`
+					FOR doc in ${collection}
+					SORT doc._key ASC
+					RETURN doc
+				`);
+
+			//
+			// Iterate cursor.
+			//
+			while( cursor.hasNext() )
+			{
+				//
+				// Get object.
+				//
+				object = cursor.next();
+				reference = object._id;
+
+				//
+				// Validate and skip exceptions.
+				// - Default namespace.
+				//
+				let value = null;
+				if( reference !== "terms/:" )
+					value = Validation.validateStructure( request, object );
+
+				//
+				// Update counter.
+				//
+				++count;
+			}
+
+			//
+			// Return response.
+			//
+			response.send({
+				what : count,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Raise exception.
+			//
+			if( debug )
+			{
+				//
+				// Init local storage.
+				//
+				let http = 500;
+
+				//
+				// Handle MyError exceptions.
+				//
+				if( (error.constructor.name === 'MyError')
+				 && error.hasOwnProperty( 'param_http' ) )
+					http = error.param_http;
+
+				response.throw( http, error );									// !@! ==>
+			}
+
+			//
+			// Return error object.
+			//
+			else
+				response.send({
+					count	  : count,
+					reference : reference,
+					error	  : error,
+					object	  : object,
+					time : time() - stamp
+				});
+		}
+	},
+	'validateAllSchemas'
+)
+	.response(
+		200,
+		Joi.object(),
+		"The result: 'what' contains the number of validated documents, or error will" +
+		" contain the error."
+	)
+	.summary(
+		"Validate all schemas."
+	)
+	.description(dd`
+  Will validate all schemas, returning the number of documents processed, or the eventual error.
+`);
+
+
+/**
+ * Validate toponyms
+ *
+ * The service will validate all toponyms.
+ *
+ * The service will return an object, { what : <result> }, where result is the number
+ * of documents validated.
+ *
+ * If a validation error occurs, the method will return an object,
+ * { reference : <reference>, error : <error> } where reference is the document _id
+ * and error is the raised exception.
+ *
+ * @path		/validateAllToponyms
+ * @verb		get
+ * @response	{ what : <result> }.
+ */
+router.get
+(
+	'/validateAllToponyms',
+	(request, response) =>
+	{
+		//
+		// Debug flag.
+		//
+		const debug = false;
+
+		//
+		// Init local storage.
+		//
+		const stamp = time();
+		let count = 0;
+		let object = null;
+		let reference = null;
+
+		//
+		// Test method.
+		//
+		try
+		{
+			//
+			// Init local storage.
+			//
+			const collection = db._collection( 'toponyms' );
+
+			//
+			// Query descriptors.
+			//
+			const cursor =
+				db._query( aql`
+					FOR doc in ${collection}
+					SORT doc._key ASC
+					RETURN doc
+				`);
+
+			//
+			// Iterate cursor.
+			//
+			while( cursor.hasNext() )
+			{
+				//
+				// Get object.
+				//
+				object = cursor.next();
+				reference = object._id;
+
+				//
+				// Validate and skip exceptions.
+				// - Default namespace.
+				//
+				let value = null;
+				if( reference !== "terms/:" )
+					value = Validation.validateStructure( request, object );
+
+				//
+				// Update counter.
+				//
+				++count;
+			}
+
+			//
+			// Return response.
+			//
+			response.send({
+				what : count,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Raise exception.
+			//
+			if( debug )
+			{
+				//
+				// Init local storage.
+				//
+				let http = 500;
+
+				//
+				// Handle MyError exceptions.
+				//
+				if( (error.constructor.name === 'MyError')
+				 && error.hasOwnProperty( 'param_http' ) )
+					http = error.param_http;
+
+				response.throw( http, error );									// !@! ==>
+			}
+
+			//
+			// Return error object.
+			//
+			else
+				response.send({
+					count	  : count,
+					reference : reference,
+					error	  : error,
+					object	  : object,
+					time : time() - stamp
+				});
+		}
+	},
+	'validateAllToponyms'
+)
+	.response(
+		200,
+		Joi.object(),
+		"The result: 'what' contains the number of validated documents, or error will" +
+		" contain the error."
+	)
+	.summary(
+		"Validate all toponyms."
+	)
+	.description(dd`
+  Will validate all toponyms, returning the number of documents processed, or the eventual error.
+`);
+
+
+/**
+ * Validate shapes
+ *
+ * The service will validate all shapes.
+ *
+ * The service will return an object, { what : <result> }, where result is the number
+ * of documents validated.
+ *
+ * If a validation error occurs, the method will return an object,
+ * { reference : <reference>, error : <error> } where reference is the document _id
+ * and error is the raised exception.
+ *
+ * @path		/validateAllShapes
+ * @verb		get
+ * @response	{ what : <result> }.
+ */
+router.get
+(
+	'/validateAllShapes',
+	(request, response) =>
+	{
+		//
+		// Debug flag.
+		//
+		const debug = false;
+
+		//
+		// Init local storage.
+		//
+		const stamp = time();
+		let count = 0;
+		let object = null;
+		let reference = null;
+
+		//
+		// Test method.
+		//
+		try
+		{
+			//
+			// Init local storage.
+			//
+			const collection = db._collection( 'shapes' );
+
+			//
+			// Query descriptors.
+			//
+			const cursor =
+				db._query( aql`
+					FOR doc in ${collection}
+					SORT doc._key ASC
+					RETURN doc
+				`);
+
+			//
+			// Iterate cursor.
+			//
+			while( cursor.hasNext() )
+			{
+				//
+				// Get object.
+				//
+				object = cursor.next();
+				reference = object._id;
+
+				//
+				// Validate and skip exceptions.
+				// - Default namespace.
+				//
+				let value = null;
+				if( reference !== "terms/:" )
+					value = Validation.validateStructure( request, object );
+
+				//
+				// Update counter.
+				//
+				++count;
+			}
+
+			//
+			// Return response.
+			//
+			response.send({
+				what : count,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Raise exception.
+			//
+			if( debug )
+			{
+				//
+				// Init local storage.
+				//
+				let http = 500;
+
+				//
+				// Handle MyError exceptions.
+				//
+				if( (error.constructor.name === 'MyError')
+					&& error.hasOwnProperty( 'param_http' ) )
+					http = error.param_http;
+
+				response.throw( http, error );									// !@! ==>
+			}
+
+			//
+			// Return error object.
+			//
+			else
+				response.send({
+					count	  : count,
+					reference : reference,
+					error	  : error,
+					object	  : object,
+					time : time() - stamp
+				});
+		}
+	},
+	'validateAllShapes'
+)
+	.response(
+		200,
+		Joi.object(),
+		"The result: 'what' contains the number of validated documents, or error will" +
+		" contain the error."
+	)
+	.summary(
+		"Validate all shapes."
+	)
+	.description(dd`
+  Will validate all shapes, returning the number of documents processed, or the eventual error.
+`);
+
+
+/**
+ * Validate edges
+ *
+ * The service will validate all edges.
+ *
+ * The service will return an object, { what : <result> }, where result is the number
+ * of documents validated.
+ *
+ * If a validation error occurs, the method will return an object,
+ * { reference : <reference>, error : <error> } where reference is the document _id
+ * and error is the raised exception.
+ *
+ * @path		/validateAllEdges
+ * @verb		get
+ * @response	{ what : <result> }.
+ */
+router.get
+(
+	'/validateAllEdges',
+	(request, response) =>
+	{
+		//
+		// Debug flag.
+		//
+		const debug = false;
+
+		//
+		// Init local storage.
+		//
+		const stamp = time();
+		let count = 0;
+		let object = null;
+		let reference = null;
+
+		//
+		// Test method.
+		//
+		try
+		{
+			//
+			// Init local storage.
+			//
+			const collection = db._collection( 'edges' );
+
+			//
+			// Query descriptors.
+			//
+			const cursor =
+				db._query( aql`
+					FOR doc in ${collection}
+					SORT doc._key ASC
+					RETURN doc
+				`);
+
+			//
+			// Iterate cursor.
+			//
+			while( cursor.hasNext() )
+			{
+				//
+				// Get object.
+				//
+				object = cursor.next();
+				reference = object._id;
+
+				//
+				// Validate and skip exceptions.
+				// - Default namespace.
+				//
+				let value = null;
+				if( reference !== "terms/:" )
+					value = Validation.validateStructure( request, object );
+
+				//
+				// Update counter.
+				//
+				++count;
+			}
+
+			//
+			// Return response.
+			//
+			response.send({
+				what : count,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Raise exception.
+			//
+			if( debug )
+			{
+				//
+				// Init local storage.
+				//
+				let http = 500;
+
+				//
+				// Handle MyError exceptions.
+				//
+				if( (error.constructor.name === 'MyError')
+				 && error.hasOwnProperty( 'param_http' ) )
+					http = error.param_http;
+
+				response.throw( http, error );									// !@! ==>
+			}
+
+			//
+			// Return error object.
+			//
+			else
+				response.send({
+					count	  : count,
+					reference : reference,
+					error	  : error,
+					object	  : object,
+					time : time() - stamp
+				});
+		}
+	},
+	'validateAllEdges'
+)
+	.response(
+		200,
+		Joi.object(),
+		"The result: 'what' contains the number of validated documents, or error will" +
+		" contain the error."
+	)
+	.summary(
+		"Validate all edges."
+	)
+	.description(dd`
+  Will validate all edges, returning the number of documents processed, or the eventual error.
 `);

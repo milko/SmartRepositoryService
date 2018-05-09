@@ -1482,10 +1482,10 @@ class Validation
 		//
 		// Check reference.
 		//
-		let doc = null;
+		let result = false;
 		try
 		{
-			doc = db._document( theValue );
+			result = db._exists( theValue );
 		}
 		catch( exception )
 		{
@@ -1516,7 +1516,32 @@ class Validation
 			throw( error );														// !@! ==>
 		}
 
-		return doc._id;																// ==>
+		//
+		// Handle not found.
+		//
+		if( result === false )
+		{
+			//
+			// Compile error.
+			//
+			const error =
+				new MyError(
+					'BadValue',							// Error name.
+					K.error.InvalidObjReference,		// Message code.
+					theRequest.application.language,	// Language.
+					theValue,							// Error value.
+					404									// HTTP error code.
+				);
+
+			//
+			// Add path.
+			//
+			error.path = thePath;
+
+			throw( error );														// !@! ==>
+		}
+
+		return theValue;															// ==>
 
 	}	// customIdReference
 
@@ -1655,17 +1680,19 @@ class Validation
 		//
 		else
 		{
+			let result = false;
 			try
 			{
 				//
 				// Get document.
 				//
-				const result = db._collection( collection ).document( theValue );
+				result = db._collection( collection ).exists( theValue );
 
 				//
 				// Update reference.
 				//
-				theValue = result._key;
+				if( result !== false )
+					theValue = result._key;
 			}
 			catch( exception )
 			{
@@ -1676,6 +1703,31 @@ class Validation
 				 || (exception.errorNum !== ARANGO_NOT_FOUND) )
 					throw( exception );											// !@! ==>
 
+				//
+				// Compile error.
+				//
+				const error =
+					new MyError(
+						'BadValue',							// Error name.
+						K.error.InvalidObjReference,		// Message code.
+						theRequest.application.language,	// Language.
+						theValue,							// Error value.
+						404									// HTTP error code.
+					);
+
+				//
+				// Add path.
+				//
+				error.path = thePath;
+
+				throw( error );													// !@! ==>
+			}
+
+			//
+			// Handle error.
+			//
+			if( result === false )
+			{
 				//
 				// Compile error.
 				//
