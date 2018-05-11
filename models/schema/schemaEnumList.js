@@ -6,10 +6,10 @@
 const Joi = require('joi');
 
 /**
- * Get enumerations list
+ * Get enumerated list
  *
- * This schema is used to check parameters destined to the getEnumList and getEnumPath
- * services, it defines the following fields:
+ * This schema is used to check parameters destined to the getEnumList, getFormList and
+ * getEnumPath services, it defines the following fields:
  *
  * 	- origin:		Determines the traversal origin node, it must be provided as
  * 					the term _id or _key.
@@ -31,8 +31,9 @@ const Joi = require('joi');
  * 					that it refers to edges; this parameter is only relevant if
  * 					the 'doEdge' parameter is true.
  * 	- doChoices:	A boolean flag, if this parameter is true, only enumeration choices,
- * 					nodes pointed by the 'enum-of' predicate, will be included in the
- * 					results. (default is false).
+ * 					nodes pointed by the 'enum-of' predicate, ot form fields, nodes
+ *					pointed by the 'field-of' predicate, will be included in the results.
+ * 					(default is false).
  * 	- doLanguage:	If this parameter is true, the label, definition, description,
  * 					note and example of both the vertex and the edge, if
  * 					requested, will be set to the current session language. This
@@ -41,7 +42,7 @@ const Joi = require('joi');
  * 					language code. I the session language doesn't match any
  * 					element, the field will remain untouched. (default is false)
  * 	- doEdge:		If this parameter is true, the result nodes will be an object
- * 					with two elements: 'term' will contain the vertex and 'edge'
+ * 					with two elements: '_vertex' will contain the vertex and '_edge'
  * 					will contain the edge. (default is false)
  *
  * @type {Object}

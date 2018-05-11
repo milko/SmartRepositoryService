@@ -627,3 +627,203 @@ router.post
 	.description(dd`
   Returns the result of Schema.getTypeHierarchy().
 `);
+
+
+/**
+ * Test Schema.getFormList()
+ *
+ * The service will check the Schema.getFormList() method.
+ *
+ * The service returns an object as { what : <result> } where result is the
+ * value returned by the tested method.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/getFormList
+ * @verb		post
+ * @response	{ what : <result> }.
+ */
+router.post
+(
+	'/getFormList',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+		
+		//
+		// Test method.
+		//
+		try
+		{
+			//
+			// Make test.
+			//
+			const result =
+				Schema.getFormList(
+					request,
+					request.body.root,
+					request.body.branch,
+					request.body.minDepth,
+					request.body.maxDepth,
+					request.body.vField,
+					request.body.eField,
+					request.body.doChoice,
+					request.body.doLanguage,
+					request.body.doEdge
+				);
+			
+			response.send({
+				what : result,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'getFormList'
+)
+	.body(
+		Joi.object({
+			root		: Joi.string().required(),
+			branch		: Joi.string().required(),
+			minDepth	: Joi.any().required(),
+			maxDepth	: Joi.any().required(),
+			vField		: Joi.any().required(),
+			eField		: Joi.any().required(),
+			doChoice	: Joi.boolean().required(),
+			doLanguage	: Joi.boolean().required(),
+			doEdge		: Joi.boolean().required()
+		}),
+		"Method parameters."
+	)
+	.response(
+		200,
+		Joi.object({
+			what : Joi.any(),
+			time : Joi.number()
+		}),
+		"The result: 'what' contains the method return value, 'time' contains the elapsed time."
+	)
+	.summary(
+		"Get list of form elements starting from root in branch."
+	)
+	.description(dd`
+  Returns the result of Schema.getFormList().
+`);
+
+
+/**
+ * Test Schema.getFormTree()
+ *
+ * The service will check the Schema.getFormTree() method.
+ *
+ * The service returns an object as { what : <result> } where result is the
+ * value returned by the tested method.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/getFormTree
+ * @verb		post
+ * @response	{ what : <result> }.
+ */
+router.post
+(
+	'/getFormTree',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+		
+		//
+		// Test method.
+		//
+		try
+		{
+			//
+			// Make test.
+			//
+			const result =
+				Schema.getFormTree(
+					request,
+					request.body.root,
+					request.body.branch,
+					request.body.minDepth,
+					request.body.maxDepth,
+					request.body.vField,
+					request.body.eField,
+					request.body.doLanguage,
+					request.body.doEdge
+				);
+			
+			response.send({
+				what : result,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'getFormTree'
+)
+	.body(
+		Joi.object({
+			root		: Joi.string().required(),
+			branch		: Joi.string().required(),
+			minDepth	: Joi.any().required(),
+			maxDepth	: Joi.any().required(),
+			vField		: Joi.any().required(),
+			eField		: Joi.any().required(),
+			doLanguage	: Joi.boolean().required(),
+			doEdge		: Joi.boolean().required()
+		}),
+		"Method parameters."
+	)
+	.response(
+		200,
+		Joi.object({
+			what : Joi.any(),
+			time : Joi.number()
+		}),
+		"The result: 'what' contains the method return value, 'time' contains the elapsed time."
+	)
+	.summary(
+		"Get tree of form elements starting from root in branch."
+	)
+	.description(dd`
+  Returns the result of Schema.getFormTree().
+`);

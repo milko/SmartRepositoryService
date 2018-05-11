@@ -64,13 +64,13 @@ router.tag( 'schema' );
  */
 router.post( '/enum/isChoice', Handlers.isEnumChoice, 'enumIsChoice' )
 	.body(
-		require( '../models/schema/SchemaIsEnumChoice' ),
+		require( '../models/schema/schemaIsEnumChoice' ),
 		Application.getServiceDescription(
 			'schema', 'enumIsChoice', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
-		require( '../models/schema/SchemaIsEnumChoice' ),
+		require( '../models/schema/schemaIsEnumChoice' ),
 		Application.getServiceDescription(
 			'schema', 'enumIsChoice', 'response', module.context.configuration.defaultLanguage )
 	)
@@ -103,13 +103,13 @@ router.post( '/enum/isChoice', Handlers.isEnumChoice, 'enumIsChoice' )
  */
 router.post( '/enum/isBranch', Handlers.isEnumBranch, 'enumIsBranch' )
 	.body(
-		require( '../models/schema/SchemaIsEnumBranch' ),
+		require( '../models/schema/schemaIsEnumBranch' ),
 		Application.getServiceDescription(
 			'schema', 'enumIsBranch', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
-		require( '../models/schema/SchemaIsEnumBranch' ),
+		require( '../models/schema/schemaIsEnumBranch' ),
 		Application.getServiceDescription(
 			'schema', 'enumIsBranch', 'response', module.context.configuration.defaultLanguage )
 	)
@@ -342,4 +342,151 @@ router.post( '/enum/tree', Handlers.getEnumTree, 'enumGetTree' )
 	.description(
 		Application.getServiceDescription(
 			'schema', 'enumGetTree', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Get form list
+ *
+ * The service will return the flattened array of siblings of the provided root node,
+ * the service will traverse the tree identified by the provided branch from the root
+ * to the leaf nodes.
+ *
+ * The service expects the following parameters from the body:
+ *
+ * 	- root:			The root vertex of the graph, provided as a term _key or _id.
+ * 	- branch:		The graph branch to traverse, provided as a term _key or _id.
+ * 	- vField:		The vertex property field name(s) to be returned. The value
+ * 					may be provided as a descriptor _key, in which case the vertex
+ * 					will be the value referenced by that field, or null, if the
+ * 					field does not exist. An array of field references may also be
+ * 					provided, in which case, the vertex properties will be
+ * 					restricted to the provided list. The value may also be null,
+ * 					in which case the vertex will remain untouched.
+ * 	- eField:		The edge property field name(s) to be returned, please refer to
+ * 					the previous parameter explanations.
+ * 	- doChoice:		A boolean flag, if true, only form field elements will be
+ * 					included in the result, this means that embedded forms will not be
+ * 					included.
+ * 	- doLanguage:	A boolean flag, if true, the label, definition, description,
+ * 					notes and examples fields will be restricted to the current
+ * 					session's user preferred language, this means that the
+ * 					properties, instead of being objects indexed by the language
+ * 					code, they will be the value corresponding to the session's
+ * 					language; if the language cannot be matched, the field will
+ * 					remain untouched.
+ * 	- doEdge:		A boolean flag, if true, the result elements will include the
+ * 					related edge.
+ *
+ * The service will return an array of elements which depend on the provided
+ * parameters:
+ *
+ * 	- doEdge:		If true, each element will be an object with two fields,
+ * 					'vertex' will contain the vertex and 'edge' will contain the
+ * 					edge. If false, the element will be the vertex.
+ * 	- vField:		If the parameter is a scalar, the vertex will be the vertex
+ * 					value referenced by the parameter, if the parameter is an
+ * 					array, the vertex will only contain the referenced fields from
+ * 					the parameter.
+ * 	- eField:		This parameter is only relevant if 'doEdge' is true and
+ * 					behaves like the 'vField' parameter.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/form/list
+ * @verb		post
+ * @request		{Object}	Term reference(s).
+ * @response	{Object}	The result.
+ */
+router.post( '/form/list', Handlers.getFormList, 'formGetList' )
+	.body(
+		require( '../models/schema/schemaEnumList' ),
+		Application.getServiceDescription(
+			'schema', 'formGetList', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/schema/schemaEnumList' ),
+		Application.getServiceDescription(
+			'schema', 'formGetList', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Return all the form siblings of the provided root."
+	)
+	.description(
+		Application.getServiceDescription(
+			'schema', 'formGetList', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Get form tree
+ *
+ * The service will return the hierarchy of siblings of the provided root node,
+ * the service will traverse the tree identified by the provided branch from the root
+ * to the leaf nodes.
+ *
+ * The service expects the following parameters from the body:
+ *
+ * 	- root:			The root vertex of the graph, provided as a term _key or _id.
+ * 	- branch:		The graph branch to traverse, provided as a term _key or _id.
+ * 	- vField:		The vertex property field name(s) to be returned. The value
+ * 					may be provided as a descriptor _key, in which case the vertex
+ * 					will be the value referenced by that field, or null, if the
+ * 					field does not exist. An array of field references may also be
+ * 					provided, in which case, the vertex properties will be
+ * 					restricted to the provided list. The value may also be null,
+ * 					in which case the vertex will remain untouched.
+ * 	- eField:		The edge property field name(s) to be returned, please refer to
+ * 					the previous parameter explanations.
+ * 	- doLanguage:	A boolean flag, if true, the label, definition, description,
+ * 					notes and examples fields will be restricted to the current
+ * 					session's user preferred language, this means that the
+ * 					properties, instead of being objects indexed by the language
+ * 					code, they will be the value corresponding to the session's
+ * 					language; if the language cannot be matched, the field will
+ * 					remain untouched.
+ * 	- doEdge:		A boolean flag, if true, the result elements will include the
+ * 					related edge.
+ *
+ * The service will return an array of elements which depend on the provided
+ * parameters:
+ *
+ * 	- doEdge:		If true, each element will be an object with two fields,
+ * 					'vertex' will contain the vertex and 'edge' will contain the
+ * 					edge. If false, the element will be the vertex.
+ * 	- vField:		If the parameter is a scalar, the vertex will be the vertex
+ * 					value referenced by the parameter, if the parameter is an
+ * 					array, the vertex will only contain the referenced fields from
+ * 					the parameter.
+ * 	- eField:		This parameter is only relevant if 'doEdge' is true and
+ * 					behaves like the 'vField' parameter.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/form/tree
+ * @verb		post
+ * @request		{Object}	Term reference(s).
+ * @response	{Object}	The result.
+ */
+router.post( '/form/tree', Handlers.getFormTree, 'formGetTree' )
+	.body(
+		require( '../models/schema/schemaEnumTree' ),
+		Application.getServiceDescription(
+			'schema', 'formGetTree', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/schema/schemaEnumTree' ),
+		Application.getServiceDescription(
+			'schema', 'formGetTree', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Return the hierarchy of the form siblings of the provided root."
+	)
+	.description(
+		Application.getServiceDescription(
+			'schema', 'formGetTree', 'description', module.context.configuration.defaultLanguage )
 	);

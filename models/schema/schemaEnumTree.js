@@ -6,10 +6,10 @@
 const Joi = require('joi');
 
 /**
- * Get enumerations tree
+ * Get enumerated tree
  *
- * This schema is used to check parameters destined to the getEnumTree service, it
- * defines the following fields:
+ * This schema is used to check parameters destined to the getEnumTree and getFormTree
+ * services, it defines the following fields:
  *
  * 	- origin:		Determines the traversal origin node, it must be provided as
  * 					the term _id or _key.
@@ -38,7 +38,7 @@ const Joi = require('joi');
  * 					language code. I the session language doesn't match any
  * 					element, the field will remain untouched. (default is false)
  * 	- doEdge:		If this parameter is true, the result nodes will be an object
- * 					with two elements: 'term' will contain the vertex and 'edge'
+ * 					with two elements: '_vertex' will contain the vertex and '_edge'
  * 					will contain the edge. (default is false)
  *
  * @type {Object}

@@ -415,7 +415,7 @@ class Schema
 	 * 					language code. I the session language doesn't match any
 	 * 					element, the field will remain untouched.
 	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
-	 * 					with two elements: 'vertex' will contain the vertex and 'edge'
+	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
 	 * 					will contain the edge.
 	 *
 	 * The method will return a flattened array of the provided root's siblings.
@@ -555,7 +555,7 @@ class Schema
 	 * 					language code. I the session language doesn't match any
 	 * 					element, the field will remain untouched.
 	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
-	 * 					with two elements: 'vertex' will contain the vertex and 'edge'
+	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
 	 * 					will contain the edge.
 	 *
 	 * The method will return an array of top level nodes containing a property called
@@ -651,6 +651,288 @@ class Schema
 		}
 
 	}	// getEnumTree
+	
+	/**
+	 * Get form list
+	 *
+	 * This method will perform an inbound traversal of the schemas graph following
+	 * the field-of and form-of predicates starting from 'theRoot' in 'theBranch'
+	 * branch returning the siblings of the provided root. This kind of traversal in
+	 * forms should follow a path from the form root to the graph leaves.
+	 *
+	 * The method accepts the following parameters:
+	 *
+	 * 	- theRequest:	Used to retrieve the session language and to raise eventual
+	 * 					exceptions.
+	 * 	- theRoot:		Determines the traversal origin node, it must be provided as
+	 * 					the term _id or _key.
+	 * 	- theBranch:	Determines which branch to follow, it must be provided as the
+	 * 					term _id or _key.
+	 * 	- theMinDepth:	Represents the minimum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theMaxDepth:	Represents the maximum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theVertexFld:	References the field(s) that should be included in the vertex.
+	 * 					If the provided value is null, the vertex value will be the
+	 * 					original document. If provided as a string, it must be the
+	 * 					_key of a descriptor and the resulting vertex value will
+	 * 					become the value of the vertex field matched by the provided
+	 * 					reference; if the reference does not match a field in the
+	 * 					document, the value will be null. If provided as an array, the
+	 * 					elements must be strings representing descriptor _key values:
+	 * 					the resulting vertex value will be the original document
+	 * 					containing only the fields that match the provided references.
+	 * 	- theEdgeFld:	References the field(s) that should be included in the edge.
+	 * 					This parameter behaves exactly as the previous one, except
+	 * 					that it refers to edges; this parameter is only relevant if
+	 * 					the 'doEdge' parameter is true.
+	 * 	- doChoices:	If this parameter is true, only form fields, nodes
+	 * 					pointed by the 'field-of' predicate, will be included in the
+	 * 					results.
+	 * 	- doLanguage:	If this parameter is true, the label, definition, description,
+	 * 					note and example of both the vertex and the edge, if
+	 * 					requested, will be set to the current session language. This
+	 * 					means that these fields, instead of being objects indexed by
+	 * 					the language code, will hold the value matched by the session
+	 * 					language code. I the session language doesn't match any
+	 * 					element, the field will remain untouched.
+	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
+	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
+	 * 					will contain the edge.
+	 *
+	 * The method will return a flattened array of the provided root's siblings.
+	 * The method assumes the terms and schemas collections to exist.
+	 * The method will raise an exception if the root cannot be found.
+	 *
+	 * @param theRequest	{Object}			The current service request.
+	 * @param theRoot		{String}			Traversal origin.
+	 * @param theBranch		{String}			Graph branch.
+	 * @param theMinDepth	{Number}|{null}		Minimum traversal depth.
+	 * @param theMaxDepth	{Number}|{null}		Maximum traversal depth.
+	 * @param theVertexFld	{String}|{null}		Vertex property name.
+	 * @param theEdgeFld	{String}|{null}		Edge property name.
+	 * @param doFields		{boolean}			Restrict to fields.
+	 * @param doLanguage	{boolean}			Restrict labels to current language.
+	 * @param doEdge		{boolean}			Include edge.
+	 * @returns {Array}							List of enumeration elements.
+	 */
+	static getFormList
+	(
+		theRequest,
+		theRoot,
+		theBranch = null,
+		theMinDepth = null,
+		theMaxDepth = null,
+		theVertexFld = null,
+		theEdgeFld = null,
+		doFields = false,
+		doLanguage = false,
+		doEdge = false
+	)
+	{
+		//
+		// Init local storage.
+		//
+		const terms_name = 'terms/';
+		
+		//
+		// Get root and branch.
+		//
+		const branch = ( theBranch.startsWith( terms_name ) )
+					   ? theBranch
+					   : terms_name + theBranch;
+		
+		//
+		// Get leaf.
+		//
+		try
+		{
+			//
+			// Get traversal origin document.
+			//
+			const root = db._collection( 'terms' ).document( theRoot );
+			
+			//
+			// Perform traversal.
+			//
+			return this.traverseForm(
+				theRequest,		// Current request.
+				root,			// Traversal origin.
+				branch,			// Graph branch.
+				'in',			// Outbound direction.
+				theMinDepth,	// Search start depth.
+				theMaxDepth,	// Search final depth.
+				theVertexFld,	// Vertex fields.
+				theEdgeFld,		// Edge fields.
+				false,			// Return tree.
+				doFields,		// Restrict to fields.
+				doLanguage,		// Restrict to language.
+				doEdge			// Include edges.
+			);																		// ==>
+		}
+		catch( error )
+		{
+			//
+			// Handle exceptions.
+			//
+			if( (! error.isArangoError)
+			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				throw( error );													// !@! ==>
+			
+			//
+			// Handle not found.
+			//
+			throw(
+				new MyError(
+					'BadTermReference',					// Error name.
+					K.error.TermNotFound,				// Message code.
+					theRequest.application.language,	// Language.
+					theRoot,							// Error value.
+					404									// HTTP error code.
+				)
+			);																	// !@! ==>
+		}
+		
+	}	// getFormList
+	
+	/**
+	 * Get form tree
+	 *
+	 * This method will perform an inbound traversal of the schemas graph following
+	 * the field-of and form-of predicates starting from 'theRoot' in 'theBranch'
+	 * branch returning the siblings of the provided root. This kind of traversal in
+	 * enumerations should follow a path from the enumeration root to the graph leaves.
+	 *
+	 * The method accepts the following parameters:
+	 *
+	 * 	- theRequest:	Used to retrieve the session language and to raise eventual
+	 * 					exceptions.
+	 * 	- theRoot:		Determines the traversal origin node, it must be provided as
+	 * 					the term _id or _key.
+	 * 	- theBranch:	Determines which branch to follow, it must be provided as the
+	 * 					term _id or _key.
+	 * 	- theMinDepth:	Represents the minimum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theMaxDepth:	Represents the maximum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theVertexFld:	References the field(s) that should be included in the vertex.
+	 * 					If the provided value is null, the vertex value will be the
+	 * 					original document. If provided as a string, it must be the
+	 * 					_key of a descriptor and the resulting vertex value will
+	 * 					become the value of the vertex field matched by the provided
+	 * 					reference; if the reference does not match a field in the
+	 * 					document, the value will be null. If provided as an array, the
+	 * 					elements must be strings representing descriptor _key values:
+	 * 					the resulting vertex value will be the original document
+	 * 					containing only the fields that match the provided references.
+	 * 	- theEdgeFld:	References the field(s) that should be included in the edge.
+	 * 					This parameter behaves exactly as the previous one, except
+	 * 					that it refers to edges; this parameter is only relevant if
+	 * 					the 'doEdge' parameter is true.
+	 * 	- doLanguage:	If this parameter is true, the label, definition, description,
+	 * 					note and example of both the vertex and the edge, if
+	 * 					requested, will be set to the current session language. This
+	 * 					means that these fields, instead of being objects indexed by
+	 * 					the language code, will hold the value matched by the session
+	 * 					language code. I the session language doesn't match any
+	 * 					element, the field will remain untouched.
+	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
+	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
+	 * 					will contain the edge.
+	 *
+	 * The method will return an array of top level nodes containing a property called
+	 * '_children' that is an array containing the node's children.
+	 * The method assumes the terms and schemas collections to exist.
+	 * The method will raise an exception if the root cannot be found.
+	 *
+	 * @param theRequest	{Object}			The current service request.
+	 * @param theRoot		{String}			Traversal origin.
+	 * @param theBranch		{String}			Graph branch.
+	 * @param theMinDepth	{Number}|{null}		Minimum traversal depth.
+	 * @param theMaxDepth	{Number}|{null}		Maximum traversal depth.
+	 * @param theVertexFld	{String}|{null}		Vertex property name.
+	 * @param theEdgeFld	{String}|{null}		Edge property name.
+	 * @param doLanguage	{boolean}			Restrict labels to current language.
+	 * @param doEdge		{boolean}			Include edge.
+	 * @returns {Array}							List of enumeration elements.
+	 */
+	static getFormTree
+	(
+		theRequest,
+		theRoot,
+		theBranch = null,
+		theMinDepth = null,
+		theMaxDepth = null,
+		theVertexFld = null,
+		theEdgeFld = null,
+		doLanguage = false,
+		doEdge = false
+	)
+	{
+		//
+		// Init local storage.
+		//
+		const terms_name = 'terms/';
+		
+		//
+		// Get root and branch.
+		//
+		const branch = ( theBranch.startsWith( terms_name ) )
+					   ? theBranch
+					   : terms_name + theBranch;
+		
+		//
+		// Get leaf.
+		//
+		try
+		{
+			//
+			// Get traversal origin document.
+			//
+			const root = db._collection( 'terms' ).document( theRoot );
+			
+			//
+			// Perform traversal.
+			//
+			return this.traverseForm(
+				theRequest,		// Current request.
+				root,			// Traversal origin.
+				branch,			// Graph branch.
+				'in',			// Outbound direction.
+				theMinDepth,	// Search start depth.
+				theMaxDepth,	// Search final depth.
+				theVertexFld,	// Vertex fields.
+				theEdgeFld,		// Edge fields.
+				true,			// Return tree.
+				false,			// Restrict to choices.
+				doLanguage,		// Restrict to language.
+				doEdge			// Include edges.
+			);																		// ==>
+		}
+		catch( error )
+		{
+			//
+			// Handle exceptions.
+			//
+			if( (! error.isArangoError)
+			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				throw( error );													// !@! ==>
+			
+			//
+			// Handle not found.
+			//
+			throw(
+				new MyError(
+					'BadTermReference',					// Error name.
+					K.error.TermNotFound,				// Message code.
+					theRequest.application.language,	// Language.
+					theRoot,							// Error value.
+					404									// HTTP error code.
+				)
+			);																	// !@! ==>
+		}
+		
+	}	// getFormTree
 
 	/**
 	 * Get type hierarchy
@@ -846,7 +1128,7 @@ class Schema
 	 * 					language code. I the session language doesn't match any
 	 * 					element, the field will remain untouched.
 	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
-	 * 					with two elements: 'vertex' will contain the vertex and 'edge'
+	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
 	 * 					will contain the edge.
 	 *
 	 * The method assumes the terms and schemas collections to exist.
@@ -951,7 +1233,7 @@ class Schema
 		else
 		{
 			config.minDepth = theMinDepth;
-			config.custom.doRoot = ( config.minDepth > 0 ) ? false : true;
+			config.custom.doRoot = ( config.minDepth <= 0 );
 		}
 
 		if( theMaxDepth !== null )
@@ -977,6 +1259,188 @@ class Schema
 		return result;																// ==>
 
 	}	// traverseEnum
+	
+	/**
+	 * Traverse form
+	 *
+	 * This method will perform an inbound or outbound traversal of the schemas graph
+	 * following the field-of and form-of predicates starting from 'theRoot' in
+	 * 'theBranch' branch returning either the flattened the list visited elements, or
+	 * the list of root nodes with their children in the '_children' property.
+	 *
+	 * The method accepts the following parameters:
+	 *
+	 * 	- theRoot:		Determines the traversal origin node, it must be provided as
+	 * 					an object.
+	 * 	- theBranch:	Determines which branch to follow, it must be provided as a
+	 * 					term _id.
+	 * 	- theDirection:	Determines the traversal direction: 'in' means inbound and
+	 * 					'out' means outbound; inbound traversals will visit the tree
+	 * 					from the root to the leaves, outbound traversals will visit
+	 * 					the tree from the leaf to its root.
+	 * 	- theMinDepth:	Represents the minimum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theMaxDepth:	Represents the maximum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theVertexFld:	References the field(s) that should be included in the vertex.
+	 * 					If the provided value is null, the vertex value will be the
+	 * 					original document. If provided as a string, it must be the
+	 * 					_key of a descriptor and the resulting vertex value will
+	 * 					become the value of the vertex field matched by the provided
+	 * 					reference; if the reference does not match a field in the
+	 * 					document, the value will be null. If provided as an array, the
+	 * 					elements must be strings representing descriptor _key values:
+	 * 					the resulting vertex value will be the original document
+	 * 					containing only the fields that match the provided references.
+	 * 	- theEdgeFld:	References the field(s) that should be included in the edge.
+	 * 					This parameter behaves exactly as the previous one, except
+	 * 					that it refers to edges; this parameter is only relevant if
+	 * 					the 'doEdge' parameter is true.
+	 * 	- doTree:		If this parameter is true, the result will be a tree that
+	 * 					represents the traversed paths: the node children will be set
+	 * 					in the '_children' field.
+	 * 	- doFields:		If this parameter is true, only enumeration choices, nodes
+	 * 					pointed by the 'field-of' predicate, will be included in the
+	 * 					results.
+	 * 	- doLanguage:	If this parameter is true, the label, definition, description,
+	 * 					note and example of both the vertex and the edge, if
+	 * 					requested, will be set to the current session language. This
+	 * 					means that these fields, instead of being objects indexed by
+	 * 					the language code, will hold the value matched by the session
+	 * 					language code. I the session language doesn't match any
+	 * 					element, the field will remain untouched.
+	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
+	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
+	 * 					will contain the edge.
+	 *
+	 * The method assumes the terms and schemas collections to exist.
+	 *
+	 * @param theRequest	{Object}			The current service request.
+	 * @param theRoot		{Object}			Graph traversal origin.
+	 * @param theBranch		{String}			Graph branch.
+	 * @param theDirection	{String}			Traversal direction: 'in' or 'out'.
+	 * @param theMinDepth	{Number}|{null}		Minimum traversal depth.
+	 * @param theMaxDepth	{Number}|{null}		Maximum traversal depth.
+	 * @param theVertexFld	{String}|{null}		Vertex property name.
+	 * @param theEdgeFld	{String}|{null}		Edge property name.
+	 * @param doTree		{boolean}			Return a tree.
+	 * @param doFields		{boolean}			Restrict to fields.
+	 * @param doLanguage	{boolean}			Restrict labels to current language.
+	 * @param doEdge		{boolean}			Include edge.
+	 * @returns {Array}|{Object}				List or tree of enumeration elements.
+	 */
+	static traverseForm
+	(
+		theRequest,
+		theRoot,
+		theBranch,
+		theDirection,
+		theMinDepth = null,
+		theMaxDepth = null,
+		theVertexFld = null,
+		theEdgeFld = null,
+		doTree = false,
+		doFields = false,
+		doLanguage = false,
+		doEdge = false
+	)
+	{
+		//
+		// Normalise parameters for tree.
+		//
+		if( doTree )
+		{
+			//
+			// Prevent choices selection.
+			//
+			doFields = false;
+			
+			//
+			// Normalise vertex field selectors.
+			//
+			if( (! doEdge)								// Without edges
+			 && (theVertexFld !== null)					// with vertex fields selector
+			 && (! Array.isArray( theVertexFld )) )		// which is not an array:
+				theVertexFld = [ theVertexFld ];		// make it into an array.
+		}
+		
+		//
+		// Init configuration.
+		//
+		const config =  {
+			datasource	: traversal.collectionDatasourceFactory( 'schemas' ),
+			strategy	: "depthfirst",
+			expander	: ( theDirection === 'in' )
+						  ? traversal.inboundExpander
+						  : traversal.outboundExpander,
+			order		: "preorder-expander",
+			uniqueness	: {
+				edges		: 'path',
+				vertices	: 'path'
+			},
+			
+			visitor		: this.enumVisitor,
+			filter		: this.enumFilter,
+			expandFilter: this.enumExpandFilter,
+			
+			custom		: {
+				dir			: theDirection,
+				branch		: theBranch,
+				predicates	: this.getFormPredicates(),
+				language	: theRequest.application.language,
+				vField		: theVertexFld,
+				eField		: theEdgeFld,
+				doTree		: Boolean( doTree ),
+				doEdge		: Boolean( doEdge ),
+				doChoices	: Boolean( doFields ),
+				doLanguage	: Boolean( doLanguage )
+			}
+		};
+		
+		//
+		// Set sort callback.
+		// Inbound traversals are expected to be single element paths.
+		//
+		if( theDirection === 'in' )
+			config.sort = this.enumSort;
+		
+		//
+		// Set depth.
+		//
+		if( theMinDepth === null )
+		{
+			config.minDepth = 0;
+			config.custom.doRoot = true;
+		}
+		else
+		{
+			config.minDepth = theMinDepth;
+			config.custom.doRoot = ( config.minDepth <= 0 );
+		}
+		
+		if( theMaxDepth !== null )
+			config.maxDepth = theMaxDepth;
+		
+		//
+		// Add nodes dictionary.
+		//
+		if( doTree )
+			config.custom.dict = {};
+		
+		//
+		// Init result.
+		//
+		const result = [];
+		
+		//
+		// Traverse.
+		//
+		const traverser = new traversal.Traverser( config );
+		traverser.traverse( result, theRoot );
+		
+		return result;																// ==>
+		
+	}	// traverseForm
 
 	/**
 	 * Enumeration vertex filter
@@ -1131,7 +1595,7 @@ class Schema
 			// Set node.
 			//
 			let node = ( theConfig.custom.doEdge )
-					   ? { vertex : vertex }
+					   ? { _vertex : vertex }
 					   : vertex;
 
 			//
@@ -1176,7 +1640,7 @@ class Schema
 					//
 					// Add edge to node.
 					//
-					node.edge = edge;
+					node._edge = edge;
 				}
 
 			}	// Add edge.
@@ -1266,7 +1730,7 @@ class Schema
 		return 0;																	// ==>
 
 	}	// enumSort
-
+	
 	/**
 	 * Return enumeration predicate _id list
 	 *
@@ -1282,7 +1746,26 @@ class Schema
 			'terms/' + Dict.term.kPredicateEnumOf,
 			'terms/' + Dict.term.kPredicateCategoryOf
 		];																			// ==>
-	}
+	
+	}	// getEnumPredicates
+	
+	/**
+	 * Return form predicate _id list
+	 *
+	 * This method will return the form predicate _id field names, the first
+	 * element will be the predicate used to indicate form fields, the other
+	 * elements will be the embedded form predicates.
+	 *
+	 * @return {Array}	List of predicate _id strings.
+	 */
+	static getFormPredicates()
+	{
+		return [
+			'terms/' + Dict.term.kPredicateFieldOf,
+			'terms/' + Dict.term.kPredicateFormOf
+		];																			// ==>
+	
+	}	// getFormPredicates
 
 }	// Schema.
 

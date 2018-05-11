@@ -166,5 +166,11 @@
     "label" : {
       "ISO:639:3:eng" : "Invalid descriptor: "
     }
+  },
+  {
+    "_key" : "ServiceUnavailable",
+    "label" : {
+      "ISO:639:3:eng" : "Service is unavailable: "
+    }
   }
 ]
