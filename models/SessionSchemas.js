@@ -42,7 +42,7 @@ module.exports = {
 		schema[ Dict.descriptor.kName ] = Joi.string().required();
 		schema[ Dict.descriptor.kLanguage ] = Joi.string().required();
 		schema[ Dict.descriptor.kRank ] = Joi.string().required();
-		schema[ Dict.descriptor.kRole ] = Joi.string().required();
+		schema[ Dict.descriptor.kRole ] = Joi.array().items(Joi.string()).required();
 		schema[ Dict.descriptor.kStatus ] = Joi.string();
 
 		return schema;																// ==>

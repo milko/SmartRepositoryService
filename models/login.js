@@ -3,7 +3,7 @@
 //
 // Frameworks.
 //
-const _ = require('lodash');							// WTF?
+const _ = require('lodash');							// Lodash library.
 const Joi = require('joi');								// Validation framework.
 
 //

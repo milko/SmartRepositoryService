@@ -4,6 +4,7 @@
 // Frameworks.
 //
 const _ = require('lodash');
+const Joi = require('joi');
 const db = require('@arangodb').db;
 const aql = require('@arangodb').aql;
 const errors = require('@arangodb').errors;
@@ -79,6 +80,72 @@ class Form
 		}	// Has elements.
 		
 	}	// constructor
+	
+	/**
+	 * Validate form
+	 *
+	 * This method will validate the provided data against the current form.
+	 *
+	 * If any value fails to pass the test, the method will raise an exception.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theData		{Object}	The form data.
+	 */
+	validate( theRequest, theData )
+	{
+		//
+		// Traverse form.
+		//
+		for( const element of this.form )
+			Form.traverseSchema( theRequest, element, theData );
+		
+	}	// validate
+	
+	/**
+	 * Traverse form schema
+	 *
+	 * This method will add all descriptor Joi validation commands to the provided
+	 * schema in the order they were added in the form.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theElement	{Array}		The current form element.
+	 * @param theData		{Object}	The form data.
+	 */
+	static traverseSchema( theRequest, theElement, theData )
+	{
+		//
+		// Handle vertex validation.
+		// We assume the element has a vertex.
+		//
+		if( theElement._vertex.hasOwnProperty( Dict.descriptor.kValidation ) )
+		{
+			//
+			// Get validation elements.
+			//
+			const field = theElement._vertex._key;
+			const valid = theElement._vertex[ Dict.descriptor.kValidation ];
+			const data	= ( theData.hasOwnProperty( field ) )
+						? theData[ field ]
+						: null;
+			
+			//
+			// Validate.
+			//
+			if( data !== null )
+				theData[ field ] =
+					Validation.validateValue( theRequest, valid, data );
+		}
+		
+		//
+		// Handle form siblings.
+		//
+		if( theElement.hasOwnProperty( '_children' ) )
+		{
+			for( const element of theElement._children )
+				Form.traverseSchema( theRequest, element, theData );
+		}
+		
+	}	// traverseSchema
 	
 	/**
 	 * Normalise form tree

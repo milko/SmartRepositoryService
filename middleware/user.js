@@ -35,9 +35,8 @@ module.exports = {
 		 *
 		 * @param theRequest	{function}	The request.
 		 * @param theResponse	{function}	The response.
-		 * @param theNext		{function}	The next middleware/handler.
 		 */
-		noUsers : ( theRequest, theResponse, theNext ) =>
+		noUsers : ( theRequest, theResponse ) =>
 		{
 			//
 			// Set collection.
@@ -58,11 +57,6 @@ module.exports = {
 					)
 				);															// !@! ==>
 			
-			//
-			// Call next.
-			//
-			theNext();
-			
 		},	// noUsers
 		
 		/**
@@ -72,9 +66,8 @@ module.exports = {
 		 *
 		 * @param theRequest	{function}	The request.
 		 * @param theResponse	{function}	The response.
-		 * @param theNext		{function}	The next middleware/handler.
 		 */
-		hasUser : ( theRequest, theResponse, theNext ) =>
+		hasUser : ( theRequest, theResponse ) =>
 		{
 			//
 			// Ensure there is a current user.
@@ -89,11 +82,6 @@ module.exports = {
 					)
 				);															// !@! ==>
 			
-			//
-			// Call next.
-			//
-			theNext();
-			
 		},	// hasUser
 		
 		/**
@@ -105,9 +93,8 @@ module.exports = {
 		 *
 		 * @param theRequest	{function}	The request.
 		 * @param theResponse	{function}	The response.
-		 * @param theNext		{function}	The next middleware/handler.
 		 */
-		canManage : ( theRequest, theResponse, theNext ) =>
+		canManage : ( theRequest, theResponse ) =>
 		{
 			//
 			// Init framework.
@@ -126,11 +113,6 @@ module.exports = {
 						theRequest.application.language	// Error language.
 					)
 				);															// !@! ==>
-			
-			//
-			// Call next.
-			//
-			theNext();
 			
 		}	// canManage
 		
