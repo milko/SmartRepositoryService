@@ -46,7 +46,7 @@ const stamp = Date.now();
 //
 const secret = Application.cookieSecret();					// Cookie secret.
 const timeout = 60 * 60 * 24 * 7;							// One week.
-const algo = 'sha256';										// Algorythm.
+const algo = module.context.configuration.algorythm;		// Algorythm.
 
 //
 // Set sessions middleware.

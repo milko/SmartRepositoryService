@@ -418,15 +418,15 @@ router.post(
 		const refresh = request.body.refresh;
 		const test_module = require( '../../utils/Application' );
 		const result = test_module.cookieSecret( refresh );
-
+		
 		response.send({ result : result });
 	},
 	'cookieSecret'
 )
 	.body(
 		Joi.object({
-					   refresh : Joi.boolean().default(false).required()
-				   }),
+			refresh : Joi.boolean().default(false).required()
+		}),
 		"Refresh flag."
 	)
 	.response(
@@ -439,4 +439,84 @@ router.post(
 	)
 	.description(dd`
   The service will test the Application.cookieSecret() method.
+`);
+
+
+/**
+ * Test Application.encode()
+ *
+ * The service will test the Application.encode() method.
+ *
+ * @path		/encode
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post(
+	'/encode',
+	(request, response) =>
+	{
+		const test_module = require( '../../utils/Application' );
+		const result = test_module.encode( request.body.key, request.body.data );
+		
+		response.send({ result : result });
+	},
+	'encode'
+)
+	.body(
+		Joi.object({
+			key: Joi.string().required(),
+			data: Joi.object().required()
+		}).required(),
+		"Key and object to encode."
+	)
+	.response(
+		200,
+		[ 'application/json' ],
+		"Application.encode() result"
+	)
+	.summary(
+		"Test Application.encode()"
+	)
+	.description(dd`
+  The service will test the Application.encode() method.
+`);
+
+
+/**
+ * Test Application.decode()
+ *
+ * The service will test the Application.decode() method.
+ *
+ * @path		/decode
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post(
+	'/decode',
+	(request, response) =>
+	{
+		const test_module = require( '../../utils/Application' );
+		const result = test_module.decode( request.body.key, request.body.token );
+		
+		response.send({ result : result });
+	},
+	'decode'
+)
+	.body(
+		Joi.object({
+			key: Joi.string().required(),
+			token: Joi.string().required()
+		}).required(),
+		"Key and token to decode."
+	)
+	.response(
+		200,
+		[ 'application/json' ],
+		"Application.decode() result"
+	)
+	.summary(
+		"Test Application.decode()"
+	)
+	.description(dd`
+  The service will test the Application.decode() method.
 `);

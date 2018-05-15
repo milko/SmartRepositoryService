@@ -881,6 +881,54 @@ class Application
 		return auth.cookie.key;														// ==>
 
 	}	// cookieSecret
+	
+	/**
+	 * Encode token
+	 *
+	 * This method will encode the provided object using the provided key and return
+	 * the token.
+	 *
+	 * @param theKey	{String}	The token key.
+	 * @param theData	{Object}	The object to encode.
+	 * @returns {String}			The token.
+	 */
+	static encode( theKey, theData )
+	{
+		return(
+			crypto.jwtEncode(
+				theKey,									// Key.
+				JSON.stringify( theData ),				// Data to encode.
+				module.context.configuration.algorythm	// Algorythm.
+			)
+		);																			// ==>
+		
+	}	// encode
+	
+	/**
+	 * Decode token
+	 *
+	 * This method will decode the provided token using the provided key and return
+	 * the decoded object.
+	 *
+	 * @param theKey	{String}	The token key.
+	 * @param theToken	{String}	The token value.
+	 * @returns {Object}			The decoded token.
+	 */
+	static decode( theKey, theToken )
+	{
+		//
+		// Decode.
+		//
+		const msg = crypto.jwtDecode( theKey, theToken );
+		
+		//
+		// Convert.
+		//
+		const obj = JSON.parse( msg );
+		
+		return( obj );																// ==>
+	
+	}	// decode
 
 	/**
 	 * Get service description
