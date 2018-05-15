@@ -49,6 +49,7 @@ module.exports = {
 	 *
 	 * 	- Assert there are no users in the users collection.
 	 * 	- Validate the authentication token.
+	 * 	- Validate form data.
 	 * 	- Complete the user record.
 	 * 	- Create the authorisation data.
 	 * 	- Insert the user.
@@ -166,6 +167,7 @@ module.exports = {
 	 * 	- Assert there is a current user in the session.
 	 * 	- Assert the current user can manage other users.
 	 * 	- Validate the user authentication token.
+	 * 	- Validate form data.
 	 * 	- Set the user status to pending.
 	 * 	- Set username and password.
 	 * 	- Encode the user record.

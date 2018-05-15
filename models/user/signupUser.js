@@ -33,25 +33,6 @@ module.exports = {
 	 */
 	forClient( theResponse )
 	{
-		//
-		// Framework.
-		//
-		const Dict = require( '../../dictionary/Dict' );
-		
-		//
-		// Omit private properties.
-		//
-		theResponse.result = _.omit(
-			theResponse.result,
-			[
-				'_id',						// ID.
-				'_key',						// Key.
-				'_rev',						// Revision.
-				'_oldRev',					// Old revision.
-				Dict.descriptor.kAuthData	// Authentication data.
-			]
-		);
-		
 		return theResponse;															// ==>
 	},
 	
