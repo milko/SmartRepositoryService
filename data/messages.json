@@ -26,7 +26,7 @@
   {
     "_key" : "e5",
     "label" : {
-      "ISO:639:3:eng" : "unable to create administrator user."
+      "ISO:639:3:eng" : "invalid token."
     }
   },
   {
@@ -360,6 +360,12 @@
     }
   },
   {
+    "_key" : "e61",
+    "label" : {
+      "ISO:639:3:eng" : "unable to register user."
+    }
+  },
+  {
     "_key": "s:schema:enumIsChoice",
     "body": {
       "ISO:639:3:eng": "<p>The service expects two parameters from the request body:</p><ul><li><strong>term</strong>: The reference(s) to the term to test as its <code>_id</code> or <code>_key</code>: it can be provided as a <em>string</em>, or as an <em>array</em> of strings.</li><li><strong>enum</strong>: An array of term <code>_id</code> or <code>_key</code> values which represent the set of enumerations to which the term should belong. To ignore enumeration membership, provide either an <em>empty array</em> or <code>null</code>, which is the default choice.</li></ul>"
@@ -485,13 +491,25 @@
   {
     "_key" : "s:descriptor:updateValidation",
     "body" : {
-      "ISO:639:3:eng" : "Provide one of the following in the request POST body:<ul><li><strong><em>A string</em></strong>: the descriptor <code>_id</code> or <code>_key</code>.</li><li><strong><em>An array of strings</em></strong>: a list of descriptor <em>references</em> as their <code>_id</code> or <code>_key</code>.</li><li><strong><em>An empty array</em></strong>: in this case, <em>all</em> descriptors will be updated.</li></ul>"
+      "ISO:639:3:eng" : "Provide one of the following in the request POST body <code>param</code> property:<ul><li><strong><em>A string</em></strong>: the descriptor <code>_id</code> or <code>_key</code>.</li><li><strong><em>An array of strings</em></strong>: a list of descriptor <em>references</em> as their <code>_id</code> or <code>_key</code>.</li><li><strong><em>An empty array</em></strong>: in this case, <em>all</em> descriptors will be updated.</li></ul>"
     },
     "response" : {
       "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the number of updated descriptors."
     },
     "description" : {
-      "ISO:639:3:eng" : "The service can be used to update the validation structure of descriptors, it expects the following information in the request POST body:</p><ul><li><strong><em>A string</em></strong>: the descriptor <code>_id</code> or <code>_key</code>.</li><li><strong><em>An array of strings</em></strong>: a list of descriptor <em>references</em> as their <code>_id</code> or <code>_key</code>.</li><li><strong><em>An empty array</em></strong>: in this case, <em>all</em> descriptors will be updated.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the number of updated descriptors."
+      "ISO:639:3:eng" : "The service can be used to update the validation structure of descriptors, it expects the following information in the request POST body <code>param</code> property:</p><ul><li><strong><em>A string</em></strong>: the descriptor <code>_id</code> or <code>_key</code>.</li><li><strong><em>An array of strings</em></strong>: a list of descriptor <em>references</em> as their <code>_id</code> or <code>_key</code>.</li><li><strong><em>An empty array</em></strong>: in this case, <em>all</em> descriptors will be updated.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the number of updated descriptors."
+    }
+  },
+  {
+    "_key" : "s:user:admin",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>token</code></strong>: the administrator <em>token</em> string.</li><li><strong><code>data</code></strong>: the administrator <em>form contents</em> object which should include the following properties:</li><ul><li><strong><code>name</code></stromg>: the user full name.</li><li><strong><code>password</code></stromg>: the user password.</li><li><strong><code>email</code></stromg>: the user e-mail address.</li><li><strong><code>language</code></stromg>: the user preferred language code.</li></ul></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the newly created user object."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service can be used to create the system administrator user, it expects the following information in the request POST body:<ul><li><strong><code>token</code></strong>: the administrator <em>token</em> string.</li><li><strong><code>data</code></strong>: the administrator <em>form contents</em> object which should include the following properties:</li><ul><li><strong><code>name</code></stromg>: the user full name.</li><li><strong><code>password</code></stromg>: the user password.</li><li><strong><code>email</code></stromg>: the user e-mail address.</li><li><strong><code>language</code></stromg>: the user preferred language code.</li></ul></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the nwly created user object.</p><p>The service expects the <em>users</em> collection to be empty, if that is not the case, it will raise an exception.</p>"
     }
   }
 ]

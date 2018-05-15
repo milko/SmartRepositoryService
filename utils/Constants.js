@@ -266,7 +266,7 @@ module.exports = Object.freeze(
 			MissingSession		:  2,
 			UserNotFound		:  3,
 			BadPassword			:  4,
-			CannotSaveAdmin		:  5,
+			BadToken			:  5,
 			AdminFirstUser		:  6,
 			UserMustBeManaged	:  7,
 			CannotManageUsers	:  8,
@@ -321,7 +321,8 @@ module.exports = Object.freeze(
 			UnknownCastFunc		: 57,
 			MustBeArray			: 58,
 			UnknownCustomFunc	: 59,
-			MustBeScalar		: 60
+			MustBeScalar		: 60,
+			CannotRegisterUser	: 61
 		},
 
 		//
@@ -340,6 +341,15 @@ module.exports = Object.freeze(
 						ddict	: 'DDICT'			// missing data dictionary data.
 					}
 				}
+			}
+		},
+		
+		//
+		// Globals.
+		//
+		globals : {
+			user : {
+				sysadm			: 'admin'			// System administrator's username.
 			}
 		},
 

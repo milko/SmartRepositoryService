@@ -71,7 +71,7 @@ module.exports = {
 	 *
 	 * Login user.
 	 *
-	 * Logs user in and returns its record: { user ; <user> }.
+	 * Logs user in and returns its record: { user : <user> }.
 	 *
 	 * The service throws the following exceptions:
 	 * 	- User not found: 404.

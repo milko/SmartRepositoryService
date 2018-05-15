@@ -523,7 +523,7 @@ module.exports = {
 	 * 					the previous parameter explanations.
 	 * 	- doLanguage:	A boolean flag, if true, the label, definition, description,
 	 * 					notes and examples fields will be restricted to the current
-	 * 					session's user preferred language, this means that the
+	 * 					session's signUp preferred language, this means that the
 	 * 					properties, instead of being objects indexed by the language
 	 * 					code, they will be the value corresponding to the session's
 	 * 					language; if the language cannot be matched, the field will

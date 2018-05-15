@@ -520,3 +520,37 @@ router.post(
 	.description(dd`
   The service will test the Application.decode() method.
 `);
+
+
+/**
+ * Get administrator token
+ *
+ * The service will return the administrator token.
+ *
+ * @path		/token/admin
+ * @verb		get
+ * @response	{String}	The administrator token.
+ */
+router.get(
+	'/token/admin',
+	(request, response) =>
+	{
+		const test_module = require( '../../utils/Application' );
+		const auth = test_module.adminAuthentication( false );
+		const token = test_module.encode( auth.key, auth );
+		
+		response.send( token );
+	},
+	'tokenAdmin'
+)
+	.response(
+		200,
+		[ 'application/text' ],
+		"Administrator token"
+	)
+	.summary(
+		"Retrieve administrator token."
+	)
+	.description(dd`
+  The service will return the administrator token.
+`);

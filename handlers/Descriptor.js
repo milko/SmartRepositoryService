@@ -57,18 +57,18 @@ module.exports = {
 			//
 			// Normalise parameter.
 			//
-			if( ! Array.isArray( theRequest.body ) )
-				theRequest.body = [ theRequest.body ];
+			if( ! Array.isArray( theRequest.body.param ) )
+				theRequest.body.param = [ theRequest.body.param ];
 
 			//
 			// Handle all descriptors.
 			//
-			if( theRequest.body.length === 0 )
+			if( theRequest.body.param.length === 0 )
 			{
 				//
 				// Query descriptors.
 				//
-				theRequest.body =
+				theRequest.body.param =
 					db._query( aql`
 						FOR doc in ${collection}
 						RETURN doc._key
@@ -78,7 +78,7 @@ module.exports = {
 			//
 			// Iterate descriptors.
 			//
-			for( const reference of theRequest.body )
+			for( const reference of theRequest.body.param )
 			{
 				//
 				// Get descriptor.

@@ -37,7 +37,7 @@ module.exports = {
 	 *	- The user full name.
 	 *	- The user's preferred language.
 	 *	- The user rank.
-	 *	- The User's roles.
+	 *	- The user's roles.
 	 *	- The user status.
 	 *
 	 * @param theResponse	{Object}	The service response.

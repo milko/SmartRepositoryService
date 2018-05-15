@@ -7,9 +7,12 @@ const db = require('@arangodb').db;
 const aql = require('@arangodb').aql;
 
 //
-// Classes.
+// Application.
 //
-const Descriptor = require( '../classes/Descriptor' );
+const K = require( '../utils/Constants' );
+const Dict = require( '../dictionary/Dict' );
+const MyError = require( '../utils/MyError' );
+const Application = require( '../utils/Application' );
 
 /**
  * User middleware services
@@ -33,8 +36,8 @@ module.exports = {
 		 *
 		 * The middleware expects the users collection to exist.
 		 *
-		 * @param theRequest	{function}	The request.
-		 * @param theResponse	{function}	The response.
+		 * @param theRequest	{Object}	The request.
+		 * @param theResponse	{Object}	The response.
 		 */
 		noUsers : ( theRequest, theResponse ) =>
 		{
@@ -55,7 +58,7 @@ module.exports = {
 						K.error.AdminFirstUser,
 						theRequest.application.language
 					)
-				);															// !@! ==>
+				);																// !@! ==>
 			
 		},	// noUsers
 		
@@ -64,8 +67,8 @@ module.exports = {
 		 *
 		 * This middleware will check if there is a current user in the session.
 		 *
-		 * @param theRequest	{function}	The request.
-		 * @param theResponse	{function}	The response.
+		 * @param theRequest	{Object}	The request.
+		 * @param theResponse	{Object}	The response.
 		 */
 		hasUser : ( theRequest, theResponse ) =>
 		{
@@ -80,7 +83,7 @@ module.exports = {
 						K.error.AdminFirstUser,
 						theRequest.application.language
 					)
-				);															// !@! ==>
+				);																// !@! ==>
 			
 		},	// hasUser
 		
@@ -91,16 +94,11 @@ module.exports = {
 		 *
 		 * Must call 'hasUser' before this.
 		 *
-		 * @param theRequest	{function}	The request.
-		 * @param theResponse	{function}	The response.
+		 * @param theRequest	{Object}	The request.
+		 * @param theResponse	{Object}	The response.
 		 */
 		canManage : ( theRequest, theResponse ) =>
 		{
-			//
-			// Init framework.
-			//
-			const Dict = require( '../ddict/Dict' );
-			
 			//
 			// Ensure user can manage.
 			//
@@ -112,9 +110,87 @@ module.exports = {
 						K.error.CannotManageUsers,		// Error code.
 						theRequest.application.language	// Error language.
 					)
-				);															// !@! ==>
+				);																// !@! ==>
 			
-		}	// canManage
+		},	// canManage
+		
+		/**
+		 * Assert administrator token
+		 *
+		 * This middleware will check if the provided administrator token is valid.
+		 *
+		 * @param theRequest	{Object}	The request.
+		 * @param theResponse	{Object}	The response.
+		 */
+		tokenAdmin : ( theRequest, theResponse ) =>
+		{
+			//
+			// Get authentication data.
+			//
+			const auth = Application.adminAuthentication( false );
+			
+			//
+			// Decode token.
+			//
+			const decoded = Application.decode( auth.key, theRequest.body.token );
+			
+			//
+			// Match decoded.
+			//
+			if( (decoded === null)
+			 || (! decoded.hasOwnProperty( 'code' ))
+			 || (! decoded.hasOwnProperty( 'pass' ))
+			 || (decoded.code !== auth.code)
+			 || (decoded.pass !== auth.pass))
+				theResponse.throw(
+					403,
+					new MyError(
+						'AuthFailed',					// Error name.
+						K.error.CannotCreateAdmin,		// Error code.
+						theRequest.application.language	// Error language.
+					)
+				);																// !@! ==>
+			
+		},	// tokenAdmin
+		
+		/**
+		 * Assert user token
+		 *
+		 * This middleware will check if the provided user token is valid.
+		 *
+		 * @param theRequest	{Object}	The request.
+		 * @param theResponse	{Object}	The response.
+		 */
+		tokenUser : ( theRequest, theResponse ) =>
+		{
+			//
+			// Get authentication data.
+			//
+			const auth = Application.userAuthentication( false );
+			
+			//
+			// Decode token.
+			//
+			const decoded = Application.decode( auth.key, theRequest.body.token );
+			
+			//
+			// Match decoded.
+			//
+			if( (decoded === null)
+			 || (! decoded.hasOwnProperty( 'code' ))
+			 || (! decoded.hasOwnProperty( 'pass' ))
+			 || (decoded.code !== auth.code)
+			 || (decoded.pass !== auth.pass))
+				theResponse.throw(
+					403,
+					new MyError(
+						'AuthFailed',					// Error name.
+						K.error.CannotRegisterUser,		// Error code.
+						theRequest.application.language	// Error language.
+					)
+				);																// !@! ==>
+			
+		}	// tokenUser
 		
 	}	// assert
 };

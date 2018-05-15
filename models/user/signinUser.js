@@ -4,33 +4,25 @@
 // Frameworks.
 //
 const Joi = require('joi');
+const _ = require('lodash');
 
 /**
- * Update validation structure
+ * Register user
  *
- * This schema is used to check parameters destined to the updateValidation service,
- * it expects the body to be an object with a 'param' property holding one of the
- * following:
- *
- * 	- A string:				The string is expected to be a descriptor _id or _key.
- * 	- An array of strings:	The array elements are expected to be a descriptor _id or _key.
- * 	- An empty array:		All descriptors will be updated.
- *
- * @type {Object}
+ * This schema is used to register a user, the schema will validate the main service
+ * contents, that is, ensure the token and the user object are provided; the detailed
+ * validation will be performed by the handler.
  */
 module.exports = {
-
+	
 	/**
 	 * Parameters schema
 	 */
 	schema : Joi.object({
-		param: Joi.alternatives().try(
-			Joi.string().required(),
-			Joi.array().items( Joi.string() ).required(),
-			Joi.array().required()
-		).required()
+		token: Joi.string().required(),
+		data:  Joi.object().required()
 	}).required(),
-
+	
 	/**
 	 * Transform response
 	 *
@@ -41,9 +33,28 @@ module.exports = {
 	 */
 	forClient( theResponse )
 	{
+		//
+		// Framework.
+		//
+		const Dict = require( '../../dictionary/Dict' );
+		
+		//
+		// Omit private properties.
+		//
+		theResponse.result = _.omit(
+			theResponse.result,
+			[
+				'_id',						// ID.
+				'_key',						// Key.
+				'_rev',						// Revision.
+				'_oldRev',					// Old revision.
+				Dict.descriptor.kAuthData	// Authentication data.
+			]
+		);
+		
 		return theResponse;															// ==>
 	},
-
+	
 	/**
 	 * Transform request
 	 *

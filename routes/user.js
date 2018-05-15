@@ -1,161 +1,88 @@
-/*
 'use strict';
 
+/**
+ * User services
+ *
+ * This path is used to handle user services.
+ */
 
-const dd = require('dedent');
-const db = require('@arangodb').db;
-const joi = require('joi');
-const httpError = require('http-errors');
-const status = require('statuses');
-const errors = require('@arangodb').errors;
-const createRouter = require('@arangodb/foxx/router');
-const User = require('../models/user');
+//
+// Frameworks.
+//
+const dd = require('dedent');							// For multiline text.
+const Joi = require('joi');								// Validation framework.
+const createRouter = require('@arangodb/foxx/router');	// Router class.
 
-const users = db._collection('users');
-const keySchema = joi.string().required()
-	.description('The key of the user');
+//
+// Application.
+//
+const Application = require( '../utils/Application' );	// Application.
 
-const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
-const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
-const ARANGO_CONFLICT = errors.ERROR_ARANGO_CONFLICT.code;
-const HTTP_NOT_FOUND = status('not found');
-const HTTP_CONFLICT = status('conflict');
+//
+// Handlers.
+//
+const Handlers = require( '../handlers/User' );			// User handlers.
 
+//
+// Instantiate router.
+//
 const router = createRouter();
 module.exports = router;
-router.tag('user');
+
+//
+// Set router tags.
+//
+router.tag( 'user' );
 
 
-router.get(function (req, res) {
-	res.send(users.all());
-}, 'list')
-	.response([User], 'A list of users.')
-	.summary('List all users')
-	.description(dd`
-  Retrieves a list of all users.
-`);
+/**
+ * Create administrator user
+ *
+ * The service will create the system administrator user, it expects the post body to
+ * contain the following fields:
+ *
+ * 	- token:	The administrator authentication token.
+ * 	- data:		The contents of the administrator form:
+ * 		- name:		The user full name.
+ * 		- password:	The user password.
+ * 		- email:	The user e-mail address.
+ * 		- language:	The user preferred language.
+ *
+ * The service returns an object { result : <value> } where the value
+ * represents the newly created user.
+ *
+ * The service will perform the following assertions:
+ *
+ * 	- Assert there are no users in the users collection.
+ * 	- Assert the token is validated.
+ * 	- Validate the form contents.
+ *
+ * The service may raise an exceprion, the HTTP code depends on the exception
+ * class: if MyError and it contains the HTTP code, this will be used, in all
+ * other cases, the code will be 500.
+ *
+ * @path		/user/admin
+ * @verb		post
+ * @request		{Object}	Term reference(s) and optional enumerations list.
+ * @response	{Object}	The result.
+ */
+router.post( '/user/admin', Handlers.admin, 'admin' )
+	.body(
+		require( '../models/user/signinUser' ),
+		Application.getServiceDescription(
+			'user', 'admin', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/user/signinUser' ),
+		Application.getServiceDescription(
+			'user', 'admin', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Create system administrator user."
+	)
+	.description(
+		Application.getServiceDescription(
+			'user', 'admin', 'description', module.context.configuration.defaultLanguage )
+	);
 
-
-router.post(function (req, res) {
-	const user = req.body;
-	let meta;
-	try {
-		meta = users.save(user);
-	} catch (e) {
-		if (e.isArangoError && e.errorNum === ARANGO_DUPLICATE) {
-			throw httpError(HTTP_CONFLICT, e.message);
-		}
-		throw e;
-	}
-	Object.assign(user, meta);
-	res.status(201);
-	res.set('location', req.makeAbsolute(
-		req.reverse('detail', {key: user._key})
-	));
-	res.send(user);
-}, 'create')
-	.body(User, 'The user to create.')
-	.response(201, User, 'The created user.')
-	.error(HTTP_CONFLICT, 'The user already exists.')
-	.summary('Create a new user')
-	.description(dd`
-  Creates a new user from the request body and
-  returns the saved document.
-`);
-
-
-router.get(':key', function (req, res) {
-	const key = req.pathParams.key;
-	let user
-	try {
-		user = users.document(key);
-	} catch (e) {
-		if (e.isArangoError && e.errorNum === ARANGO_NOT_FOUND) {
-			throw httpError(HTTP_NOT_FOUND, e.message);
-		}
-		throw e;
-	}
-	res.send(user);
-}, 'detail')
-	.pathParam('key', keySchema)
-	.response(User, 'The user.')
-	.summary('Fetch a user')
-	.description(dd`
-  Retrieves a user by its key.
-`);
-
-
-router.put(':key', function (req, res) {
-	const key = req.pathParams.key;
-	const user = req.body;
-	let meta;
-	try {
-		meta = users.replace(key, user);
-	} catch (e) {
-		if (e.isArangoError && e.errorNum === ARANGO_NOT_FOUND) {
-			throw httpError(HTTP_NOT_FOUND, e.message);
-		}
-		if (e.isArangoError && e.errorNum === ARANGO_CONFLICT) {
-			throw httpError(HTTP_CONFLICT, e.message);
-		}
-		throw e;
-	}
-	Object.assign(user, meta);
-	res.send(user);
-}, 'replace')
-	.pathParam('key', keySchema)
-	.body(User, 'The data to replace the user with.')
-	.response(User, 'The new user.')
-	.summary('Replace a user')
-	.description(dd`
-  Replaces an existing user with the request body and
-  returns the new document.
-`);
-
-
-router.patch(':key', function (req, res) {
-	const key = req.pathParams.key;
-	const patchData = req.body;
-	let user;
-	try {
-		users.update(key, patchData);
-		user = users.document(key);
-	} catch (e) {
-		if (e.isArangoError && e.errorNum === ARANGO_NOT_FOUND) {
-			throw httpError(HTTP_NOT_FOUND, e.message);
-		}
-		if (e.isArangoError && e.errorNum === ARANGO_CONFLICT) {
-			throw httpError(HTTP_CONFLICT, e.message);
-		}
-		throw e;
-	}
-	res.send(user);
-}, 'update')
-	.pathParam('key', keySchema)
-	.body(joi.object().description('The data to update the user with.'))
-	.response(User, 'The updated user.')
-	.summary('Update a user')
-	.description(dd`
-  Patches a user with the request body and
-  returns the updated document.
-`);
-
-
-router.delete(':key', function (req, res) {
-	const key = req.pathParams.key;
-	try {
-		users.remove(key);
-	} catch (e) {
-		if (e.isArangoError && e.errorNum === ARANGO_NOT_FOUND) {
-			throw httpError(HTTP_NOT_FOUND, e.message);
-		}
-		throw e;
-	}
-}, 'delete')
-	.pathParam('key', keySchema)
-	.response(null)
-	.summary('Remove a user')
-	.description(dd`
-  Deletes a user from the database.
-`);
-*/

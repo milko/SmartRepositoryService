@@ -30,7 +30,7 @@ module.exports = {
 	 *	- The user full name.
 	 *	- The user's preferred language.
 	 *	- The user rank.
-	 *	- The User's roles.
+	 *	- The user's roles.
 	 *	- The user status.
 	 *
 	 * @returns {Object}	Session user schema.
