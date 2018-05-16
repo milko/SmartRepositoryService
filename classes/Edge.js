@@ -59,6 +59,52 @@ class Edge
 	}	// constructor
 	
 	/**
+	 * Resolve document
+	 *
+	 * This method will attempt to load the edge corresponding to the current object
+	 * data, if the operation is successful, the method will load the found document
+	 * excluding the current object data and return true; if the document could not be
+	 * resolved, the method will return false.
+	 *
+	 * @param theCollection	{String}	The collection to test.
+	 * @returns {Boolean}				True if found.
+	 */
+	resolve( theCollection )
+	{
+		//
+		// Set query parameter.
+		//
+		const query = {};
+		query._from = this.data._from;
+		query._to = this.data._to;
+		query[ Dict.descriptor.kPredicate ] = this.data[ Dict.descriptor.kPredicate ];
+		
+		//
+		// Check collection.
+		//
+		const found = db._collection( theCollection ).firstExample( query );
+		if( found !== null )
+		{
+			//
+			// Load document.
+			//
+			for( const field in found )
+			{
+				if( (field === '_id')
+				 || (field === '_key')
+				 || (field === '_rev')
+				 || (! this.data.hasOwnProperty( field )) )
+					this.data[ field ] = found[ field ];
+			}
+			
+			return true;															// ==>
+		}
+		
+		return false;																// ==>
+		
+	}	// resolve
+	
+	/**
 	 * Set key
 	 *
 	 * This method will set the edge key by hashing the _from, _to and predicate

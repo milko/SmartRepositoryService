@@ -15,6 +15,8 @@ module.context.use('/test/Log', require('./routes/test/Log'), 'testLog');
 module.context.use('/test/Utils', require('./routes/test/Utils'), 'testUtils');
 module.context.use('/test/Errors', require('./routes/test/MyError'), 'testErrors');
 module.context.use('/test/Form', require('./routes/test/Form'), 'testForm');
+module.context.use('/test/User', require('./routes/test/User'), 'testUser');
+module.context.use('/test/Edge', require('./routes/test/Edge'), 'testEdge');
 module.context.use('/test/Schema', require('./routes/test/Schema'), 'testSchema');
 module.context.use('/test/Descriptor', require('./routes/test/Descriptor'), 'testDescriptor');
 module.context.use('/test/Validation', require('./routes/test/Validation'), 'testValidation');

@@ -33,7 +33,7 @@ const Edge = require( './Edge' );
  *
  * The class expects all required collections to exist.
  */
-class EdgeOption extends Edge
+class EdgeAttribute extends Edge
 {
 	/**
 	 * Constructor
@@ -68,6 +68,58 @@ class EdgeOption extends Edge
 	}	// constructor
 	
 	/**
+	 * Resolve document
+	 *
+	 * This method will attempt to load the edge corresponding to the current object
+	 * data, if the operation is successful, the method will load the found document
+	 * excluding the current object data and return true; if the document could not be
+	 * resolved, the method will return false.
+	 *
+	 * @param theCollection	{String}	The collection to test.
+	 * @returns {Boolean}				True if found.
+	 */
+	resolve( theCollection )
+	{
+		//
+		// Query the database.
+		//
+		const found =
+			db._query( aql`
+				FOR doc IN ${db._collection(theCollection)}
+					FILTER doc._from == ${this.data._from}
+					   AND doc._to == ${this.data._to}
+					   AND doc.${Dict.descriptor.kPredicate} == ${this.data[Dict.descriptor.kPredicate]}
+					   AND doc.${Dict.descriptor.kAttributes} == ${this.data[Dict.descriptor.kAttributes]}
+					RETURN doc
+				`);
+		
+		//
+		// Check if unique.
+		//
+		if( found.count() === 1 )
+		{
+			//
+			// Load document.
+			//
+			const document = found.next();
+			for( const field in document )
+			{
+				if( (field === '_id')
+				 || (field === '_key')
+				 || (field === '_rev')
+				 || (! this.data.hasOwnProperty( field )) )
+					this.data[ field ] = document[ field ];
+			}
+			
+			return true;															// ==>
+			
+		}	// Found one.
+		
+		return false;																// ==>
+		
+	}	// resolve
+	
+	/**
 	 * Set key
 	 *
 	 * This method will set the edge key by hashing the _from, _to and predicate
@@ -94,6 +146,6 @@ class EdgeOption extends Edge
 		
 	}	// setKey
 	
-}	// EdgeOption.
+}	// EdgeAttribute.
 
-module.exports = EdgeOption;
+module.exports = EdgeAttribute;

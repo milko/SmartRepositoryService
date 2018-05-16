@@ -156,6 +156,12 @@
     }
   },
   {
+    "_key" : "BadUserReference",
+    "label" : {
+      "ISO:639:3:eng" : "Invalid user reference: "
+    }
+  },
+  {
     "_key" : "BadBaseType",
     "label" : {
       "ISO:639:3:eng" : "Invalid base data type: "
