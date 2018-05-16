@@ -325,7 +325,14 @@ module.exports = Object.freeze(
 			CannotRegisterUser	: 61,
 			NoCurrentUser		: 62,
 			UserExists			: 63,
-			EdgeExists			: 64
+			EdgeExists			: 64,
+			EdgeNotFound		: 65,
+			AmbiguousEdge		: 66,
+			IdMismatch			: 67,
+			KeyMismatch			: 68,
+			MissingField		: 69,
+			ExpectingEdgeColl	: 70,
+			EdgeAttrExists		: 71
 		},
 
 		//

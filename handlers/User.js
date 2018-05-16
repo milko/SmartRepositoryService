@@ -268,7 +268,7 @@ module.exports = {
 			// Handle MyError exceptions.
 			//
 			if( (error.constructor.name === 'MyError')
-				&& error.hasOwnProperty( 'param_http' ) )
+			 && error.hasOwnProperty( 'param_http' ) )
 				theResponse.throw( error.param_http, error );					// !@! ==>
 			
 			//

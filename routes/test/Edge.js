@@ -57,12 +57,11 @@ router.tag( 'testEdge' );
 /**
  * Test edge creation
  *
- * The service will instantiate an edge and return its data, it expects two parameters
- * in the POST body:
+ * The service will instantiate an edge and return its data, it expects the following
+ * parameters in the POST body:
  *
- * 	- from:			Source reference.
- * 	- to:			Destination reference.
- * 	- predicate:	Predicate reference.
+ * 	- collection:	Collection name.
+ * 	- reference:	Either an edge reference or an edge object.
  *
  * @path		/instantiate/edge
  * @verb		post
@@ -86,20 +85,34 @@ router.post
 			//
 			// Instantiate edge.
 			//
-			const edge = new Edge(
-				request.body.from,
-				request.body.to,
-				request.body.predicate
-			);
+			const edge =
+				new Edge(
+					request,
+					request.body.collection,
+					request.body.reference
+				);
 			
 			//
 			// Resolve edge.
 			//
-			const resolved = edge.resolve( 'schemas' );
+			if( ! edge.data.hasOwnProperty( '_rev' ) )
+				edge.resolve( true, false );
+			
+			//
+			// Validate edge.
+			//
+			edge.validate();
+			
+			//
+			// Insert edge.
+			//
+			if( ! edge.isPersistent() )
+				edge.insert();
 			
 			response.send({
+				collection: edge.getCollection().toString(),
+				resolved : edge.isPersistent(),
 				data : edge.getData(),
-				resolved : resolved,
 				time : time() - stamp
 			});
 		}
@@ -124,17 +137,20 @@ router.post
 )
 	.body(
 		Joi.object({
-			from : Joi.string().required(),
-			to : Joi.string().required(),
-			predicate : Joi.string().required()
+			collection : Joi.string().required(),
+			reference : Joi.alternatives().try(
+				Joi.string().required(),
+				Joi.object().required()
+			).required()
 		}).required(),
-		"an object with 'from' as _from, 'to' as _to and 'predicate' as the predicate."
+		"The collection name and the edge reference or object."
 	)
 	.response(
 		200,
 		Joi.object({
-			data : Joi.object(),
+			collection : Joi.string(),
 			resolved : Joi.boolean(),
+			data : Joi.object(),
 			time : Joi.number()
 		}),
 		"The result: 'data' contains the resolved edge and 'time' contains the elapsed time."

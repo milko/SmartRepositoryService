@@ -162,6 +162,24 @@
     }
   },
   {
+    "_key" : "BadEdgeReference",
+    "label" : {
+      "ISO:639:3:eng" : "Invalid edge reference: "
+    }
+  },
+  {
+    "_key" : "AmbiguousEdgeReference",
+    "label" : {
+      "ISO:639:3:eng" : "Ambiguous edge reference: "
+    }
+  },
+  {
+    "_key" : "IncompleteEdgeObject",
+    "label" : {
+      "ISO:639:3:eng" : "Incomplete edge object: "
+    }
+  },
+  {
     "_key" : "BadBaseType",
     "label" : {
       "ISO:639:3:eng" : "Invalid base data type: "
