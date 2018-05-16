@@ -322,7 +322,10 @@ module.exports = Object.freeze(
 			MustBeArray			: 58,
 			UnknownCustomFunc	: 59,
 			MustBeScalar		: 60,
-			CannotRegisterUser	: 61
+			CannotRegisterUser	: 61,
+			NoCurrentUser		: 62,
+			UserExists			: 63,
+			EdgeExists			: 64
 		},
 
 		//

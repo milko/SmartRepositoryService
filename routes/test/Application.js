@@ -554,3 +554,37 @@ router.get(
 	.description(dd`
   The service will return the administrator token.
 `);
+
+
+/**
+ * Get user token
+ *
+ * The service will return the user token.
+ *
+ * @path		/token/user
+ * @verb		get
+ * @response	{String}	The user token.
+ */
+router.get(
+	'/token/user',
+	(request, response) =>
+	{
+		const test_module = require( '../../utils/Application' );
+		const auth = test_module.userAuthentication( false )
+		const token = test_module.encode( auth.key, auth );
+		
+		response.send( token );
+	},
+	'tokenUser'
+)
+	.response(
+		200,
+		[ 'application/text' ],
+		"User token"
+	)
+	.summary(
+		"Retrieve user token."
+	)
+	.description(dd`
+  The service will return the user authentication token.
+`);

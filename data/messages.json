@@ -366,6 +366,24 @@
     }
   },
   {
+    "_key" : "e62",
+    "label" : {
+      "ISO:639:3:eng" : "no current user, please log in."
+    }
+  },
+  {
+    "_key" : "e63",
+    "label" : {
+      "ISO:639:3:eng" : "user already exists."
+    }
+  },
+  {
+    "_key" : "e64",
+    "label" : {
+      "ISO:639:3:eng" : "edge [@1arg@] ==> [@2arg@] with predicate [@3arg@] already exists."
+    }
+  },
+  {
     "_key": "s:schema:enumIsChoice",
     "body": {
       "ISO:639:3:eng": "<p>The service expects two parameters from the request body:</p><ul><li><strong>term</strong>: The reference(s) to the term to test as its <code>_id</code> or <code>_key</code>: it can be provided as a <em>string</em>, or as an <em>array</em> of strings.</li><li><strong>enum</strong>: An array of term <code>_id</code> or <code>_key</code> values which represent the set of enumerations to which the term should belong. To ignore enumeration membership, provide either an <em>empty array</em> or <code>null</code>, which is the default choice.</li></ul>"

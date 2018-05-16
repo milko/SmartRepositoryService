@@ -5,8 +5,14 @@
 //
 const db = require('@arangodb').db;
 const aql = require('@arangodb').aql;
-const crypto = require('@arangodb/crypto');			// Cryptographic functions.
-const createAuth = require('@arangodb/foxx/auth');	// Authentication framework.
+const crypto = require('@arangodb/crypto');
+const createAuth = require('@arangodb/foxx/auth');
+
+//
+// Errors.
+//
+const errors = require('@arangodb').errors;
+const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
 
 //
 // Application.
@@ -14,6 +20,7 @@ const createAuth = require('@arangodb/foxx/auth');	// Authentication framework.
 const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
+const Edge = require( '../classes/Edge' );
 const Schema = require( '../classes/Schema' );
 const Application = require( '../utils/Application' );
 
@@ -150,7 +157,7 @@ module.exports = {
 			// Handle MyError exceptions.
 			//
 			if( (error.constructor.name === 'MyError')
-			 && error.hasOwnProperty( 'param_http' ) )
+				&& error.hasOwnProperty( 'param_http' ) )
 				http = error.param_http;
 			
 			theResponse.throw( http, error );									// !@! ==>
@@ -161,8 +168,14 @@ module.exports = {
 	/**
 	 * Signup user
 	 *
-	 * The service can be used to register a new user, the service will perform the
-	 * following steps:
+	 * The service can be used to register a new user, it expects the user
+	 * authentication token and the signup form contents in the respective 'token' and
+	 * 'data' fields in the POST body.
+	 *
+	 * The service will return a string token that will be used when the user will
+	 * signin, it is the encoded signup user's username and password.
+	 *
+	 * The service will perform the following steps:
 	 *
 	 * 	- Assert there is a current user in the session.
 	 * 	- Assert the current user can manage other users.
@@ -170,13 +183,11 @@ module.exports = {
 	 * 	- Validate form data.
 	 * 	- Set the user status to pending.
 	 * 	- Set username and password.
-	 * 	- Encode the user record.
+	 * 	- Encode the username and password.
 	 * 	- Create the authorisation data.
 	 * 	- Insert the user.
 	 * 	- Set the user manager.
 	 * 	- Return the encoded user record token.
-	 *
-	 * The service returns the encoded user record as an encoded string token.
 	 *
 	 * If the method raises an exception, the service will forward it using the
 	 * HTTP code if the exception is of class MyError.
@@ -190,6 +201,10 @@ module.exports = {
 		//
 		// Globals.
 		//
+		let http = 500;
+		let meta = null;
+		let link = null;
+		let token = null;
 		const form_admin = Dict.term.kFormSignup;
 		
 		//
@@ -217,16 +232,22 @@ module.exports = {
 			if( ! user.hasOwnProperty( Dict.descriptor.kUsername ) )
 				user[ Dict.descriptor.kUsername ] =
 					user[ Dict.descriptor.kEmail ];
-			user[ Dict.descriptor.kPassword ] = crypto.genRandomAlphaNumbers( 32 );
+			user[ Dict.descriptor.kPassword ] = crypto.genRandomAlphaNumbers( 48 );
+			if( ! user.hasOwnProperty( Dict.descriptor.kLanguage ) )
+				user[ Dict.descriptor.kLanguage ] =
+					module.context.configuration.defaultLanguage;
 			user[ Dict.descriptor.kStatus ] = Dict.term.kStateStatusPending;
 			
 			//
 			// Generate token.
 			//
-			const token =
+			const encode = {};
+			encode[ Dict.descriptor.kUsername ] = user[ Dict.descriptor.kUsername ];
+			encode[ Dict.descriptor.kPassword ] = user[ Dict.descriptor.kPassword ];
+			token =
 				Application.encode(
 					Application.userAuthentication( false ).key,
-					user
+					encode
 				);
 			
 			//
@@ -239,20 +260,59 @@ module.exports = {
 			//
 			// Insert user.
 			//
-			const meta = db._collection( 'users' ).insert( user );
-			
-			//
-			// Return response.
-			//
-			theResponse.send({ result : token });
+			meta = db._collection( 'users' ).insert( user );
 		}
 		catch( error )
 		{
 			//
-			// Init local storage.
+			// Handle MyError exceptions.
 			//
-			let http = 500;
+			if( (error.constructor.name === 'MyError')
+				&& error.hasOwnProperty( 'param_http' ) )
+				theResponse.throw( error.param_http, error );					// !@! ==>
 			
+			//
+			// Handle unique constraint error.
+			//
+			else if( error.isArangoError
+				  && (error.errorNum === ARANGO_DUPLICATE) )
+				theResponse.throw(
+					400,
+					new MyError(
+						'InsertUser',						// Error name.
+						K.error.UserExists,					// Message code.
+						theRequest.application.language		// Language.
+					)
+				);																// !@! ==>
+			
+			theResponse.throw( http, error );									// !@! ==>
+		}
+		
+		//
+		// Set manager link.
+		//
+		try
+		{
+			//
+			// Get current user.
+			// SHOULD NOT FAIL.
+			//
+			const manager =
+				db._collection( 'users' )
+					.firstExample(
+						Dict.descriptor.kUsername,
+						theRequest.application.user[ Dict.descriptor.kUsername ]
+					);
+			
+			//
+			// Build edge.
+			//
+			const edge = new Edge( meta._id, manager._id, `terms/${Dict.term.kPredicateManagedBy}` );
+			link = edge.getData();
+			db._collection( 'schemas' ).insert( link );
+		}
+		catch( error )
+		{
 			//
 			// Handle MyError exceptions.
 			//
@@ -260,8 +320,28 @@ module.exports = {
 			 && error.hasOwnProperty( 'param_http' ) )
 				http = error.param_http;
 			
+			//
+			// Handle unique constraint error.
+			//
+			else if( error.isArangoError
+				  && (error.errorNum === ARANGO_DUPLICATE) )
+				theResponse.throw(
+					400,
+					new MyError(
+						'InsertEdge',						// Error name.
+						K.error.EdgeExists,					// Message code.
+						theRequest.application.language,	// Language.
+						[ link._from, link._to, link[ Dict.descriptor.kPredicate ] ]
+					)
+				);																// !@! ==>
+			
 			theResponse.throw( http, error );									// !@! ==>
 		}
+		
+		//
+		// Return response.
+		//
+		theResponse.send({ result : token });
 		
 	}	// signUp
 };

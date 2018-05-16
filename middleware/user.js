@@ -80,7 +80,7 @@ module.exports = {
 					409,
 					new MyError(
 						'ServiceUnavailable',
-						K.error.AdminFirstUser,
+						K.error.NoCurrentUser,
 						theRequest.application.language
 					)
 				);																// !@! ==>
@@ -102,7 +102,7 @@ module.exports = {
 			//
 			// Ensure user can manage.
 			//
-			if( ! theRequest.use.role.includes( Dict.term.kRoleUser ) )
+			if( ! theRequest.application.user.role.includes( Dict.term.kRoleUser ) )
 				theResponse.throw(
 					403,
 					new MyError(

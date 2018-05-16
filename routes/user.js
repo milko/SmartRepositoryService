@@ -140,7 +140,7 @@ router.post( '/signup', Handlers.signUp, 'signup' )
 	)
 	.response(
 		200,
-		require( '../models/user/signupUser' ),
+		Joi.string().required(),
 		Application.getServiceDescription(
 			'user', 'signup', 'response', module.context.configuration.defaultLanguage )
 	)
