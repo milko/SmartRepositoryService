@@ -161,3 +161,112 @@ router.post
 	.description(dd`
   Instantiates and returns an edge object
 `);
+
+
+/**
+ * Test attribute edge creation
+ *
+ * The service will instantiate an attribute edge and return its data, it expects the
+ * following parameters in the POST body:
+ *
+ * 	- collection:	Collection name.
+ * 	- reference:	Either an edge reference or an edge object.
+ *
+ * @path		/instantiate/edgeAttr
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post
+(
+	'/instantiate/edgeAttr',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+		
+		//
+		// Test instantiation.
+		//
+		try
+		{
+			//
+			// Instantiate edge.
+			//
+			const edge =
+				new EdgeAttribute(
+					request,
+					request.body.collection,
+					request.body.reference
+				);
+			
+			//
+			// Resolve edge.
+			//
+			if( ! edge.data.hasOwnProperty( '_rev' ) )
+				edge.resolve( true, false );
+			
+			//
+			// Validate edge.
+			//
+			edge.validate();
+			
+			//
+			// Insert edge.
+			//
+			if( ! edge.isPersistent() )
+				edge.insert();
+			
+			response.send({
+				collection: edge.getCollection().toString(),
+				resolved : edge.isPersistent(),
+				data : edge.getData(),
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'instantiateEdgeAttr'
+)
+	.body(
+		Joi.object({
+			collection : Joi.string().required(),
+			reference : Joi.alternatives().try(
+				Joi.string().required(),
+				Joi.object().required()
+			).required()
+		}).required(),
+		"The collection name and the edge reference or object."
+	)
+	.response(
+		200,
+		Joi.object({
+			collection : Joi.string(),
+			resolved : Joi.boolean(),
+			data : Joi.object(),
+			time : Joi.number()
+		}),
+		"The result: 'data' contains the resolved edge and 'time' contains the elapsed time."
+	)
+	.summary(
+		"Instantiate an edge object."
+	)
+	.description(dd`
+  Instantiates and returns an edge object
+`);
