@@ -36,59 +36,50 @@ const Edge = require( './Edge' );
 class EdgeAttribute extends Edge
 {
 	/**
-	 * Resolve edge
+	 * Resolve document
 	 *
-	 * This method will attempt to load the edge corresponding to the significant
-	 * fields of the object, in this case the _from, _to, predicate and attribute
-	 * properties.
+	 * This method will attempt to load the document corresponding to the significant
+	 * fields of the object, if the document was found, its properties will be set in
+	 * the current object.
 	 *
-	 * If the edge was found, the found document properties will be set in the current
-	 * object as follows:
+	 * This method assumes the object has the necessary properties to resolve it.
 	 *
-	 * 	- _id, _key and _rev will be overwrittem by default.
-	 * 	- If doReplace is true, all other found properties will overwrite the
-	 * 	  current data.
-	 * 	- If doReplace is false, existing properties will not be replaced (default).
+	 * Please refer to the resolve() method for documentation.
 	 *
-	 * If the current object does not have the required fields to resolve it, the
-	 * method will raise an exception. The method will also raise an exception if more
-	 * than one document was found by the query. The method will raise an exception if
-	 * the resolved document _id or _key fields do not match.
-	 *
-	 * The method will return true if resolved, or false.
+	 * In this class we resolve using the _from, _to, predicate and attributes properties.
 	 *
 	 * @param doReplace	{Boolean}	Replace existing data (false is default).
+	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
+	 * 								(defaults to true).
 	 * @returns {Boolean}			True if found.
 	 */
-	resolve( doReplace = false )
+	resolveDocument( doReplace = false, doAssert = true )
 	{
 		//
-		// Check required properties.
+		// Get significant field references.
 		//
-		this.hasRequiredFields();
-		
-		//
-		// Init local storage.
-		//
-		const query = {
-			f: this.data._from,
-			t: this.data._to,
-			p: this.data[ Dict.descriptor.kPredicate ],
-			a: this.data[ Dict.descriptor.kAttributes ]
+		const pred = Dict.descriptor.kPredicate;
+		const attr = Dict.descriptor.kAttributes;
+		const refs = {
+			f: this._document._from,
+			t: this._document._to,
+			p: this._document[ pred ],
+			a: this._document[ attr ]
 		};
 		
 		//
 		// Query the collection.
 		//
+		const collection = db._collection( this._collection );
 		const cursor =
 			db._query( aql`
-				FOR doc IN ${this.collection}
-					FILTER doc._from == ${query.f}
-					   AND doc._to == ${query.t}
-					   AND doc.${Dict.descriptor.kPredicate} == ${query.p}
-					   AND doc.${Dict.descriptor.kAttributes} == ${query.a}
-					RETURN doc
-				`);
+				FOR doc IN ${collection}
+					FILTER doc._from == ${refs.f}
+					   AND doc._to == ${refs.t}
+					   AND doc.${pred} == ${refs.p}
+					   AND doc.${attr} == ${refs.a}
+				RETURN doc
+			`);
 		
 		//
 		// Check if found.
@@ -101,10 +92,10 @@ class EdgeAttribute extends Edge
 			if( cursor.count() > 1 )
 				throw(
 					new MyError(
-						'AmbiguousEdgeReference',			// Error name.
-						K.error.AmbiguousEdge,				// Message code.
+						'AmbiguousDocumentReference',		// Error name.
+						K.error.AmbiguousAttrEdge,			// Message code.
 						this.request.application.language,	// Language.
-						[ query.f, query.t, query.p, query.a.join( ', ' ) ],
+						[ refs.f, refs.t, refs.p, refs.a.join( ', ' ) ],
 						412									// HTTP error code.
 					)
 				);																// !@! ==>
@@ -112,210 +103,193 @@ class EdgeAttribute extends Edge
 			//
 			// Load found document.
 			//
-			this.addResolvedData( cursor.toArray()[ 0 ], doReplace );
+			this.loadResolvedDocument( cursor.toArray()[ 0 ], doReplace );
 			
 			//
 			// Set flag.
 			//
-			this.persistent = true;
+			this._persistent = true;
 			
 		}	// Found.
 		
-		return this.persistent;														// ==>
-		
-	}	// resolve
-	
-	/**
-	 * Insert the edge
-	 *
-	 * This method will insert the edge in the registered collection after validating
-	 * its contents.
-	 *
-	 * Any validation error or insert error will raise an exception.
-	 */
-	insert()
-	{
 		//
-		// Check contents.
+		// Handle not found.
 		//
-		this.validate();
-		
-		//
-		// Init local storage.
-		//
-		const query = {
-			f: this.data._from,
-			t: this.data._to,
-			p: this.data[ Dict.descriptor.kPredicate ],
-			a: this.data[ Dict.descriptor.kAttributes ]
-		};
-		
-		//
-		// Try insertion.
-		//
-		try
+		else
 		{
 			//
-			// Insert.
+			// Assert not found.
 			//
-			const meta = this.collection.insert( this.getData() );
-			
-			//
-			// Update metadata.
-			//
-			this.data._id = meta._id;
-			this.data._key = meta._key;
-			this.data._rev = meta._rev;
-			
-			//
-			// Set persistent flag.
-			//
-			this.persistent = true;
-		}
-		catch( error )
-		{
-			//
-			// Handle unique constraint error.
-			//
-			if( error.isArangoError
-			 && (error.errorNum === ARANGO_DUPLICATE) )
+			if( doAssert )
+			{
+				//
+				// Build reference.
+				//
+				const reference = [];
+				reference.push( `_from = "${refs.f}"` );
+				reference.push( `_from = "${refs.t}"` );
+				reference.push( `${pred} = "${refs.p}"` );
+				reference.push( `${attr} = "${refs.a}"` );
+				
 				throw(
 					new MyError(
-						'InsertEdge',							// Error name.
-						K.error.EdgeAttrExists,					// Message code.
-						this.request.application.language,		// Language.
-						[ query.f, query.t, query.p, query.a.join( ', ' ) ],
-						409										// HTTP error code.
+						'BadDocumentReference',						// Error name.
+						K.error.EdgeAttrNotFound,					// Message code.
+						this._request.application.language,			// Language.
+						[refs.f, refs.t, refs.p, refs.a.join( ', ' ), this._collection],
+						404											// HTTP error code.
 					)
 				);																// !@! ==>
+			}
 			
-			throw( error );														// !@! ==>
+			//
+			// Set flag.
+			//
+			this._persistent = false;
 		}
 		
-	}	// insert
+		return this._persistent;													// ==>
+		
+	}	// resolveDocument
+	
+	/**
+	 * Set class
+	 *
+	 * This method will set the document class, which is the _key reference of the
+	 * term defining the document class.
+	 *
+	 * In this class there is no defined class, so the value will be null.
+	 */
+	setClass()
+	{
+		this._class = null;
+		
+	}	// setClass
+	
+	/**
+	 * Fill computed fields
+	 *
+	 * This method will take care of filling the computed fields.
+	 *
+	 * Here we set the _key property and raise an exception if the existing and
+	 * computed _key don't match.
+	 *
+	 * @param theStructure	{Structure}	The class structure object.
+	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
+	 * 									(defaults to true).
+	 * @returns {Boolean}				True if valid.
+	 */
+	validateComputed( theStructure, doAssert = true )
+	{
+		//
+		// Check if significat fields are there.
+		// Will raise an exception if false.
+		//
+		if( this.hasSignificantFields( true ) )
+		{
+			//
+			// Create hash fields.
+			// All fields are expected to have been set.
+			//
+			const hash = [];
+			hash.push( this._document._from );
+			hash.push( this._document._to );
+			hash.push( this._document[ Dict.descriptor.kPredicate ] );
+			
+			//
+			// Get key.
+			//
+			const key =
+				crypto.md5(
+					hash.concat(
+						this._document[ Dict.descriptor.kAttributes ]
+					).join( "\t" ) );
+			
+			//
+			// Check key.
+			//
+			if( this._document.hasOwnProperty( '_key' )
+				&& (key !== this._document._key) )
+			{
+				if( doAssert )
+					throw(
+						new MyError(
+							'AmbiguousDocumentReference',			// Error name.
+							K.error.KeyMismatch,					// Message code.
+							this._request.application.language,		// Language.
+							[ this._document._key, key ],			// Arguments.
+							409										// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return false;
+			}
+			
+			//
+			// Set key.
+			//
+			this._document._key = key;
+			
+			return true;															// ==>
+		}
+		
+		return false;																// ==>
+		
+	}	// validateComputed
+	
+	/**
+	 * Check required fields
+	 *
+	 * This method will check if all required fields are present, if that is the case,
+	 * the method will return true; if that is not the case the method will raise an
+	 * exception, if doAssert is true, or return false.
+	 *
+	 * Here we do nothing, since we already checked the significant fields.
+	 *
+	 * @param theStructure	{Structure}	The class structure object.
+	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
+	 * 									(defaults to true).
+	 * @returns {Boolean}				True if valid.
+	 */
+	validateRequired( theStructure, doAssert = true )
+	{
+		//
+		// Nothing to do here.
+		//
+		if( theStructure === null )
+			return true;															// ==>
+		
+		return true;																// ==>
+		
+	}	// validateRequired
 	
 	/**
 	 * Normalise object properties
 	 *
-	 * This method is called at the end of the constructor and after adding data to
-	 * the object, its duty is to eventually normalise object properties that require
-	 * processing.
-	 *
-	 * In this class we sort the attributes property, so that it represents a static
-	 * list of values.
+	 * In this method we sort the attribute elements..
 	 */
 	normaliseProperties()
 	{
 		//
 		// Normalise attributes.
 		//
-		if( this.data.hasOwnProperty( Dict.descriptor.kAttributes ) )
-			this.data[ Dict.descriptor.kAttributes ].sort();
+		if( this._document.hasOwnProperty( Dict.descriptor.kAttributes ) )
+			this._document[ Dict.descriptor.kAttributes ].sort();
 	}
 	
 	/**
-	 * Add data
+	 * Return list of significant fields
 	 *
-	 * We overload this method to ensure attributes are sorted.
-	 *
-	 * @param theData	{Object}	The object properties to add.
-	 * @param doReplace	{Boolean}	True, overwrite existing properties (defalut).
+	 * This method will return the descriptor _key names for all the significant
+	 * fields for documents of this class, this means the fields that uniquely
+	 * identify the document in the collection.
 	 */
-	addData( theData, doReplace = true )
+	getSignificantFields()
 	{
-		//
-		// Normalise attributes.
-		//
-		if( theData.hasOwnProperty( Dict.descriptor.kAttributes ) )
-			theData[ Dict.descriptor.kAttributes ].sort();
+		return super.getSignificantFields()
+			.join( [ Dict.descriptor.kAttributes ] );								// ==>
 		
-		//
-		// Call parent method.
-		//
-		super.addData( theData, doReplace );
-		
-	}	// loadDocumentData
-	
-	/**
-	 * Set key
-	 *
-	 * This method will set the edge key by hashing the _from, _to, predicate and
-	 * attributes properties, separated by a TAB character.
-	 *
-	 * If the current object is missing any of the above properties, the method will
-	 * raise an exception.
-	 */
-	setKey()
-	{
-		//
-		// Check if needed.
-		//
-		if( ! this.data.hasOwnProperty( '_key' ) )
-		{
-			//
-			// Check required properties.
-			//
-			this.hasRequiredFields();
-			
-			//
-			// Create hash fields.
-			// All fields are expected to have been set.
-			//
-			const hash = [];
-			hash.push( this.data._from );
-			hash.push( this.data._to );
-			hash.push( this.data[ Dict.descriptor.kPredicate ] );
-			
-			//
-			// Set key.
-			//
-			this.data._key =
-				crypto.md5(
-					hash.concat(
-						this.data[ Dict.descriptor.kAttributes ]
-					).join( "\t" ) );
-			
-		}	// Doesn't have key.
-		
-	}	// setKey
-	
-	/**
-	 * Assert all required fields have been set
-	 *
-	 * This method will check if any required field is missing, if you provide true in
-	 * getMad, the method will raise an exception, if false, the method will return a
-	 * boolean where true means all required fields are present.
-	 *
-	 * In this class we first call the parent method and then assert the presence of
-	 * the attributes property.
-	 *
-	 * @param getMad	{Boolean}	True raises an exception (default).
-	 * @returns {Boolean}			True if all required fields are there.
-	 */
-	hasRequiredFields( getMad = true )
-	{
-		//
-		// Check _from, _to and predicate.
-		//
-		const passed = super.hasRequiredFields( getMad );
-		if( ! passed )
-			return passed;															// ==>
-		
-		//
-		// Check required properties.
-		//
-		if( ! this.data.hasOwnProperty( Dict.descriptor.kAttributes ) )
-			throw(
-				new MyError(
-					'IncompleteObject',				// Error name.
-					K.error.MissingField,				// Message code.
-					this.request.application.language,	// Language.
-					Dict.descriptor.kAttributes,		// Arguments.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-	}	// hasSignificantFields
+	}	// getSignificantFields
 	
 }	// EdgeAttribute.
 

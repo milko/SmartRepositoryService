@@ -563,6 +563,11 @@ class Document
 				this._document[ field ] = theData[ field ];
 		}
 		
+		//
+		// Normalise properties.
+		//
+		this.normaliseProperties();
+		
 	}	// loadDocumentData
 	
 	/**

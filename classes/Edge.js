@@ -40,7 +40,7 @@ class Edge extends Document
 	 *
 	 * Please refer to the resolve() method for documentation.
 	 *
-	 * In this class we resolve using the _key property.
+	 * In this class we resolve using the _from, _to and predicate properties.
 	 *
 	 * @param doReplace	{Boolean}	Replace existing data (false is default).
 	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
@@ -157,24 +157,6 @@ class Edge extends Document
 	}	// setClass
 	
 	/**
-	 * Get class
-	 *
-	 * This method will retrieve the class information from the schema and return it.
-	 *
-	 * @returns {Object}|{null}	The structure object or null if none.
-	 */
-	getClass()
-	{
-		//
-		// This class does not have any class.
-		//
-		return ( this._class !== null )
-			   ? new Structure( this._request, this._class )						// ==>
-			   : null;																// ==>
-		
-	}	// getClass
-	
-	/**
 	 * Check collection type
 	 *
 	 * This method will check if the collection is of the correct type, if that is not
@@ -205,7 +187,8 @@ class Edge extends Document
 	 *
 	 * This method will take care of filling the computed fields.
 	 *
-	 * Here we set the _key property.
+	 * Here we set the _key property and raise an exception if the existing and
+	 * computed _key don't match.
 	 *
 	 * @param theStructure	{Structure}	The class structure object.
 	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
@@ -230,9 +213,34 @@ class Edge extends Document
 			hash.push( this._document[ Dict.descriptor.kPredicate ] );
 			
 			//
+			// Get key.
+			//
+			const key = crypto.md5( hash.join( "\t" ) );
+			
+			//
+			// Check key.
+			//
+			if( this._document.hasOwnProperty( '_key' )
+			 && (key !== this._document._key) )
+			{
+				if( doAssert )
+					throw(
+						new MyError(
+							'AmbiguousDocumentReference',			// Error name.
+							K.error.KeyMismatch,					// Message code.
+							this._request.application.language,		// Language.
+							[ this._document._key, key ],			// Arguments.
+							409										// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return false;
+			}
+			
+			//
 			// Set key.
 			//
-			this._document._key = crypto.md5( hash.join( "\t" ) );
+			this._document._key = key;
 			
 			return true;															// ==>
 		}
