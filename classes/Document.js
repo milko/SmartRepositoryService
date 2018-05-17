@@ -97,7 +97,7 @@ class Document
 		// Handle document object.
 		//
 		if( K.function.isObject( theReference ) )
-			this.loadDocumentObject( theReference );
+			this._document = JSON.parse( JSON.stringify( theReference ) );
 		
 		//
 		// Handle document reference.
@@ -181,7 +181,8 @@ class Document
 		//
 		// Fill computed fields.
 		//
-		this.validateComputed( struct );
+		if( ! this.validateComputed( struct, doAssert ) )
+			return false;															// ==>
 		
 		//
 		// Validate required fields.
@@ -412,8 +413,9 @@ class Document
 				//
 				// Set field references.
 				//
+				let field = null;
 				const reference = {};
-				for( const field of this.getSignificantFields() )
+				for( field of this.getSignificantFields() )
 					reference[ field ] = ( this._document.hasOwnProperty( field ) )
 									   ? this._document[ field ]
 									   : null;
@@ -422,8 +424,13 @@ class Document
 				// Set field arguments.
 				//
 				let args = [];
-				for( const field in reference )
-					args.push( `${field} = ${reference[field]}` );
+				for( field in reference )
+				{
+					const value = ( Array.isArray( reference[ field ] ) )
+								? `[${reference[field].join(', ')}]`
+								: reference[field];
+					args.push( `${field} = ${value}` );
+				}
 				
 				throw(
 					new MyError(
@@ -524,7 +531,7 @@ class Document
 					'BadCollection',					// Error name.
 					K.error.ExpectingDocColl,			// Message code.
 					this._request.application.language,	// Language.
-					this._collection,				// Error value.
+					this._collection,					// Error value.
 					412									// HTTP error code.
 				)
 			);																	// !@! ==>
@@ -557,27 +564,6 @@ class Document
 		}
 		
 	}	// loadDocumentData
-	
-	/**
-	 * Load document object
-	 *
-	 * This method is called by the constructor when the provided reference is a
-	 * document object: it will load the provided object into the _document property
-	 * of the instance.
-	 *
-	 * This method implies that the document was instantiated by value, thus it is not
-	 * persistent.
-	 *
-	 * @param theObject	{Object}	The data to load.
-	 */
-	loadDocumentObject( theObject )
-	{
-		//
-		// Load data.
-		//
-		this._document = theObject;
-		
-	}	// loadDocumentObject
 	
 	/**
 	 * Load document reference
@@ -780,18 +766,15 @@ class Document
 	 *
 	 * This method will take care of filling the computed fields.
 	 *
-	 * The instructions will be taken from the provided Structure object
+	 * The instructions will be taken from the provided Structure object.
 	 *
 	 * @param theStructure	{Structure}	The class structure object.
+	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
+	 * 									(defaults to true).
+	 * @returns {Boolean}				True if valid.
 	 */
-	validateComputed( theStructure )
+	validateComputed( theStructure, doAssert = true )
 	{
-		//
-		// Nothing to do here.
-		//
-		if( theStructure === null )
-			return true;															// ==>
-		
 		return true;																// ==>
 		
 	}	// validateComputed
