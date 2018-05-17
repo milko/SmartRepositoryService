@@ -386,7 +386,7 @@
   {
     "_key" : "e65",
     "label" : {
-      "ISO:639:3:eng" : "edge reference [@1arg@] not found in collection [@2arg@]."
+      "ISO:639:3:eng" : "reference [@1arg@] not found in collection [@2arg@]."
     }
   },
   {
@@ -423,6 +423,12 @@
     "_key" : "e71",
     "label" : {
       "ISO:639:3:eng" : "edge [@1arg@] ==> [@2arg@] with predicate [@3arg@] and attributes [@4arg@] already exists."
+    }
+  },
+  {
+    "_key" : "e72",
+    "label" : {
+      "ISO:639:3:eng" : "duplicate document in collection [@1arg@] with references [@2arg@]."
     }
   },
   {

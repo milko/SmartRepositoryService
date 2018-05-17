@@ -36,33 +36,6 @@ const Edge = require( './Edge' );
 class EdgeAttribute extends Edge
 {
 	/**
-	 * Constructor
-	 *
-	 * The constructor expects the source and destination node references and the
-	 * predicate, it will initialise the edge data and the edge _key.
-	 *
-	 * The constructor will not validate the provided references.
-	 *
-	 * @param theRequest	{Object}			The current request.
-	 * @param theCollection	{String}			The edge collection.
-	 * @param theReference	{String}|{Object}	The edge reference or object.
-	 */
-	constructor( theRequest, theCollection, theReference )
-	{
-		//
-		// Call inherited constructor.
-		//
-		super( theRequest, theCollection, theReference );
-		
-		//
-		// Normalise attributes.
-		//
-		if( this.data.hasOwnProperty( Dict.descriptor.kAttributes ) )
-			this.data[ Dict.descriptor.kAttributes ].sort();
-		
-	}	// constructor
-	
-	/**
 	 * Resolve edge
 	 *
 	 * This method will attempt to load the edge corresponding to the significant
@@ -92,7 +65,7 @@ class EdgeAttribute extends Edge
 		//
 		// Check required properties.
 		//
-		this.assertRequiredFields();
+		this.hasRequiredFields();
 		
 		//
 		// Init local storage.
@@ -131,7 +104,7 @@ class EdgeAttribute extends Edge
 						'AmbiguousEdgeReference',			// Error name.
 						K.error.AmbiguousEdge,				// Message code.
 						this.request.application.language,	// Language.
-						[ query.f, query.t, query.p, query.a.toString() ],
+						[ query.f, query.t, query.p, query.a.join( ', ' ) ],
 						412									// HTTP error code.
 					)
 				);																// !@! ==>
@@ -210,8 +183,8 @@ class EdgeAttribute extends Edge
 					new MyError(
 						'InsertEdge',							// Error name.
 						K.error.EdgeAttrExists,					// Message code.
-						theRequest.application.language,		// Language.
-						[ query.f, query.t, query.p, query.a ],	// Error value.
+						this.request.application.language,		// Language.
+						[ query.f, query.t, query.p, query.a.join( ', ' ) ],
 						409										// HTTP error code.
 					)
 				);																// !@! ==>
@@ -220,6 +193,25 @@ class EdgeAttribute extends Edge
 		}
 		
 	}	// insert
+	
+	/**
+	 * Normalise object properties
+	 *
+	 * This method is called at the end of the constructor and after adding data to
+	 * the object, its duty is to eventually normalise object properties that require
+	 * processing.
+	 *
+	 * In this class we sort the attributes property, so that it represents a static
+	 * list of values.
+	 */
+	normaliseProperties()
+	{
+		//
+		// Normalise attributes.
+		//
+		if( this.data.hasOwnProperty( Dict.descriptor.kAttributes ) )
+			this.data[ Dict.descriptor.kAttributes ].sort();
+	}
 	
 	/**
 	 * Add data
@@ -242,7 +234,7 @@ class EdgeAttribute extends Edge
 		//
 		super.addData( theData, doReplace );
 		
-	}	// addData
+	}	// loadDocumentData
 	
 	/**
 	 * Set key
@@ -263,7 +255,7 @@ class EdgeAttribute extends Edge
 			//
 			// Check required properties.
 			//
-			this.assertRequiredFields();
+			this.hasRequiredFields();
 			
 			//
 			// Create hash fields.
@@ -290,46 +282,40 @@ class EdgeAttribute extends Edge
 	/**
 	 * Assert all required fields have been set
 	 *
-	 * This method will raise an exception if any required field is missing.
+	 * This method will check if any required field is missing, if you provide true in
+	 * getMad, the method will raise an exception, if false, the method will return a
+	 * boolean where true means all required fields are present.
+	 *
+	 * In this class we first call the parent method and then assert the presence of
+	 * the attributes property.
+	 *
+	 * @param getMad	{Boolean}	True raises an exception (default).
+	 * @returns {Boolean}			True if all required fields are there.
 	 */
-	assertRequiredFields()
+	hasRequiredFields( getMad = true )
 	{
+		//
+		// Check _from, _to and predicate.
+		//
+		const passed = super.hasRequiredFields( getMad );
+		if( ! passed )
+			return passed;															// ==>
+		
 		//
 		// Check required properties.
 		//
-		if( (! this.data.hasOwnProperty( '_from' ))
-		 || (! this.data.hasOwnProperty( '_to' ))
-		 || (! this.data.hasOwnProperty( Dict.descriptor.kPredicate ))
-		 || (! this.data.hasOwnProperty( Dict.descriptor.kAttributes )) )
-		{
-			//
-			// Select missing properties.
-			//
-			const missing = [];
-			const fields = [
-				'_from',
-				'_to',
-				Dict.descriptor.kPredicate,
-				Dict.descriptor.kAttributes
-			];
-			for( const field of fields )
-			{
-				if( ! this.data.hasOwnProperty( field ) )
-					missing.push( field );
-			}
-			
+		if( ! this.data.hasOwnProperty( Dict.descriptor.kAttributes ) )
 			throw(
 				new MyError(
-					'IncompleteEdgeObject',				// Error name.
+					'IncompleteObject',				// Error name.
 					K.error.MissingField,				// Message code.
 					this.request.application.language,	// Language.
-					missing.toString(),					// Arguments.
+					Dict.descriptor.kAttributes,		// Arguments.
 					412									// HTTP error code.
 				)
 			);																	// !@! ==>
-		}
 		
-	}	// assertRequiredFields
+	}	// hasSignificantFields
 	
 }	// EdgeAttribute.
 

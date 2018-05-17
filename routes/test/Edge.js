@@ -88,8 +88,8 @@ router.post
 			const edge =
 				new Edge(
 					request,
-					request.body.collection,
-					request.body.reference
+					request.body.reference,
+					request.body.collection
 				);
 			
 			//
@@ -197,8 +197,8 @@ router.post
 			const edge =
 				new EdgeAttribute(
 					request,
-					request.body.collection,
-					request.body.reference
+					request.body.reference,
+					request.body.collection
 				);
 			
 			//

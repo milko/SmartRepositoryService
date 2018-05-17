@@ -30,6 +30,12 @@
     }
   },
   {
+    "_key" : "InsertDocument",
+    "label" : {
+      "ISO:639:3:eng" : "Unable to insert document: "
+    }
+  },
+  {
     "_key" : "InsertUser",
     "label" : {
       "ISO:639:3:eng" : "Unable to insert user: "
@@ -162,21 +168,21 @@
     }
   },
   {
-    "_key" : "BadEdgeReference",
+    "_key" : "BadDocumentReference",
     "label" : {
-      "ISO:639:3:eng" : "Invalid edge reference: "
+      "ISO:639:3:eng" : "Invalid document reference: "
     }
   },
   {
-    "_key" : "AmbiguousEdgeReference",
+    "_key" : "AmbiguousDocumentReference",
     "label" : {
       "ISO:639:3:eng" : "Ambiguous edge reference: "
     }
   },
   {
-    "_key" : "IncompleteEdgeObject",
+    "_key" : "IncompleteObject",
     "label" : {
-      "ISO:639:3:eng" : "Incomplete edge object: "
+      "ISO:639:3:eng" : "Incomplete object: "
     }
   },
   {

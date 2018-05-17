@@ -326,13 +326,15 @@ module.exports = Object.freeze(
 			NoCurrentUser		: 62,
 			UserExists			: 63,
 			EdgeExists			: 64,
-			EdgeNotFound		: 65,
+			DocumentNotFound	: 65,
 			AmbiguousEdge		: 66,
 			IdMismatch			: 67,
 			KeyMismatch			: 68,
 			MissingField		: 69,
 			ExpectingEdgeColl	: 70,
-			EdgeAttrExists		: 71
+			EdgeAttrExists		: 71,
+			DuplicateDocument	: 72,
+			ExpectingDocColl	: 73
 		},
 
 		//

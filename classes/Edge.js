@@ -23,9 +23,9 @@ const Validation = require( '../utils/Validation' );
 
 
 /**
- * Edge base class
+ * Edge class
  *
- * This class implements an edge object.
+ * This class implements the default edge object.
  *
  * The class expects all required collections to exist.
  */
@@ -38,10 +38,10 @@ class Edge
 	 * the edge object or a string referening the edge _id or _key.
 	 *
 	 * @param theRequest	{Object}			The current request.
-	 * @param theCollection	{String}			The edge collection.
 	 * @param theReference	{String}|{Object}	The edge reference or object.
+	 * @param theCollection	{String}			The edge collection.
 	 */
-	constructor( theRequest, theCollection, theReference )
+	constructor( theRequest, theReference, theCollection )
 	{
 		//
 		// Init default fields.
@@ -51,7 +51,7 @@ class Edge
 		//
 		// Set collection.
 		//
-		this.collection_name = theCollection;
+		this.colname = theCollection;
 		this.collection = db._collection( theCollection );
 		if( ! this.collection )
 			throw(
@@ -129,8 +129,8 @@ class Edge
 				//
 				throw(
 					new MyError(
-						'BadEdgeReference',					// Error name.
-						K.error.EdgeNotFound,				// Message code.
+						'BadDocumentReference',					// Error name.
+						K.error.DocumentNotFound,				// Message code.
 						theRequest.application.language,	// Language.
 						[theReference, theCollection],		// Error value.
 						404									// HTTP error code.
@@ -138,6 +138,11 @@ class Edge
 				);																// !@! ==>
 			}
 		}
+		
+		//
+		// Normalise properties.
+		//
+		this.normaliseProperties();
 		
 	}	// constructor
 	
@@ -172,7 +177,7 @@ class Edge
 		//
 		// Check required properties.
 		//
-		this.assertRequiredFields();
+		this.hasRequiredFields();
 
 		//
 		// Init local storage.
@@ -232,8 +237,8 @@ class Edge
 		else if( doAssert )
 			throw(
 				new MyError(
-					'BadEdgeReference',					// Error name.
-					K.error.EdgeNotFound,				// Message code.
+					'BadDocumentReference',					// Error name.
+					K.error.DocumentNotFound,				// Message code.
 					this.request.application.language,	// Language.
 					[Object.values(query), this.getCollectionName()],
 					404									// HTTP error code.
@@ -243,26 +248,6 @@ class Edge
 		return this.persistent;														// ==>
 		
 	}	// resolve
-	
-	/**
-	 * Validate edge
-	 *
-	 * This method will assert all required fields are present and validate all fields,
-	 * if any of these tests fails, the method will raise an exception.
-	 */
-	validate()
-	{
-		//
-		// Check for required fields.
-		//
-		this.assertRequiredFields();
-		
-		//
-		// Validate fields.
-		//
-		this.data = Validation.validateStructure( this.request, this.data );
-	
-	}	// validate
 	
 	/**
 	 * Insert the edge
@@ -333,6 +318,93 @@ class Edge
 	}	// insert
 	
 	/**
+	 * Validate edge
+	 *
+	 * This method will assert all required fields are present and validate all fields,
+	 * if any of these tests fails, the method will raise an exception.
+	 */
+	validate()
+	{
+		//
+		// Check for required fields.
+		//
+		this.hasRequiredFields();
+		
+		//
+		// Validate fields.
+		//
+		this.data = Validation.validateStructure( this.request, this.data );
+		
+	}	// validate
+	
+	/**
+	 * Assert all required fields have been set
+	 *
+	 * This method will check if any required field is missing, if you provide true in
+	 * getMad, the method will raise an exception, if false, the method will return a
+	 * boolean where true means all required fields are present.
+	 *
+	 * In this class we assert the presence of _from, _to and predicate.
+	 *
+	 * @param getMad	{Boolean}	True raises an exception (default).
+	 * @returns {Boolean}			True if all required fields are there.
+	 */
+	hasRequiredFields( getMad = true )
+	{
+		//
+		// Check _from, _to and predicate.
+		//
+		if( (! this.data.hasOwnProperty( '_from' ))
+		 || (! this.data.hasOwnProperty( '_to' ))
+		 || (! this.data.hasOwnProperty( Dict.descriptor.kPredicate )) )
+		{
+			//
+			// Raise an exception.
+			//
+			if( getMad )
+			{
+				//
+				// Select missing properties.
+				//
+				const missing = [];
+				const fields = [ '_from', '_to', Dict.descriptor.kPredicate ];
+				for( const field of fields )
+				{
+					if( ! this.data.hasOwnProperty( field ) )
+						missing.push( field );
+				}
+				
+				throw(
+					new MyError(
+						'IncompleteObject',				// Error name.
+						K.error.MissingField,				// Message code.
+						this.request.application.language,	// Language.
+						missing.join( ', ' ),				// Arguments.
+						412									// HTTP error code.
+					)
+				);																// !@! ==>
+			}
+			
+			return false;															// ==>
+		}
+		
+		return true;																// ==>
+		
+	}	// hasSignificantFields
+	
+	/**
+	 * Normalise object properties
+	 *
+	 * This method is called at the end of the constructor and after adding data to
+	 * the object, its duty is to eventually normalise object properties that require
+	 * processing.
+	 */
+	normaliseProperties()
+	{
+		// Nothing here.
+	}
+	
+	/**
 	 * Add data
 	 *
 	 * This method will add the provided object properties to the current object's
@@ -357,13 +429,13 @@ class Edge
 				this.data[ field ] = theData[ field ];
 		}
 		
-	}	// addData
+	}	// loadDocumentData
 	
 	/**
 	 * Add resolved data
 	 *
 	 * This method will add the provided object properties to the current object's
-	 * data, unlike the addData() method, this one expects the provided object to be
+	 * data, unlike the loadDocumentData() method, this one expects the provided object to be
 	 * complete and will overwrite by default the _id, _key and _rev fields.
 	 *
 	 * If the second parameter is false, existing properties will not be overwritten,
@@ -420,7 +492,7 @@ class Edge
 		//
 		this.addData( theData, doReplace );
 		
-	}	// addResolvedData
+	}	// loadResolvedDocument
 	
 	/**
 	 * Return edge collection
@@ -444,7 +516,7 @@ class Edge
 	 */
 	getCollectionName()
 	{
-		return this.collection_name;												// ==>
+		return this.colname;												// ==>
 		
 	}	// getCollectionName
 	
@@ -459,7 +531,7 @@ class Edge
 	{
 		return this.persistent;														// ==>
 		
-	}	// isPersistent
+	}	// persistent
 	
 	/**
 	 * Return edge object
@@ -499,7 +571,7 @@ class Edge
 			//
 			// Check required properties.
 			//
-			this.assertRequiredFields();
+			this.hasRequiredFields();
 			
 			//
 			// Create hash fields.
@@ -518,44 +590,6 @@ class Edge
 		}	// Doesn't have key.
 		
 	}	// setKey
-	
-	/**
-	 * Assert all required fields have been set
-	 *
-	 * This method will raise an exception if any required field is missing.
-	 */
-	assertRequiredFields()
-	{
-		//
-		// Check required properties.
-		//
-		if( (! this.data.hasOwnProperty( '_from' ))
-		 || (! this.data.hasOwnProperty( '_to' ))
-		 || (! this.data.hasOwnProperty( Dict.descriptor.kPredicate )) )
-		{
-			//
-			// Select missing properties.
-			//
-			const missing = [];
-			const fields = [ '_from', '_to', Dict.descriptor.kPredicate ];
-			for( const field of fields )
-			{
-				if( ! this.data.hasOwnProperty( field ) )
-					missing.push( field );
-			}
-			
-			throw(
-				new MyError(
-					'IncompleteEdgeObject',				// Error name.
-					K.error.MissingField,				// Message code.
-					this.request.application.language,	// Language.
-					missing.toString(),					// Arguments.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		}
-		
-	}	// assertRequiredFields
 	
 }	// Edge.
 
