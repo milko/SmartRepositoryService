@@ -109,7 +109,7 @@ router.post
 				collection: doc.collection,
 				resolved : resolved,
 				persistent : doc.persistent,
-				modified : doc.modified,
+				modified : doc.revised,
 				data : doc.document,
 				time : time() - stamp
 			});

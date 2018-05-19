@@ -37,10 +37,10 @@ const Structure = require( './Structure' );
  * 	- _persistent:		A boolean flag indicating whether the document was retrieved or
  * 						stored in the collection, can be retrieved with the persistent()
  * 						getter.
- * 	- _modified:		A boolean flag indicating whether the revision has changed.
+ * 	- _revised:			A boolean flag indicating whether the revision has changed.
  * 						The value is set whenever the document is resilved in the
  * 						collection and the current document has the revision field.
- * 						The value can be retrieved with the modified() getter.
+ * 						The value can be retrieved with the revised() getter.
  *
  * The class provides the following methods:
  *
@@ -78,7 +78,6 @@ class Document
 		// Init properties.
 		//
 		this._request = theRequest;
-		this._persistent = false;
 		
 		//
 		// Set class.
@@ -94,7 +93,17 @@ class Document
 		// Handle document object.
 		//
 		if( K.function.isObject( theReference ) )
+		{
+			//
+			// Load document.
+			//
 			this.loadDocumentData( theReference, true );
+			
+			//
+			// Set persistence flag.
+			//
+			this._persistent = false;
+		}
 		
 		//
 		// Handle document reference.
@@ -108,9 +117,9 @@ class Document
 		this.normaliseProperties();
 		
 		//
-		// Reset modified flag.
+		// Reset revised flag.
 		//
-		this._modified = false;
+		this._revised = false;
 		
 	}	// constructor
 	
@@ -139,7 +148,7 @@ class Document
 	 * 	  current ones.
 	 *
 	 * If the current object has the revision field, the method will update the
-	 * _modified flag accordingly. The _persistent flag will also be updated.
+	 * _revised flag accordingly. The _persistent flag will also be updated.
 	 *
 	 * @param doReplace	{Boolean}	Replace existing data (false is default).
 	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
@@ -272,17 +281,17 @@ class Document
 	}	// get persistent
 	
 	/**
-	 * Retrieve modified flag
+	 * Retrieve revised flag
 	 *
 	 * This method will return the revision modification status.
 	 *
 	 * @returns {Boolean}	True if document revision is obsolete.
 	 */
-	get modified()
+	get revised()
 	{
-		return this._modified;														// ==>
+		return this._revised;														// ==>
 		
-	}	// get modified
+	}	// get revised
 	
 	/**
 	 * Resolve document
@@ -353,7 +362,7 @@ class Document
 				);																// !@! ==>
 			
 			//
-			// Set flag.
+			// Set persistence flag.
 			//
 			this._persistent = false;
 		}
@@ -391,7 +400,7 @@ class Document
 			//
 			if( this._document.hasOwnProperty( '_rev' )
 			 && (this._document._rev !== meta._rev) )
-				this._modified = true;
+				this._revised = true;
 			this._document._rev = meta._rev;
 			
 			//
@@ -557,6 +566,11 @@ class Document
 	loadDocumentData( theData, doReplace = true )
 	{
 		//
+		// Init document.
+		//
+		this._document = {};
+		
+		//
 		// Iterate properties.
 		//
 		for( const field in theData )
@@ -623,7 +637,7 @@ class Document
 			}
 			
 			//
-			// Set persistent flag.
+			// Set persistence flag.
 			//
 			this._persistent = true;
 		}
@@ -715,7 +729,7 @@ class Document
 		//
 		if( this._document.hasOwnProperty( '_rev' )
 		 && (this._document._rev !== theData._rev) )
-			this._modified = true;
+			this._revised = true;
 		
 		//
 		// Set _rev.
@@ -886,19 +900,6 @@ class Document
 	}
 	
 	/**
-	 * Return list of significant fields
-	 *
-	 * This method will return the descriptor _key names for all the significant
-	 * fields for documents of this class, this means the fields that uniquely
-	 * identify the document in the collection.
-	 */
-	getSignificantFields()
-	{
-		return [ '_key' ];															// ==>
-		
-	}	// getSignificantFields
-	
-	/**
 	 * Return persistent flag
 	 *
 	 * This method will return true if the object was loaded or stored in the collection.
@@ -910,6 +911,53 @@ class Document
 		return this._persistent;													// ==>
 		
 	}	// persistent
+	
+	/**
+	 * Return list of significant fields
+	 *
+	 * This method should return the list of properties that will uniquely identify
+	 * the document.
+	 *
+	 * In this class we return the key.
+	 *
+	 * @returns {Array}	List of significant fields.
+	 */
+	getSignificantFields()
+	{
+		return [ '_key' ];															// ==>
+		
+	}	// getSignificantFields
+	
+	/**
+	 * Return list of required fields
+	 *
+	 * This method should return the list of required properties.
+	 *
+	 * In this class we return the key.
+	 *
+	 * @returns {Array}	List of required fields.
+	 */
+	getRequiredFields()
+	{
+		return [];																	// ==>
+		
+	}	// getRequiredFields
+	
+	/**
+	 * Return list of locked fields
+	 *
+	 * This method should return the list of fields that cannot be changed once the
+	 * document has been inserted.
+	 *
+	 * In this class we return the key.
+	 *
+	 * @returns {Array}	List of locked fields.
+	 */
+	getLockedFields()
+	{
+		return [ '_key' ];															// ==>
+		
+	}	// getLockedFields
 	
 }	// Document.
 
