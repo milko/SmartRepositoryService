@@ -15,11 +15,6 @@ const K = require( '../utils/Constants' );
 const MyError = require( '../utils/MyError' );
 const Validation = require( '../utils/Validation' );
 
-//
-// Classes.
-//
-const Structure = require( './Structure' );
-
 
 /**
  * Document virtual class
@@ -185,9 +180,9 @@ class Document
 		const struct = this.getClass();
 		
 		//
-		// Fill computed fields.
+		// Load computed fields.
 		//
-		if( ! this.validateComputed( struct, doAssert ) )
+		if( ! this.loadComputedProperties( struct, doAssert ) )
 			return false;															// ==>
 		
 		//
@@ -298,13 +293,19 @@ class Document
 	 *
 	 * This method will attempt to load the document corresponding to the significant
 	 * fields of the object, if the document was found, its properties will be set in
-	 * the current object.
+	 * the current object according to the falue of doReplace:
 	 *
-	 * This method assumes the object has the necessary properties to resolve it.
+	 * 	- true:		The resolved properties will overwrite the existing ones.
+	 * 	- false:	The existing properties will not be replaced.
 	 *
-	 * Please refer to the resolve() method for documentation.
+	 * Note that the _id, _key and _rev properties will overwrite by default the
+	 * existing ones.
 	 *
-	 * In this class we resolve using the _key property.
+	 * This method assumes the object has the necessary properties to resolve it, in
+	 * practice, that you have called hasSignificantFields() beforehand and that the
+	 * method returned true.
+	 *
+	 * Please refer to the resolve() method for further documentation.
 	 *
 	 * @param doReplace	{Boolean}	Replace existing data (false is default).
 	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
@@ -314,55 +315,79 @@ class Document
 	resolveDocument( doReplace = false, doAssert = true )
 	{
 		//
-		// Init local storage.
+		// Load example query from significant fields.
+		// Note that the method assumes you have called hasSignificantFields().
 		//
-		const reference = this._document._key;
+		const example = {};
+		for( const field of this.getSignificantFields() )
+			example[ field ] = this._document[ field ];
 		
 		//
-		// Resolve _key.
+		// Load document.
 		//
-		try
+		const cursor = db._collection( this._collection ).byExample( example );
+		
+		//
+		// Check if found.
+		//
+		if( cursor.count() > 0 )
 		{
 			//
-			// Load document.
+			// Handle ambiguous query.
 			//
-			const found = db._collection( this._collection ).document( reference );
+			if( cursor.count() > 1 )
+				throw(
+					new MyError(
+						'AmbiguousDocumentReference',		// Error name.
+						K.error.AmbiguousDocument,			// Message code.
+						this.request.application.language,	// Language.
+						[ Object.keys( example ), this._collection],
+						412									// HTTP error code.
+					)
+				);																// !@! ==>
 			
 			//
 			// Load found document.
 			//
-			this.loadResolvedDocument( found, doReplace );
+			this.loadResolvedDocument( cursor.toArray()[ 0 ], doReplace );
 			
 			//
 			// Set flag.
 			//
 			this._persistent = true;
-		}
-		catch( error )
+			
+		}	// Found.
+		
+		//
+		// Handle not found.
+		//
+		else
 		{
 			//
-			// Handle exceptions.
-			//
-			if( (! error.isArangoError)
-			 || (error.errorNum !== ARANGO_NOT_FOUND) )
-				throw( error );													// !@! ==>
-			
-			//
-			// Handle not found.
+			// Assert not found.
 			//
 			if( doAssert )
+			{
+				//
+				// Build reference.
+				//
+				const reference = [];
+				for( const field of example )
+					reference.push( `${field} = ${example.field.toString()}`)
+				
 				throw(
 					new MyError(
-						'BadDocumentReference',					// Error name.
-						K.error.DocumentNotFound,				// Message code.
-						this._request.application.language,		// Language.
-						[reference, this._collection],			// Error value.
-						404										// HTTP error code.
+						'BadDocumentReference',						// Error name.
+						K.error.DocumentNotFound,					// Message code.
+						this._request.application.language,			// Language.
+						[reference.join( ', ' ), this._collection],	// Error value.
+						404											// HTTP error code.
 					)
 				);																// !@! ==>
+			}
 			
 			//
-			// Set persistence flag.
+			// Set flag.
 			//
 			this._persistent = false;
 		}
@@ -481,7 +506,7 @@ class Document
 		// This class does not have any class.
 		//
 		return ( this._class !== null )
-			 ? new Structure( this._request, this._class )							// ==>
+			 ? this._class															// ==>
 			 : null;																// ==>
 		
 	}	// getClass
@@ -745,6 +770,28 @@ class Document
 	}	// loadResolvedDocument
 	
 	/**
+	 * Load computed fields
+	 *
+	 * This method will take care of filling the computed fields and ensuring that
+	 * significant computed fields match eventual existing fields.
+	 *
+	 * The method will return a boolean indicating whether the operation was
+	 * successful (true); if the provided flag parameter is true, errors will raise an
+	 * exception.
+	 *
+	 * This class has no computed fields.
+	 *
+	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
+	 * 									(defaults to true).
+	 * @returns {Boolean}				True if valid.
+	 */
+	loadComputedProperties( doAssert = true )
+	{
+		return true;																// ==>
+		
+	}	// loadComputedProperties
+	
+	/**
 	 * Assert all required fields have been set
 	 *
 	 * This method will check if any required field is missing, if you provide true in
@@ -802,24 +849,6 @@ class Document
 		return true;																// ==>
 		
 	}	// hasSignificantFields
-	
-	/**
-	 * Fill computed fields
-	 *
-	 * This method will take care of filling the computed fields.
-	 *
-	 * The instructions will be taken from the provided Structure object.
-	 *
-	 * @param theStructure	{Structure}	The class structure object.
-	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
-	 * 									(defaults to true).
-	 * @returns {Boolean}				True if valid.
-	 */
-	validateComputed( theStructure, doAssert = true )
-	{
-		return true;																// ==>
-		
-	}	// validateComputed
 	
 	/**
 	 * Check required fields

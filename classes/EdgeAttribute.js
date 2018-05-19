@@ -36,123 +36,6 @@ const Edge = require( './Edge' );
 class EdgeAttribute extends Edge
 {
 	/**
-	 * Resolve document
-	 *
-	 * This method will attempt to load the document corresponding to the significant
-	 * fields of the object, if the document was found, its properties will be set in
-	 * the current object.
-	 *
-	 * This method assumes the object has the necessary properties to resolve it.
-	 *
-	 * Please refer to the resolve() method for documentation.
-	 *
-	 * In this class we resolve using the _from, _to, predicate and attributes properties.
-	 *
-	 * @param doReplace	{Boolean}	Replace existing data (false is default).
-	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
-	 * 								(defaults to true).
-	 * @returns {Boolean}			True if found.
-	 */
-	resolveDocument( doReplace = false, doAssert = true )
-	{
-		//
-		// Get significant field references.
-		//
-		const pred = Dict.descriptor.kPredicate;
-		const attr = Dict.descriptor.kAttributes;
-		const refs = {
-			f: this._document._from,
-			t: this._document._to,
-			p: this._document[ pred ],
-			a: this._document[ attr ]
-		};
-		
-		//
-		// Query the collection.
-		//
-		const collection = db._collection( this._collection );
-		const cursor =
-			db._query( aql`
-				FOR doc IN ${collection}
-					FILTER doc._from == ${refs.f}
-					   AND doc._to == ${refs.t}
-					   AND doc.${pred} == ${refs.p}
-					   AND doc.${attr} == ${refs.a}
-				RETURN doc
-			`);
-		
-		//
-		// Check if found.
-		//
-		if( cursor.count() > 0 )
-		{
-			//
-			// Handle ambiguous query.
-			//
-			if( cursor.count() > 1 )
-				throw(
-					new MyError(
-						'AmbiguousDocumentReference',		// Error name.
-						K.error.AmbiguousAttrEdge,			// Message code.
-						this.request.application.language,	// Language.
-						[ refs.f, refs.t, refs.p, refs.a.join( ', ' ) ],
-						412									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Load found document.
-			//
-			this.loadResolvedDocument( cursor.toArray()[ 0 ], doReplace );
-			
-			//
-			// Set flag.
-			//
-			this._persistent = true;
-			
-		}	// Found.
-		
-		//
-		// Handle not found.
-		//
-		else
-		{
-			//
-			// Assert not found.
-			//
-			if( doAssert )
-			{
-				//
-				// Build reference.
-				//
-				const reference = [];
-				reference.push( `_from = "${refs.f}"` );
-				reference.push( `_from = "${refs.t}"` );
-				reference.push( `${pred} = "${refs.p}"` );
-				reference.push( `${attr} = "${refs.a}"` );
-				
-				throw(
-					new MyError(
-						'BadDocumentReference',						// Error name.
-						K.error.EdgeAttrNotFound,					// Message code.
-						this._request.application.language,			// Language.
-						[refs.f, refs.t, refs.p, refs.a.join( ', ' ), this._collection],
-						404											// HTTP error code.
-					)
-				);																// !@! ==>
-			}
-			
-			//
-			// Set flag.
-			//
-			this._persistent = false;
-		}
-		
-		return this._persistent;													// ==>
-		
-	}	// resolveDocument
-	
-	/**
 	 * Set class
 	 *
 	 * This method will set the document class, which is the _key reference of the
@@ -167,19 +50,16 @@ class EdgeAttribute extends Edge
 	}	// setClass
 	
 	/**
-	 * Fill computed fields
-	 *
-	 * This method will take care of filling the computed fields.
+	 * Load computed fields
 	 *
 	 * Here we set the _key property and raise an exception if the existing and
 	 * computed _key don't match.
 	 *
-	 * @param theStructure	{Structure}	The class structure object.
 	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
 	 * 									(defaults to true).
 	 * @returns {Boolean}				True if valid.
 	 */
-	validateComputed( theStructure, doAssert = true )
+	loadComputedProperties( doAssert = true )
 	{
 		//
 		// Check if significat fields are there.
@@ -209,7 +89,7 @@ class EdgeAttribute extends Edge
 			// Check key.
 			//
 			if( this._document.hasOwnProperty( '_key' )
-				&& (key !== this._document._key) )
+			 && (key !== this._document._key) )
 			{
 				if( doAssert )
 					throw(
@@ -231,11 +111,12 @@ class EdgeAttribute extends Edge
 			this._document._key = key;
 			
 			return true;															// ==>
-		}
+			
+		}	// Has significant fields.
 		
 		return false;																// ==>
 		
-	}	// validateComputed
+	}	// loadComputedProperties
 	
 	/**
 	 * Check required fields
@@ -280,9 +161,8 @@ class EdgeAttribute extends Edge
 	/**
 	 * Return list of significant fields
 	 *
-	 * This method will return the descriptor _key names for all the significant
-	 * fields for documents of this class, this means the fields that uniquely
-	 * identify the document in the collection.
+	 * In this class we return the node references, the predicate and the attributes
+	 * array.
 	 */
 	getSignificantFields()
 	{
@@ -290,6 +170,36 @@ class EdgeAttribute extends Edge
 			.join( [ Dict.descriptor.kAttributes ] );								// ==>
 		
 	}	// getSignificantFields
+	
+	/**
+	 * Return list of required fields
+	 *
+	 * In this class we return the node references, the predicate and the attributes
+	 * array.
+	 *
+	 * @returns {Array}	List of required fields.
+	 */
+	getRequiredFields()
+	{
+		return super.getSignificantFields()
+			.join( [ Dict.descriptor.kAttributes ] );								// ==>
+		
+	}	// getRequiredFields
+	
+	/**
+	 * Return list of locked fields
+	 *
+	 * In this class we return the node references, the predicate and the attributes
+	 * array.
+	 *
+	 * @returns {Array}	List of locked fields.
+	 */
+	getLockedFields()
+	{
+		return super.getSignificantFields()
+			.join( [ Dict.descriptor.kAttributes ] );								// ==>
+		
+	}	// getLockedFields
 	
 }	// EdgeAttribute.
 

@@ -88,7 +88,7 @@ router.post
 				collection: doc.collection,
 				resolved : resolved,
 				persistent : doc.persistent,
-				modified : doc.revised,
+				revised : doc.revised,
 				data : doc.document,
 				time : time() - stamp
 			});
@@ -128,7 +128,7 @@ router.post
 			collection : Joi.string(),
 			resolved : Joi.boolean(),
 			persistent : Joi.boolean(),
-			modified : Joi.boolean(),
+			revised : Joi.boolean(),
 			data : Joi.object(),
 			time : Joi.number()
 		}),

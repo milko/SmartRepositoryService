@@ -38,12 +38,11 @@ const HTTP_CONFLICT = status('conflict');
 const K = require( '../../utils/Constants' );
 const MyError = require( '../../utils/MyError' );
 const Edge = require( '../../classes/Edge' );
-// const EdgeAttribute = require( '../../classes/EdgeAttribute' );
+const EdgeAttribute = require( '../../classes/EdgeAttribute' );
 
 //
 // Instantiate router.
 //
-const auth = createAuth();
 const router = createRouter();
 module.exports = router;
 

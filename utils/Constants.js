@@ -336,7 +336,8 @@ module.exports = Object.freeze(
 			DuplicateDocument	: 72,
 			ExpectingDocColl	: 73,
 			AmbiguousAttrEdge	: 74,
-			EdgeAttrNotFound	: 75
+			EdgeAttrNotFound	: 75,
+			AmbiguousDocument	: 76
 		},
 
 		//
