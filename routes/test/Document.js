@@ -88,7 +88,7 @@ router.post
 				new Document(
 					request,
 					request.body.reference,
-					request.body.collection
+					( request.body.hasOwnProperty( 'collection' ) ) ? request.body.collection : null
 				);
 			
 			//
@@ -134,7 +134,7 @@ router.post
 )
 	.body(
 		Joi.object({
-			collection : Joi.string().required(),
+			collection : Joi.string(),
 			reference : Joi.alternatives().try(
 				Joi.string().required(),
 				Joi.object().required()

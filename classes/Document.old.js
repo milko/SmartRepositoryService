@@ -62,9 +62,8 @@ class Document
 	 * 	- theCollection:	The name of the collection where the object is stored.
 	 *
 	 * If you provide a document reference, the constructor will attempt to load the
-	 * document from the collection, if you provide an object, the document properties
-	 * will be taken from the provided object and no attempt to read the object from
-	 * the collection will occur.
+	 * document from the collection, if you provide an pbject, the document properties
+	 * will be taken from the provided object.
 	 *
 	 * Any error will raise an exception.
 	 *
@@ -72,12 +71,16 @@ class Document
 	 * @param theReference	{String}|{Object}	The document reference or object.
 	 * @param theCollection	{String}			The document collection.
 	 */
-	constructor( theRequest, theReference, theCollection = null )
+	constructor( theRequest, theReference, theCollection )
 	{
 		//
-		// Init properties.
+		// Set request.
 		//
 		this._request = theRequest;
+		
+		//
+		// Set persistent flag.
+		//
 		this._persistent = false;
 		
 		//
@@ -94,7 +97,7 @@ class Document
 		// Handle document object.
 		//
 		if( K.function.isObject( theReference ) )
-			this.loadDocumentData( theReference, true );
+			this._document = JSON.parse( JSON.stringify( theReference ) );
 		
 		//
 		// Handle document reference.
@@ -335,7 +338,7 @@ class Document
 			// Handle exceptions.
 			//
 			if( (! error.isArangoError)
-			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				|| (error.errorNum !== ARANGO_NOT_FOUND) )
 				throw( error );													// !@! ==>
 			
 			//
@@ -390,7 +393,7 @@ class Document
 			// Handle revision.
 			//
 			if( this._document.hasOwnProperty( '_rev' )
-			 && (this._document._rev !== meta._rev) )
+				&& (this._document._rev !== meta._rev) )
 				this._modified = true;
 			this._document._rev = meta._rev;
 			
@@ -405,7 +408,7 @@ class Document
 			// Handle unique constraint error.
 			//
 			if( error.isArangoError
-			 && (error.errorNum === ARANGO_DUPLICATE) )
+				&& (error.errorNum === ARANGO_DUPLICATE) )
 			{
 				//
 				// Set field references.
@@ -414,8 +417,8 @@ class Document
 				const reference = {};
 				for( field of this.getSignificantFields() )
 					reference[ field ] = ( this._document.hasOwnProperty( field ) )
-									   ? this._document[ field ]
-									   : null;
+										 ? this._document[ field ]
+										 : null;
 				
 				//
 				// Set field arguments.
@@ -424,8 +427,8 @@ class Document
 				for( field in reference )
 				{
 					const value = ( Array.isArray( reference[ field ] ) )
-								? `[${reference[field].join(', ')}]`
-								: reference[field];
+								  ? `[${reference[field].join(', ')}]`
+								  : reference[field];
 					args.push( `${field} = ${value}` );
 				}
 				
@@ -472,8 +475,8 @@ class Document
 		// This class does not have any class.
 		//
 		return ( this._class !== null )
-			 ? new Structure( this._request, this._class )							// ==>
-			 : null;																// ==>
+			   ? new Structure( this._request, this._class )							// ==>
+			   : null;																// ==>
 		
 	}	// getClass
 	
@@ -488,30 +491,24 @@ class Document
 	setCollection( theCollection )
 	{
 		//
-		// Check collection.
+		// Set collection.
 		//
-		if( theCollection !== null )
-		{
-			//
-			// Set collection.
-			//
-			this._collection = theCollection;
-			if( ! db._collection( this._collection ) )
-				throw(
-					new MyError(
-						'BadCollection',					// Error name.
-						K.error.MissingCollection,			// Message code.
-						this._request.application.language,	// Language.
-						theCollection,						// Error value.
-						412									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Check collection type.
-			//
-			this.checkCollectionType();
-		}
+		this._collection = theCollection;
+		if( ! db._collection( this._collection ) )
+			throw(
+				new MyError(
+					'BadCollection',					// Error name.
+					K.error.MissingCollection,			// Message code.
+					this._request.application.language,	// Language.
+					theCollection,						// Error value.
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+		//
+		// Check collection type.
+		//
+		this.checkCollectionType();
 		
 	}	// setCollection
 	
@@ -562,7 +559,7 @@ class Document
 		for( const field in theData )
 		{
 			if( doReplace
-			 || (! this._document.hasOwnProperty( field )) )
+				|| (! this._document.hasOwnProperty( field )) )
 				this._document[ field ] = theData[ field ];
 		}
 		
@@ -576,64 +573,44 @@ class Document
 	/**
 	 * Load document reference
 	 *
-	 * This method is called by the constructor to instantiate the object from a
+	 * This method is called by the constructor when the provided reference is a
 	 * document reference: it will load the provided object into the _document property
 	 * of the instance from the registered collection, if the operation fails, the
 	 * method will raise an exception.
 	 *
-	 * If the collection is missing, the reference is expected to be the document _id:
-	 * if the operation succeeds, the method will load the collection.
+	 * This method implies that the document was instantiated from the collection,
+	 * thus it is persistent.
 	 *
 	 * @param theReference	{String}	The document reference.
 	 */
 	loadDocumentReference( theReference )
 	{
 		//
-		// Init local storage.
-		//
-		let collection = ( this.hasOwnProperty( '_collection' ) )
-					   ? this._collection
-					   : 'NOT PROVIDED';
-		
-		//
 		// Resolve reference.
 		//
 		try
 		{
 			//
-			// Load from collection.
+			// Load document.
 			//
-			if( this.hasOwnProperty( '_collection' ) )
-				this._document = db._collection( this._collection ).document( theReference );
-			
-			//
-			// Load from database.
-			//
-			else
-			{
-				//
-				// Load document.
-				//
-				this._document = db._document( theReference );
-				
-				//
-				// Set collection.
-				//
-				this._collection = theReference.split( '/' )[ 0 ];
-			}
+			this._document = db._collection( this._collection ).document( theReference );
 			
 			//
 			// Set persistent flag.
 			//
 			this._persistent = true;
 		}
+			
+			//
+			// Handle errors.
+			//
 		catch( error )
 		{
 			//
 			// Handle exceptions.
 			//
 			if( (! error.isArangoError)
-			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				|| (error.errorNum !== ARANGO_NOT_FOUND) )
 				throw( error );													// !@! ==>
 			
 			//
@@ -644,7 +621,7 @@ class Document
 					'BadDocumentReference',				// Error name.
 					K.error.DocumentNotFound,			// Message code.
 					this._request.application.language,	// Language.
-					[theReference, collection],			// Error value.
+					[theReference, this._collection],	// Error value.
 					404									// HTTP error code.
 				)
 			);																	// !@! ==>
@@ -672,7 +649,7 @@ class Document
 		// Check _id.
 		//
 		if( this._document.hasOwnProperty( '_id' )
-		 && (this._document._id !== theData._id) )
+			&& (this._document._id !== theData._id) )
 			throw(
 				new MyError(
 					'AmbiguousDocumentReference',			// Error name.
@@ -693,7 +670,7 @@ class Document
 		// Check _key.
 		//
 		if( this._document.hasOwnProperty( '_key' )
-		 && (this._document._key !== theData._key) )
+			&& (this._document._key !== theData._key) )
 			throw(
 				new MyError(
 					'AmbiguousDocumentReference',			// Error name.
@@ -714,7 +691,7 @@ class Document
 		// Check _rev.
 		//
 		if( this._document.hasOwnProperty( '_rev' )
-		 && (this._document._rev !== theData._rev) )
+			&& (this._document._rev !== theData._rev) )
 			this._modified = true;
 		
 		//
