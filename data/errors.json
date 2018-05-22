@@ -208,5 +208,11 @@
     "label" : {
       "ISO:639:3:eng" : "Service is unavailable: "
     }
+  },
+  {
+    "_key" : "LockedProperty",
+    "label" : {
+      "ISO:639:3:eng" : "Property is locked: "
+    }
   }
 ]

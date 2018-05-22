@@ -337,7 +337,9 @@ module.exports = Object.freeze(
 			ExpectingDocColl	: 73,
 			AmbiguousAttrEdge	: 74,
 			EdgeAttrNotFound	: 75,
-			AmbiguousDocument	: 76
+			AmbiguousDocument	: 76,
+			PropertyLocked		: 77,
+			ResolveMismatch		: 78
 		},
 
 		//
@@ -385,6 +387,9 @@ module.exports = Object.freeze(
 				 || (typeof obj === 'function') )
 					return false;
 				return (typeof obj === 'object');
+			},
+			clone		: (obj) => {
+				return JSON.parse(JSON.stringify(obj));
 			}
 		}
 	}

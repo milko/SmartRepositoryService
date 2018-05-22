@@ -92,7 +92,7 @@ class Document
 			//
 			// Load document.
 			//
-			this.loadDocumentData( theReference, true );
+			this.loadDocumentData( theReference, true, false );
 			
 			//
 			// Set persistence flag.
@@ -349,7 +349,7 @@ class Document
 			//
 			// Load found document.
 			//
-			this.loadResolvedDocument( cursor.toArray()[ 0 ], doReplace );
+			this.loadDocumentData( cursor.toArray()[ 0 ], doReplace, true );
 			
 			//
 			// Set flag.
@@ -581,14 +581,23 @@ class Document
 	 * This method will add the provided object properties to the current object's
 	 * data.
 	 *
-	 * If the second parameter is false, existing properties will not be overwritten,
-	 * the default is true, which means the provided properties will overwrite the
-	 * existing ones.
+	 * The first parameter represents the data to be loaded, the second parameter is a
+	 * flag that determines whether the provided data should replace existing data,
+	 * the third parameter is a flag that indicates whether the method was called when
+	 * the object has been resolved.
 	 *
-	 * @param theData	{Object}	The object properties to add.
-	 * @param doReplace	{Boolean}	True, overwrite existing properties (defalut).
+	 * The method will raise an exception if the provided data contains a locked
+	 * property, getLockedFields(), and the property exists in the current object and
+	 * it has a different value; note that locked properties override the doReplace
+	 * flag: the flag is set to true for locked properties. The third parameter
+	 * determines the error type: if true, errors indicate an ambiguous object, if
+	 * false they indicate the attempt to change a locked property.
+	 *
+	 * @param theData		{Object}	The object properties to add.
+	 * @param doReplace		{Boolean}	True, overwrite existing properties (default).
+	 * @param isResolving	{Boolean}	True, called by resolveDocument() (default false).
 	 */
-	loadDocumentData( theData, doReplace = true )
+	loadDocumentData( theData, doReplace = true, isResolving = false )
 	{
 		//
 		// Init document.
@@ -596,13 +605,19 @@ class Document
 		this._document = {};
 		
 		//
+		// Load locked fields.
+		//
+		const locked = this.getLockedFields();
+		
+		//
 		// Iterate properties.
 		//
 		for( const field in theData )
 		{
 			if( doReplace
+			 || locked.includes( field )
 			 || (! this._document.hasOwnProperty( field )) )
-				this._document[ field ] = theData[ field ];
+				this.loadDocumentProperty( field, theData[ field ], locked, isResolving );
 		}
 		
 		//
@@ -611,6 +626,74 @@ class Document
 		this.normaliseProperties();
 		
 	}	// loadDocumentData
+	
+	/**
+	 * Load document property
+	 *
+	 * This method wcan be used to set the value of a property, it is called by
+	 * loadDocumentData() for all locked properties and for new or replaced properties.
+	 *
+	 * The method will raise an exception if the provided property is locked and the
+	 * replaced value doesn't match the existing value.
+	 *
+	 * Overload this method when you nneed to process values before setting them and
+	 * matching locked properties.
+	 *
+	 * @param theProperty	{String}	The property name.
+	 * @param theValue		{*}			The property value.
+	 * @param theLocked		{Array}		List of locked properties.
+	 * @param isResolving	{Boolean}	True, called by resolveDocument().
+	 */
+	loadDocumentProperty( theProperty, theValue, theLocked, isResolving )
+	{
+		//
+		// Check locked properties.
+		//
+		if( theLocked.includes( theProperty )
+		 && this._document.hasOwnProperty( theProperty ) )
+		{
+			//
+			// Handle changes.
+			//
+			if( this._document[ theProperty ] !== theValue )
+			{
+				//
+				// Handle ambiguous.
+				//
+				if( isResolving )
+					throw(
+						new MyError(
+							'AmbiguousDocumentReference',			// Error name.
+							K.error.ResolveMismatch,				// Message code.
+							this._request.application.language,		// Language.
+							theProperty,							// Arguments.
+							409										// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				//
+				// Handle locked.
+				//
+				else
+					throw(
+						new MyError(
+							'LockedProperty',					// Error name.
+							K.error.PropertyLocked,				// Message code.
+							this._request.application.language,	// Language.
+							theProperty,						// Error value.
+							409									// HTTP error code.
+						)
+					);															// !@! ==>
+			}
+		}
+		
+		//
+		// Set value.
+		//
+		else
+			this._document[ theProperty ] = theValue;
+		
+	}	// loadDocumentProperty
 	
 	/**
 	 * Load document reference
@@ -652,8 +735,9 @@ class Document
 			{
 				//
 				// Load document.
+				// Note that db._document() returns an immutable object.
 				//
-				this._document = db._document( theReference );
+				this._document = JSON.parse(JSON.stringify( db._document( theReference )));
 				
 				//
 				// Set collection.
@@ -690,84 +774,6 @@ class Document
 		}
 		
 	}	// loadDocumentReference
-	
-	/**
-	 * Add resolved data
-	 *
-	 * This method will add the provided object properties to the current object's
-	 * data, unlike the loadDocumentData() method, this one expects the provided object to be
-	 * complete and will overwrite by default the _id, _key and _rev fields.
-	 *
-	 * If the second parameter is false, existing properties will not be overwritten,
-	 * the default is true, which means the provided properties will overwrite the
-	 * existing ones.
-	 *
-	 * @param theData	{Object}	The object properties to add.
-	 * @param doReplace	{Boolean}	True, overwrite existing properties (defalut).
-	 */
-	loadResolvedDocument( theData, doReplace = true )
-	{
-		//
-		// Check _id.
-		//
-		if( this._document.hasOwnProperty( '_id' )
-		 && (this._document._id !== theData._id) )
-			throw(
-				new MyError(
-					'AmbiguousDocumentReference',			// Error name.
-					K.error.IdMismatch,						// Message code.
-					this._request.application.language,		// Language.
-					[ this._document._id, theData._id ],	// Arguments.
-					409										// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-		//
-		// Set _id.
-		//
-		this._document._id = theData._id;
-		delete theData._id;
-		
-		//
-		// Check _key.
-		//
-		if( this._document.hasOwnProperty( '_key' )
-		 && (this._document._key !== theData._key) )
-			throw(
-				new MyError(
-					'AmbiguousDocumentReference',			// Error name.
-					K.error.KeyMismatch,					// Message code.
-					this._request.application.language,		// Language.
-					[ this._document._key, theData._key ],	// Arguments.
-					409										// HTTP error code.
-				)
-			);																// !@! ==>
-		
-		//
-		// Set _key.
-		//
-		this._document._key = theData._key;
-		delete theData._key;
-		
-		//
-		// Check _rev.
-		//
-		if( this._document.hasOwnProperty( '_rev' )
-		 && (this._document._rev !== theData._rev) )
-			this._revised = true;
-		
-		//
-		// Set _rev.
-		//
-		this._document._rev = theData._rev;
-		delete theData._rev;
-		
-		//
-		// Set other fields.
-		//
-		this.loadDocumentData( theData, doReplace );
-		
-	}	// loadResolvedDocument
 	
 	/**
 	 * Load computed fields

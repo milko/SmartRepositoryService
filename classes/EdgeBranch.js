@@ -28,8 +28,14 @@ const Edge = require( './Edge' );
 /**
  * Edge branch class
  *
- * This class implements a branched edge object, it only manages significant fields, other
- * fields should be managed outside of the object.
+ * This class implements a branched edge object, this class differs from its parent
+ * only in the management of the brances property: it is required and when replacing
+ * the value, rather than replacing the array, it will be merged with the existing values.
+ *
+ * Note that this means that you should first create the object and only just before
+ * updating it you should modify the branch.
+ *
+ * This class adds helpers for managing the branch.
  *
  * The class expects all required collections to exist.
  */
@@ -50,19 +56,6 @@ class EdgeBranch extends Edge
 	}	// setClass
 	
 	/**
-	 * Return list of significant fields
-	 *
-	 * In this class we return the node references, the predicate and the attributes
-	 * array.
-	 */
-	getSignificantFields()
-	{
-		return super.getSignificantFields()
-			.concat( [ Dict.descriptor.kBranches ] );								// ==>
-		
-	}	// getSignificantFields
-	
-	/**
 	 * Return list of required fields
 	 *
 	 * In this class we return the node references, the predicate and the attributes
@@ -78,19 +71,87 @@ class EdgeBranch extends Edge
 	}	// getRequiredFields
 	
 	/**
-	 * Return list of locked fields
+	 * Add branch and modifier
 	 *
-	 * In this class we return the node references, the predicate and the attributes
-	 * array.
+	 * This method will add a branch and the eventual modifiers to the current edge.
 	 *
-	 * @returns {Array}	List of locked fields.
+	 * The provided branch must be the object reference, the modifiers must be an
+	 * object containing the modifiers data, the branch reference will be set by this
+	 * method.
+	 *
+	 * @param theBranch		{String}		The branch.
+	 * @param theModifier	{Object}|{null}	The modifiers.
 	 */
-	getLockedFields()
+	addBranch( theBranch, theModifier = null )
 	{
-		return super.getSignificantFields()
-			.concat( [ Dict.descriptor.kBranches ] );								// ==>
+		//
+		// Create branch.
+		//
+		if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
+			this._document[ Dict.descriptor.kBranches ] = [];
 		
-	}	// getLockedFields
+		//
+		// Set branch.
+		//
+		if( ! this._document[ Dict.descriptor.kBranches ].includes( theBranch ) )
+			this._document[ Dict.descriptor.kBranches ].push( theBranch );
+		
+		//
+		// Handle modifiers.
+		//
+		if( theModifier !== null )
+		{
+			//
+			// Create modifiers.
+			//
+			if( ! this._document.hasOwnProperty( Dict.descriptor.kModifiers ) )
+				this._document[ Dict.descriptor.kModifiers ] = {};
+			
+			//
+			// Set/update modifiers.
+			//
+			this._document[ Dict.descriptor.kModifiers ][ theBranch ] = theModifier;
+		
+		}	// Provided modifiers.
+		
+	}	// addBranch
+	
+	/**
+	 * Delete branch
+	 *
+	 * This method will delete the provided branch from the object, including the
+	 * modifiers.
+	 *
+	 * @param theBranch		{String}		The branch.
+	 */
+	delBranch( theBranch )
+	{
+		//
+		// Handle branch.
+		//
+		if( this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
+			this._document[ Dict.descriptor.kBranches ] =
+				this._document[ Dict.descriptor.kBranches ].filter( x => x !== theBranch );
+		
+		//
+		// Handle modifiers.
+		//
+		if( this._document.hasOwnProperty( Dict.descriptor.kModifiers )
+		 && this._document[ Dict.descriptor.kModifiers ].hasOwnProperty( theBranch ) )
+		{
+			//
+			// Remove modifier.
+			//
+			delete this._document[ Dict.descriptor.kModifiers ][ theBranch ];
+			
+			//
+			// Remove modifiers.
+			//
+			if( Object.keys( this._document[ Dict.descriptor.kModifiers ] ).length === 0 )
+				delete this._document[ Dict.descriptor.kModifiers ];
+		}
+		
+	}	// delBranch
 	
 }	// EdgeBranch.
 

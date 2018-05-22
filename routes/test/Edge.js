@@ -38,6 +38,7 @@ const HTTP_CONFLICT = status('conflict');
 const K = require( '../../utils/Constants' );
 const MyError = require( '../../utils/MyError' );
 const Edge = require( '../../classes/Edge' );
+const EdgeBranch = require( '../../classes/EdgeBranch' );
 const EdgeAttribute = require( '../../classes/EdgeAttribute' );
 
 //
@@ -268,4 +269,249 @@ router.post
 	)
 	.description(dd`
   Instantiates and returns an attribute edge object
+`);
+
+
+/**
+ * Test branch edge creation
+ *
+ * The service will instantiate a branched edge and return its data, it expects the
+ * following parameters in the POST body:
+ *
+ * 	- collection:	Collection name.
+ * 	- reference:	Either an edge reference or an edge object.
+ *
+ * @path		/instantiate/edgeBranch
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post
+(
+	'/instantiate/edgeBranch',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+		
+		//
+		// Test instantiation.
+		//
+		try
+		{
+			//
+			// Instantiate document.
+			//
+			const doc =
+				new EdgeBranch(
+					request,
+					request.body.reference,
+					request.body.collection
+				);
+			
+			//
+			// Resolve document.
+			//
+			let resolved = false;
+			if( ! doc.document.hasOwnProperty( '_rev' ) )
+				resolved = doc.resolve( true, false );
+			
+			//
+			// Insert edge.
+			//
+			if( ! doc.persistent )
+				doc.insert();
+			
+			response.send({
+				collection: doc.collection,
+				resolved : resolved,
+				persistent : doc.persistent,
+				modified : doc.revised,
+				data : doc.document,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+				&& error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'instantiateEdgeBranch'
+)
+	.body(
+		Joi.object({
+			collection : Joi.string(),
+			reference : Joi.alternatives().try(
+				Joi.string().required(),
+				Joi.object().required()
+			).required()
+		}).required(),
+		"The collection name and the edge reference or object."
+	)
+	.response(
+		200,
+		Joi.object({
+			collection : Joi.string(),
+			resolved : Joi.boolean(),
+			persistent : Joi.boolean(),
+			modified : Joi.boolean(),
+			data : Joi.object(),
+			time : Joi.number()
+		}),
+		"The result: 'data' contains the resolved edge and 'time' contains the elapsed time."
+	)
+	.summary(
+		"Instantiate a branched edge object."
+	)
+	.description(dd`
+  Instantiates and returns a branched edge object
+`);
+
+
+/**
+ * Test branch edge branches management
+ *
+ * The service will instantiate a branched edge, then add and delete a branch, it
+ * expects the following parameters in the POST body:
+ *
+ * 	- collection:	Collection name.
+ * 	- reference:	Either an edge reference or an edge object.
+ * 	- branch:		The branch to add.
+ * 	- modifier:		The modifiers to add.
+ *
+ * @path		/manage/branch
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post
+(
+	'/manage/branch',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+		
+		//
+		// Test instantiation.
+		//
+		try
+		{
+			//
+			// Instantiate document.
+			//
+			const doc =
+				new EdgeBranch(
+					request,
+					request.body.reference,
+					request.body.collection
+				);
+			
+			//
+			// Resolve document.
+			//
+			let resolved = false;
+			if( ! doc.document.hasOwnProperty( '_rev' ) )
+				resolved = doc.resolve( true, false );
+			const original = K.function.clone( doc.document );
+			
+			//
+			// Add branch.
+			//
+			const modifier = ( request.body.hasOwnProperty( 'modifier' ) )
+						   ? request.body.modifier
+						   : null;
+			
+			//
+			// Add branch.
+			//
+			doc.addBranch( request.body.branch, modifier );
+			doc.validate( true );
+			const before = K.function.clone( doc._document );
+			
+			//
+			// Delete branch.
+			//
+			doc.delBranch( request.body.branch );
+			doc.validate( true );
+			const after = doc.document;
+			
+			response.send({
+				collection: doc.collection,
+				resolved : resolved,
+				persistent : doc.persistent,
+				modified : doc.revised,
+				original : original,
+				before : before,
+				after : after,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+				&& error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'instantiateEdgeBranch'
+)
+	.body(
+		Joi.object({
+			collection : Joi.string(),
+			reference : Joi.alternatives().try(
+				Joi.string().required(),
+				Joi.object().required()
+			).required(),
+			branch : Joi.string().required(),
+			modifier : Joi.object()
+		}).required(),
+		"The collection name,the edge reference or object, the branch to add and the" +
+		" eventual modifiers."
+	)
+	.response(
+		200,
+		Joi.object({
+			collection : Joi.string(),
+			resolved : Joi.boolean(),
+			persistent : Joi.boolean(),
+			modified : Joi.boolean(),
+			original : Joi.object(),
+			before : Joi.object(),
+			after : Joi.object(),
+			time : Joi.number()
+		}),
+		"The result: 'before' contains the edge after adding the branch, 'after'" +
+		" contains the edge after deleting the branch and 'time' contains the elapsed" +
+		" time."
+	)
+	.summary(
+		"Add and delete a branch from a branched edge edge."
+	)
+	.description(dd`
+  Instantiates a branched edge, then add and delete the branch.
 `);

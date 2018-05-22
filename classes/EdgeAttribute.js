@@ -50,6 +50,31 @@ class EdgeAttribute extends Edge
 	}	// setClass
 	
 	/**
+	 * Load document property
+	 *
+	 * We overload this method to sort the provided attributes array before processing.
+	 *
+	 * @param theProperty	{String}	The property name.
+	 * @param theValue		{*}			The property value.
+	 * @param theLocked		{Array}		List of locked properties.
+	 * @param isResolving	{Boolean}	True, called by resolveDocument().
+	 */
+	loadDocumentProperty( theProperty, theValue, theLocked, isResolving )
+	{
+		//
+		// Handle attributes.
+		//
+		if( theProperty === Dict.descriptor.kAttributes )
+			theValue.sort();
+		
+		//
+		// Call parent method.
+		//
+		super.loadDocumentProperty( theProperty, theValue, theLocked, isResolving );
+		
+	}	// loadDocumentProperty
+	
+	/**
 	 * Load computed fields
 	 *
 	 * Here we set the _key property and raise an exception if the existing and
