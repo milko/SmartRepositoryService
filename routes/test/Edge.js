@@ -134,7 +134,7 @@ router.post
 )
 	.body(
 		Joi.object({
-			collection : Joi.string().required(),
+			collection : Joi.string(),
 			reference : Joi.alternatives().try(
 				Joi.string().required(),
 				Joi.object().required()
@@ -175,7 +175,6 @@ router.post
  * @verb		post
  * @response	{Object}	The operation result.
  */
-/*
 router.post
 (
 	'/instantiate/edgeAttr',
@@ -192,9 +191,9 @@ router.post
 		try
 		{
 			//
-			// Instantiate edge.
+			// Instantiate document.
 			//
-			const edge =
+			const doc =
 				new EdgeAttribute(
 					request,
 					request.body.reference,
@@ -202,26 +201,24 @@ router.post
 				);
 			
 			//
-			// Resolve edge.
+			// Resolve document.
 			//
-			if( ! edge.data.hasOwnProperty( '_rev' ) )
-				edge.resolve( true, false );
-			
-			//
-			// Validate edge.
-			//
-			edge.validate();
+			let resolved = false;
+			if( ! doc.document.hasOwnProperty( '_rev' ) )
+				resolved = doc.resolve( true, false );
 			
 			//
 			// Insert edge.
 			//
-			if( ! edge.isPersistent() )
-				edge.insert();
+			if( ! doc.persistent )
+				doc.insert();
 			
 			response.send({
-				collection: edge.getCollection().toString(),
-				resolved : edge.isPersistent(),
-				data : edge.getData(),
+				collection: doc.collection,
+				resolved : resolved,
+				persistent : doc.persistent,
+				modified : doc.revised,
+				data : doc.document,
 				time : time() - stamp
 			});
 		}
@@ -242,11 +239,11 @@ router.post
 			response.throw( http, error );										// !@! ==>
 		}
 	},
-	'instantiateEdgeAttr'
+	'instantiateEdgeAttribute'
 )
 	.body(
 		Joi.object({
-			collection : Joi.string().required(),
+			collection : Joi.string(),
 			reference : Joi.alternatives().try(
 				Joi.string().required(),
 				Joi.object().required()
@@ -259,15 +256,16 @@ router.post
 		Joi.object({
 			collection : Joi.string(),
 			resolved : Joi.boolean(),
+			persistent : Joi.boolean(),
+			modified : Joi.boolean(),
 			data : Joi.object(),
 			time : Joi.number()
 		}),
 		"The result: 'data' contains the resolved edge and 'time' contains the elapsed time."
 	)
 	.summary(
-		"Instantiate an edge object."
+		"Instantiate an attribute edge object."
 	)
 	.description(dd`
-  Instantiates and returns an edge object
+  Instantiates and returns an attribute edge object
 `);
-*/

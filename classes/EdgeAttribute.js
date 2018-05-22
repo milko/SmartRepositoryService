@@ -167,7 +167,7 @@ class EdgeAttribute extends Edge
 	getSignificantFields()
 	{
 		return super.getSignificantFields()
-			.join( [ Dict.descriptor.kAttributes ] );								// ==>
+			.concat( [ Dict.descriptor.kAttributes ] );								// ==>
 		
 	}	// getSignificantFields
 	
@@ -182,7 +182,7 @@ class EdgeAttribute extends Edge
 	getRequiredFields()
 	{
 		return super.getSignificantFields()
-			.join( [ Dict.descriptor.kAttributes ] );								// ==>
+			.concat( [ Dict.descriptor.kAttributes ] );								// ==>
 		
 	}	// getRequiredFields
 	
@@ -197,7 +197,7 @@ class EdgeAttribute extends Edge
 	getLockedFields()
 	{
 		return super.getSignificantFields()
-			.join( [ Dict.descriptor.kAttributes ] );								// ==>
+			.concat( [ Dict.descriptor.kAttributes ] );								// ==>
 		
 	}	// getLockedFields
 	
