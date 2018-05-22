@@ -182,19 +182,19 @@ class Document
 		//
 		// Load computed fields.
 		//
-		if( ! this.loadComputedProperties( struct, doAssert ) )
+		if( ! this.loadComputedProperties( doAssert ) )
 			return false;															// ==>
 		
 		//
 		// Validate required fields.
 		//
-		if( ! this.validateRequired( struct, doAssert ) )
+		if( ! this.hasRequiredFields( doAssert ) )
 			return false;															// ==>
 		
 		//
 		// Validate properties.
 		//
-		if( ! this.validateProperties( struct, doAssert ) )
+		if( ! this.validateProperties( doAssert ) )
 			return false;															// ==>
 		
 		return true;																// ==>
@@ -792,16 +792,14 @@ class Document
 	}	// loadComputedProperties
 	
 	/**
-	 * Assert all required fields have been set
+	 * Assert all significant fields have been set
 	 *
-	 * This method will check if any required field is missing, if you provide true in
+	 * This method will check if any significant field is missing, if you provide true in
 	 * getMad, the method will raise an exception, if false, the method will return a
-	 * boolean where true means all required fields are present.
-	 *
-	 * In this class we assert the presence of _from, _to and predicate.
+	 * boolean where true means all significant fields are present.
 	 *
 	 * @param getMad	{Boolean}	True raises an exception (default).
-	 * @returns {Boolean}			True if all required fields are there.
+	 * @returns {Boolean}			True if all significant fields are there.
 	 */
 	hasSignificantFields( getMad = true )
 	{
@@ -851,28 +849,61 @@ class Document
 	}	// hasSignificantFields
 	
 	/**
-	 * Check required fields
+	 * Assert all required fields have been set
 	 *
-	 * This method will check if all required fields are present, if that is the case,
-	 * the method will return true; if that is not the case the method will raise an
-	 * exception, if doAssert is true, or return false.
+	 * This method will check if any required field is missing, if you provide true in
+	 * getMad, the method will raise an exception, if false, the method will return a
+	 * boolean where true means all required fields are present.
 	 *
-	 * @param theStructure	{Structure}	The class structure object.
-	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
-	 * 									(defaults to true).
-	 * @returns {Boolean}				True if valid.
+	 * @param getMad	{Boolean}	True raises an exception (default).
+	 * @returns {Boolean}			True if all required fields are there.
 	 */
-	validateRequired( theStructure, doAssert = true )
+	hasRequiredFields( getMad = true )
 	{
 		//
-		// Nothing to do here.
+		// Init local storage.
 		//
-		if( theStructure === null )
-			return true;															// ==>
+		const missing = [];
+		
+		//
+		// Get required fields.
+		//
+		const fields = this.getRequiredFields();
+		
+		//
+		// Check required fields.
+		//
+		for( const field of fields )
+		{
+			if( ! this._document.hasOwnProperty( field ) )
+				missing.push( field );
+		}
+		
+		//
+		// Handle missing.
+		//
+		if( missing.length > 0 )
+		{
+			//
+			// Raise exception.
+			//
+			if( getMad )
+				throw(
+					new MyError(
+						'IncompleteObject',					// Error name.
+						K.error.MissingField,				// Message code.
+						this._request.application.language,	// Language.
+						missing.join( ', ' ),				// Arguments.
+						412									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			return false;															// ==>
+		}
 		
 		return true;																// ==>
 		
-	}	// validateRequired
+	}	// hasRequiredFields
 	
 	/**
 	 * Validate document fields
@@ -880,12 +911,11 @@ class Document
 	 * This method will check if all document fields are valid; if that is not the
 	 * case the method will raise an exception, if doAssert is true, or return false.
 	 *
-	 * @param theStructure	{Structure}	The class structure object.
 	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
 	 * 									(defaults to true).
 	 * @returns {Boolean}				True if valid.
 	 */
-	validateProperties( theStructure, doAssert = true )
+	validateProperties( doAssert = true )
 	{
 		//
 		// Validate document.
@@ -978,13 +1008,13 @@ class Document
 	 * This method should return the list of fields that cannot be changed once the
 	 * document has been inserted.
 	 *
-	 * In this class we return the key.
+	 * In this class we return the id, key and revision.
 	 *
 	 * @returns {Array}	List of locked fields.
 	 */
 	getLockedFields()
 	{
-		return [ '_key' ];															// ==>
+		return [ '_id', '_key', '_rev' ];											// ==>
 		
 	}	// getLockedFields
 	

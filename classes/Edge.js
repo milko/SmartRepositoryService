@@ -85,7 +85,7 @@ class Edge extends Document
 		// Check if significat fields are there.
 		// Will raise an exception if false.
 		//
-		if( this.hasSignificantFields( true ) )
+		if( this.hasSignificantFields( doAssert ) )
 		{
 			//
 			// Create hash fields.
@@ -133,32 +133,6 @@ class Edge extends Document
 		return false;																// ==>
 		
 	}	// loadComputedProperties
-	
-	/**
-	 * Check required fields
-	 *
-	 * This method will check if all required fields are present, if that is the case,
-	 * the method will return true; if that is not the case the method will raise an
-	 * exception, if doAssert is true, or return false.
-	 *
-	 * Here we do nothing, since we already checked the significant fields.
-	 *
-	 * @param theStructure	{Structure}	The class structure object.
-	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
-	 * 									(defaults to true).
-	 * @returns {Boolean}				True if valid.
-	 */
-	validateRequired( theStructure, doAssert = true )
-	{
-		//
-		// Nothing to do here.
-		//
-		if( theStructure === null )
-			return true;															// ==>
-		
-		return true;																// ==>
-		
-	}	// validateRequired
 	
 	/**
 	 * Return list of significant fields
