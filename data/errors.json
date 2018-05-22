@@ -214,5 +214,11 @@
     "label" : {
       "ISO:639:3:eng" : "Property is locked: "
     }
+  },
+  {
+    "_key" : "UserManagerConflict",
+    "label" : {
+      "ISO:639:3:eng" : "User manager conflict: "
+    }
   }
 ]

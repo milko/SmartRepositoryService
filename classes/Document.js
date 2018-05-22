@@ -65,7 +65,7 @@ class Document
 	 *
 	 * @param theRequest	{Object}			The current request.
 	 * @param theReference	{String}|{Object}	The document reference or object.
-	 * @param theCollection	{String}			The document collection.
+	 * @param theCollection	{String}|{null}		The document collection.
 	 */
 	constructor( theRequest, theReference, theCollection = null )
 	{

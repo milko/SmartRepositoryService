@@ -339,7 +339,9 @@ module.exports = Object.freeze(
 			EdgeAttrNotFound	: 75,
 			AmbiguousDocument	: 76,
 			PropertyLocked		: 77,
-			ResolveMismatch		: 78
+			ResolveMismatch		: 78,
+			UserManagerConflict	: 79,
+			MissingUserManager	: 80
 		},
 
 		//
