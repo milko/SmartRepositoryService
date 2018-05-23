@@ -587,6 +587,8 @@ class User extends Document
 	 *
 	 * The method will return the group _id, or null, if the provided parameter was null.
 	 *
+	 * MILKO - Support providing an object: { username: value }
+	 *
 	 * @param theGroup	{String}|{null}	The group reference.
 	 * @returns {String}|{null}			The group _id, or null.
 	 */
