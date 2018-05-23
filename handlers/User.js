@@ -100,7 +100,7 @@ module.exports = {
 			// Complete user data.
 			//
 			const user = theRequest.body.data;
-			user[ Dict.descriptor.kUsername ] = K.globals.user.sysadm;
+			user[ Dict.descriptor.kUsername ] = module.context.configuration.adminCode;
 			user[ Dict.descriptor.kRank ]	  = Dict.term.kRankSystem;
 			user[ Dict.descriptor.kRole ]	  =
 				Schema.getEnumList

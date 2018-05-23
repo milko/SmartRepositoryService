@@ -65,7 +65,7 @@ class EdgeBranch extends Edge
 	 */
 	getRequiredFields()
 	{
-		return super.getSignificantFields()
+		return super.getRequiredFields()
 			.concat( [ Dict.descriptor.kBranches ] );								// ==>
 		
 	}	// getRequiredFields

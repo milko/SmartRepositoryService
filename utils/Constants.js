@@ -341,7 +341,10 @@ module.exports = Object.freeze(
 			PropertyLocked		: 77,
 			ResolveMismatch		: 78,
 			UserManagerConflict	: 79,
-			MissingUserManager	: 80
+			MissingUserManager	: 80,
+			DuplicateEdge		: 81,
+			NoManager			: 82,
+			UserGroupConflict	: 83
 		},
 
 		//
@@ -360,15 +363,6 @@ module.exports = Object.freeze(
 						ddict	: 'DDICT'			// missing data dictionary data.
 					}
 				}
-			}
-		},
-		
-		//
-		// Globals.
-		//
-		globals : {
-			user : {
-				sysadm			: 'admin'			// System administrator's username.
 			}
 		},
 

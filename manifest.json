@@ -13,6 +13,12 @@
         "teardown": "scripts/teardown.js"
     },
     "configuration": {
+        "adminCode": {
+            "description": "Default administrator's user code.",
+            "type": "string",
+            "required": true,
+            "default": "admin"
+        },
         "defaultLanguage": {
             "description": "Default language ISO code.",
             "type": "string",

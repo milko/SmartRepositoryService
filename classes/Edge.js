@@ -175,11 +175,11 @@ class Edge extends Document
 	 */
 	getLockedFields()
 	{
-		return [
+		return super.getLockedFields().concat([
 			'_from',
 			'_to',
 			Dict.descriptor.kPredicate
-		];																			// ==>
+		]);																			// ==>
 		
 	}	// getLockedFields
 	

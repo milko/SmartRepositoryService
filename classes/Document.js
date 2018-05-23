@@ -202,7 +202,7 @@ class Document
 	}	// validate
 	
 	/**
-	 * Insert document
+	 * Insert object
 	 *
 	 * This method will insert the document in the registered collection after validating
 	 * its contents.
@@ -222,6 +222,68 @@ class Document
 		this.insertDocument();
 		
 	}	// insert
+	
+	/**
+	 * Remove object
+	 *
+	 * This method will remove the document from the database, it will first check if
+	 * the current object is persistent, if that is the case, it will proceed to
+	 * delete the document from the database and will return true.
+	 *
+	 * If the document does not exist, the method will return false.
+	 *
+	 * If the current object is not persistent, the method will do nothing and return
+	 * null.
+	 *
+	 * If the current document revision is different than the existing document
+	 * revision, the method will raise an exception.
+	 */
+	remove()
+	{
+		//
+		// Only if persistent.
+		//
+		if( this._persistent )
+		{
+			//
+			// Remove.
+			//
+			try
+			{
+				//
+				// Delete.
+				//
+				db._remove( this._document );
+				
+				//
+				// Update persistent flag.
+				//
+				this._persistent = false;
+				
+				return true;														// ==>
+			}
+			catch( error )
+			{
+				//
+				// Catch not found.
+				//
+				if( (! error.isArangoError)
+				 || (error.errorNum !== ARANGO_NOT_FOUND) )
+					throw( error );												// !@! ==>
+			}
+			
+			//
+			// Ensure persistent flag.
+			//
+			this._persistent = false;
+			
+			return false;															// ==>
+			
+		}	// Is persistent.
+		
+		return null;																// ==>
+	
+	}	// remove
 	
 	/**
 	 * Retrieve class name
@@ -287,114 +349,6 @@ class Document
 		return this._revised;														// ==>
 		
 	}	// get revised
-	
-	/**
-	 * Resolve document
-	 *
-	 * This method will attempt to load the document corresponding to the significant
-	 * fields of the object, if the document was found, its properties will be set in
-	 * the current object according to the falue of doReplace:
-	 *
-	 * 	- true:		The resolved properties will overwrite the existing ones.
-	 * 	- false:	The existing properties will not be replaced.
-	 *
-	 * Note that the _id, _key and _rev properties will overwrite by default the
-	 * existing ones.
-	 *
-	 * This method assumes the object has the necessary properties to resolve it, in
-	 * practice, that you have called hasSignificantFields() beforehand and that the
-	 * method returned true.
-	 *
-	 * Please refer to the resolve() method for further documentation.
-	 *
-	 * @param doReplace	{Boolean}	Replace existing data (false is default).
-	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
-	 * 								(defaults to true).
-	 * @returns {Boolean}			True if found.
-	 */
-	resolveDocument( doReplace = false, doAssert = true )
-	{
-		//
-		// Load example query from significant fields.
-		// Note that the method assumes you have called hasSignificantFields().
-		//
-		const example = {};
-		for( const field of this.getSignificantFields() )
-			example[ field ] = this._document[ field ];
-		
-		//
-		// Load document.
-		//
-		const cursor = db._collection( this._collection ).byExample( example );
-		
-		//
-		// Check if found.
-		//
-		if( cursor.count() > 0 )
-		{
-			//
-			// Handle ambiguous query.
-			//
-			if( cursor.count() > 1 )
-				throw(
-					new MyError(
-						'AmbiguousDocumentReference',		// Error name.
-						K.error.AmbiguousDocument,			// Message code.
-						this.request.application.language,	// Language.
-						[ Object.keys( example ), this._collection],
-						412									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Load found document.
-			//
-			this.loadDocumentData( cursor.toArray()[ 0 ], doReplace, true );
-			
-			//
-			// Set flag.
-			//
-			this._persistent = true;
-			
-		}	// Found.
-		
-		//
-		// Handle not found.
-		//
-		else
-		{
-			//
-			// Assert not found.
-			//
-			if( doAssert )
-			{
-				//
-				// Build reference.
-				//
-				const reference = [];
-				for( const field of example )
-					reference.push( `${field} = ${example.field.toString()}`)
-				
-				throw(
-					new MyError(
-						'BadDocumentReference',						// Error name.
-						K.error.DocumentNotFound,					// Message code.
-						this._request.application.language,			// Language.
-						[reference.join( ', ' ), this._collection],	// Error value.
-						404											// HTTP error code.
-					)
-				);																// !@! ==>
-			}
-			
-			//
-			// Set flag.
-			//
-			this._persistent = false;
-		}
-		
-		return this._persistent;													// ==>
-		
-	}	// resolveDocument
 	
 	/**
 	 * Insert document
@@ -574,6 +528,114 @@ class Document
 			);																	// !@! ==>
 		
 	}	// checkCollectionType
+	
+	/**
+	 * Resolve document
+	 *
+	 * This method will attempt to load the document corresponding to the significant
+	 * fields of the object, if the document was found, its properties will be set in
+	 * the current object according to the falue of doReplace:
+	 *
+	 * 	- true:		The resolved properties will overwrite the existing ones.
+	 * 	- false:	The existing properties will not be replaced.
+	 *
+	 * Note that the _id, _key and _rev properties will overwrite by default the
+	 * existing ones.
+	 *
+	 * This method assumes the object has the necessary properties to resolve it, in
+	 * practice, that you have called hasSignificantFields() beforehand and that the
+	 * method returned true.
+	 *
+	 * Please refer to the resolve() method for further documentation.
+	 *
+	 * @param doReplace	{Boolean}	Replace existing data (false is default).
+	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
+	 * 								(defaults to true).
+	 * @returns {Boolean}			True if found.
+	 */
+	resolveDocument( doReplace = false, doAssert = true )
+	{
+		//
+		// Load example query from significant fields.
+		// Note that the method assumes you have called hasSignificantFields().
+		//
+		const example = {};
+		for( const field of this.getSignificantFields() )
+			example[ field ] = this._document[ field ];
+		
+		//
+		// Load document.
+		//
+		const cursor = db._collection( this._collection ).byExample( example );
+		
+		//
+		// Check if found.
+		//
+		if( cursor.count() > 0 )
+		{
+			//
+			// Handle ambiguous query.
+			//
+			if( cursor.count() > 1 )
+				throw(
+					new MyError(
+						'AmbiguousDocumentReference',		// Error name.
+						K.error.AmbiguousDocument,			// Message code.
+						this.request.application.language,	// Language.
+						[ Object.keys( example ), this._collection],
+						412									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			//
+			// Load found document.
+			//
+			this.loadDocumentData( cursor.toArray()[ 0 ], doReplace, true );
+			
+			//
+			// Set flag.
+			//
+			this._persistent = true;
+			
+		}	// Found.
+		
+		//
+		// Handle not found.
+		//
+		else
+		{
+			//
+			// Assert not found.
+			//
+			if( doAssert )
+			{
+				//
+				// Build reference.
+				//
+				const reference = [];
+				for( const field of example )
+					reference.push( `${field} = ${example.field.toString()}`)
+				
+				throw(
+					new MyError(
+						'BadDocumentReference',						// Error name.
+						K.error.DocumentNotFound,					// Message code.
+						this._request.application.language,			// Language.
+						[reference.join( ', ' ), this._collection],	// Error value.
+						404											// HTTP error code.
+					)
+				);																// !@! ==>
+			}
+			
+			//
+			// Set flag.
+			//
+			this._persistent = false;
+		}
+		
+		return this._persistent;													// ==>
+		
+	}	// resolveDocument
 	
 	/**
 	 * Load document data

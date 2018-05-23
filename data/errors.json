@@ -216,9 +216,21 @@
     }
   },
   {
+    "_key" : "UserGroupConflict",
+    "label" : {
+      "ISO:639:3:eng" : "User group conflict: "
+    }
+  },
+  {
     "_key" : "UserManagerConflict",
     "label" : {
       "ISO:639:3:eng" : "User manager conflict: "
+    }
+  },
+  {
+    "_key" : "DatabaseCorrupt",
+    "label" : {
+      "ISO:639:3:eng" : "The database is corrupt: "
     }
   }
 ]
