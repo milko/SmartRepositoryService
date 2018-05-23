@@ -35,6 +35,10 @@ const Document = require( './Document' );
  * 	- group:	The user group reference.
  * 	- manager:	The user manager reference.
  *
+ * These two properties must be provided when instantiating the object for the first
+ * time before it has been inserted, when resolving existing objects, these properties
+ * will be also resolved.
+ *
  * The class expects all required collections to exist.
  */
 class User extends Document
@@ -42,17 +46,19 @@ class User extends Document
 	/**
 	 * Constructor
 	 *
-	 * We overload the constructor to add the manager and group properties, both
-	 * parameters are optional:
+	 * We overload the constructor to add the manager and group properties:
 	 *
-	 * 	- theGroup:		Provide a group reference. If omitted, the parameter can be
-	 * 					resolved, when inserting a new user it is not required.
-	 * 	- theManager:	Provide a user reference. If omitted, the parameter can be
-	 * 					resolved, when inserting a new user it is required.
+	 * 	- theManager:	Provide the user reference of the manager. The parameter is
+	 * 					required if the user is new and has to be inserted, it can be
+	 * 					omitted if the user already exists.
+	 * 	- theGroup:		Provide a group reference. The parameter is optional.
 	 *
-	 * Note that you should only provide these parameters if you intend to insert a
-	 * new user, if any of these two parameters conflict with a resolved object, the
-	 * method will raise an exception.
+	 * These two parameters should only be provided when instantiating a new non
+	 * persistent object, if the object exists in the database, these can be omitted.
+	 *
+	 * When resolving these two parameters, if any of the references provided as
+	 * parameters conflict with the values in the database, the method will raise an
+	 * exception, there are two dedicated methods to change group and user.
 	 *
 	 * @param theRequest	{Object}			The current request.
 	 * @param theReference	{String}|{Object}	The document reference or object.
@@ -86,7 +92,7 @@ class User extends Document
 	}	// constructor
 	
 	/**
-	 * Resolve document
+	 * Resolve from database
 	 *
 	 * We overload this method to handle the user code.
 	 *
@@ -329,10 +335,8 @@ class User extends Document
 		// Seek manager.
 		// Note the test for null key: without it risks infinite recursion.
 		//
-		else if( ( this._document.hasOwnProperty( '_id' )
-				&& (this._document._id !== null) )
-			  || ( this._document.hasOwnProperty( '_key' )
-				&& (this._document._key !== null) ) )
+		else if( this._document.hasOwnProperty( '_id' )
+			  || this._document.hasOwnProperty( '_key' ) )
 		{
 			//
 			// Compute _id.
@@ -414,7 +418,7 @@ class User extends Document
 		else if( this._persistent )
 		{
 			//
-			// Handle provided reference.
+			// Handle invalid provided reference.
 			//
 			if( theManager !== null )
 				throw(
@@ -444,7 +448,7 @@ class User extends Document
 		}	// Manager not found.
 		
 		//
-		// Handle missing manager for non persistent object.
+		// Save provided manager reference for later.
 		//
 		else if( theManager !== null )
 			this.manager = theManager;
@@ -467,6 +471,7 @@ class User extends Document
 		// Create group relationship.
 		//
 		this.insertGroup();
+		
 		//
 		// Create manager relationship.
 		//
