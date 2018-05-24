@@ -176,7 +176,7 @@
   {
     "_key" : "AmbiguousDocumentReference",
     "label" : {
-      "ISO:639:3:eng" : "Ambiguous edge reference: "
+      "ISO:639:3:eng" : "Ambiguous document reference: "
     }
   },
   {
@@ -231,6 +231,12 @@
     "_key" : "DatabaseCorrupt",
     "label" : {
       "ISO:639:3:eng" : "The database is corrupt: "
+    }
+  },
+  {
+    "_key" : "ConstraintViolated",
+    "label" : {
+      "ISO:639:3:eng" : "Constraint violation: "
     }
   }
 ]

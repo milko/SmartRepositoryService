@@ -91,7 +91,7 @@ module.exports = {
 			Middleware.assert.tokenAdmin( theRequest, theResponse );
 			
 			//
-			// Validation.
+			// Validate form.
 			//
 			const form = new Form( theRequest, Dict.term.kFormAdmin );
 			form.validate( theRequest, theRequest.body.data );
@@ -99,10 +99,10 @@ module.exports = {
 			//
 			// Complete user data.
 			//
-			const user = theRequest.body.data;
-			user[ Dict.descriptor.kUsername ] = module.context.configuration.adminCode;
-			user[ Dict.descriptor.kRank ]	  = Dict.term.kRankSystem;
-			user[ Dict.descriptor.kRole ]	  =
+			const data = theRequest.body.data;
+			data[ Dict.descriptor.kUsername ] = module.context.configuration.adminCode;
+			data[ Dict.descriptor.kRank ]	  = Dict.term.kRankSystem;
+			data[ Dict.descriptor.kRole ]	  =
 				Schema.getEnumList
 				(
 					theRequest,				// Request.
@@ -121,13 +121,13 @@ module.exports = {
 			// Create authorisation data.
 			//
 			const auth = createAuth();
-			user[ Dict.descriptor.kAuthData ] =
-				auth.create( user[ Dict.descriptor.kPassword ] );
+			data[ Dict.descriptor.kAuthData ] =
+				auth.create( data[ Dict.descriptor.kPassword ] );
 			
 			//
 			// Insert user.
 			//
-			const meta = db._collection( 'users' ).insert( user );
+			const meta = db._collection( 'users' ).insert( data );
 			
 			//
 			// Update session.
@@ -139,12 +139,12 @@ module.exports = {
 			//
 			// Copy user to request.
 			//
-			theRequest.application.user = user;
+			theRequest.application.user = data;
 			
 			//
 			// Return response.
 			//
-			theResponse.send({ result : user });
+			theResponse.send({ result : data });
 		}
 		catch( error )
 		{

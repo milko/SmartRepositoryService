@@ -39,7 +39,7 @@ class Edge extends Document
 	 */
 	setClass()
 	{
-		this._class = null;
+		this._class = 'Edge';
 		
 	}	// setClass
 	

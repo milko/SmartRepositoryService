@@ -51,7 +51,7 @@ class EdgeBranch extends Edge
 	 */
 	setClass()
 	{
-		this._class = null;
+		this._class = 'EdgeBranch';
 		
 	}	// setClass
 	

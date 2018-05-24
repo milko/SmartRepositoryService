@@ -24,6 +24,11 @@ const MyError = require( '../utils/MyError' );
 //
 const Document = require( './Document' );
 
+//
+// Classes.
+//
+const Edge = require( './Edge' );
+
 
 /**
  * User class
@@ -65,22 +70,21 @@ class User extends Document
 	 *
 	 * @param theRequest	{Object}			The current request.
 	 * @param theReference	{String}|{Object}	The document reference or object.
-	 * @param theCollection	{String}|{null}		The document collection.
 	 * @param theGroup		{String}|{null}		The user group reference.
 	 * @param theManager	{String}|{null}		The user manager reference.
 	 */
 	constructor(
 		theRequest,
 		theReference,
-		theCollection = null,
 		theGroup = null,
 		theManager = null
 	)
 	{
 		//
 		// Call parent constructor.
+		// Note that we enforce the users collection.
 		//
-		super( theRequest, theReference, theCollection );
+		super( theRequest, theReference, 'users' );
 		
 		//
 		// Init local storage.
@@ -154,6 +158,13 @@ class User extends Document
 	insert()
 	{
 		//
+		// Set default language.
+		//
+		if( ! this._document.hasOwnProperty( Dict.descriptor.kLanguage ) )
+			this._document[ Dict.descriptor.kLanguage ] =
+				module.context.configuration.defaultLanguage;
+		
+		//
 		// Try to insert.
 		//
 		try
@@ -202,7 +213,8 @@ class User extends Document
 		//
 		// Check group.
 		//
-		if( this.hasOwnProperty( 'group' ) )
+		if( this.hasOwnProperty( 'group' )
+		 && this._document.hasOwnProperty( '_id' ) )
 		{
 			//
 			// Build selector.
@@ -215,19 +227,8 @@ class User extends Document
 			//
 			// Insert.
 			//
-			try
-			{
-				db._collection( 'schemas' ).insert( doc );
-			}
-			catch( error )
-			{
-				//
-				// Skip unique constraint error.
-				//
-				if( error.isArangoError
-				 && (error.errorNum !== ARANGO_DUPLICATE) )
-					throw( error );												// !@! ==>
-			}
+			const edge = new Edge( this._request, doc, 'schemas' );
+			edge.insert();
 			
 		}	// Has group.
 		
@@ -246,32 +247,22 @@ class User extends Document
 		//
 		// Check manager.
 		//
-		if( this.hasOwnProperty( 'manager' ) )
+		if( this.hasOwnProperty( 'manager' )
+		 && this._document.hasOwnProperty( '_id' ) )
 		{
 			//
 			// Build selector.
 			//
 			const doc = {};
 			doc._from = this._document._id;
-			doc._to   = this.group;
+			doc._to   = this.manager;
 			doc[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateManagedBy}`;
 			
 			//
 			// Insert.
 			//
-			try
-			{
-				db._collection( 'schemas' ).insert( doc );
-			}
-			catch( error )
-			{
-				//
-				// Skip unique constraint error.
-				//
-				if( error.isArangoError
-				 && (error.errorNum !== ARANGO_DUPLICATE) )
-					throw( error );												// !@! ==>
-			}
+			const edge = new Edge( this._request, doc, 'schemas' );
+			edge.insert();
 			
 		}	// Has manager.
 		
@@ -291,9 +282,15 @@ class User extends Document
 	 *
 	 * If the current document revision is different than the existing document
 	 * revision, the method will raise an exception.
+	 *
+	 * @returns {Boolean}	True removed, false not found, null not persistent.
 	 */
 	remove()
 	{
+		//
+		// Check if user manages other users.
+		//
+		
 		//
 		// Call parent method.
 		// And forward exceptions.
@@ -339,7 +336,8 @@ class User extends Document
 		//
 		// Check group.
 		//
-		if( this.hasOwnProperty( 'group' ) )
+		if( this.hasOwnProperty( 'group' )
+		 && this._document.hasOwnProperty( '_id' ) )
 		{
 			//
 			// Build selector.
@@ -352,9 +350,11 @@ class User extends Document
 			//
 			// Remove.
 			//
-			const result = db._collection( 'schemas' ).removeByExample( selector );
+			const edge = new Edge( this._request, selector, 'schemas' );
+			if( edge.resolve( false, false ) === true )
+				return edge.remove();												// ==>
 			
-			return ( result > 0 );													// ==>
+			return false;															// ==>
 		}
 		
 		return null;																// ==>
@@ -379,22 +379,25 @@ class User extends Document
 		//
 		// Check manager.
 		//
-		if( this.hasOwnProperty( 'manager' ) )
+		if( this.hasOwnProperty( 'manager' )
+		 && this._document.hasOwnProperty( '_id' ) )
 		{
 			//
 			// Build selector.
 			//
 			const selector = {};
 			selector._from = this._document._id;
-			selector._to   = this.group;
+			selector._to   = this.manager;
 			selector[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateManagedBy}`;
 			
 			//
 			// Remove.
 			//
-			const result = db._collection( 'schemas' ).removeByExample( selector );
+			const edge = new Edge( this._request, selector, 'schemas' );
+			if( edge.resolve( false, false ) === true )
+				return edge.remove();												// ==>
 			
-			return ( result > 0 );													// ==>
+			return false;															// ==>
 		}
 		
 		return null;																// ==>
@@ -411,7 +414,7 @@ class User extends Document
 	 */
 	setClass()
 	{
-		this._class = null;
+		this._class = 'User';
 		
 	}	// setClass
 	
@@ -512,7 +515,7 @@ class User extends Document
 						new MyError(
 							'DatabaseCorrupt',						// Error name.
 							K.error.DuplicateEdge,					// Message code.
-							this.request.application.language,		// Language.
+							this._request.application.language,		// Language.
 							signature.join( ', ' ),					// Arguments.
 							500										// HTTP error code.
 						)
@@ -556,20 +559,6 @@ class User extends Document
 				
 			}	// Found edge.
 			
-			//
-			// Handle persistent object.
-			//
-			if( this._persistent )
-				throw(
-					new MyError(
-						'DatabaseCorrupt',						// Error name.
-						K.error.NoManager,						// Message code.
-						this.request.application.language,		// Language.
-						reference,								// Arguments.
-						500										// HTTP error code.
-					)
-				);																// !@! ==>
-			
 			return false;															// ==>
 			
 		}	// Can resolve.
@@ -586,8 +575,6 @@ class User extends Document
 	 * an exception if not successful.
 	 *
 	 * The method will return the group _id, or null, if the provided parameter was null.
-	 *
-	 * MILKO - Support providing an object: { username: value }
 	 *
 	 * @param theGroup	{String}|{null}	The group reference.
 	 * @returns {String}|{null}			The group _id, or null.
@@ -671,7 +658,7 @@ class User extends Document
 						new MyError(
 							'DatabaseCorrupt',						// Error name.
 							K.error.DuplicateEdge,					// Message code.
-							this.request.application.language,		// Language.
+							this._request.application.language,		// Language.
 							signature.join( ', ' ),					// Arguments.
 							500										// HTTP error code.
 						)
@@ -726,7 +713,7 @@ class User extends Document
 					new MyError(
 						'DatabaseCorrupt',						// Error name.
 						K.error.NoManager,						// Message code.
-						this.request.application.language,		// Language.
+						this._request.application.language,		// Language.
 						reference,								// Arguments.
 						500										// HTTP error code.
 					)
@@ -764,9 +751,9 @@ class User extends Document
 			// Resolve.
 			// Will raise an exception if not found.
 			//
-			const manager = new User( this.request, theManager, this._collection );
+			const manager = new User( this._request, theManager, this._collection );
 			
-			return manager._id;														// ==>
+			return manager.document._id;											// ==>
 		}
 		
 		return null;																// ==>
@@ -818,6 +805,83 @@ class User extends Document
 	}	// hasRequiredFields
 	
 	/**
+	 * Assert if current object is constrained
+	 *
+	 * We overload this method to check whether the current user is a manager, if that
+	 * is the case we return true, or raise an exception.
+	 *
+	 * @param getMad	{Boolean}	True raises an exception (default).
+	 * @returns {Boolean}			True if object is related and null if not persistent.
+	 */
+	hasConstraints( getMad = true )
+	{
+		//
+		// Check if persistent.
+		//
+		if( this._persistent )
+		{
+			//
+			// Check managed count.
+			//
+			const count = this.hasManaged();
+			if( count > 0 )
+			{
+				//
+				// Raise exception.
+				//
+				if( getMad )
+					throw(
+						new MyError(
+							'ConstraintViolated',				// Error name.
+							K.error.ManagesUsers,				// Message code.
+							this._request.application.language,	// Language.
+							count,								// Arguments.
+							412									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return true;														// ==>
+			}
+			
+			return false;															// ==>
+		}
+		
+		return null;																// ==>
+		
+	}	// hasConstraints
+	
+	/**
+	 * Assert managed users
+	 *
+	 * This method will check whether the current user manages other users, the method
+	 * will return the number of managed users or null if the current object is not
+	 * persistent.
+	 *
+	 * @returns {Number}|{null}	The count or null if not persistent.
+	 */
+	hasManaged()
+	{
+		//
+		// Handle persistent object.
+		//
+		if( this._persistent )
+		{
+			//
+			// Set search criteria.
+			//
+			const selector = {};
+			selector._to = this._document._id;
+			selector[ Dict.descriptor.kPredicate ] =
+				`terms/${Dict.term.kPredicateManagedBy}`;
+			
+			return db._collection( 'schemas' ).byExample( selector ).count();		// ==>
+		}
+		
+		return null;																// ==>
+		
+	}	// hasManaged
+	
+	/**
 	 * Return list of significant fields
 	 *
 	 * We overload this method to return the user code.
@@ -840,17 +904,33 @@ class User extends Document
 	 */
 	getRequiredFields()
 	{
+		// MILKO
 		return [
 			Dict.descriptor.kUsername,	// User code.
 			Dict.descriptor.kName,		// User full name.
 			Dict.descriptor.kEmail,		// User e-mail address.
 			Dict.descriptor.kLanguage,	// User preferred language.
 			Dict.descriptor.kRank,		// User rank.
-			Dict.descriptor.kRole,		// User roles.
-			Dict.descriptor.kAuthData	// User authentication record.
+			Dict.descriptor.kRole/*,		// User roles.
+			Dict.descriptor.kAuthData	// User authentication record.*/
 		];																			// ==>
 		
 	}	// getRequiredFields
+	
+	/**
+	 * Return list of unique fields
+	 *
+	 * This method should return the list of unique properties.
+	 *
+	 * In this class we return the username.
+	 *
+	 * @returns {Array}	List of unique fields.
+	 */
+	getUniqueFields()
+	{
+		return super.getUniqueFields().concat([ Dict.descriptor.kUsername ]);			// ==>
+		
+	}	// getUniqueFields
 	
 	/**
 	 * Return list of locked fields
@@ -862,10 +942,48 @@ class User extends Document
 	getLockedFields()
 	{
 		return super.getLockedFields().concat([
-			Dict.descriptor.kUsername
+			Dict.descriptor.kUsername,
+			Dict.descriptor.kEmail
 		]);																			// ==>
 		
 	}	// getLockedFields
+	
+	/**
+	 * Return managed users
+	 * This method will return the list of managed user references, the method will
+	 * return an array, or null, if the current object is not persistent.
+	 *
+	 * @returns {Array}|{null|	The list of managed users, if persistent, or null.
+	 */
+	get manages()
+	{
+		//
+		// Handle persistent object.
+		//
+		if( this._persistent )
+		{
+			//
+			// Set search criteria.
+			//
+			const selector = {};
+			selector._to = this._document._id;
+			selector[ Dict.descriptor.kPredicate ] =
+				`terms/${Dict.term.kPredicateManagedBy}`;
+			const cursor = db._collection( 'schemas' ).byExample( selector );
+			
+			//
+			// Collect _id.
+			//
+			const result = [];
+			while( cursor.hasNext() )
+				result.push( cursor.next()._from );
+			
+			return result;															// ==>
+		}
+		
+		return null;																// ==>
+		
+	}	// manages
 	
 }	// User.
 

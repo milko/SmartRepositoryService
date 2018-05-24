@@ -45,7 +45,7 @@ class EdgeAttribute extends Edge
 	 */
 	setClass()
 	{
-		this._class = null;
+		this._class = 'EdgeAttribute';
 		
 	}	// setClass
 	

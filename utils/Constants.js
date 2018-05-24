@@ -344,7 +344,9 @@ module.exports = Object.freeze(
 			MissingUserManager	: 80,
 			DuplicateEdge		: 81,
 			NoManager			: 82,
-			UserGroupConflict	: 83
+			UserGroupConflict	: 83,
+			ManagesUsers		: 84,
+			LockedFields		: 85
 		},
 
 		//

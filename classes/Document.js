@@ -90,6 +90,11 @@ class Document
 		if( K.function.isObject( theReference ) )
 		{
 			//
+			// Init document.
+			//
+			this._document = {};
+			
+			//
 			// Load document.
 			//
 			this.loadDocumentData( theReference, true, false );
@@ -117,6 +122,168 @@ class Document
 		this._revised = false;
 		
 	}	// constructor
+	
+	/**
+	 * Insert object
+	 *
+	 * This method will insert the document in the registered collection after validating
+	 * its contents.
+	 *
+	 * Any validation error or insert error will raise an exception.
+	 */
+	insert()
+	{
+		//
+		// Check contents.
+		//
+		this.validate( true );
+		
+		//
+		// Insert document.
+		//
+		this.insertDocument();
+		
+	}	// insert
+	
+	/**
+	 * Replace object
+	 *
+	 * This method will replace the contents of the current document in the database, it
+	 * will first check if the current object is persistent, if that is the case, it
+	 * will validate the current document and replace its contents in the database and
+	 * return true.
+	 *
+	 * If the current object is not persistent, the method will do nothing and return
+	 * null.
+	 *
+	 * The method will raise an exception if any of the following conditions are met:
+	 *
+	 * 	- Any current property is invalid.
+	 * 	- Any current value replaces an existing locked value.
+	 * 	- The current object does not exist.
+	 * 	- doRevision is true and current and existing revisions do not match.
+	 *
+	 * If the current document revision is different than the existing document
+	 * revision, the method will raise an exception.
+	 *
+	 * @param doRevision	{Boolean}	If true, check revision (default).
+	 * @returns {Boolean}	True replaced, false not found, null not persistent.
+	 */
+	replace( doRevision = true )
+	{
+		//
+		// Only if persistent.
+		//
+		if( this._persistent )
+		{
+			//
+			// Validate contents.
+			//
+			this.validate( true );
+			
+			//
+			// Get existing document.
+			// Note that it will raise an exception if the document doesn't exist:
+			// this is wanted, since it would indicate that the document was deleted.
+			//
+			const existing = db._document( this._document._id );
+			
+			//
+			// Check locked fields.
+			//
+			this.validateLockedProperties( existing, true );
+			
+			//
+			// Replace document.
+			//
+			const meta = db._replace( existing, this._document, { overwrite : (! doRevision) });
+			
+			//
+			// Set revision flag.
+			//
+			this._revised = ( meta._rev !== meta.oldRev );
+			
+			//
+			// Set revision.
+			//
+			this._document._rev = meta._rev;
+			
+			return true;															// ==>
+			
+		}	// Is persistent.
+		
+		return null;																// ==>
+		
+	}	// replace
+	
+	/**
+	 * Remove object
+	 *
+	 * This method will remove the document from the database, it will first check if
+	 * the current object is persistent, if that is the case, it will proceed to
+	 * delete the document from the database and will return true.
+	 *
+	 * If the document does not exist, the method will return false.
+	 *
+	 * If the current object is not persistent, the method will do nothing and return
+	 * null.
+	 *
+	 * If the current document revision is different than the existing document
+	 * revision, the method will raise an exception.
+	 *
+	 * @returns {Boolean}	True removed, false not found, null not persistent.
+	 */
+	remove()
+	{
+		//
+		// Only if persistent.
+		//
+		if( this._persistent )
+		{
+			//
+			// Check if related.
+			//
+			this.hasConstraints( true );
+			
+			//
+			// Remove.
+			//
+			try
+			{
+				//
+				// Delete.
+				//
+				db._remove( this._document );
+				
+				//
+				// Update persistent flag.
+				//
+				this._persistent = false;
+				
+				return true;														// ==>
+			}
+			catch( error )
+			{
+				//
+				// Catch not found.
+				//
+				if( (! error.isArangoError)
+				 || (error.errorNum !== ARANGO_NOT_FOUND) )
+					throw( error );												// !@! ==>
+			}
+			
+			//
+			// Ensure persistent flag.
+			//
+			this._persistent = false;
+			
+			return false;															// ==>
+			
+		}	// Is persistent.
+		
+		return null;																// ==>
+	
+	}	// remove
 	
 	/**
 	 * Resolve document
@@ -202,155 +369,6 @@ class Document
 	}	// validate
 	
 	/**
-	 * Insert object
-	 *
-	 * This method will insert the document in the registered collection after validating
-	 * its contents.
-	 *
-	 * Any validation error or insert error will raise an exception.
-	 */
-	insert()
-	{
-		//
-		// Check contents.
-		//
-		this.validate( true );
-		
-		//
-		// Insert document.
-		//
-		this.insertDocument();
-		
-	}	// insert
-	
-	/**
-	 * Remove object
-	 *
-	 * This method will remove the document from the database, it will first check if
-	 * the current object is persistent, if that is the case, it will proceed to
-	 * delete the document from the database and will return true.
-	 *
-	 * If the document does not exist, the method will return false.
-	 *
-	 * If the current object is not persistent, the method will do nothing and return
-	 * null.
-	 *
-	 * If the current document revision is different than the existing document
-	 * revision, the method will raise an exception.
-	 */
-	remove()
-	{
-		//
-		// Only if persistent.
-		//
-		if( this._persistent )
-		{
-			//
-			// Remove.
-			//
-			try
-			{
-				//
-				// Delete.
-				//
-				db._remove( this._document );
-				
-				//
-				// Update persistent flag.
-				//
-				this._persistent = false;
-				
-				return true;														// ==>
-			}
-			catch( error )
-			{
-				//
-				// Catch not found.
-				//
-				if( (! error.isArangoError)
-				 || (error.errorNum !== ARANGO_NOT_FOUND) )
-					throw( error );												// !@! ==>
-			}
-			
-			//
-			// Ensure persistent flag.
-			//
-			this._persistent = false;
-			
-			return false;															// ==>
-			
-		}	// Is persistent.
-		
-		return null;																// ==>
-	
-	}	// remove
-	
-	/**
-	 * Retrieve class name
-	 *
-	 * This method will return the class name.
-	 *
-	 * @returns {String}	The class name.
-	 */
-	get classname()
-	{
-		return this._class;															// ==>
-		
-	}	// get classname
-	
-	/**
-	 * Retrieve collection name
-	 *
-	 * This method will return the collection name.
-	 *
-	 * @returns {Object}	The collection name.
-	 */
-	get collection()
-	{
-		return this._collection;													// ==>
-		
-	}	// get collection
-	
-	/**
-	 * Retrieve document object
-	 *
-	 * This method will return the document object.
-	 *
-	 * @returns {Object}	The document object.
-	 */
-	get document()
-	{
-		return this._document;														// ==>
-		
-	}	// get document
-	
-	/**
-	 * Retrieve persistent flag
-	 *
-	 * This method will return the persistence status.
-	 *
-	 * @returns {Boolean}	True if document is persistent.
-	 */
-	get persistent()
-	{
-		return this._persistent;													// ==>
-		
-	}	// get persistent
-	
-	/**
-	 * Retrieve revised flag
-	 *
-	 * This method will return the revision modification status.
-	 *
-	 * @returns {Boolean}	True if document revision is obsolete.
-	 */
-	get revised()
-	{
-		return this._revised;														// ==>
-		
-	}	// get revised
-	
-	/**
 	 * Insert document
 	 *
 	 * This method will perform the actual insertion, it expects the validation to
@@ -400,7 +418,7 @@ class Document
 				//
 				let field = null;
 				const reference = {};
-				for( field of this.getSignificantFields() )
+				for( field of this.getUniqueFields() )
 					reference[ field ] = ( this._document.hasOwnProperty( field ) )
 									   ? this._document[ field ]
 									   : null;
@@ -443,7 +461,7 @@ class Document
 	 */
 	setClass()
 	{
-		this._class = null;
+		this._class = 'Document';
 		
 	}	// setClass
 	
@@ -648,24 +666,24 @@ class Document
 	 * the third parameter is a flag that indicates whether the method was called when
 	 * the object has been resolved.
 	 *
-	 * The method will raise an exception if the provided data contains a locked
-	 * property, getLockedFields(), and the property exists in the current object and
-	 * it has a different value; note that locked properties override the doReplace
-	 * flag: the flag is set to true for locked properties. The third parameter
-	 * determines the error type: if true, errors indicate an ambiguous object, if
-	 * false they indicate the attempt to change a locked property.
+	 * The method will raise an exception if the following conditions are met:
+	 *
+	 * 	- A value exists in the provided data that is a locked property.
+	 * 	- The same property exists in the current document.
+	 * 	- The values are different.
+	 *
+	 * The last parameter determines the exception type: if true, the error indicates
+	 * an ambiguous object, which means that an existing object has a locked property
+	 * differebt from the one in the current object; if false, it means an attempt to
+	 * change a locked value. The exception is raised in the loadDocumentProperty()
+	 * method.
 	 *
 	 * @param theData		{Object}	The object properties to add.
-	 * @param doReplace		{Boolean}	True, overwrite existing properties (default).
+	 * @param doReplace		{Boolean}	True, overwrite existing properties.
 	 * @param isResolving	{Boolean}	True, called by resolveDocument() (default false).
 	 */
 	loadDocumentData( theData, doReplace = true, isResolving = false )
 	{
-		//
-		// Init document.
-		//
-		this._document = {};
-		
 		//
 		// Load locked fields.
 		//
@@ -923,6 +941,9 @@ class Document
 	 * getMad, the method will raise an exception, if false, the method will return a
 	 * boolean where true means all required fields are present.
 	 *
+	 * If the getMad parameter is true, if the object is missing reauired fields, the
+	 * method will raise an exception.
+	 *
 	 * @param getMad	{Boolean}	True raises an exception (default).
 	 * @returns {Boolean}			True if all required fields are there.
 	 */
@@ -974,6 +995,37 @@ class Document
 	}	// hasRequiredFields
 	
 	/**
+	 * Assert if current object is constrained
+	 *
+	 * This method will check if the current object has constraints that should
+	 * prevent the object from being removed, if you provide true in getMad, the
+	 * method will raise an exception if that is the case, if you provide false, the
+	 * method will return a boolean where true means that the object is constrained and
+	 * false not.
+	 *
+	 * If the getMad parameter is true and if the object is constrained, the method will
+	 * raise an exception.
+	 *
+	 * In this class we assume no constraints.
+	 *
+	 * This method is called before removing the current object.
+	 *
+	 * @param getMad	{Boolean}	True raises an exception (default).
+	 * @returns {Boolean}			True if object is related and null if not persistent.
+	 */
+	hasConstraints( getMad = true )
+	{
+		//
+		// Check if persistent.
+		//
+		if( this._persistent )
+			return false;															// ==>
+		
+		return null;																// ==>
+		
+	}	// hasConstraints
+	
+	/**
 	 * Validate document fields
 	 *
 	 * This method will check if all document fields are valid; if that is not the
@@ -1013,6 +1065,67 @@ class Document
 		return false;																// ==>
 		
 	}	// validateProperties
+	
+	/**
+	 * Validate locked document fields
+	 *
+	 * This method will check if the current document would change any existing locked
+	 * properties, it will raise an exception, if doAssert is true, or return true if
+	 * doAssert is false; if that is not the case, the method will return false.
+	 *
+	 * If the current object is not persistent, the method will only return null.
+	 *
+	 * @param theExisting	{Object}	Existing document.
+	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
+	 * 									(defaults to true).
+	 * @returns {Boolean}|{null}		True/false for locked, or null if not persistent.
+	 */
+	validateLockedProperties( theExisting, doAssert = true )
+	{
+		//
+		// Check if persistent.
+		//
+		if( this._persistent )
+		{
+			//
+			// Intersect locked fields with existing and current objects.
+			//
+			const locked = this.getLockedFields()
+				.filter( field => {
+					return ( theExisting.hasOwnProperty( field )
+						  && this._document.hasOwnProperty( field )
+						  && theExisting[ field ] !== this._document[ field ] );
+				}
+			);
+			
+			//
+			// Handle conflicts.
+			//
+			if( locked.length > 0 )
+			{
+				//
+				// Raise exception.
+				//
+				if( doAssert )
+					throw(
+						new MyError(
+							'ConstraintViolated',				// Error name.
+							K.error.MissingField,				// Message code.
+							this._request.application.language,	// Language.
+							missing.join( ', ' ),				// Arguments.
+							412									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return true;														// ==>
+			}
+			
+			return false;															// ==>
+		}
+		
+		return null;																// ==>
+		
+	}	// validateLockedProperties
 	
 	/**
 	 * Normalise object properties
@@ -1060,7 +1173,7 @@ class Document
 	 *
 	 * This method should return the list of required properties.
 	 *
-	 * In this class we return the key.
+	 * In this class we return no properties, since the key may be database-assigned.
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
@@ -1069,6 +1182,21 @@ class Document
 		return [];																	// ==>
 		
 	}	// getRequiredFields
+	
+	/**
+	 * Return list of unique fields
+	 *
+	 * This method should return the list of unique properties.
+	 *
+	 * In this class we return the key.
+	 *
+	 * @returns {Array}	List of unique fields.
+	 */
+	getUniqueFields()
+	{
+		return [ '_key' ];																// ==>
+		
+	}	// getUniqueFields
 	
 	/**
 	 * Return list of locked fields
@@ -1085,6 +1213,71 @@ class Document
 		return [ '_id', '_key', '_rev' ];											// ==>
 		
 	}	// getLockedFields
+	
+	/**
+	 * Retrieve class name
+	 *
+	 * This method will return the class name.
+	 *
+	 * @returns {String}	The class name.
+	 */
+	get classname()
+	{
+		return this._class;															// ==>
+		
+	}	// get classname
+	
+	/**
+	 * Retrieve collection name
+	 *
+	 * This method will return the collection name.
+	 *
+	 * @returns {Object}	The collection name.
+	 */
+	get collection()
+	{
+		return this._collection;													// ==>
+		
+	}	// get collection
+	
+	/**
+	 * Retrieve document object
+	 *
+	 * This method will return the document object.
+	 *
+	 * @returns {Object}	The document object.
+	 */
+	get document()
+	{
+		return this._document;														// ==>
+		
+	}	// get document
+	
+	/**
+	 * Retrieve persistent flag
+	 *
+	 * This method will return the persistence status.
+	 *
+	 * @returns {Boolean}	True if document is persistent.
+	 */
+	get persistent()
+	{
+		return this._persistent;													// ==>
+		
+	}	// get persistent
+	
+	/**
+	 * Retrieve revised flag
+	 *
+	 * This method will return the revision modification status.
+	 *
+	 * @returns {Boolean}	True if document revision is obsolete.
+	 */
+	get revised()
+	{
+		return this._revised;														// ==>
+		
+	}	// get revised
 	
 }	// Document.
 
