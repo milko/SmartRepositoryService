@@ -1032,6 +1032,101 @@ class Schema
 		);																			// ==>
 		
 	}	// getManagedUsersList
+	
+	/**
+	 * Get managed users tree
+	 *
+	 * This method will perform an inbound traversal of the schemas graph following
+	 * the managed-by predicate starting from 'theRoot' returning the siblings of the
+	 * provided root. This kind of traversal in should follow a path from the
+	 * enumeration root to the graph leaves.
+	 *
+	 * The method accepts the following parameters:
+	 *
+	 * 	- theRequest:	Used to retrieve the session language and to raise eventual
+	 * 					exceptions.
+	 * 	- theRoot:		Determines the traversal origin node, it must be provided as
+	 * 					the user _id or _key, or as an object containing the user code.
+	 * 	- theMinDepth:	Represents the minimum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theMaxDepth:	Represents the maximum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theVertexFld:	References the field(s) that should be included in the vertex.
+	 * 					If the provided value is null, the vertex value will be the
+	 * 					original document. If provided as a string, it must be the
+	 * 					_key of a descriptor and the resulting vertex value will
+	 * 					become the value of the vertex field matched by the provided
+	 * 					reference; if the reference does not match a field in the
+	 * 					document, the value will be null. If provided as an array, the
+	 * 					elements must be strings representing descriptor _key values:
+	 * 					the resulting vertex value will be the original document
+	 * 					containing only the fields that match the provided references.
+	 * 	- theEdgeFld:	References the field(s) that should be included in the edge.
+	 * 					This parameter behaves exactly as the previous one, except
+	 * 					that it refers to edges; this parameter is only relevant if
+	 * 					the 'doEdge' parameter is true.
+	 * 	- doLanguage:	If this parameter is true, the label, definition, description,
+	 * 					note and example of both the vertex and the edge, if
+	 * 					requested, will be set to the current session language. This
+	 * 					means that these fields, instead of being objects indexed by
+	 * 					the language code, will hold the value matched by the session
+	 * 					language code. I the session language doesn't match any
+	 * 					element, the field will remain untouched.
+	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
+	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
+	 * 					will contain the edge.
+	 *
+	 * The method will return an array of top level nodes containing a property called
+	 * '_children' that is an array containing the node's children.
+	 * The method assumes the users and schemas collections to exist.
+	 * The method will raise an exception if the root cannot be found.
+	 *
+	 * @param theRequest	{Object}			The current service request.
+	 * @param theRoot		{String}			Traversal origin.
+	 * @param theMinDepth	{Number}|{null}		Minimum traversal depth.
+	 * @param theMaxDepth	{Number}|{null}		Maximum traversal depth.
+	 * @param theVertexFld	{String}|{null}		Vertex property name.
+	 * @param theEdgeFld	{String}|{null}		Edge property name.
+	 * @param doLanguage	{boolean}			Restrict labels to current language.
+	 * @param doEdge		{boolean}			Include edge.
+	 * @returns {Array}							List of enumeration elements.
+	 */
+	static getManagedUsersTree
+	(
+		theRequest,
+		theRoot,
+		theMinDepth = null,
+		theMaxDepth = null,
+		theVertexFld = null,
+		theEdgeFld = null,
+		doLanguage = false,
+		doEdge = false
+	)
+	{
+		//
+		// Get traversal origin document.
+		//
+		const user = new User( theRequest, theRoot );
+		if( ! user.persistent )
+			user.resolve( true, true );
+		
+		//
+		// Perform traversal.
+		//
+		return this.traverseManagedUsers(
+			theRequest,		// Current request.
+			user.document,	// Traversal origin.
+			'in',			// Outbound direction.
+			theMinDepth,	// Search start depth.
+			theMaxDepth,	// Search final depth.
+			theVertexFld,	// Vertex fields.
+			theEdgeFld,		// Edge fields.
+			true,			// Return tree.
+			doLanguage,		// Restrict to language.
+			doEdge			// Include edges.
+		);																		// ==>
+		
+	}	// getManagedUsersTree
 
 	/**
 	 * Get type hierarchy
