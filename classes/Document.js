@@ -1110,9 +1110,9 @@ class Document
 					throw(
 						new MyError(
 							'ConstraintViolated',				// Error name.
-							K.error.MissingField,				// Message code.
+							K.error.LockedFields,				// Message code.
 							this._request.application.language,	// Language.
-							missing.join( ', ' ),				// Arguments.
+							locked.join( ', ' ),				// Arguments.
 							412									// HTTP error code.
 						)
 					);															// !@! ==>

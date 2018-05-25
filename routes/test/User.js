@@ -188,9 +188,10 @@ router.post
  * Test user replacement
  *
  * The service will instantiate a user from a document and replace the existing
- * document if it exists, it expects a single parameter in the POST body:
+ * document if it exists, it expects two parameters in the POST body:
  *
- * 	- reference:	The user reference or an object containing the user code.
+ * 	- existing:	The reference or object of the existing user.
+ * 	- replaced:	The object of the replacing user.
  *
  * @path		/replace
  * @verb		post
@@ -209,7 +210,7 @@ router.post
 		//
 		// Get parameters.
 		//
-		const usr = request.body.reference;
+		const usr = request.body.existing;
 		
 		//
 		// Test instantiation.
@@ -226,6 +227,12 @@ router.post
 			//
 			if( ! user.persistent )
 				user.resolve( false, true );
+			
+			//
+			// Update user.
+			//
+			for( const field in request.body.replaced )
+				user._document[ field ] = request.body.replaced[ field ];
 			
 			//
 			// Replace user.
@@ -258,7 +265,7 @@ router.post
 			// Handle MyError exceptions.
 			//
 			if( (error.constructor.name === 'MyError')
-				&& error.hasOwnProperty( 'param_http' ) )
+			 && error.hasOwnProperty( 'param_http' ) )
 				http = error.param_http;
 			
 			response.throw( http, error );										// !@! ==>
@@ -268,13 +275,13 @@ router.post
 )
 	.body(
 		Joi.object({
-			reference : Joi.alternatives().try(
+			existing : Joi.alternatives().try(
 				Joi.string().required(),
 				Joi.object().required()
-			).required()
+			).required(),
+			replaced : Joi.object()
 		}).required(),
-		"An object with 'reference' that contains eother the user structure or a string" +
-		" representing the user reference."
+		"The existing and replacement users."
 	)
 	.response(
 		200,
