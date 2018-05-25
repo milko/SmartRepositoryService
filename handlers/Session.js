@@ -140,7 +140,7 @@ module.exports = {
 		theResponse.send({ result : user });										// ==>
 
 	},	// login
-
+	
 	/**
 	 * Logout
 	 *
@@ -158,18 +158,52 @@ module.exports = {
 		theRequest.session.uid = null;
 		theRequest.session.data = {};
 		theRequest.sessionStorage.save( theRequest.session );
-
+		
 		//
 		// Save current user.
 		//
 		const user = theRequest.application.user;
-
+		
 		//
 		// Reset user in request.
 		//
 		theRequest.application.user = null;
-
+		
 		theResponse.send({ result : user });										// ==>
-
+		
 	},	// logout
+	
+	/**
+	 * Hierarchy
+	 *
+	 * Return the current user hierarchy, the result will be an array of users
+	 * starting from the current user up to the root manager.
+	 *
+	 * @param theRequest	{Object}	Current request.
+	 * @param theResponse	{Object}	Current response.
+	 * @returns {Array}					The user hierarchy
+	 * 									{ result : <hierarchy> }.
+	 */
+	hierarchy : ( theRequest, theResponse ) =>
+	{
+		//
+		// Logout user.
+		//
+		theRequest.session.uid = null;
+		theRequest.session.data = {};
+		theRequest.sessionStorage.save( theRequest.session );
+		
+		//
+		// Save current user.
+		//
+		const user = theRequest.application.user;
+		
+		//
+		// Reset user in request.
+		//
+		theRequest.application.user = null;
+		
+		theResponse.send({ result : user });										// ==>
+		
+	}	// logout
 };
