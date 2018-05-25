@@ -55,7 +55,7 @@ router.tag( 'testUser' );
 
 
 /**
- * Test user creation
+ * Test user instantiation
  *
  * The service will instantiate a user and return its data, it expects three parameters
  * in the POST body:
@@ -177,6 +177,122 @@ router.post
 				null
 			),
 			manager : Joi.string()
+		}).required(),
+		"An object with 'user' that contains eother the user structure or a string" +
+		" representing the user reference, 'group' containing the user group reference" +
+		" and 'manager' containing the eventual user manager reference."
+	)
+	.response(
+		200,
+		Joi.object(),
+		"The result: 'user' contains the user object, 'group' con tains the" +
+		" group reference, 'manager' contains the eventual user manager object " +
+		"and 'time' contains the elapsed time."
+	)
+	.summary(
+		"Instantiate a user object."
+	)
+	.description(dd`
+  Instantiates and returns a user object
+`);
+
+
+/**
+ * Test user creation
+ *
+ * The service will create a user and return its data, it expects three parameters
+ * in the POST body:
+ *
+ * 	- user:		Either a user object.
+ * 	- group:	The optional user group object or reference.
+ * 	- manager:	The optional user manager object or reference.
+ *
+ * @path		/instantiate
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post
+(
+	'/create',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+		
+		//
+		// Test creation.
+		//
+		try
+		{
+			//
+			// Resolve manager.
+			//
+			const manager = ( request.body.hasOwnProperty( 'manager' ) )
+						 ? new User( request, request.body.manager )
+						 : new User( request, request.session.uid );
+			if( ! manager.persistent )
+				manager.resolve( false, true );
+			
+			//
+			// Instantiate user.
+			//
+			const user = new User( request, request.body.user, null, manager.document._id );
+			
+			//
+			// Create authorisation data.
+			//
+			const data = {};
+			const auth = createAuth();
+			data[ Dict.descriptor.kAuthData ] =
+				auth.create( "secret" );
+			user.loadDocumentData( data, true, false );
+			
+			//
+			// Insert user.
+			//
+			user.insert();
+			
+			response.send({
+				user : user.document,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'create'
+)
+	.body(
+		Joi.object({
+			user : Joi.alternatives().try(
+				Joi.string().required(),
+				Joi.object().required()
+			).required(),
+			group : Joi.alternatives().try(
+				Joi.string(),
+				null
+			),
+			manager : Joi.alternatives().try(
+				Joi.string().required(),
+				Joi.object().required(),
+				null
+			).required()
 		}).required(),
 		"An object with 'user' that contains eother the user structure or a string" +
 		" representing the user reference, 'group' containing the user group reference" +
