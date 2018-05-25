@@ -346,7 +346,8 @@ module.exports = Object.freeze(
 			NoManager			: 82,
 			UserGroupConflict	: 83,
 			ManagesUsers		: 84,
-			LockedFields		: 85
+			LockedFields		: 85,
+			FormNotFound		: 86
 		},
 
 		//
