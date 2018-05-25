@@ -1008,29 +1008,22 @@ class Dictionary
 					);
 				
 				//
-				// Handle node.
+				// Handle siblings.
 				//
-				else
+				if( theDocument.hasOwnProperty( '_children' ) )
+					Dictionary.stripDocumentProperties(
+						theDocument._children,
+						theProperties
+					);
+				
+				//
+				// Iterate properties.
+				//
+				for( const field of theProperties )
 				{
-					//
-					// Iterate properties.
-					//
-					for( const field of theProperties )
-					{
-						if( theDocument.hasOwnProperty( field ) )
-							delete theDocument[ field ];
-					}
-					
-					//
-					// Recurse children.
-					//
-					if( theDocument.hasOwnProperty( '_children' ) )
-						Dictionary.stripDocumentProperties(
-							theDocument._children,
-							theProperties
-						);
-					
-				}	// Object is node.
+					if( theDocument.hasOwnProperty( field ) )
+						delete theDocument[ field ];
+				}
 				
 			}	// Provided object.
 			

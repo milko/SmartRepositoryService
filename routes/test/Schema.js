@@ -37,6 +37,7 @@ const HTTP_CONFLICT = status('conflict');
 //
 const K = require( '../../utils/Constants' );
 const MyError = require( '../../utils/MyError' );
+const User = require( '../../classes/User' );
 const Schema = require( '../../classes/Schema' );
 
 //
@@ -860,12 +861,19 @@ router.post
 		try
 		{
 			//
+			// Resolve user.
+			//
+			const user = new User( request, request.body.root );
+			if( ! user.persistent )
+				user.resolve( false, true );
+			
+			//
 			// Make test.
 			//
 			const result =
 				Schema.getManagedUsersHierarchy(
 					request,
-					request.body.root,
+					user.document,
 					request.body.minDepth,
 					request.body.maxDepth,
 					request.body.vField,
@@ -961,18 +969,26 @@ router.post
 		try
 		{
 			//
+			// Resolve user.
+			//
+			const user = new User( request, request.body.root );
+			if( ! user.persistent )
+				user.resolve( false, true );
+			
+			//
 			// Make test.
 			//
 			const result =
 				Schema.getManagedUsersList(
 					request,
-					request.body.root,
+					user.document,
 					request.body.minDepth,
 					request.body.maxDepth,
 					request.body.vField,
 					request.body.eField,
 					request.body.doLanguage,
-					request.body.doEdge
+					request.body.doEdge,
+					request.body.doStrip
 				);
 			
 			response.send({
@@ -1009,7 +1025,8 @@ router.post
 			vField		: Joi.any().required(),
 			eField		: Joi.any().required(),
 			doLanguage	: Joi.boolean().required(),
-			doEdge		: Joi.boolean().required()
+			doEdge		: Joi.boolean().required(),
+			doStrip		: Joi.boolean().required()
 		}),
 		"Method parameters."
 	)
@@ -1060,18 +1077,26 @@ router.post
 		try
 		{
 			//
+			// Resolve user.
+			//
+			const user = new User( request, request.body.root );
+			if( ! user.persistent )
+				user.resolve( false, true );
+			
+			//
 			// Make test.
 			//
 			const result =
 				Schema.getManagedUsersTree(
 					request,
-					request.body.root,
+					user.document,
 					request.body.minDepth,
 					request.body.maxDepth,
 					request.body.vField,
 					request.body.eField,
 					request.body.doLanguage,
-					request.body.doEdge
+					request.body.doEdge,
+					request.body.doStrip
 				);
 			
 			response.send({
@@ -1090,7 +1115,7 @@ router.post
 			// Handle MyError exceptions.
 			//
 			if( (error.constructor.name === 'MyError')
-				&& error.hasOwnProperty( 'param_http' ) )
+			 && error.hasOwnProperty( 'param_http' ) )
 				http = error.param_http;
 			
 			response.throw( http, error );										// !@! ==>
@@ -1108,7 +1133,8 @@ router.post
 			vField		: Joi.any().required(),
 			eField		: Joi.any().required(),
 			doLanguage	: Joi.boolean().required(),
-			doEdge		: Joi.boolean().required()
+			doEdge		: Joi.boolean().required(),
+			doStrip		: Joi.boolean().required()
 		}),
 		"Method parameters."
 	)

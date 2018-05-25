@@ -947,7 +947,7 @@ class Schema
 	 * 	- theRequest:	Used to retrieve the session language and to raise eventual
 	 * 					exceptions.
 	 * 	- theRoot:		Determines the traversal origin node, it must be provided as
-	 * 					the user _id or _key, or as the resolved user document.
+	 * 					the resolved user document.
 	 * 	- theMinDepth:	Represents the minimum depth of the traversal, it must be
 	 * 					provided as an integer, or can be null, to ignore it.
 	 * 	- theMaxDepth:	Represents the maximum depth of the traversal, it must be
@@ -986,7 +986,7 @@ class Schema
 	 * The method will raise an exception if the leaf cannot be found.
 	 *
 	 * @param theRequest	{Object}			The current service request.
-	 * @param theRoot		{String}|{Object}	Traversal origin.
+	 * @param theRoot		{Object}			Traversal origin.
 	 * @param theMinDepth	{Number}|{null}		Minimum traversal depth.
 	 * @param theMaxDepth	{Number}|{null}		Maximum traversal depth.
 	 * @param theVertexFld	{String}|{null}		Vertex property name.
@@ -1010,54 +1010,13 @@ class Schema
 	)
 	{
 		//
-		// Get traversal origin document.
-		//
-		let user = null;
-		try
-		{
-			//
-			// Resolve user.
-			//
-			if( K.function.isObject( theRoot ) )
-				user = theRoot;
-			else
-			{
-				if( ! theRoot.startsWith( 'users/' ) )
-					theRoot = `users/${theRoot}`;
-				user = db._document( theRoot );
-			}
-		}
-		catch( error )
-		{
-			//
-			// Handle exceptions.
-			//
-			if( (! error.isArangoError)
-			 || (error.errorNum !== ARANGO_NOT_FOUND) )
-				throw( error );													// !@! ==>
-			
-			//
-			// Handle not found.
-			//
-			throw(
-				new MyError(
-					'BadUserReference',					// Error name.
-					K.error.UserNotFound,				// Message code.
-					theRequest.application.language,	// Language.
-					theRoot,							// Error value.
-					404									// HTTP error code.
-				)
-			);																	// !@! ==>
-		}
-		
-		//
 		// Perform traversal.
 		//
 		let hierarchy =
 			this.traverseManagedUsers
 			(
 				theRequest,		// Current request.
-				user,			// Traversal origin.
+				theRoot,		// Traversal origin.
 				'out',			// Outbound direction.
 				theMinDepth,	// Search start depth.
 				theMaxDepth,	// Search final depth.
@@ -1080,7 +1039,7 @@ class Schema
 			//
 			let current = null;
 			if( hierarchy[ 0 ][ Dict.descriptor.kUsername ]
-				=== user[ Dict.descriptor.kUsername ] )
+				=== theRoot[ Dict.descriptor.kUsername ] )
 				current = hierarchy.shift();
 			
 			//
@@ -1124,7 +1083,7 @@ class Schema
 	 * 	- theRequest:	Used to retrieve the session language and to raise eventual
 	 * 					exceptions.
 	 * 	- theRoot:		Determines the traversal origin node, it must be provided as
-	 * 					the user _id or _key, or as an object containing the user code.
+	 * 					the resolved user document.
 	 * 	- theMinDepth:	Represents the minimum depth of the traversal, it must be
 	 * 					provided as an integer, or can be null, to ignore it.
 	 * 	- theMaxDepth:	Represents the maximum depth of the traversal, it must be
@@ -1162,7 +1121,7 @@ class Schema
 	 * The method will raise an exception if the root cannot be found.
 	 *
 	 * @param theRequest	{Object}			The current service request.
-	 * @param theRoot		{String}|{Object}	Traversal origin.
+	 * @param theRoot		{Object}			Traversal origin.
 	 * @param theMinDepth	{Number}|{null}		Minimum traversal depth.
 	 * @param theMaxDepth	{Number}|{null}		Maximum traversal depth.
 	 * @param theVertexFld	{String}|{null}		Vertex property name.
@@ -1186,53 +1145,12 @@ class Schema
 	)
 	{
 		//
-		// Get traversal origin document.
-		//
-		let user = null;
-		try
-		{
-			//
-			// Resolve user.
-			//
-			if( K.function.isObject( theRoot ) )
-				user = theRoot;
-			else
-			{
-				if( ! theRoot.startsWith( 'users/' ) )
-					theRoot = `users/${theRoot}`;
-				user = db._document( theRoot );
-			}
-		}
-		catch( error )
-		{
-			//
-			// Handle exceptions.
-			//
-			if( (! error.isArangoError)
-			 || (error.errorNum !== ARANGO_NOT_FOUND) )
-				throw( error );													// !@! ==>
-			
-			//
-			// Handle not found.
-			//
-			throw(
-				new MyError(
-					'BadUserReference',					// Error name.
-					K.error.UserNotFound,				// Message code.
-					theRequest.application.language,	// Language.
-					theRoot,							// Error value.
-					404									// HTTP error code.
-				)
-			);																	// !@! ==>
-		}
-		
-		//
 		// Perform traversal.
 		//
 		let list =
 			this.traverseManagedUsers(
 				theRequest,		// Current request.
-				user.document,	// Traversal origin.
+				theRoot,		// Traversal origin.
 				'in',			// Outbound direction.
 				theMinDepth,	// Search start depth.
 				theMaxDepth,	// Search final depth.
@@ -1271,7 +1189,7 @@ class Schema
 	 * 	- theRequest:	Used to retrieve the session language and to raise eventual
 	 * 					exceptions.
 	 * 	- theRoot:		Determines the traversal origin node, it must be provided as
-	 * 					the user _id or _key, or as an object containing the user code.
+	 * 					the resolved user document.
 	 * 	- theMinDepth:	Represents the minimum depth of the traversal, it must be
 	 * 					provided as an integer, or can be null, to ignore it.
 	 * 	- theMaxDepth:	Represents the maximum depth of the traversal, it must be
@@ -1311,7 +1229,7 @@ class Schema
 	 * The method will raise an exception if the root cannot be found.
 	 *
 	 * @param theRequest	{Object}			The current service request.
-	 * @param theRoot		{String}			Traversal origin.
+	 * @param theRoot		{Object}			Traversal origin.
 	 * @param theMinDepth	{Number}|{null}		Minimum traversal depth.
 	 * @param theMaxDepth	{Number}|{null}		Maximum traversal depth.
 	 * @param theVertexFld	{String}|{null}		Vertex property name.
@@ -1335,53 +1253,12 @@ class Schema
 	)
 	{
 		//
-		// Get traversal origin document.
-		//
-		let user = null;
-		try
-		{
-			//
-			// Resolve user.
-			//
-			if( K.function.isObject( theRoot ) )
-				user = theRoot;
-			else
-			{
-				if( ! theRoot.startsWith( 'users/' ) )
-					theRoot = `users/${theRoot}`;
-				user = db._document( theRoot );
-			}
-		}
-		catch( error )
-		{
-			//
-			// Handle exceptions.
-			//
-			if( (! error.isArangoError)
-				|| (error.errorNum !== ARANGO_NOT_FOUND) )
-				throw( error );													// !@! ==>
-			
-			//
-			// Handle not found.
-			//
-			throw(
-				new MyError(
-					'BadUserReference',					// Error name.
-					K.error.UserNotFound,				// Message code.
-					theRequest.application.language,	// Language.
-					theRoot,							// Error value.
-					404									// HTTP error code.
-				)
-			);																	// !@! ==>
-		}
-		
-		//
 		// Perform traversal.
 		//
 		let tree =
 			this.traverseManagedUsers(
 				theRequest,		// Current request.
-				user,			// Traversal origin.
+				theRoot,		// Traversal origin.
 				'in',			// Outbound direction.
 				theMinDepth,	// Search start depth.
 				theMaxDepth,	// Search final depth.
