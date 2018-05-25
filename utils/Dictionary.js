@@ -941,6 +941,102 @@ class Dictionary
 		return range;																// ==>
 
 	}	// combineRanges
+	
+	/**
+	 * Strip document properties
+	 *
+	 * This method can be used to strip properties from the provided document, it
+	 * expects two parameters:
+	 *
+	 * 	- theDocument:		The document(s) to normalise:
+	 * 		- Object:		If a document is provided, the method will normalise it; if
+	 * 						the document has the '_children', '_vertex' or '_edge'
+	 * 						property, the	method	will recurse with those values.
+	 * 		- Array:		The method will iterate the elements and recurse its elements.
+	 * 	- theProperties:	The list of properties to remove, provided as descriptor
+	 * 						_key values.
+	 *
+	 * All modifications are done in place.
+	 *
+	 * @param theDocument	{Object}|{Array}	The document to normalise.
+	 * @param theProperties	{Array}				The list of properties.
+	 */
+	static stripDocumentProperties( theDocument, theProperties )
+	{
+		//
+		// Check properties.
+		//
+		if( theProperties.length > 0 )
+		{
+			//
+			// Handle array.
+			//
+			if( Array.isArray( theDocument ) )
+			{
+				//
+				// Recurse elements.
+				//
+				for( const element of theDocument )
+					Dictionary.stripDocumentProperties(
+						element,
+						theProperties
+					);
+				
+			}	// Provided array.
+			
+			//
+			// Handle object.
+			//
+			else if( K.function.isObject( theDocument ) )
+			{
+				//
+				// Handle node edge.
+				//
+				if( theDocument.hasOwnProperty( '_edge' ) )
+					Dictionary.stripDocumentProperties(
+						theDocument._edge,
+						theProperties
+					);
+				
+				//
+				// Handle node vertex.
+				//
+				if( theDocument.hasOwnProperty( '_vertex' ) )
+					Dictionary.stripDocumentProperties(
+						theDocument._vertex,
+						theProperties
+					);
+				
+				//
+				// Handle node.
+				//
+				else
+				{
+					//
+					// Iterate properties.
+					//
+					for( const field of theProperties )
+					{
+						if( theDocument.hasOwnProperty( field ) )
+							delete theDocument[ field ];
+					}
+					
+					//
+					// Recurse children.
+					//
+					if( theDocument.hasOwnProperty( '_children' ) )
+						Dictionary.stripDocumentProperties(
+							theDocument._children,
+							theProperties
+						);
+					
+				}	// Object is node.
+				
+			}	// Provided object.
+			
+		}	// Provided properties.
+		
+	}	// stripDocumentProperties
 
 	/**
 	 * List language description fields.
@@ -1092,6 +1188,26 @@ class Dictionary
 		];																			// ==>
 
 	}	// listCustomValidationFields
+	
+	/**
+	 * Get user private properties
+	 *
+	 * This method will return an array containing the user private fields, these
+	 * fields correspond to those properties that should not be returned to the client.
+	 *
+	 * @returns {Array}	The list of user private properties.
+	 */
+	static get listUserPrivateProperties()
+	{
+		return [
+			'_id',						// Document ID.
+			'_key',						// Document key.
+			'_rev',						// Document revision.
+			'_oldRev',					// Previous revision.
+			Dict.descriptor.kAuthData	// Authentication record.
+		];																			// ==>
+		
+	}	// listUserPrivateProperties
 }
 
 module.exports = Dictionary;

@@ -125,6 +125,11 @@ module.exports = {
 				auth.create( data[ Dict.descriptor.kPassword ] );
 			
 			//
+			// Remove password.
+			//
+			delete data[ Dict.descriptor.kPassword ];
+			
+			//
 			// Insert user.
 			//
 			const meta = db._collection( 'users' ).insert( data );

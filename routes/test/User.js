@@ -36,6 +36,7 @@ const HTTP_CONFLICT = status('conflict');
 // Instantiate objects.
 //
 const K = require( '../../utils/Constants' );
+const Dict = require( '../../dictionary/Dict');
 const MyError = require( '../../utils/MyError' );
 const User = require( '../../classes/User' );
 
@@ -109,6 +110,18 @@ router.post
 			const doAssert  = false;
 			if( ! user.persistent )
 				user.resolve( doReplace, doAssert );
+			
+			//
+			// Create authorisation data.
+			//
+			if( ! user.persistent )
+			{
+				const data = {};
+				const auth = createAuth();
+				data[ Dict.descriptor.kAuthData ] =
+					auth.create( "secret" );
+				user.loadDocumentData( data, true, false );
+			}
 			
 			//
 			// Insert user.

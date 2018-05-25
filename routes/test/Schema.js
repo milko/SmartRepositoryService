@@ -830,9 +830,9 @@ router.post
 
 
 /**
- * Test Schema.getManagedUsersPath()
+ * Test Schema.getManagedUsersHierarchy()
  *
- * The service will check the Schema.getManagedUsersPath() method.
+ * The service will check the Schema.getManagedUsersHierarchy() method.
  *
  * The service returns an object as { what : <result> } where result is the
  * value returned by the tested method.
@@ -840,13 +840,13 @@ router.post
  * If the method raises an exception, the service will forward it using the
  * HTTP code if the exception is of class MyError.
  *
- * @path		/getManagedUsersPath
+ * @path		/getManagedUsersHierarchy
  * @verb		post
  * @response	{ what : <result> }.
  */
 router.post
 (
-	'/getManagedUsersPath',
+	'/getManagedUsersHierarchy',
 	(request, response) =>
 	{
 		//
@@ -863,7 +863,7 @@ router.post
 			// Make test.
 			//
 			const result =
-				Schema.getManagedUsersPath(
+				Schema.getManagedUsersHierarchy(
 					request,
 					request.body.root,
 					request.body.minDepth,
@@ -871,7 +871,8 @@ router.post
 					request.body.vField,
 					request.body.eField,
 					request.body.doLanguage,
-					request.body.doEdge
+					request.body.doEdge,
+					request.body.doStrip
 				);
 			
 			response.send({
@@ -896,7 +897,7 @@ router.post
 			response.throw( http, error );										// !@! ==>
 		}
 	},
-	'getManagedUsersPath'
+	'getManagedUsersHierarchy'
 )
 	.body(
 		Joi.object({
@@ -908,7 +909,8 @@ router.post
 			vField		: Joi.any().required(),
 			eField		: Joi.any().required(),
 			doLanguage	: Joi.boolean().required(),
-			doEdge		: Joi.boolean().required()
+			doEdge		: Joi.boolean().required(),
+			doStrip		: Joi.boolean().required()
 		}),
 		"Method parameters."
 	)

@@ -18,6 +18,7 @@ const ARANGO_CONFLICT = errors.ERROR_ARANGO_CONFLICT.code;
 const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
+const Dictionary = require( '../utils/Dictionary' );
 
 //
 // Parent.
@@ -904,15 +905,14 @@ class User extends Document
 	 */
 	getRequiredFields()
 	{
-		// MILKO
 		return [
 			Dict.descriptor.kUsername,	// User code.
 			Dict.descriptor.kName,		// User full name.
 			Dict.descriptor.kEmail,		// User e-mail address.
 			Dict.descriptor.kLanguage,	// User preferred language.
 			Dict.descriptor.kRank,		// User rank.
-			Dict.descriptor.kRole/*,		// User roles.
-			Dict.descriptor.kAuthData	// User authentication record.*/
+			Dict.descriptor.kRole,		// User roles.
+			Dict.descriptor.kAuthData	// User authentication record.
 		];																			// ==>
 		
 	}	// getRequiredFields

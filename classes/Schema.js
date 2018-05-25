@@ -19,11 +19,6 @@ const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
 const Dictionary = require( '../utils/Dictionary' );
 
-//
-// Classes.
-//
-const User = require( '../classes/User' );
-
 
 /**
  * Data dictionary schema class
@@ -72,7 +67,7 @@ class Schema
 		{
 			const result = {};
 			for( const item of theTerm )
-				result[ item ] = this.isEnumerationChoice( theRequest, item, theEnums );
+				result[ item ] = Schema.isEnumerationChoice( theRequest, item, theEnums );
 
 			return result;															// ==>
 		}
@@ -952,7 +947,7 @@ class Schema
 	 * 	- theRequest:	Used to retrieve the session language and to raise eventual
 	 * 					exceptions.
 	 * 	- theRoot:		Determines the traversal origin node, it must be provided as
-	 * 					the user _id or _key, or as an object containing the user code.
+	 * 					the user _id or _key, or as the resolved user document.
 	 * 	- theMinDepth:	Represents the minimum depth of the traversal, it must be
 	 * 					provided as an integer, or can be null, to ignore it.
 	 * 	- theMaxDepth:	Represents the maximum depth of the traversal, it must be
@@ -981,6 +976,10 @@ class Schema
 	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
 	 * 					with two elements: 'vertex' will contain the vertex and 'edge'
 	 * 					will contain the edge.
+	 * 	- doStrip:		If this parameter is true, the result nodes will be stripped
+	 * 					from private properties, all elements will lack the standard
+	 * 					private properties (Dictionary.listUserPrivateProperties()),
+	 * 					the managers will also lack the roles property.
 	 *
 	 * The method will return an array of path nodes.
 	 * The method assumes the users and schemas collections to exist.
@@ -994,9 +993,10 @@ class Schema
 	 * @param theEdgeFld	{String}|{null}		Edge property name.
 	 * @param doLanguage	{boolean}			Restrict labels to current language.
 	 * @param doEdge		{boolean}			Include edge.
+	 * @param doStrip		{Boolean}			True strips private fields (default).
 	 * @returns {Array}							List of enumeration elements.
 	 */
-	static getManagedUsersPath
+	static getManagedUsersHierarchy
 	(
 		theRequest,
 		theRoot,
@@ -1005,33 +1005,111 @@ class Schema
 		theVertexFld = null,
 		theEdgeFld = null,
 		doLanguage = false,
-		doEdge = false
+		doEdge = false,
+		doStrip = true
 	)
 	{
 		//
 		// Get traversal origin document.
 		//
-		const user = new User( theRequest, theRoot );
-		if( ! user.persistent )
-			user.resolve( true, true );
+		let user = null;
+		try
+		{
+			//
+			// Resolve user.
+			//
+			if( K.function.isObject( theRoot ) )
+				user = theRoot;
+			else
+			{
+				if( ! theRoot.startsWith( 'users/' ) )
+					theRoot = `users/${theRoot}`;
+				user = db._document( theRoot );
+			}
+		}
+		catch( error )
+		{
+			//
+			// Handle exceptions.
+			//
+			if( (! error.isArangoError)
+			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				throw( error );													// !@! ==>
+			
+			//
+			// Handle not found.
+			//
+			throw(
+				new MyError(
+					'BadUserReference',					// Error name.
+					K.error.UserNotFound,				// Message code.
+					theRequest.application.language,	// Language.
+					theRoot,							// Error value.
+					404									// HTTP error code.
+				)
+			);																	// !@! ==>
+		}
 		
 		//
 		// Perform traversal.
 		//
-		return this.traverseManagedUsers(
-			theRequest,		// Current request.
-			user.document,	// Traversal origin.
-			'out',			// Outbound direction.
-			theMinDepth,	// Search start depth.
-			theMaxDepth,	// Search final depth.
-			theVertexFld,	// Vertex fields.
-			theEdgeFld,		// Edge fields.
-			false,			// Return tree.
-			doLanguage,		// Restrict to language.
-			doEdge			// Include edges.
-		);																			// ==>
+		let hierarchy =
+			this.traverseManagedUsers
+			(
+				theRequest,		// Current request.
+				user,			// Traversal origin.
+				'out',			// Outbound direction.
+				theMinDepth,	// Search start depth.
+				theMaxDepth,	// Search final depth.
+				theVertexFld,	// Vertex fields.
+				theEdgeFld,		// Edge fields.
+				false,			// Return tree.
+				doLanguage,		// Restrict to language.
+				doEdge			// Include edges.
+			);
 		
-	}	// getManagedUsersPath
+		//
+		// Strip private properties.
+		//
+		if( doStrip								// Wanna strip,
+		 && (hierarchy.length > 0)				// and have clothes,
+		 && (theVertexFld === null) )			// and got them all.
+		{
+			//
+			// Pop current user.
+			//
+			let current = null;
+			if( hierarchy[ 0 ][ Dict.descriptor.kUsername ]
+				=== user[ Dict.descriptor.kUsername ] )
+				current = hierarchy.shift();
+			
+			//
+			// Normalise managers.
+			//
+			Dictionary.stripDocumentProperties(
+				hierarchy,
+				Dictionary.listUserPrivateProperties.concat( Dict.descriptor.kRole )
+			);
+			
+			//
+			// Normalise current user.
+			//
+			if( current !== null )
+				Dictionary.stripDocumentProperties(
+					current,
+					Dictionary.listUserPrivateProperties
+				);
+			
+			//
+			// Reconstitute hierarchy.
+			//
+			if( current !== null )
+				hierarchy.unshift( current );
+		}
+		
+		return hierarchy;															// ==>
+		
+	}	// getManagedUsersHierarchy
 	
 	/**
 	 * Get managed list
@@ -1075,6 +1153,9 @@ class Schema
 	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
 	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
 	 * 					will contain the edge.
+	 * 	- doStrip:		If this parameter is true, the result nodes will be stripped
+	 * 					from private properties, all elements will lack the standard
+	 * 					private properties (Dictionary.listUserPrivateProperties()).
 	 *
 	 * The method will return a flattened array of the provided root's siblings.
 	 * The method assumes the users and schemas collections to exist.
@@ -1088,6 +1169,7 @@ class Schema
 	 * @param theEdgeFld	{String}|{null}		Edge property name.
 	 * @param doLanguage	{boolean}			Restrict labels to current language.
 	 * @param doEdge		{boolean}			Include edge.
+	 * @param doStrip		{Boolean}			True strips private fields (default).
 	 * @returns {Array}							List of enumeration elements.
 	 */
 	static getManagedUsersList
@@ -1099,31 +1181,80 @@ class Schema
 		theVertexFld = null,
 		theEdgeFld = null,
 		doLanguage = false,
-		doEdge = false
+		doEdge = false,
+		doStrip = true
 	)
 	{
 		//
 		// Get traversal origin document.
 		//
-		const user = new User( theRequest, theRoot );
-		if( ! user.persistent )
-			user.resolve( true, true );
+		let user = null;
+		try
+		{
+			//
+			// Resolve user.
+			//
+			if( K.function.isObject( theRoot ) )
+				user = theRoot;
+			else
+			{
+				if( ! theRoot.startsWith( 'users/' ) )
+					theRoot = `users/${theRoot}`;
+				user = db._document( theRoot );
+			}
+		}
+		catch( error )
+		{
+			//
+			// Handle exceptions.
+			//
+			if( (! error.isArangoError)
+			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				throw( error );													// !@! ==>
+			
+			//
+			// Handle not found.
+			//
+			throw(
+				new MyError(
+					'BadUserReference',					// Error name.
+					K.error.UserNotFound,				// Message code.
+					theRequest.application.language,	// Language.
+					theRoot,							// Error value.
+					404									// HTTP error code.
+				)
+			);																	// !@! ==>
+		}
 		
 		//
 		// Perform traversal.
 		//
-		return this.traverseManagedUsers(
-			theRequest,		// Current request.
-			user.document,	// Traversal origin.
-			'in',			// Outbound direction.
-			theMinDepth,	// Search start depth.
-			theMaxDepth,	// Search final depth.
-			theVertexFld,	// Vertex fields.
-			theEdgeFld,		// Edge fields.
-			false,			// Return tree.
-			doLanguage,		// Restrict to language.
-			doEdge			// Include edges.
-		);																			// ==>
+		let list =
+			this.traverseManagedUsers(
+				theRequest,		// Current request.
+				user.document,	// Traversal origin.
+				'in',			// Outbound direction.
+				theMinDepth,	// Search start depth.
+				theMaxDepth,	// Search final depth.
+				theVertexFld,	// Vertex fields.
+				theEdgeFld,		// Edge fields.
+				false,			// Return tree.
+				doLanguage,		// Restrict to language.
+				doEdge			// Include edges.
+			);
+		
+		//
+		// Strip private properties.
+		//
+		if( doStrip								// Wanna strip,
+		 && (list.length > 0)					// and have clothes,
+		 && (theVertexFld === null) )			// and got them all.
+			Dictionary.stripDocumentProperties(
+				list,
+				Dictionary.listUserPrivateProperties
+			);
+		
+		return list;																// ==>
 		
 	}	// getManagedUsersList
 	
@@ -1169,6 +1300,10 @@ class Schema
 	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
 	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
 	 * 					will contain the edge.
+	 * 	- doStrip:		If this parameter is true, the result nodes will be stripped
+	 * 					from private properties, all elements will lack the standard
+	 * 					private properties (Dictionary.listUserPrivateProperties()),
+	 * 					the managers will also lack the roles property.
 	 *
 	 * The method will return an array of top level nodes containing a property called
 	 * '_children' that is an array containing the node's children.
@@ -1183,6 +1318,7 @@ class Schema
 	 * @param theEdgeFld	{String}|{null}		Edge property name.
 	 * @param doLanguage	{boolean}			Restrict labels to current language.
 	 * @param doEdge		{boolean}			Include edge.
+	 * @param doStrip		{Boolean}			True strips private fields (default).
 	 * @returns {Array}							List of enumeration elements.
 	 */
 	static getManagedUsersTree
@@ -1194,31 +1330,79 @@ class Schema
 		theVertexFld = null,
 		theEdgeFld = null,
 		doLanguage = false,
-		doEdge = false
+		doEdge = false,
+		doStrip = true
 	)
 	{
 		//
 		// Get traversal origin document.
 		//
-		const user = new User( theRequest, theRoot );
-		if( ! user.persistent )
-			user.resolve( true, true );
+		let user = null;
+		try
+		{
+			//
+			// Resolve user.
+			//
+			if( K.function.isObject( theRoot ) )
+				user = theRoot;
+			else
+			{
+				if( ! theRoot.startsWith( 'users/' ) )
+					theRoot = `users/${theRoot}`;
+				user = db._document( theRoot );
+			}
+		}
+		catch( error )
+		{
+			//
+			// Handle exceptions.
+			//
+			if( (! error.isArangoError)
+				|| (error.errorNum !== ARANGO_NOT_FOUND) )
+				throw( error );													// !@! ==>
+			
+			//
+			// Handle not found.
+			//
+			throw(
+				new MyError(
+					'BadUserReference',					// Error name.
+					K.error.UserNotFound,				// Message code.
+					theRequest.application.language,	// Language.
+					theRoot,							// Error value.
+					404									// HTTP error code.
+				)
+			);																	// !@! ==>
+		}
 		
 		//
 		// Perform traversal.
 		//
-		return this.traverseManagedUsers(
-			theRequest,		// Current request.
-			user.document,	// Traversal origin.
-			'in',			// Outbound direction.
-			theMinDepth,	// Search start depth.
-			theMaxDepth,	// Search final depth.
-			theVertexFld,	// Vertex fields.
-			theEdgeFld,		// Edge fields.
-			true,			// Return tree.
-			doLanguage,		// Restrict to language.
-			doEdge			// Include edges.
-		);																			// ==>
+		let tree =
+			this.traverseManagedUsers(
+				theRequest,		// Current request.
+				user,			// Traversal origin.
+				'in',			// Outbound direction.
+				theMinDepth,	// Search start depth.
+				theMaxDepth,	// Search final depth.
+				theVertexFld,	// Vertex fields.
+				theEdgeFld,		// Edge fields.
+				true,			// Return tree.
+				doLanguage,		// Restrict to language.
+				doEdge			// Include edges.
+			);
+		
+		//
+		// Strip private properties.
+		//
+		if( doStrip								// Wanna strip,
+		 && (theVertexFld === null) )			// and got all clothes.
+			Dictionary.stripDocumentProperties(
+				tree,
+				Dictionary.listUserPrivateProperties
+			);
+		
+		return tree;																// ==>
 		
 	}	// getManagedUsersTree
 
