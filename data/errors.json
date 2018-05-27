@@ -42,6 +42,12 @@
     }
   },
   {
+    "_key" : "RemoveUser",
+    "label" : {
+      "ISO:639:3:eng" : "Unable to insert user: "
+    }
+  },
+  {
     "_key" : "InsertEdge",
     "label" : {
       "ISO:639:3:eng" : "Unable to insert edge: "

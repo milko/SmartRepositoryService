@@ -278,20 +278,35 @@ class User extends Document
 	 *
 	 * Any exception, except the ARANGO_NOT_FOUND error, will be forwarded.
 	 *
-	 * If the current document doesn't exist or was depeted, the method will set the
-	 * persistent flag to false.
-	 *
 	 * If the current document revision is different than the existing document
 	 * revision, the method will raise an exception.
+	 *
+	 * If the current document doesn't exist or was deleted, the method will set the
+	 * persistent flag to false.
+	 *
+	 * If the current user manages other users, but has no manager, the method will
+	 * raise an exception.
 	 *
 	 * @returns {Boolean}	True removed, false not found, null not persistent.
 	 */
 	remove()
 	{
 		//
-		// Collect managed users.
+		// Prevent if manages and no manager.
 		//
-		
+		const managed = this.hasManaged();
+		if( (managed !== null)
+		 && (! this.hasOwnProperty( 'manager' )) )
+			throw(
+				new MyError(
+					'RemoveUser',									// Error name.
+					K.error.NoManagerManages,						// Message code.
+					this._request.application.language,				// Language.
+					this._document[ Dict.descriptor.kUsername ],	// Error value.
+					409												// HTTP error code.
+				)
+			);																	// !@! ==>
+			
 		//
 		// Call parent method.
 		// And forward exceptions.
@@ -370,6 +385,13 @@ class User extends Document
 	 *
 	 * If the edge was not found, the method will not raise an exception.
 	 *
+	 * Uf the current user manages other users, these will be transferred under the
+	 * current user's manager, note that if we get here it is guaranteed that the user
+	 * has a manager..
+	 *
+	 * Note: this method will be called only if the user is persistent, therefore it
+	 * is guaranteed that the user _id exists.
+	 *
 	 * Note: you must NOT call this method, consider it private, since, if used
 	 * incorrectly, it will corrupt the database.
 	 *
@@ -380,21 +402,49 @@ class User extends Document
 		//
 		// Check manager.
 		//
-		if( this.hasOwnProperty( 'manager' )
-		 && this._document.hasOwnProperty( '_id' ) )
+		if( this.hasOwnProperty( 'manager' ) )
 		{
 			//
-			// Build selector.
+			// Init local storage.
 			//
+			let edge = null;
 			const selector = {};
-			selector._from = this._document._id;
-			selector._to   = this.manager;
 			selector[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateManagedBy}`;
 			
 			//
-			// Remove.
+			// Transfer managed users.
 			//
-			const edge = new Edge( this._request, selector, 'schemas' );
+			for( const managed of this.manages )
+			{
+				//
+				// Set constants.
+				//
+				selector._from = managed;
+				
+				//
+				// Transfer manager.
+				//
+				selector._to   = this.manager;
+				edge = new Edge( this._request, selector, 'schemas' );
+				edge.insert();
+				if( edge.resolve( false, false ) === true )
+					edge.remove();
+				
+				//
+				// Remove managed.
+				//
+				selector._to   = this._document._id;
+				edge = new Edge( this._request, selector, 'schemas' );
+				if( edge.resolve( false, false ) === true )
+					edge.remove();
+			}
+			
+			//
+			// Remove manager.
+			//
+			selector._from = this._document._id;
+			selector._to   = this.manager;
+			edge = new Edge( this._request, selector, 'schemas' );
 			if( edge.resolve( false, false ) === true )
 				return edge.remove();												// ==>
 			
@@ -951,9 +1001,9 @@ class User extends Document
 	/**
 	 * Return managed users
 	 * This method will return the list of managed user references, the method will
-	 * return an array, or null, if the current object is not persistent.
+	 * return an empty array if the current object is not persistent.
 	 *
-	 * @returns {Array}|{null|	The list of managed users, if persistent, or null.
+	 * @returns {Array}	The list of managed users.
 	 */
 	get manages()
 	{
@@ -981,7 +1031,7 @@ class User extends Document
 			return result;															// ==>
 		}
 		
-		return null;																// ==>
+		return [];																	// ==>
 		
 	}	// manages
 	
