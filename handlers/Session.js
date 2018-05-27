@@ -205,5 +205,5 @@ module.exports = {
 		
 		theResponse.send({ result : user });										// ==>
 		
-	}	// logout
+	}	// hierarchy
 };

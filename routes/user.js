@@ -36,63 +36,6 @@ router.tag( 'user' );
 
 
 /**
- * Create administrator user
- *
- * The service will create the system administrator user, it expects the post body to
- * contain the following fields:
- *
- * 	- token:	The administrator authentication token.
- * 	- data:		The contents of the administrator form:
- * 		- name:		The user full name.
- * 		- password:	The user password.
- * 		- email:	The user e-mail address.
- * 		- language:	The user preferred language.
- *
- * The service returns an object { result : <value> } where the value
- * represents the newly created user.
- *
- * The service will perform the following assertions:
- *
- * 	- Assert there are no users in the users collection.
- * 	- Validate the authentication token.
- * 	- Validate form data.
- * 	- Complete the user record.
- * 	- Create the authorisation data.
- * 	- Insert the user.
- * 	- Update the session.
- * 	- Return the user.
- *
- * The service may raise an exceprion, the HTTP code depends on the exception
- * class: if MyError and it contains the HTTP code, this will be used, in all
- * other cases, the code will be 500.
- *
- * @path		/user/admin
- * @verb		post
- * @request		{Object}	Term reference(s) and optional enumerations list.
- * @response	{Object}	The result.
- */
-router.post( '/signin/admin', Handlers.admin, 'admin' )
-	.body(
-		require( '../models/user/signinUser' ),
-		Application.getServiceDescription(
-			'user', 'admin', 'body', module.context.configuration.defaultLanguage )
-	)
-	.response(
-		200,
-		require( '../models/user/signinUser' ),
-		Application.getServiceDescription(
-			'user', 'admin', 'response', module.context.configuration.defaultLanguage )
-	)
-	.summary(
-		"Create system administrator user."
-	)
-	.description(
-		Application.getServiceDescription(
-			'user', 'admin', 'description', module.context.configuration.defaultLanguage )
-	);
-
-
-/**
  * Signup user
  *
  * The service will register a new user, it expects two parameters in the POST body:
@@ -150,4 +93,122 @@ router.post( '/signup', Handlers.signUp, 'signup' )
 	.description(
 		Application.getServiceDescription(
 			'user', 'signup', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Create administrator user
+ *
+ * The service will create the system administrator user, it expects the post body to
+ * contain the following fields:
+ *
+ * 	- token:	The administrator authentication token.
+ * 	- data:		The contents of the administrator form:
+ * 		- name:		The user full name.
+ * 		- password:	The user password.
+ * 		- email:	The user e-mail address.
+ * 		- language:	The user preferred language.
+ *
+ * The service returns an object { result : <value> } where the value
+ * represents the newly created user.
+ *
+ * The service will perform the following assertions:
+ *
+ * 	- Assert there are no users in the users collection.
+ * 	- Validate the authentication token.
+ * 	- Validate form data.
+ * 	- Complete the user record.
+ * 	- Create the authorisation data.
+ * 	- Insert the user.
+ * 	- Update the session.
+ * 	- Return the user.
+ *
+ * The service may raise an exception, the HTTP code depends on the exception
+ * class: if MyError and it contains the HTTP code, this will be used, in all
+ * other cases, the code will be 500.
+ *
+ * @path		/user/admin
+ * @verb		post
+ * @request		{Object}	Term reference(s) and optional enumerations list.
+ * @response	{Object}	The result.
+ */
+router.post( '/signin/admin', Handlers.signinAdmin, 'admin' )
+	.body(
+		require( '../models/user/signinUser' ),
+		Application.getServiceDescription(
+			'user', 'admin', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/user/signinUser' ),
+		Application.getServiceDescription(
+			'user', 'admin', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Create system administrator user."
+	)
+	.description(
+		Application.getServiceDescription(
+			'user', 'admin', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Create user
+ *
+ * The service will create a user, it expects the post body to contain the following
+ * fields:
+ *
+ * 	- token:	The user signup authentication token.
+ * 	- data:		The contents of the signin form:
+ * 		- username:	The user code.
+ * 		- password:	The user password.
+ * 		- name:		The user full name.
+ * 		- email:	The user e-mail address.
+ * 		- language:	The user preferred language.
+ * 		- rank:		The user rank.
+ * 		- role:		The user roles.
+ * 		- group:	The user group.
+ *
+ * The service returns an object { result : <value> } where the value
+ * represents the newly created user.
+ *
+ * The service will perform the following assertions:
+ *
+ * 	- Assert there is a current user in the session.
+ * 	- Validate the authentication token.
+ * 	- Validate form data.
+ * 	- Complete the user record.
+ * 	- Create the authorisation data.
+ * 	- Insert the user.
+ * 	- Update the session.
+ * 	- Return the user.
+ *
+ * The service may raise an exception, the HTTP code depends on the exception
+ * class: if MyError and it contains the HTTP code, this will be used, in all
+ * other cases, the code will be 500.
+ *
+ * @path		/user/admin
+ * @verb		post
+ * @request		{Object}	Term reference(s) and optional enumerations list.
+ * @response	{Object}	The result.
+ */
+router.post( '/signin/admin', Handlers.signinAdmin, 'admin' )
+	.body(
+		require( '../models/user/signinUser' ),
+		Application.getServiceDescription(
+			'user', 'admin', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/user/signinUser' ),
+		Application.getServiceDescription(
+			'user', 'admin', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Create system administrator user."
+	)
+	.description(
+		Application.getServiceDescription(
+			'user', 'admin', 'description', module.context.configuration.defaultLanguage )
 	);
