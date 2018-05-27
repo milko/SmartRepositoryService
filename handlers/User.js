@@ -298,5 +298,138 @@ module.exports = {
 			theResponse.throw( http, error );									// !@! ==>
 		}
 		
-	}	// signinAdmin
+	},	// signinAdmin
+	
+	/**
+	 * Create user
+	 *
+	 * The service will create a user, it expects the following
+	 * object in the body:
+	 *
+	 * 	- token: the authentication token.
+	 * 	- data:	 the signin form contents.
+	 *
+	 * The service will perform the following steps:
+	 *
+	 * 	- Assert there is a current user in the session.
+	 * 	- Validate the authentication token.
+	 * 	- Validate form data.
+	 * 	- Load user record.
+	 * 	- Complete the user record.
+	 * 	- Remove the status..
+	 * 	- Create the authorisation data.
+	 * 	- Replace the user.
+	 * 	- Update the session.
+	 * 	- Return the user.
+	 *
+	 * The service returns the new user record.
+	 *
+	 * If the method raises an exception, the service will forward it using the
+	 * HTTP code if the exception is of class MyError.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 */
+	signinUser : ( theRequest, theResponse ) =>
+	{
+		
+		//
+		// Procedures.
+		//
+		try
+		{
+			//
+			// Assertions.
+			//
+			Middleware.assert.hasUser( theRequest, theResponse );
+			Middleware.assert.tokenUser( theRequest, theResponse );
+			
+			//
+			// Validate form.
+			//
+			const form = new Form( theRequest, Dict.term.kFormSignin );
+			form.validate( theRequest, theRequest.body.data );
+			
+			//
+			// Save password.
+			//
+			const pass = theRequest.body.data[ Dict.descriptor.kPassword ];
+			delete theRequest.body.data[ Dict.descriptor.kPassword ];
+			
+			//
+			// Get user.
+			//
+			const user = new User( theRequest, theRequest.body.data );
+			
+			//
+			// Check user.
+			//
+			if( ! user.resolve( false, false ) )
+				theResponse.throw(
+					403,
+					new MyError(
+						'BadUserReference',							// Error name.
+						K.error.UserNotFound,						// Error code.
+						theRequest.application.language,			// Error language.
+						user.document[ Dict.descriptor.kUsername ]	// Error data.
+					)
+				);																// !@! ==>
+			
+			//
+			// Check credentials.
+			//
+			const auth = createAuth();
+			const valid = auth.verify( user.document.auth, password );
+			if( ! valid )
+				theResponse.throw(
+					403,
+					new MyError(
+						'AuthFailed',						// Error name.
+						K.error.BadPassword,				// Error code.
+						theRequest.application.language		// Error language.
+					)
+				);																// !@! ==>
+			
+			//
+			// Remove status.
+			//
+			delete user.document[ Dict.descriptor.kStateStatus ];
+			
+			//
+			// Replace user.
+			//
+			user.replace( true );
+			
+			//
+			// Login user.
+			//
+			theRequest.session.uid = user.document._id;
+			theRequest.session.data = {};
+			theRequest.sessionStorage.save( theRequest.session );
+			
+			//
+			// Copy user to request.
+			//
+			theRequest.application.user = user.document;
+			
+			theResponse.send({ result : user.document });							// ==>
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+				&& error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			theResponse.throw( http, error );									// !@! ==>
+		}
+		
+	}	// signinUser
 };

@@ -152,7 +152,7 @@ module.exports = {
 		//
 		theRequest.application.user = user.document;
 
-		theResponse.send({ result : user.document });										// ==>
+		theResponse.send({ result : user.document });								// ==>
 
 	},	// login
 	
