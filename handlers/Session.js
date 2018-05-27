@@ -13,6 +13,11 @@ const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
 
+//
+// Classes.
+//
+const User = require( '../classes/User' );
+
 
 /**
  * Session services
@@ -84,37 +89,47 @@ module.exports = {
 	login : ( theRequest, theResponse ) =>
 	{
 		//
-		// Get credentials.
+		// Get user.
 		//
-		const code = theRequest.body.username;
-		const pass = theRequest.body.password;
-
+		const selector = {};
+		selector[ Dict.descriptor.kUsername ] = theRequest.body.username;
+		const user = new User( theRequest, selector );
+		
 		//
-		// Locate user.
+		// Check user.
 		//
-		const key = {};
-		key[ Dict.descriptor.kUsername ] = code;
-		const user = db._collection( 'users' ).firstExample( key );
-
-		//
-		// Handle user not found.
-		//
-		if( user === null )
+		if( ! user.resolve( false, false ) )
 			theResponse.throw(
 				404,
 				new MyError(
 					'AuthFailed',						// Error name.
 					K.error.UserNotFound,				// Error code.
 					theRequest.application.language,	// Error language.
-					code								// Error data.
+					theRequest.body.username			// Error data.
 				)
 			);																	// !@! ==>
-
+		
+		//
+		// Check if pending or disabled.
+		//
+		if( user.document.hasOwnProperty( Dict.descriptor.kStatus )
+		 && ( (user.document[ Dict.descriptor.kStatus ] === Dict.term.kStateStatusPending)
+		   || (user.document[ Dict.descriptor.kStatus ] === Dict.term.kStateStatusDisabled) ) )
+			theResponse.throw(
+				403,
+				new MyError(
+					'AuthFailed',						// Error name.
+					K.error.UserNotFound,				// Error code.
+					theRequest.application.language,	// Error language.
+					theRequest.body.username			// Error data.
+				)
+			);																	// !@! ==>
+		
 		//
 		// Check credentials.
 		//
 		const auth = createAuth();
-		const valid = auth.verify( user.auth, pass );
+		const valid = auth.verify( user.document.auth, theRequest.body.password );
 		if( ! valid )
 			theResponse.throw(
 				403,
@@ -128,16 +143,16 @@ module.exports = {
 		//
 		// Login user.
 		//
-		theRequest.session.uid = user._id;
+		theRequest.session.uid = user.document._id;
 		theRequest.session.data = {};
 		theRequest.sessionStorage.save( theRequest.session );
 
 		//
 		// Copy user to request.
 		//
-		theRequest.application.user = user;
+		theRequest.application.user = user.document;
 
-		theResponse.send({ result : user });										// ==>
+		theResponse.send({ result : user.document });										// ==>
 
 	},	// login
 	
