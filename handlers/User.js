@@ -52,9 +52,8 @@ module.exports = {
 	 * 'data' fields in the POST body.
 	 *
 	 * The service will return a string token that will be used when the user will
-	 * signin, it contains the user code, the temporary password, the group code and the
-	 * manager's _id, these will be used to authenticate and load the user data
-	 * when the user will sign in.
+	 * signin, it contains the user code and password, these will be used to
+	 * authenticate and load the user data when the user will sign in.
 	 *
 	 * The service will perform the following steps:
 	 *
@@ -121,10 +120,6 @@ module.exports = {
 			const encode = {};
 			encode[ Dict.descriptor.kUsername ] = data[ Dict.descriptor.kUsername ];
 			encode[ Dict.descriptor.kPassword ] = crypto.genRandomAlphaNumbers( 48 );
-			encode[ Dict.descriptor.kManager ] = theRequest.session.uid;
-			if( theRequest.body.data.hasOwnProperty( Dict.descriptor.kGroup ) )
-				encode[ Dict.descriptor.kGroup ] =
-					theRequest.body.data[ Dict.descriptor.kGroup ];
 			
 			//
 			// Generate token.
@@ -148,10 +143,10 @@ module.exports = {
 			const user = new User(
 				theRequest,
 				data,
-				( encode.hasOwnProperty( Dict.descriptor.kGroup ) )
-					? encode[ Dict.descriptor.kGroup ]
+				( theRequest.body.data.hasOwnProperty( Dict.descriptor.kGroup ) )
+					? theRequest.body.data[ Dict.descriptor.kGroup ]
 					: null,
-				encode[ Dict.descriptor.kManager ]
+				theRequest.session.uid
 			);
 			
 			//

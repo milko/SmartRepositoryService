@@ -289,7 +289,7 @@ class User extends Document
 	remove()
 	{
 		//
-		// Check if user manages other users.
+		// Collect managed users.
 		//
 		
 		//
