@@ -7,7 +7,7 @@ const Joi = require('joi');
 const _ = require('lodash');
 
 /**
- * Register user
+ * Sign in user
  *
  * This schema is used to register a user, the schema will validate the main service
  * contents, that is, ensure the token and the user object are provided; the detailed
@@ -37,19 +37,14 @@ module.exports = {
 		// Framework.
 		//
 		const Dict = require( '../../dictionary/Dict' );
+		const Dictionary = require( '../../utils/Dictionary' );
 		
 		//
-		// Omit private properties.
+		// Strip privates.
 		//
-		theResponse.result = _.omit(
+		Dictionary.stripDocumentProperties(
 			theResponse.result,
-			[
-				'_id',						// ID.
-				'_key',						// Key.
-				'_rev',						// Revision.
-				'_oldRev',					// Old revision.
-				Dict.descriptor.kAuthData	// Authentication data.
-			]
+			Dictionary.listUserPrivateProperties
 		);
 		
 		return theResponse;															// ==>
