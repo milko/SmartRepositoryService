@@ -132,7 +132,7 @@ router.post( '/signup', Handlers.signUp, 'signup' )
  * @request		{Object}	Term reference(s) and optional enumerations list.
  * @response	{Object}	The result.
  */
-router.post( '/signin/admin', Handlers.signinAdmin, 'admin' )
+router.post( '/signin/admin', Handlers.signinAdmin, 'singInAdmin' )
 	.body(
 		require( '../models/user/signinUser' ),
 		Application.getServiceDescription(
@@ -193,7 +193,7 @@ router.post( '/signin/admin', Handlers.signinAdmin, 'admin' )
  * @request		{Object}	Term reference(s) and optional enumerations list.
  * @response	{Object}	The result.
  */
-router.post( '/signin/admin', Handlers.signinAdmin, 'admin' )
+router.post( '/signin/user', Handlers.signinUser, 'singInUser' )
 	.body(
 		require( '../models/user/signinUser' ),
 		Application.getServiceDescription(

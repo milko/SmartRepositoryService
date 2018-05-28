@@ -262,24 +262,22 @@ module.exports = {
 			//
 			// Insert user.
 			//
-			const meta = db._collection( 'users' ).insert( data );
+			const user = new User( theRequest, data );
+			user.insert();
 			
 			//
-			// Update session.
+			// Login user.
 			//
-			theRequest.session.uid = meta._id;
+			theRequest.session.uid = user.document._id;
 			theRequest.session.data = {};
 			theRequest.sessionStorage.save( theRequest.session );
 			
 			//
 			// Copy user to request.
 			//
-			theRequest.application.user = data;
+			theRequest.application.user = user.document;
 			
-			//
-			// Return response.
-			//
-			theResponse.send({ result : data });
+			theResponse.send({ result : user.document });							// ==>
 		}
 		catch( error )
 		{
@@ -475,8 +473,8 @@ module.exports = {
 		// Check if pending or disabled.
 		//
 		if( user.document.hasOwnProperty( Dict.descriptor.kStatus )
-			&& ( (user.document[ Dict.descriptor.kStatus ] === Dict.term.kStateStatusPending)
-				|| (user.document[ Dict.descriptor.kStatus ] === Dict.term.kStateStatusDisabled) ) )
+		 && ( (user.document[ Dict.descriptor.kStatus ] === Dict.term.kStateStatusPending)
+		   || (user.document[ Dict.descriptor.kStatus ] === Dict.term.kStateStatusDisabled) ) )
 			theResponse.throw(
 				403,
 				new MyError(
