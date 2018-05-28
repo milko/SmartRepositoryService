@@ -640,15 +640,27 @@ module.exports = {
 	 */
 	getUserHierarchy : ( theRequest, theResponse ) =>
 	{
+		//
+		// Framework.
+		//
+		const User = require( '../classes/User' );
+		
 		try
 		{
+			//
+			// Instantiate user.
+			//
+			const user = new User( theRequest, theRequest.body.origin );
+			if( ! user.persistent )
+				user.resolve( true, true );
+			
 			//
 			// Test term.
 			//
 			theResponse.send({
 				result : Schema.getManagedUsersHierarchy(
 					theRequest,
-					theRequest.body.origin,
+					user.document,
 					theRequest.body.minDepth,
 					theRequest.body.maxDepth,
 					theRequest.body.vField,
@@ -669,7 +681,7 @@ module.exports = {
 			// Handle MyError exceptions.
 			//
 			if( (error.constructor.name === 'MyError')
-				&& error.hasOwnProperty( 'param_http' ) )
+			 && error.hasOwnProperty( 'param_http' ) )
 				http = error.param_http;
 			
 			theResponse.throw( http, error );									// !@! ==>
