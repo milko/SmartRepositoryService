@@ -16,7 +16,7 @@ const ARANGO_CONFLICT = errors.ERROR_ARANGO_CONFLICT.code;
 //
 const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
-const Schema = require( './Schema' );
+const Schema = require( '../utils/Schema' );
 const MyError = require( '../utils/MyError' );
 const Dictionary = require( '../utils/Dictionary' );
 const Validation = require( '../utils/Validation' );

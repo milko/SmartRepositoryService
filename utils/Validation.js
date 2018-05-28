@@ -17,7 +17,7 @@ const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 const K = require( './Constants' );
 const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
-const Schema = require( '../classes/Schema' );
+const Schema = require( './Schema' );
 
 
 /**

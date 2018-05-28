@@ -28,7 +28,7 @@ const Application = require( '../utils/Application' );
 const User = require( '../classes/User' );
 const Edge = require( '../classes/Edge' );
 const Form = require( '../classes/Form' );
-const Schema = require( '../classes/Schema' );
+const Schema = require( '../utils/Schema' );
 
 //
 // Middleware.

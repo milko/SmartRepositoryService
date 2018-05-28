@@ -3,7 +3,7 @@
 //
 // Classes.
 //
-const Schema = require( '../classes/Schema' );
+const Schema = require( '../utils/Schema' );
 
 /**
  * Schema services

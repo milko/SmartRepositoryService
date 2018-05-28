@@ -16,7 +16,7 @@ const createRouter = require('@arangodb/foxx/router');	// Router class.
 //
 // Application.
 //
-const Schema = require( '../classes/Schema' );			// Schema class.
+const Schema = require( '../utils/Schema' );			// Schema class.
 const Application = require( '../utils/Application' );	// Application.
 
 //

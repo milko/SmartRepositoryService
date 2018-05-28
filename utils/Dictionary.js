@@ -18,7 +18,7 @@ const ARANGO_CONFLICT = errors.ERROR_ARANGO_CONFLICT.code;
 const K = require( './Constants' );					// Application constants.
 const MyError = require( './MyError' );				// Custom errors.
 const Dict = require( '../dictionary/Dict' );		// Data dictionary.
-const Schema = require( '../classes/Schema' );		// Schema class.
+const Schema = require( './Schema' );		// Schema class.
 
 /**
  * Data dictionary class

@@ -38,7 +38,7 @@ const HTTP_CONFLICT = status('conflict');
 const K = require( '../../utils/Constants' );
 const MyError = require( '../../utils/MyError' );
 const User = require( '../../classes/User' );
-const Schema = require( '../../classes/Schema' );
+const Schema = require( '../../utils/Schema' );
 
 //
 // Instantiate router.

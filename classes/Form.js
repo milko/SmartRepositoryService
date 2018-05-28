@@ -10,7 +10,7 @@ const _ = require('lodash');
 //
 const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
-const Schema = require( './Schema' );
+const Schema = require( '../utils/Schema' );
 const Validation = require( '../utils/Validation' );
 
 

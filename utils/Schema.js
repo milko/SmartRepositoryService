@@ -14,10 +14,10 @@ const ARANGO_CONFLICT = errors.ERROR_ARANGO_CONFLICT.code;
 //
 // Application.
 //
-const K = require( '../utils/Constants' );
+const K = require( './Constants' );
 const Dict = require( '../dictionary/Dict' );
-const MyError = require( '../utils/MyError' );
-const Dictionary = require( '../utils/Dictionary' );
+const MyError = require( './MyError' );
+const Dictionary = require( './Dictionary' );
 
 
 /**
