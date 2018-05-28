@@ -292,22 +292,6 @@ class User extends Document
 	remove()
 	{
 		//
-		// Prevent if manages and no manager.
-		//
-		const managed = this.hasManaged();
-		if( (managed !== null)
-		 && (! this.hasOwnProperty( 'manager' )) )
-			throw(
-				new MyError(
-					'RemoveUser',									// Error name.
-					K.error.NoManagerManages,						// Message code.
-					this._request.application.language,				// Language.
-					this._document[ Dict.descriptor.kUsername ],	// Error value.
-					409												// HTTP error code.
-				)
-			);																	// !@! ==>
-			
-		//
 		// Call parent method.
 		// And forward exceptions.
 		// And exit if the current document doesn't exist
@@ -872,10 +856,13 @@ class User extends Document
 		if( this._persistent )
 		{
 			//
-			// Check managed count.
+			// Prevent if manages and no manager.
+			// Note we don't check for managed null,
+			// because we know the object is persistent.
 			//
-			const count = this.hasManaged();
-			if( count > 0 )
+			const managed = this.hasManaged();
+			if( (managed > 0)
+			 && (! this.hasOwnProperty( 'manager' )) )
 			{
 				//
 				// Raise exception.
@@ -883,11 +870,11 @@ class User extends Document
 				if( getMad )
 					throw(
 						new MyError(
-							'ConstraintViolated',				// Error name.
-							K.error.ManagesUsers,				// Message code.
-							this._request.application.language,	// Language.
-							count,								// Arguments.
-							412									// HTTP error code.
+							'ConstraintViolated',							// Error name.
+							K.error.NoManagerManages,						// Message code.
+							this._request.application.language,				// Language.
+							this._document[ Dict.descriptor.kUsername ],	// Error value.
+							409												// HTTP error code.
 						)
 					);															// !@! ==>
 				

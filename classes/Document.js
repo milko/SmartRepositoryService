@@ -998,10 +998,8 @@ class Document
 	 * Assert if current object is constrained
 	 *
 	 * This method will check if the current object has constraints that should
-	 * prevent the object from being removed, if you provide true in getMad, the
-	 * method will raise an exception if that is the case, if you provide false, the
-	 * method will return a boolean where true means that the object is constrained and
-	 * false not.
+	 * prevent the object from being removed, the method will return true if there is
+	 * a constraint, or it will return false.
 	 *
 	 * If the getMad parameter is true and if the object is constrained, the method will
 	 * raise an exception.
