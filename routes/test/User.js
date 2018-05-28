@@ -534,3 +534,100 @@ router.post
 	.description(dd`
   Delete an existing user
 `);
+
+
+/**
+ * Test get managers hierarchy
+ *
+ * The service will instantiate a user from a reference and return its managers
+ * hierarchy, it expects a single parameter in the POST body:
+ *
+ * 	- reference:	The user reference or an object containing the user code.
+ *
+ * @path		/hierarchy
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post
+(
+	'/hierarchy',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+		
+		//
+		// Get parameters.
+		//
+		const usr = request.body.reference;
+		
+		//
+		// Test instantiation.
+		//
+		try
+		{
+			//
+			// Instantiate user.
+			//
+			const user = new User( request, usr );
+			
+			//
+			// Resolve user.
+			//
+			const doReplace = false;
+			const doAssert  = false;
+			if( ! user.persistent )
+				user.resolve( doReplace, doAssert );
+			
+			//
+			// Get hierarchy.
+			//
+			const result = user.managers;
+			
+			response.send({
+				result : result,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'hierarchy'
+)
+	.body(
+		Joi.object({
+			reference : Joi.alternatives().try(
+				Joi.string().required(),
+				Joi.object().required()
+			).required()
+		}).required(),
+		"An object with 'reference' that contains either the user structure or a string" +
+		" representing the user reference."
+	)
+	.response(
+		200,
+		Joi.object(),
+		"An object containing relevant information."
+	)
+	.summary(
+		"Get user hierarchy."
+	)
+	.description(dd`
+  Return user hierarchy.
+`);

@@ -987,10 +987,13 @@ class User extends Document
 	
 	/**
 	 * Return managed users
+	 *
 	 * This method will return the list of managed user references, the method will
 	 * return an empty array if the current object is not persistent.
 	 *
-	 * @returns {Array}	The list of managed users.
+	 * This method will only return the users directly managed by the user.
+	 *
+	 * @returns {Array}	The list of managed users _id.
 	 */
 	get manages()
 	{
@@ -1021,6 +1024,46 @@ class User extends Document
 		return [];																	// ==>
 		
 	}	// manages
+	
+	/**
+	 * Return manager users
+	 *
+	 * This method will return the list of user manager records, the method will
+	 * return an empty array if the current object is not persistent.
+	 *
+	 * The returned user records will be stripped of their private fields, that is:
+	 * identifiers and roles.
+	 *
+	 * @returns {Array}	The list of user managers.
+	 */
+	get managers()
+	{
+		//
+		// Handle persistent object.
+		//
+		if( this._persistent )
+		{
+			//
+			// Framework.
+			//
+			const Schema = require( '../utils/Schema' );
+			
+			return Schema.getManagedUsersHierarchy(
+				this._request,						// Current request.
+				this.document,						// Origin node.
+				1,									// Skip current user.
+				null,								// Traverse to root.
+				null,								// Return all manager fields.
+				null,								// Ignore edge fields.
+				false,								// Don't restrict language.
+				false,								// Don't return edges.
+				true								// Strip privates.
+			);																		// ==>
+		}
+		
+		return [];																	// ==>
+		
+	}	// managers
 	
 }	// User.
 
