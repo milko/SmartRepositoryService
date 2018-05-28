@@ -37,32 +37,5 @@ module.exports = {
 
 		theResponse.send({ result : 'pong' });										// ==>
 
-	},	// ping
-
-	/**
-	 * Who am I?
-	 *
-	 * Return the current user record, if there is a current user, or
-	 * { username : null } if there is no current user.
-	 *
-	 * @param theRequest	{Object}	The current request.
-	 * @param theResponse	{Object}	The current response.
-	 * @returns {Object}				The object { result : <user>|null }.
-	 */
-	whoami : ( theRequest, theResponse ) =>
-	{
-		//
-		// Init result.
-		//
-		const result = { result : null };
-
-		//
-		// Handle user.
-		//
-		if( theRequest.application.user )
-			result.result = theRequest.application.user;
-
-		theResponse.send( result );													// ==>
-
-	}	// whoami
+	}	// ping
 };

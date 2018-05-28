@@ -3,18 +3,7 @@
 //
 // Frameworks.
 //
-const _ = require('lodash');							// Lodash library.
 const Joi = require('joi');								// Validation framework.
-
-//
-// Application.
-//
-const Dict = require( '../dictionary/Dict' );			// Dictionary.
-
-//
-// Session schemas.
-//
-const SessionSchemas = require( './SessionSchemas' );	// Session schemas.
 
 //
 // Schema.
@@ -34,14 +23,7 @@ module.exports = {
 	/**
 	 * Transform response
 	 *
-	 * If there is a current user, we only return the following fields:
-	 *	- The user code.
-	 *	- The user e-mail address.
-	 *	- The user full name.
-	 *	- The user's preferred language.
-	 *	- The user rank.
-	 *	- The user's roles.
-	 *	- The user status.
+	 * We omit private properties.
 	 *
 	 * @param theResponse	{Object}	The service response.
 	 * @returns {Object}				The filtered user record, or null.
@@ -49,14 +31,18 @@ module.exports = {
 	forClient( theResponse )
 	{
 		//
-		// Handle user record.
+		// Framework.
+		//
+		const Dictionary = require( '../../utils/Dictionary' );
+		
+		//
+		// Strip privates.
 		//
 		if( theResponse.result !== null )
-			theResponse.result =
-				_.pick(
-					theResponse.result,
-					Object.keys( SessionSchemas.user )
-				);
+			Dictionary.stripDocumentProperties(
+				theResponse.result,
+				Dictionary.listUserPrivateProperties
+			);
 
 		return theResponse;															// ==>
 	},

@@ -77,7 +77,7 @@ router.tag( 'user' );
  */
 router.post( '/signup', Handlers.signUp, 'signup' )
 	.body(
-		require( '../models/user/signupUser' ),
+		require( '../models/user/signUp' ),
 		Application.getServiceDescription(
 			'user', 'signup', 'body', module.context.configuration.defaultLanguage )
 	)
@@ -134,13 +134,13 @@ router.post( '/signup', Handlers.signUp, 'signup' )
  */
 router.post( '/signin/admin', Handlers.signinAdmin, 'singInAdmin' )
 	.body(
-		require( '../models/user/signinUser' ),
+		require( '../models/user/signIn' ),
 		Application.getServiceDescription(
 			'user', 'admin', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
-		require( '../models/user/signinUser' ),
+		require( '../models/user/signIn' ),
 		Application.getServiceDescription(
 			'user', 'admin', 'response', module.context.configuration.defaultLanguage )
 	)
@@ -195,13 +195,13 @@ router.post( '/signin/admin', Handlers.signinAdmin, 'singInAdmin' )
  */
 router.post( '/signin/user', Handlers.signinUser, 'singInUser' )
 	.body(
-		require( '../models/user/signinUser' ),
+		require( '../models/user/signIn' ),
 		Application.getServiceDescription(
 			'user', 'admin', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
-		require( '../models/user/signinUser' ),
+		require( '../models/user/signIn' ),
 		Application.getServiceDescription(
 			'user', 'admin', 'response', module.context.configuration.defaultLanguage )
 	)
@@ -240,13 +240,13 @@ router.post( '/signin/user', Handlers.signinUser, 'singInUser' )
  */
 router.post( '/login', Handlers.login, 'login' )
 	.body(
-		require( '../models/login' ),
+		require( '../models/user/login' ),
 		Application.getServiceDescription(
 			'session', 'login', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
-		require( '../models/login' ),
+		require( '../models/user/login' ),
 		Application.getServiceDescription(
 			'session', 'login', 'response', module.context.configuration.defaultLanguage )
 	)
@@ -268,6 +268,33 @@ router.post( '/login', Handlers.login, 'login' )
 
 
 /**
+ * Current user
+ *
+ * This service will return the current session user record, the response will be the
+ * object { result : <user record> }, if there is a current record, or { result : null
+  * } if there is no current user.
+ *
+ * @path		/whoami
+ * @verb		get
+ * @response	{Object}	{ result : <current user record>|null }.
+ */
+router.get( '/whoami', Handlers.whoami, 'whoami' )
+	.response(
+		200,
+		require( '../models/user/whoami' ),
+		Application.getServiceDescription(
+			'session', 'whoami', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Get current user"
+	)
+	.description(
+		Application.getServiceDescription(
+			'session', 'whoami', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
  * Logout
  *
  * The service will logout the current user and return the former user record;
@@ -280,7 +307,7 @@ router.post( '/login', Handlers.login, 'login' )
 router.get( '/logout', Handlers.logout, 'logout' )
 	.response(
 		200,
-		require( '../models/whoami' ),
+		require( '../models/user/whoami' ),
 		Application.getServiceDescription(
 			'session', 'logout', 'response', module.context.configuration.defaultLanguage )
 	)

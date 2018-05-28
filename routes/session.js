@@ -63,30 +63,3 @@ router.get( '/ping', Handlers.ping, 'ping' )
 		Application.getServiceDescription(
 			'session', 'ping', 'description', module.context.configuration.defaultLanguage )
 	);
-
-
-/**
- * Current user
- *
- * This service will return the current session user record, the response will be the
- * object { result : <user record> }, if there is a current record, or { result : null
-  * } if there is no current user.
- *
- * @path		/whoami
- * @verb		get
- * @response	{Object}	{ result : <current user record>|null }.
- */
-router.get( '/whoami', Handlers.whoami, 'whoami' )
-	.response(
-		200,
-		require( '../models/whoami' ),
-		Application.getServiceDescription(
-			'session', 'whoami', 'response', module.context.configuration.defaultLanguage )
-	)
-	.summary(
-		"Get current user"
-	)
-	.description(
-		Application.getServiceDescription(
-			'session', 'whoami', 'description', module.context.configuration.defaultLanguage )
-	);

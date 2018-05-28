@@ -4,13 +4,12 @@
 // Frameworks.
 //
 const Joi = require('joi');
-const _ = require('lodash');
 
 /**
- * Register user
+ * Sign in user
  *
- * This schema is used to register a signUp, the schema will validate the main service
- * contents, that is, ensure the token and the signUp object are provided; the detailed
+ * This schema is used to register a user, the schema will validate the main service
+ * contents, that is, ensure the token and the user object are provided; the detailed
  * validation will be performed by the handler.
  */
 module.exports = {
@@ -26,13 +25,27 @@ module.exports = {
 	/**
 	 * Transform response
 	 *
-	 * No transformations here.
+	 * We omit private properties.
 	 *
 	 * @param theResponse	{Object}	The service response.
 	 * @returns {Object}				No changes.
 	 */
 	forClient( theResponse )
 	{
+		//
+		// Framework.
+		//
+		const Dict = require( '../../dictionary/Dict' );
+		const Dictionary = require( '../../utils/Dictionary' );
+		
+		//
+		// Strip privates.
+		//
+		Dictionary.stripDocumentProperties(
+			theResponse.result,
+			Dictionary.listUserPrivateProperties
+		);
+		
 		return theResponse;															// ==>
 	},
 	
