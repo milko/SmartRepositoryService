@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/messages.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/messages.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handlers/Schema.js" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/Schema.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/schema/schemaUserHierarchy.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/schema/schemaUserSchema.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routes/schema.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/schema.js" afterDir="false" />
     </list>
@@ -35,20 +33,20 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="schema.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="schema.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/routes/schema.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="456">
-              <caret line="633" column="53" selection-start-line="633" selection-start-column="53" selection-end-line="633" selection-end-column="53" />
+            <state relative-caret-position="731">
+              <caret line="731" column="38" selection-start-line="731" selection-start-column="38" selection-end-line="731" selection-end-column="38" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="messages.json" pinned="false" current-in-tab="false">
+      <file leaf-file-name="messages.json" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/data/messages.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="566">
-              <caret line="628" column="4202" selection-start-line="628" selection-start-column="4202" selection-end-line="628" selection-end-column="4202" />
+            <state relative-caret-position="720">
+              <caret line="641" selection-start-line="641" selection-end-line="641" />
             </state>
           </provider>
         </entry>
@@ -88,8 +86,8 @@
       <file leaf-file-name="Schema.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/Schema.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2306">
-              <caret line="1133" column="30" selection-start-line="1133" selection-start-column="11" selection-end-line="1133" selection-end-column="30" />
+            <state relative-caret-position="-96">
+              <caret line="1241" column="30" selection-start-line="1241" selection-start-column="11" selection-end-line="1241" selection-end-column="30" />
             </state>
           </provider>
         </entry>
@@ -97,8 +95,8 @@
       <file leaf-file-name="Schema.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/handlers/Schema.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="285">
-              <caret line="759" column="18" selection-start-line="759" selection-start-column="4" selection-end-line="759" selection-end-column="18" />
+            <state relative-caret-position="621">
+              <caret line="917" column="13" selection-start-line="917" selection-start-column="13" selection-end-line="917" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -140,9 +138,9 @@
         <option value="$PROJECT_DIR$/handlers/User.js" />
         <option value="$PROJECT_DIR$/models/schema/schemaUserHierarchy.js" />
         <option value="$PROJECT_DIR$/classes/Schema.js" />
-        <option value="$PROJECT_DIR$/data/messages.json" />
         <option value="$PROJECT_DIR$/handlers/Schema.js" />
         <option value="$PROJECT_DIR$/routes/schema.js" />
+        <option value="$PROJECT_DIR$/data/messages.json" />
       </list>
     </option>
   </component>
@@ -250,7 +248,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="24159000" />
+    <option name="totallyTimeSpent" value="25643000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
@@ -458,13 +456,6 @@
         <state relative-caret-position="-729" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/data/messages.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="566">
-          <caret line="628" column="4202" selection-start-line="628" selection-start-column="4202" selection-end-line="628" selection-end-column="4202" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/schema/schemaEnumList.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-394" />
@@ -479,22 +470,29 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/Schema.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2306">
-          <caret line="1133" column="30" selection-start-line="1133" selection-start-column="11" selection-end-line="1133" selection-end-column="30" />
+        <state relative-caret-position="-96">
+          <caret line="1241" column="30" selection-start-line="1241" selection-start-column="11" selection-end-line="1241" selection-end-column="30" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/handlers/Schema.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="759" column="18" selection-start-line="759" selection-start-column="4" selection-end-line="759" selection-end-column="18" />
+        <state relative-caret-position="621">
+          <caret line="917" column="13" selection-start-line="917" selection-start-column="13" selection-end-line="917" selection-end-column="13" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/routes/schema.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="456">
-          <caret line="633" column="53" selection-start-line="633" selection-start-column="53" selection-end-line="633" selection-end-column="53" />
+        <state relative-caret-position="731">
+          <caret line="731" column="38" selection-start-line="731" selection-start-column="38" selection-end-line="731" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data/messages.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="720">
+          <caret line="641" selection-start-line="641" selection-end-line="641" />
         </state>
       </provider>
     </entry>

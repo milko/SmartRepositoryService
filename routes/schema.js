@@ -626,12 +626,12 @@ router.post( '/user/managers', Handlers.getUserManagers, 'userGetPath' )
  * If the method raises an exception, the service will forward it using the
  * HTTP code if the exception is of class MyError.
  *
- * @path		/user/managed
+ * @path		/user/managed/list
  * @verb		post
  * @request		{Object}	Term reference(s).
  * @response	{Object}	The result.
  */
-router.post( '/user/managed', Handlers.getUserManaged, 'userGetList' )
+router.post( '/user/managed/list', Handlers.getUserManaged, 'userGetList' )
 	.body(
 		require( '../models/schema/schemaUserSchema' ),
 		Application.getServiceDescription(
@@ -649,4 +649,85 @@ router.post( '/user/managed', Handlers.getUserManaged, 'userGetList' )
 	.description(
 		Application.getServiceDescription(
 			'schema', 'userManagedList', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Get managed users tree
+ *
+ * The service will return the hierarchy of managed siblings of the provided user,
+ * the service will traverse the graph starting from the origin node down to the leaf
+ * nodes, the result will be an object in which the siblings will be found as an array
+ * in the '_children' property.
+ *
+ * The service expects the following parameters from the body:
+ *
+ * 	- origin:		Determines the traversal origin node, it must be provided as
+ * 					the user _id or _key, or as an object containing the username
+ * 					property.
+ * 	- minDepth:		Represents the minimum depth of the traversal, it must be
+ * 					provided as an integer, or can be null, to ignore it. (default is
+ * 					null).
+ * 	- maxDepth:		Represents the maximum depth of the traversal, it must be
+ * 					provided as an integer, or can be null, to ignore it. (default is
+ * 					null).
+ * 	- vField:		References the field(s) that should be included in the vertex.
+ * 					The value can be a string representing the requested vertex field,
+ * 					provided as a descriptor _key, or an array of such references. The
+ * 					value may also be null, in which case the option is ignored.
+ * 					(default is null).
+ * 	- eField:		References the field(s) that should be included in the edge.
+ * 					This parameter behaves exactly as the previous one, except
+ * 					that it refers to edges; this parameter is only relevant if
+ * 					the 'doEdge' parameter is true.
+ * 	- doLanguage:	If this parameter is true, the label, definition, description,
+ * 					note and example of both the vertex and the edge, if
+ * 					requested, will be set to the current session language. This
+ * 					means that these fields, instead of being objects indexed by
+ * 					the language code, will hold the value matched by the session
+ * 					language code. I the session language doesn't match any
+ * 					element, the field will remain untouched. (default is false)
+ * 	- doEdge:		If this parameter is true, the result nodes will be an object
+ * 					with two elements: '_vertex' will contain the vertex and '_edge'
+ * 					will contain the edge. (default is false)
+ *
+ * The service will return an array of elements which depend on the provided
+ * parameters:
+ *
+ * 	- doEdge:		If true, each element will be an object with two fields,
+ * 					'term' will contain the vertex and 'edge' will contain the
+ * 					edge. If false, the element will be the vertex.
+ * 	- vField:		If the parameter is a scalar, the vertex will be the vertex
+ * 					value referenced by the parameter, if the parameter is an
+ * 					array, the vertex will only contain the referenced fields from
+ * 					the parameter.
+ * 	- eField:		This parameter is only relevant if 'doEdge' is true and
+ * 					behaves like the 'vField' parameter.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/user/managed/tree
+ * @verb		post
+ * @request		{Object}	Term reference(s).
+ * @response	{Object}	The result.
+ */
+router.post( '/user/managed/tree', Handlers.getUserManagedTree, 'userGetTree' )
+	.body(
+		require( '../models/schema/schemaUserSchema' ),
+		Application.getServiceDescription(
+			'schema', 'userManagedTree', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/schema/schemaUserSchema' ),
+		Application.getServiceDescription(
+			'schema', 'userManagedTree', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Return the user hierarchy from the provided origin to its root."
+	)
+	.description(
+		Application.getServiceDescription(
+			'schema', 'userManagedTree', 'description', module.context.configuration.defaultLanguage )
 	);
