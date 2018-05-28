@@ -47,9 +47,11 @@ module.exports = {
 	/**
 	 * Signup user
 	 *
-	 * The service can be used to register a new user, it expects the user
-	 * authentication token and the signup form contents in the respective 'token' and
-	 * 'data' fields in the POST body.
+	 * The service can be used to register a new user, it expects the following
+	 * properties in the POST body:
+	 *
+	 * 	- token:	The user authentication token.
+	 * 	- data:		The user record contents.
 	 *
 	 * The service will return a string token that will be used when the user will
 	 * signin, it contains the user code and password, these will be used to
@@ -98,20 +100,13 @@ module.exports = {
 			//
 			// Load user data.
 			//
-			const data = {};
-			
-			data[ Dict.descriptor.kUsername ]
-				= ( data.hasOwnProperty( Dict.descriptor.kUsername ) )
-				? theRequest.body.data[ Dict.descriptor.kUsername ]
-				: theRequest.body.data[ Dict.descriptor.kEmail ];
-			data[ Dict.descriptor.kName ] = theRequest.body.data[ Dict.descriptor.kName ];
-			data[ Dict.descriptor.kEmail ] = theRequest.body.data[ Dict.descriptor.kEmail ];
-			data[ Dict.descriptor.kLanguage ]
-				= ( theRequest.body.data.hasOwnProperty( Dict.descriptor.kLanguage ) )
-				? theRequest.body.data[ Dict.descriptor.kLanguage ]
-				: module.context.configuration.defaultLanguage;
-			data[ Dict.descriptor.kRank ] = theRequest.body.data[ Dict.descriptor.kRank ];
-			data[ Dict.descriptor.kRole ] = theRequest.body.data[ Dict.descriptor.kRole ];
+			const data = theRequest.body.data;
+			if( ! data.hasOwnProperty( Dict.descriptor.kUsername ) )
+				data[ Dict.descriptor.kUsername ] =
+					data[ Dict.descriptor.kEmail ];
+			if( ! data.hasOwnProperty( Dict.descriptor.kLanguage ) )
+				data[ Dict.descriptor.kLanguage ] =
+					module.context.configuration.defaultLanguage;
 			data[ Dict.descriptor.kStatus ] = Dict.term.kStateStatusPending;
 			
 			//
@@ -177,6 +172,113 @@ module.exports = {
 		}
 		
 	},	// signUp
+	
+	/**
+	 * Return sign up form
+	 *
+	 * The service will decode the sign up token, resolve the corresponding user and
+	 * return its contents, it expects the following object in the body:
+	 *
+	 * 	- token:	the user authentication token.
+	 * 	- encoded:	the sign up token.
+	 *
+	 * The service will perform the following steps:
+	 *
+	 * 	- Decode the provided token.
+	 * 	- Resolve the corresponding user.
+	 * 	- Authenticate the user.
+	 * 	- Return the user contents.
+	 *
+	 * The service returns the user record.
+	 *
+	 * If the method raises an exception, the service will forward it using the
+	 * HTTP code if the exception is of class MyError.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 */
+	signUpForm : ( theRequest, theResponse ) =>
+	{
+		//
+		// Procedures.
+		//
+		try
+		{
+			//
+			// Assertions.
+			//
+			Middleware.assert.tokenUser( theRequest, theResponse );
+			
+			//
+			// Decode token.
+			//
+			const data = Application.decode(
+				Application.userAuthentication( false ).key,
+				theRequest.body.encoded
+			);
+			
+			//
+			// Save and remove password.
+			//
+			const token_pass = data[ Dict.descriptor.kPassword ];
+			delete data[ Dict.descriptor.kPassword ];
+			
+			//
+			// Get user.
+			//
+			const user = new User( theRequest, data );
+			
+			//
+			// Check user.
+			//
+			if( ! user.resolve( false, false ) )
+				theResponse.throw(
+					404,
+					new MyError(
+						'AuthFailed',						// Error name.
+						K.error.UserNotFound,				// Error code.
+						theRequest.application.language,	// Error language.
+						data.username						// Error data.
+					)
+				);																// !@! ==>
+			
+			//
+			// Check credentials.
+			//
+			const auth = createAuth();
+			const valid = auth.verify(
+				user.document[ Dict.descriptor.kAuthData ],
+				token_pass );
+			if( ! valid )
+				theResponse.throw(
+					403,
+					new MyError(
+						'AuthFailed',						// Error name.
+						K.error.BadPassword,				// Error code.
+						theRequest.application.language		// Error language.
+					)
+				);																// !@! ==>
+			
+			theResponse.send({ result : user.document });							// ==>
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			theResponse.throw( http, error );									// !@! ==>
+		}
+		
+	},	// signUpForm
 	
 	/**
 	 * Create administrator user
@@ -304,18 +406,19 @@ module.exports = {
 	 * The service will create a user, it expects the following
 	 * object in the body:
 	 *
-	 * 	- token: the authentication token.
-	 * 	- data:	 the signin form contents.
+	 * 	- token:	the user authentication token.
+	 * 	- encoded: 	the sign up token.
+	 * 	- data:		the signin form contents.
 	 *
 	 * The service will perform the following steps:
 	 *
-	 * 	- Assert there is a current user in the session.
-	 * 	- Validate the authentication token.
+	 * 	- Validate the user authentication token.
 	 * 	- Validate form data.
 	 * 	- Load user record.
-	 * 	- Complete the user record.
-	 * 	- Remove the status..
-	 * 	- Create the authorisation data.
+	 * 	- Decode sign up credentials.
+	 * 	- Authenticate the user.
+	 * 	- Update the authorisation data.
+	 * 	- Remove the status.
 	 * 	- Replace the user.
 	 * 	- Update the session.
 	 * 	- Return the user.
@@ -330,7 +433,6 @@ module.exports = {
 	 */
 	signinUser : ( theRequest, theResponse ) =>
 	{
-		
 		//
 		// Procedures.
 		//
@@ -339,8 +441,22 @@ module.exports = {
 			//
 			// Assertions.
 			//
-			Middleware.assert.hasUser( theRequest, theResponse );
 			Middleware.assert.tokenUser( theRequest, theResponse );
+			
+			//
+			// Decode sign up credentials.
+			//
+			const decoded = Application.decode(
+				Application.userAuthentication( false ).key,
+				theRequest.body.encoded
+			);
+			
+			//
+			// Set user code if missing.
+			//
+			if( ! theRequest.body.data.hasOwnProperty( Dict.descriptor.kUsername ) )
+				theRequest.body.data[ Dict.descriptor.kUsername ] =
+					decoded[ Dict.descriptor.kUsername ];
 			
 			//
 			// Validate form.
@@ -351,7 +467,7 @@ module.exports = {
 			//
 			// Save password.
 			//
-			const pass = theRequest.body.data[ Dict.descriptor.kPassword ];
+			const user_pass = theRequest.body.data[ Dict.descriptor.kPassword ];
 			delete theRequest.body.data[ Dict.descriptor.kPassword ];
 			
 			//
@@ -376,8 +492,10 @@ module.exports = {
 			//
 			// Check credentials.
 			//
-			const auth = createAuth();
-			const valid = auth.verify( user.document.auth, password );
+			let auth = createAuth();
+			const valid = auth.verify(
+				user.document[ Dict.descriptor.kAuthData ],
+				decoded[ Dict.descriptor.kPassword ] );
 			if( ! valid )
 				theResponse.throw(
 					403,
@@ -389,9 +507,16 @@ module.exports = {
 				);																// !@! ==>
 			
 			//
+			// Create authorisation data.
+			//
+			auth = createAuth();
+			user.document[ Dict.descriptor.kAuthData ] =
+				auth.create( user_pass );
+			
+			//
 			// Remove status.
 			//
-			delete user.document[ Dict.descriptor.kStateStatus ];
+			delete user.document[ Dict.descriptor.kStatus ];
 			
 			//
 			// Replace user.
@@ -423,12 +548,12 @@ module.exports = {
 			// Handle MyError exceptions.
 			//
 			if( (error.constructor.name === 'MyError')
-				&& error.hasOwnProperty( 'param_http' ) )
+			 && error.hasOwnProperty( 'param_http' ) )
 				http = error.param_http;
 			
 			theResponse.throw( http, error );									// !@! ==>
 		}
-		
+	
 	},	// signinUser
 	
 	/**
@@ -489,7 +614,9 @@ module.exports = {
 		// Check credentials.
 		//
 		const auth = createAuth();
-		const valid = auth.verify( user.document.auth, theRequest.body.password );
+		const valid = auth.verify(
+			user.document[ Dict.descriptor.kAuthData ],
+			theRequest.body.password );
 		if( ! valid )
 			theResponse.throw(
 				403,

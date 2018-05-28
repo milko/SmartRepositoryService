@@ -6,11 +6,11 @@
 const Joi = require('joi');
 
 /**
- * Sign in user
+ * Sign in administrator
  *
- * This schema is used to register a user, the schema will validate the main service
- * contents, that is, ensure the token, sign up token and the user object are
- * provided; the detailed validation will be performed by the handler.
+ * This schema is used to register the system administrator, the schema will validate the
+ * main service contents, that is, ensure the token, and the user object are provided;
+ * the detailed validation will be performed by the handler.
  */
 module.exports = {
 	
@@ -18,9 +18,8 @@ module.exports = {
 	 * Parameters schema
 	 */
 	schema : Joi.object({
-		token:	 Joi.string().required(),
-		encoded: Joi.string().required(),
-		data:	 Joi.object().required()
+		token: Joi.string().required(),
+		data:  Joi.object().required()
 	}).required(),
 	
 	/**

@@ -41,16 +41,7 @@ router.tag( 'user' );
  * The service will register a new user, it expects two parameters in the POST body:
  *
  * 	- token:	The user authentication token.
- * 	- data:		The contents of the signup form:
- * 		- username:	The user code; can be omitted, if that is the case, it will be set
- * 					to the user e-mail.
- * 		- name:		The user full name.
- * 		- email:	The user e-mail address.
- * 		- language:	The user preferred language; can be omitted, if that is the case,
- * 					it will be set to the default application language.
- * 		- rank:		The user rank.
- * 		- role:		The user roles.
- * 		- group:	The user group; can be omitted.
+ * 	- data:		The contents of the signup form.
  *
  * The service will perform the following steps:
  *
@@ -70,7 +61,7 @@ router.tag( 'user' );
  * class: if MyError and it contains the HTTP code, this will be used, in all
  * other cases, the code will be 500.
  *
- * @path		/user/admin
+ * @path		/signup
  * @verb		post
  * @request		{Object}	Term reference(s) and optional enumerations list.
  * @response	{Object}	The result.
@@ -97,17 +88,58 @@ router.post( '/signup', Handlers.signUp, 'signup' )
 
 
 /**
+ * Signup user form
+ *
+ * The service will return the contents of the sign up service token, it expects two
+ * parameters in the POST body:
+ *
+ * 	- token:	the user authentication token.
+ * 	- encoded:	the sign up token.
+ *
+ * The service will perform the following steps:
+ *
+ * 	- Validate the user authentication token.
+ * 	- Decode the sign up token.
+ * 	- Return the decoded sign up contents.
+ *
+ * The service may raise an exceprion, the HTTP code depends on the exception
+ * class: if MyError and it contains the HTTP code, this will be used, in all
+ * other cases, the code will be 500.
+ *
+ * @path		/signup/form
+ * @verb		post
+ * @request		{Object}	Term reference(s) and optional enumerations list.
+ * @response	{Object}	The result.
+ */
+router.post( '/signup/form', Handlers.signUpForm, 'signupForm' )
+	.body(
+		require( '../models/user/signUpForm' ),
+		Application.getServiceDescription(
+			'user', 'signupForm', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/user/signUpForm' ),
+		Application.getServiceDescription(
+			'user', 'signupForm', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Retrieve signup form contents."
+	)
+	.description(
+		Application.getServiceDescription(
+			'user', 'signupForm', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
  * Create administrator user
  *
  * The service will create the system administrator user, it expects the post body to
  * contain the following fields:
  *
  * 	- token:	The administrator authentication token.
- * 	- data:		The contents of the administrator form:
- * 		- name:		The user full name.
- * 		- password:	The user password.
- * 		- email:	The user e-mail address.
- * 		- language:	The user preferred language.
+ * 	- data:		The contents of the administrator form.
  *
  * The service returns an object { result : <value> } where the value
  * represents the newly created user.
@@ -127,20 +159,20 @@ router.post( '/signup', Handlers.signUp, 'signup' )
  * class: if MyError and it contains the HTTP code, this will be used, in all
  * other cases, the code will be 500.
  *
- * @path		/user/admin
+ * @path		/signin/admin
  * @verb		post
  * @request		{Object}	Term reference(s) and optional enumerations list.
  * @response	{Object}	The result.
  */
 router.post( '/signin/admin', Handlers.signinAdmin, 'singInAdmin' )
 	.body(
-		require( '../models/user/signIn' ),
+		require( '../models/user/signInAdmin' ),
 		Application.getServiceDescription(
 			'user', 'admin', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
-		require( '../models/user/signIn' ),
+		require( '../models/user/signInAdmin' ),
 		Application.getServiceDescription(
 			'user', 'admin', 'response', module.context.configuration.defaultLanguage )
 	)
@@ -159,28 +191,22 @@ router.post( '/signin/admin', Handlers.signinAdmin, 'singInAdmin' )
  * The service will create a user, it expects the post body to contain the following
  * fields:
  *
- * 	- token:	The user signup authentication token.
- * 	- data:		The contents of the signin form:
- * 		- username:	The user code.
- * 		- password:	The user password.
- * 		- name:		The user full name.
- * 		- email:	The user e-mail address.
- * 		- language:	The user preferred language.
- * 		- rank:		The user rank.
- * 		- role:		The user roles.
- * 		- group:	The user group.
+ * 	- token:	the user authentication token.
+ * 	- encoded: 	the sign up token.
+ * 	- data:		the signin form contents.
  *
  * The service returns an object { result : <value> } where the value
  * represents the newly created user.
  *
  * The service will perform the following assertions:
  *
- * 	- Assert there is a current user in the session.
- * 	- Validate the authentication token.
+ * 	- Validate the user authentication token.
  * 	- Validate form data.
- * 	- Complete the user record.
- * 	- Create the authorisation data.
- * 	- Insert the user.
+ * 	- Load user record.
+ * 	- Authenticate the user.
+ * 	- Update the authorisation data.
+ * 	- Remove the status.
+ * 	- Replace the user.
  * 	- Update the session.
  * 	- Return the user.
  *
@@ -188,7 +214,7 @@ router.post( '/signin/admin', Handlers.signinAdmin, 'singInAdmin' )
  * class: if MyError and it contains the HTTP code, this will be used, in all
  * other cases, the code will be 500.
  *
- * @path		/user/admin
+ * @path		/signin/user
  * @verb		post
  * @request		{Object}	Term reference(s) and optional enumerations list.
  * @response	{Object}	The result.
@@ -197,20 +223,20 @@ router.post( '/signin/user', Handlers.signinUser, 'singInUser' )
 	.body(
 		require( '../models/user/signIn' ),
 		Application.getServiceDescription(
-			'user', 'admin', 'body', module.context.configuration.defaultLanguage )
+			'user', 'signin', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
 		require( '../models/user/signIn' ),
 		Application.getServiceDescription(
-			'user', 'admin', 'response', module.context.configuration.defaultLanguage )
+			'user', 'signin', 'response', module.context.configuration.defaultLanguage )
 	)
 	.summary(
 		"Create system administrator user."
 	)
 	.description(
 		Application.getServiceDescription(
-			'user', 'admin', 'description', module.context.configuration.defaultLanguage )
+			'user', 'signin', 'description', module.context.configuration.defaultLanguage )
 	);
 
 
@@ -242,13 +268,13 @@ router.post( '/login', Handlers.login, 'login' )
 	.body(
 		require( '../models/user/login' ),
 		Application.getServiceDescription(
-			'session', 'login', 'body', module.context.configuration.defaultLanguage )
+			'user', 'login', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
 		require( '../models/user/login' ),
 		Application.getServiceDescription(
-			'session', 'login', 'response', module.context.configuration.defaultLanguage )
+			'user', 'login', 'response', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		404,
@@ -263,7 +289,7 @@ router.post( '/login', Handlers.login, 'login' )
 	)
 	.description(
 		Application.getServiceDescription(
-			'session', 'login', 'description', module.context.configuration.defaultLanguage )
+			'user', 'login', 'description', module.context.configuration.defaultLanguage )
 	);
 
 

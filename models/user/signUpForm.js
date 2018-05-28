@@ -6,11 +6,11 @@
 const Joi = require('joi');
 
 /**
- * Sign in user
+ * Sign up form
  *
- * This schema is used to register a user, the schema will validate the main service
- * contents, that is, ensure the token, sign up token and the user object are
- * provided; the detailed validation will be performed by the handler.
+ * This schema is used to decode a signUp, the schema will validate the main service
+ * contents, that is, ensure the key and token are provided; the detailed validation
+ * will be performed by the handler.
  */
 module.exports = {
 	
@@ -19,8 +19,7 @@ module.exports = {
 	 */
 	schema : Joi.object({
 		token:	 Joi.string().required(),
-		encoded: Joi.string().required(),
-		data:	 Joi.object().required()
+		encoded: Joi.string().required()
 	}).required(),
 	
 	/**
@@ -45,6 +44,11 @@ module.exports = {
 		Dictionary.stripDocumentProperties(
 			theResponse.result,
 			Dictionary.listUserPrivateProperties
+				.concat(
+					Dict.descriptor.kRank,
+					Dict.descriptor.kRole,
+					Dict.descriptor.kStatus
+				)
 		);
 		
 		return theResponse;															// ==>
