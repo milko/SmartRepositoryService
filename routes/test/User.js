@@ -584,7 +584,7 @@ router.post
 			//
 			// Get hierarchy.
 			//
-			const result = user.managers;
+			const result = user.managers();
 			
 			response.send({
 				result : result,

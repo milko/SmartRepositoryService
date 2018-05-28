@@ -988,12 +988,45 @@ class User extends Document
 	/**
 	 * Return managed users
 	 *
-	 * This method will return the list of managed user references, the method will
-	 * return an empty array if the current object is not persistent.
+	 * This method will return the flattened list or tree of managed users, the method
+	 * will traverse the graph starting from the current user collecting all managed
+	 * siblings.
 	 *
-	 * This method will only return the users directly managed by the user.
+	 * The method expects the following parameter:
 	 *
-	 * @returns {Array}	The list of managed users _id.
+	 * 	- doTree:			If true, the method will return an object in which the
+	 * 						'_children' property will contain the list of users
+	 * 						managed by the the current node; if false, the method will
+	 * 						return the flattened list of sibling managed users.
+	 * 	- theMinDepth:		The minimum traversal depth, provide null or 0 to start
+	 * 						with the current user, numbers greater than 0 will move
+	 * 						the origin closer to the root.
+	 * 	- theMaxDepth:		The maximum traversal depth, provide null or 0 to traverse
+	 * 						the whole tree, numbers greater than 0 indicate the levels
+	 * 						that will be traversed; the value must be greater than
+	 * 						theMinDepth.
+	 * 	- theVertexField:	Provide this parameter to select which vertex fields to
+	 * 						display: it can be provided as a string or an array of
+	 * 						strings, whose values represent the descriptor _key values
+	 * 						corresponding to the desired fields. Provide null to ignore.
+	 * 	- theEdgeField:		Provide this parameter to select which edge fields to
+	 * 						display: it can be provided as a string or an array of
+	 * 						strings, whose values represent the descriptor _key values
+	 * 						corresponding to the desired fields; this field is only
+	 * 						relevant if 'doIncludeEdge' is true. Provide null to ignore.
+	 * 	- doIncludeEdge:	If true, the result will be an array of elements in which
+	 * 						the '_vertex' property will contain the user and the
+	 * 						'_edge' property will contain the edge; if false, the
+	 * 						array elements will be user records.
+	 * 	- doStripFields:	If true, private fields will be stripped: all elements
+	 * 						will be stripped of the object identifiers and revision,
+	 * 						the manager users will also lack the roles.
+	 *
+	 * Note that this method assumes the current object to be persistent, if this is
+	 * not the case, the method will return an empty array; this means that unless you
+	 * test for persistence, you will not know if an empty array means no managers.
+	 *
+	 * @returns {Array}	The list of managed users.
 	 */
 	get manages()
 	{
@@ -1026,17 +1059,51 @@ class User extends Document
 	}	// manages
 	
 	/**
-	 * Return manager users
+	 * Return manager hierarchy
 	 *
-	 * This method will return the list of user manager records, the method will
-	 * return an empty array if the current object is not persistent.
+	 * This method will return the hierarchy of managers as an array, starting from the
+	 * current user, up to the root user.
 	 *
-	 * The returned user records will be stripped of their private fields, that is:
-	 * identifiers and roles.
+	 * The method expects the following parameter:
+	 *
+	 * 	- theMinDepth:		The minimum traversal depth, provide null or 0 to start
+	 * 						with the current user, numbers greater than 0 will move
+	 * 						the origin closer to the root.
+	 * 	- theMaxDepth:		The maximum traversal depth, provide null or 0 to traverse
+	 * 						the whole tree, numbers greater than 0 indicate the levels
+	 * 						that will be traversed; the value must be greater than
+	 * 						theMinDepth.
+	 * 	- theVertexField:	Provide this parameter to select which vertex fields to
+	 * 						display: it can be provided as a string or an array of
+	 * 						strings, whose values represent the descriptor _key values
+	 * 						corresponding to the desired fields. Provide null to ignore.
+	 * 	- theEdgeField:		Provide this parameter to select which edge fields to
+	 * 						display: it can be provided as a string or an array of
+	 * 						strings, whose values represent the descriptor _key values
+	 * 						corresponding to the desired fields; this field is only
+	 * 						relevant if 'doIncludeEdge' is true. Provide null to ignore.
+	 * 	- doIncludeEdge:	If true, the result will be an array of elements in which
+	 * 						the '_vertex' property will contain the user and the
+	 * 						'_edge' property will contain the edge; if false, the
+	 * 						array elements will be user records.
+	 * 	- doStripFields:	If true, private fields will be stripped: all elements
+	 * 						will be stripped of the object identifiers and revision,
+	 * 						the manager users will also lack the roles.
+	 *
+	 * Note that this method assumes the current object to be persistent, if this is
+	 * not the case, the method will return an empty array; this means that unless you
+	 * test for persistence, you will not know if an empty array means no managers.
 	 *
 	 * @returns {Array}	The list of user managers.
 	 */
-	get managers()
+	managers(
+		theMinDepth = 1,
+		theMaxDepth = null,
+		theVertexField = null,
+		theEdgeField = null,
+		doIncludeEdge = false,
+		doStripFields = true
+	)
 	{
 		//
 		// Handle persistent object.
@@ -1051,13 +1118,13 @@ class User extends Document
 			return Schema.getManagedUsersHierarchy(
 				this._request,						// Current request.
 				this.document,						// Origin node.
-				1,									// Skip current user.
-				null,								// Traverse to root.
-				null,								// Return all manager fields.
-				null,								// Ignore edge fields.
-				false,								// Don't restrict language.
-				false,								// Don't return edges.
-				true								// Strip privates.
+				theMinDepth,						// Minimum depth.
+				theMaxDepth,						// Maximum depth.
+				theVertexField,						// Vertex fields selection.
+				theEdgeField,						// Edge fields selection.
+				true,								// Restrict language.
+				doIncludeEdge = false,				// Include edges.
+				doStripFields = true				// Strip privates.
 			);																		// ==>
 		}
 		
