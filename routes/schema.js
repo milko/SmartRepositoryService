@@ -547,13 +547,13 @@ router.post( '/form/tree', Handlers.getFormTree, 'formGetTree' )
  */
 router.post( '/user/hierarchy', Handlers.getUserHierarchy, 'userGetPath' )
 	.body(
-		require( '../models/schema/schemaEnumList' ),
+		require( '../models/schema/schemaUserHierarchy' ),
 		Application.getServiceDescription(
 			'schema', 'userManagerHierarchy', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
-		require( '../models/schema/schemaEnumList' ),
+		require( '../models/schema/schemaUserHierarchy' ),
 		Application.getServiceDescription(
 			'schema', 'userManagerHierarchy', 'response', module.context.configuration.defaultLanguage )
 	)

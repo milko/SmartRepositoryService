@@ -2,9 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dictionary/Dict.js" beforeDir="false" afterPath="$PROJECT_DIR$/dictionary/Dict.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handlers/Session.js" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/Session.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handlers/User.js" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/User.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/schema/schemaUserHierarchy.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/schema/schemaUserHierarchy.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/schema.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/schema.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/session.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/session.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/user.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -17,84 +23,44 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Schema.js" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/classes/Schema.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="177">
-              <caret line="12" lean-forward="true" selection-start-line="12" selection-end-line="12" />
-            </state>
-          </provider>
+    <leaf>
+      <file leaf-file-name="User.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/classes/User.js">
+          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file leaf-file-name="User.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/handlers/User.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="197">
-              <caret line="387" column="35" lean-forward="true" selection-start-line="387" selection-start-column="35" selection-end-line="387" selection-end-column="35" />
+            <state relative-caret-position="697">
+              <caret line="551" selection-start-line="551" selection-end-line="551" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Session.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/handlers/Session.js">
+      <file leaf-file-name="schema.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/routes/schema.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="523">
-              <caret line="154" column="84" selection-start-line="154" selection-start-column="84" selection-end-line="154" selection-end-column="84" />
+            <state relative-caret-position="806">
+              <caret line="555" column="54" selection-start-line="555" selection-start-column="54" selection-end-line="555" selection-end-column="54" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="User.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/classes/User.js">
+      <file leaf-file-name="schemaUserHierarchy.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/models/schema/schemaUserHierarchy.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="553">
-              <caret line="139" column="14" lean-forward="true" selection-start-line="139" selection-start-column="14" selection-end-line="139" selection-end-column="14" />
+            <state relative-caret-position="578">
+              <caret line="54" column="12" selection-start-line="54" selection-start-column="12" selection-end-line="54" selection-end-column="12" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="auth.json" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/data/auth.json">
+      <file leaf-file-name="session.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/routes/session.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" column="26" selection-start-line="1" selection-start-column="26" selection-end-line="1" selection-end-column="26" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="errors.json" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/data/errors.json">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="468">
-              <caret line="176" column="30" selection-start-line="176" selection-start-column="14" selection-end-line="176" selection-end-column="30" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="messages.json" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/data/messages.json">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="788">
-              <caret line="520" column="62" selection-start-line="520" selection-start-column="62" selection-end-line="520" selection-end-column="62" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Constants.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/utils/Constants.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="243">
-              <caret line="350" column="28" selection-start-line="350" selection-start-column="12" selection-end-line="350" selection-end-column="28" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Document.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/classes/Document.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-96">
-              <caret line="233" column="39" selection-start-line="233" selection-start-column="33" selection-end-line="233" selection-end-column="39" />
+            <state relative-caret-position="741">
+              <caret line="92" selection-start-line="92" selection-end-line="92" />
             </state>
           </provider>
         </entry>
@@ -102,8 +68,44 @@
       <file leaf-file-name="user.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/routes/user.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="298">
-              <caret line="57" selection-start-line="57" selection-end-line="58" />
+            <state relative-caret-position="4380">
+              <caret line="292" lean-forward="true" selection-start-line="292" selection-end-line="292" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Schema.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/classes/Schema.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-18">
+              <caret line="998" column="11" selection-start-line="998" selection-start-column="11" selection-end-line="998" selection-end-column="11" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Session.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/handlers/Session.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="190">
+              <caret line="14" lean-forward="true" selection-start-line="14" selection-end-line="14" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Schema.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/handlers/Schema.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="332">
+              <caret line="650" column="43" lean-forward="true" selection-start-line="650" selection-start-column="43" selection-end-line="650" selection-end-column="43" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Dictionary.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/utils/Dictionary.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="277">
+              <caret line="84" column="11" selection-start-line="84" selection-start-column="11" selection-end-line="84" selection-end-column="11" />
             </state>
           </provider>
         </entry>
@@ -123,6 +125,7 @@
       <find>'manager'</find>
       <find>RemoveUser</find>
       <find>manages</find>
+      <find>Schema</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -135,15 +138,18 @@
         <option value="$PROJECT_DIR$/routes/test/Schema.js" />
         <option value="$PROJECT_DIR$/utils/Dictionary.js" />
         <option value="$PROJECT_DIR$/routes/test/User.js" />
-        <option value="$PROJECT_DIR$/routes/schema.js" />
-        <option value="$PROJECT_DIR$/routes/user.js" />
         <option value="$PROJECT_DIR$/utils/Validation.js" />
         <option value="$PROJECT_DIR$/data/errors.json" />
         <option value="$PROJECT_DIR$/utils/Constants.js" />
         <option value="$PROJECT_DIR$/data/messages.json" />
         <option value="$PROJECT_DIR$/classes/User.js" />
         <option value="$PROJECT_DIR$/handlers/Session.js" />
+        <option value="$PROJECT_DIR$/routes/session.js" />
+        <option value="$PROJECT_DIR$/routes/user.js" />
         <option value="$PROJECT_DIR$/handlers/User.js" />
+        <option value="$PROJECT_DIR$/routes/schema.js" />
+        <option value="$PROJECT_DIR$/models/schema/schemaUserHierarchy.js" />
+        <option value="$PROJECT_DIR$/handlers/Schema.js" />
       </list>
     </option>
   </component>
@@ -182,11 +188,6 @@
             <path>
               <item name="APP" type="b2602c69:ProjectViewProjectNode" />
               <item name="APP" type="462c0819:PsiDirectoryNode" />
-              <item name="data" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="APP" type="b2602c69:ProjectViewProjectNode" />
-              <item name="APP" type="462c0819:PsiDirectoryNode" />
               <item name="handlers" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -198,18 +199,12 @@
               <item name="APP" type="b2602c69:ProjectViewProjectNode" />
               <item name="APP" type="462c0819:PsiDirectoryNode" />
               <item name="models" type="462c0819:PsiDirectoryNode" />
-              <item name="user" type="462c0819:PsiDirectoryNode" />
+              <item name="schema" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="APP" type="b2602c69:ProjectViewProjectNode" />
               <item name="APP" type="462c0819:PsiDirectoryNode" />
               <item name="routes" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="APP" type="b2602c69:ProjectViewProjectNode" />
-              <item name="APP" type="462c0819:PsiDirectoryNode" />
-              <item name="routes" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="APP" type="b2602c69:ProjectViewProjectNode" />
@@ -257,28 +252,38 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="19727000" />
+    <option name="totallyTimeSpent" value="21616000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1121" height="1177" extended-state="0" />
+    <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4985809" visible="true" weight="0.25" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49943247" visible="true" weight="0.2494043" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.32923368" />
-      <window_info anchor="bottom" id="Version Control" order="7" />
+      <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Event Log" side_tool="true" weight="0.3291714" />
       <window_info anchor="bottom" id="Run" order="2" />
-      <window_info id="Structure" order="1" sideWeight="0.5014191" side_tool="true" visible="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="7" />
-      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Version Control" />
+      <window_info active="true" id="Structure" order="1" sideWeight="0.50056756" side_tool="true" visible="true" weight="0.2494043" />
+      <window_info anchor="bottom" id="Terminal" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info id="Favorites" side_tool="true" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="7" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4985809" visible="true" weight="0.25" />
+      <window_info id="Structure" order="1" sideWeight="0.5014191" side_tool="true" visible="true" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32923368" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Terminal" order="7" />
+      <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info id="Favorites" order="2" side_tool="true" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -288,6 +293,12 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/classes/User.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/handlers/User.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/classes/Schema.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="19350">
@@ -339,24 +350,10 @@
     <entry file="file://$PROJECT_DIR$/models/SessionSchemas.js">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/Dictionary.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="14865">
-          <caret line="991" column="18" selection-start-line="991" selection-start-column="18" selection-end-line="991" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/routes/test/User.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3375">
           <caret line="225" column="10" lean-forward="true" selection-start-line="225" selection-start-column="10" selection-end-line="225" selection-end-column="10" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/routes/schema.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="444">
-          <caret line="47" column="8" selection-start-line="47" selection-start-column="8" selection-end-line="47" selection-end-column="8" />
         </state>
       </provider>
     </entry>
@@ -372,16 +369,6 @@
         <state relative-caret-position="780">
           <caret line="52" lean-forward="true" selection-start-line="52" selection-end-line="52" />
         </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/handlers/Schema.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-9268" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/routes/session.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-822" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/models/user/signinUser.js">
@@ -415,13 +402,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/routes/user.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="298">
-          <caret line="57" selection-start-line="57" selection-end-line="58" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/utils/Constants.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="243">
@@ -443,31 +423,69 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/handlers/Session.js">
+    <entry file="file://$PROJECT_DIR$/utils/Dictionary.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="523">
-          <caret line="154" column="84" selection-start-line="154" selection-start-column="84" selection-end-line="154" selection-end-column="84" />
+        <state relative-caret-position="277">
+          <caret line="84" column="11" selection-start-line="84" selection-start-column="11" selection-end-line="84" selection-end-column="11" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/User.js">
+    <entry file="file://$PROJECT_DIR$/routes/session.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="553">
-          <caret line="139" column="14" lean-forward="true" selection-start-line="139" selection-start-column="14" selection-end-line="139" selection-end-column="14" />
+        <state relative-caret-position="741">
+          <caret line="92" selection-start-line="92" selection-end-line="92" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/handlers/Session.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="190">
+          <caret line="14" lean-forward="true" selection-start-line="14" selection-end-line="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/user.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4380">
+          <caret line="292" lean-forward="true" selection-start-line="292" selection-end-line="292" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/handlers/User.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="197">
-          <caret line="387" column="35" lean-forward="true" selection-start-line="387" selection-start-column="35" selection-end-line="387" selection-end-column="35" />
+        <state relative-caret-position="697">
+          <caret line="551" selection-start-line="551" selection-end-line="551" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/schema.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="806">
+          <caret line="555" column="54" selection-start-line="555" selection-start-column="54" selection-end-line="555" selection-end-column="54" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/schema/schemaUserHierarchy.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="578">
+          <caret line="54" column="12" selection-start-line="54" selection-start-column="12" selection-end-line="54" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/User.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/handlers/Schema.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="332">
+          <caret line="650" column="43" lean-forward="true" selection-start-line="650" selection-start-column="43" selection-end-line="650" selection-end-column="43" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/Schema.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="177">
-          <caret line="12" lean-forward="true" selection-start-line="12" selection-end-line="12" />
+        <state relative-caret-position="-18">
+          <caret line="998" column="11" selection-start-line="998" selection-start-column="11" selection-end-line="998" selection-end-column="11" />
         </state>
       </provider>
     </entry>

@@ -52,7 +52,7 @@ module.exports = {
 	schema : {
 		origin		: Joi.alternatives().try(
 			Joi.string().required(),
-		Joi.object().required() ),
+			Joi.object().required() ),
 		minDepth	: Joi.number().integer().default(0),
 		maxDepth	: Joi.number().integer().default(0),
 		vField		: Joi.alternatives().try(
