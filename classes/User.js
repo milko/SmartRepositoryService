@@ -391,36 +391,42 @@ class User extends Document
 			//
 			// Init local storage.
 			//
-			let edge = null;
 			const selector = {};
-			selector[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateManagedBy}`;
 			
 			//
-			// Transfer managed users.
+			// Select managed.
 			//
-			for( const managed of this.manages )
+			selector._to = this._document._id;
+			selector[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateManagedBy}`;
+			const managed = db._collection( 'schemas' ).byExample( selector ).toArray();
+			
+			//
+			// Iterate relationships.
+			//
+			for( const edge of managed )
 			{
 				//
-				// Set constants.
+				// Remove relationship to current user.
 				//
-				selector._from = managed;
+				db._remove( edge );
 				
 				//
-				// Transfer manager.
+				// Clean.
 				//
-				selector._to   = this.manager;
-				edge = new Edge( this._request, selector, 'schemas' );
-				edge.insert();
-				if( edge.resolve( false, false ) === true )
-					edge.remove();
+				delete edge._id;
+				delete edge._key;
+				delete edge._rev;
 				
 				//
-				// Remove managed.
+				// Set relationship to manager.
 				//
-				selector._to   = this._document._id;
-				edge = new Edge( this._request, selector, 'schemas' );
-				if( edge.resolve( false, false ) === true )
-					edge.remove();
+				edge._to = this.manager;
+				
+				//
+				// Save new relationship.
+				//
+				const new_edge = new Edge( this._request, edge, 'schemas' );
+				new_edge.insert();
 			}
 			
 			//
@@ -428,12 +434,13 @@ class User extends Document
 			//
 			selector._from = this._document._id;
 			selector._to   = this.manager;
-			edge = new Edge( this._request, selector, 'schemas' );
-			if( edge.resolve( false, false ) === true )
-				return edge.remove();												// ==>
+			const old_edge = new Edge( this._request, selector, 'schemas' );
+			if( old_edge.resolve( false, false ) === true )
+				return old_edge.remove();											// ==>
 			
 			return false;															// ==>
-		}
+		
+		}	// Has manager.
 		
 		return null;																// ==>
 		
@@ -986,79 +993,6 @@ class User extends Document
 	}	// getLockedFields
 	
 	/**
-	 * Return managed users
-	 *
-	 * This method will return the flattened list or tree of managed users, the method
-	 * will traverse the graph starting from the current user collecting all managed
-	 * siblings.
-	 *
-	 * The method expects the following parameter:
-	 *
-	 * 	- doTree:			If true, the method will return an object in which the
-	 * 						'_children' property will contain the list of users
-	 * 						managed by the the current node; if false, the method will
-	 * 						return the flattened list of sibling managed users.
-	 * 	- theMinDepth:		The minimum traversal depth, provide null or 0 to start
-	 * 						with the current user, numbers greater than 0 will move
-	 * 						the origin closer to the root.
-	 * 	- theMaxDepth:		The maximum traversal depth, provide null or 0 to traverse
-	 * 						the whole tree, numbers greater than 0 indicate the levels
-	 * 						that will be traversed; the value must be greater than
-	 * 						theMinDepth.
-	 * 	- theVertexField:	Provide this parameter to select which vertex fields to
-	 * 						display: it can be provided as a string or an array of
-	 * 						strings, whose values represent the descriptor _key values
-	 * 						corresponding to the desired fields. Provide null to ignore.
-	 * 	- theEdgeField:		Provide this parameter to select which edge fields to
-	 * 						display: it can be provided as a string or an array of
-	 * 						strings, whose values represent the descriptor _key values
-	 * 						corresponding to the desired fields; this field is only
-	 * 						relevant if 'doIncludeEdge' is true. Provide null to ignore.
-	 * 	- doIncludeEdge:	If true, the result will be an array of elements in which
-	 * 						the '_vertex' property will contain the user and the
-	 * 						'_edge' property will contain the edge; if false, the
-	 * 						array elements will be user records.
-	 * 	- doStripFields:	If true, private fields will be stripped: all elements
-	 * 						will be stripped of the object identifiers and revision,
-	 * 						the manager users will also lack the roles.
-	 *
-	 * Note that this method assumes the current object to be persistent, if this is
-	 * not the case, the method will return an empty array; this means that unless you
-	 * test for persistence, you will not know if an empty array means no managers.
-	 *
-	 * @returns {Array}	The list of managed users.
-	 */
-	get manages()
-	{
-		//
-		// Handle persistent object.
-		//
-		if( this._persistent )
-		{
-			//
-			// Set search criteria.
-			//
-			const selector = {};
-			selector._to = this._document._id;
-			selector[ Dict.descriptor.kPredicate ] =
-				`terms/${Dict.term.kPredicateManagedBy}`;
-			const cursor = db._collection( 'schemas' ).byExample( selector );
-			
-			//
-			// Collect _id.
-			//
-			const result = [];
-			while( cursor.hasNext() )
-				result.push( cursor.next()._from );
-			
-			return result;															// ==>
-		}
-		
-		return [];																	// ==>
-		
-	}	// manages
-	
-	/**
 	 * Return manager hierarchy
 	 *
 	 * This method will return the hierarchy of managers as an array, starting from the
@@ -1123,14 +1057,156 @@ class User extends Document
 				theVertexField,						// Vertex fields selection.
 				theEdgeField,						// Edge fields selection.
 				true,								// Restrict language.
-				doIncludeEdge = false,				// Include edges.
-				doStripFields = true				// Strip privates.
+				doIncludeEdge,						// Include edges.
+				doStripFields						// Strip privates.
 			);																		// ==>
 		}
 		
 		return [];																	// ==>
 		
 	}	// managers
+	
+	/**
+	 * Return managed users
+	 *
+	 * This method will return the flattened list or tree of managed users, the method
+	 * will traverse the graph starting from the current user collecting all managed
+	 * siblings.
+	 *
+	 * The method expects the following parameter:
+	 *
+	 * 	- doTree:			If true, the method will return an object in which the
+	 * 						'_children' property will contain the list of users
+	 * 						managed by the the current node; if false, the method will
+	 * 						return the flattened list of sibling managed users.
+	 * 	- theMinDepth:		The minimum traversal depth, provide null or 0 to start
+	 * 						with the current user, numbers greater than 0 will move
+	 * 						the origin closer to the root.
+	 * 	- theMaxDepth:		The maximum traversal depth, provide null or 0 to traverse
+	 * 						the whole tree, numbers greater than 0 indicate the levels
+	 * 						that will be traversed; the value must be greater than
+	 * 						theMinDepth.
+	 * 	- theVertexField:	Provide this parameter to select which vertex fields to
+	 * 						display: it can be provided as a string or an array of
+	 * 						strings, whose values represent the descriptor _key values
+	 * 						corresponding to the desired fields. Provide null to ignore.
+	 * 	- theEdgeField:		Provide this parameter to select which edge fields to
+	 * 						display: it can be provided as a string or an array of
+	 * 						strings, whose values represent the descriptor _key values
+	 * 						corresponding to the desired fields; this field is only
+	 * 						relevant if 'doIncludeEdge' is true. Provide null to ignore.
+	 * 	- doIncludeEdge:	If true, the result will be an array of elements in which
+	 * 						the '_vertex' property will contain the user and the
+	 * 						'_edge' property will contain the edge; if false, the
+	 * 						array elements will be user records.
+	 * 	- doStripFields:	If true, private fields will be stripped: all elements
+	 * 						will be stripped of the object identifiers and revision,
+	 * 						the manager users will also lack the roles.
+	 *
+	 * Note that this method assumes the current object to be persistent, if this is
+	 * not the case, the method will return an empty array; this means that unless you
+	 * test for persistence, you will not know if an empty array means no managers.
+	 *
+	 * @returns {Array}	The list of managed users.
+	 */
+	manages(
+		doTree = false,
+		theMinDepth = 1,
+		theMaxDepth = null,
+		theVertexField = null,
+		theEdgeField = null,
+		doIncludeEdge = false,
+		doStripFields = true
+	)
+	{
+		//
+		// Handle persistent object.
+		//
+		if( this._persistent )
+		{
+			//
+			// Framework.
+			//
+			const Schema = require( '../utils/Schema' );
+			
+			//
+			// Return tree.
+			//
+			if( doTree )
+				return Schema.getManagedUsersTree(
+					this._request,					// Current request.
+					this._document,					// Current user.
+					theMinDepth,					// Minimum depth.
+					theMaxDepth,					// Maximum depth.
+					theVertexField,					// Vertex fields.
+					theEdgeField,					// Edge fields.
+					true,							// Restrict language.
+					doIncludeEdge,					// Include edge.
+					doStripFields					// Strip privates.
+				);																	// ==>
+			
+			//
+			// Return list.
+			//
+			return Schema.getManagedUsersList(
+				this._request,					// Current request.
+				this._document,					// Current user.
+				theMinDepth,					// Minimum depth.
+				theMaxDepth,					// Maximum depth.
+				theVertexField,					// Vertex fields.
+				theEdgeField,					// Edge fields.
+				true,							// Restrict language.
+				doIncludeEdge,					// Include edge.
+				doStripFields					// Strip privates.
+			);																		// ==>
+		}
+		
+		return [];																	// ==>
+		
+	}	// manages
+	
+	/**
+	 * Return directly managed users
+	 *
+	 * This method will return the list of directly managed users as an array of user
+	 * _id references, the method will only consider those users directly managed by
+	 * the current user.
+	 *
+	 * Note that this method assumes the current object to be persistent, if this is
+	 * not the case, the method will return an empty array; this means that unless you
+	 * test for persistence, you will not know if an empty array means no managers.
+	 *
+	 * @returns {Array}	The list of managed users.
+	 */
+	get managed()
+	{
+		//
+		// Handle persistent object.
+		//
+		if( this._persistent )
+		{
+			//
+			// Set search criteria.
+			//
+			const selector = {};
+			selector._to = this._document._id;
+			selector[ Dict.descriptor.kPredicate ] =
+				`terms/${Dict.term.kPredicateManagedBy}`;
+			const cursor = db._collection( 'schemas' ).byExample( selector );
+			
+			//
+			// Collect _id.
+			//
+			const result = [];
+			while( cursor.hasNext() )
+				result.push( cursor.next()._from );
+			
+			return result;															// ==>
+		}
+		
+		return [];																	// ==>
+		
+	}	// managed
 	
 }	// User.
 

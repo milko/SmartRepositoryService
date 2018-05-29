@@ -142,7 +142,7 @@ router.post
 				persistent : user.persistent,
 				revised : user.revised,
 				hasManaged : user.hasManaged(),
-				manages : user.manages,
+				manages : user.managed,
 				user : user.document,
 				time : time() - stamp
 			});
@@ -378,7 +378,7 @@ router.post
 				persistent : user.persistent,
 				revised : user.revised,
 				hasManaged : user.hasManaged(),
-				managed : user.manages,
+				managed : user.managed,
 				user : user.document,
 				time : time() - stamp
 			});
@@ -489,7 +489,7 @@ router.post
 				persistent : user.persistent,
 				revised : user.revised,
 				hasManaged : user.hasManaged(),
-				managed : user.manages,
+				managed : user.managed,
 				user : user.document,
 				time : time() - stamp
 			});
@@ -540,9 +540,15 @@ router.post
  * Test get managers hierarchy
  *
  * The service will instantiate a user from a reference and return its managers
- * hierarchy, it expects a single parameter in the POST body:
+ * hierarchy, it expects the following parameters in the POST body:
  *
  * 	- reference:	The user reference or an object containing the user code.
+ * 	- minDepth:		Minimum traversal depth.
+ * 	- maxDepth:		Maximum traversal depth.
+ * 	- vField:		Vertex fields selector, string, array or null.
+ * 	- eField:		Edge fields selector, string, array or null.
+ * 	- doEdge:		Include edge, true or false.
+ * 	- doStrip:		Strip private fields, true or false.
  *
  * @path		/hierarchy
  * @verb		post
@@ -584,7 +590,14 @@ router.post
 			//
 			// Get hierarchy.
 			//
-			const result = user.managers();
+			const result = user.managers(
+				request.body.minDepth,
+				request.body.maxDepth,
+				request.body.vField,
+				request.body.eField,
+				request.body.doEdge,
+				request.body.doStrip
+			);
 			
 			response.send({
 				result : result,
@@ -612,10 +625,16 @@ router.post
 )
 	.body(
 		Joi.object({
-			reference : Joi.alternatives().try(
+			reference	: Joi.alternatives().try(
 				Joi.string().required(),
 				Joi.object().required()
-			).required()
+			).required(),
+			minDepth	: Joi.number().integer().required().default(0),
+			maxDepth	: Joi.number().integer().required().default(0),
+			vField		: Joi.any().required().default(null),
+			eField		: Joi.any().required().default(null),
+			doEdge		: Joi.boolean().required().default(false),
+			doStrip		: Joi.boolean().required().default(true)
 		}).required(),
 		"An object with 'reference' that contains either the user structure or a string" +
 		" representing the user reference."
@@ -630,4 +649,123 @@ router.post
 	)
 	.description(dd`
   Return user hierarchy.
+`);
+
+
+/**
+ * Test get managed users
+ *
+ * The service will instantiate a user from a reference and return its managed
+ * siblings, it expects the following parameters in the POST body:
+ *
+ * 	- reference:	The user reference or an object containing the user code.
+ * 	- doTree:		True returns a tree as an object, false returns a flattened array.
+ * 	- minDepth:		Minimum traversal depth.
+ * 	- maxDepth:		Maximum traversal depth.
+ * 	- vField:		Vertex fields selector, string, array or null.
+ * 	- eField:		Edge fields selector, string, array or null.
+ * 	- doEdge:		Include edge, true or false.
+ * 	- doStrip:		Strip private fields, true or false.
+ *
+ * @path		/hierarchy
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post
+(
+	'/siblings',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+		
+		//
+		// Get parameters.
+		//
+		const usr = request.body.reference;
+		
+		//
+		// Test instantiation.
+		//
+		try
+		{
+			//
+			// Instantiate user.
+			//
+			const user = new User( request, usr );
+			
+			//
+			// Resolve user.
+			//
+			const doReplace = false;
+			const doAssert  = false;
+			if( ! user.persistent )
+				user.resolve( doReplace, doAssert );
+			
+			//
+			// Get hierarchy.
+			//
+			const result = user.manages(
+				request.body.doTree,
+				request.body.minDepth,
+				request.body.maxDepth,
+				request.body.vField,
+				request.body.eField,
+				request.body.doEdge,
+				request.body.doStrip
+			);
+			
+			response.send({
+				result : result,
+				time : time() - stamp
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'siblings'
+)
+	.body(
+		Joi.object({
+			reference	: Joi.alternatives().try(
+				Joi.string().required(),
+				Joi.object().required()
+			).required(),
+			doTree		: Joi.boolean().required().default(false),
+			minDepth	: Joi.number().integer().required().default(0),
+			maxDepth	: Joi.number().integer().required().default(0),
+			vField		: Joi.any().required().default(null),
+			eField		: Joi.any().required().default(null),
+			doEdge		: Joi.boolean().required().default(false),
+			doStrip		: Joi.boolean().required().default(true)
+		}).required(),
+		"An object with 'reference' that contains either the user structure or a string" +
+		" representing the user reference."
+	)
+	.response(
+		200,
+		Joi.object(),
+		"An object containing relevant information."
+	)
+	.summary(
+		"Get user siblings."
+	)
+	.description(dd`
+  Return user siblings.
 `);
