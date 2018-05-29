@@ -111,10 +111,10 @@ module.exports = {
 			result.result = user.managers(
 				theRequest.body.minDepth,
 				theRequest.body.maxDepth,
-				theRequest.body.vField,
-				theRequest.body.eField,
+				null,
+				null,
 				theRequest.body.doEdge,
-				theRequest.body.doStrip
+				true
 			);
 			
 		}	// Has current user.

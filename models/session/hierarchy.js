@@ -20,23 +20,12 @@ module.exports = {
 		minDepth: Joi.alternatives().try(
 			Joi.number().integer(),
 			null
-		).default(1),
+		),
 		maxDepth: Joi.alternatives().try(
 			Joi.number().integer(),
 			null
-		).default(0),
-		vField: Joi.alternatives().try(
-			Joi.string(),
-			Joi.array().items(Joi.string()),
-			null
-		).default(null),
-		eField: Joi.alternatives().try(
-			Joi.string(),
-			Joi.array().items(Joi.string()),
-			null
-		).default(null),
-		doEdge: Joi.boolean().default(false),
-		doStrip: Joi.boolean().default(true)
+		),
+		doEdge: Joi.boolean()
 	}).required(),
 	
 	/**
