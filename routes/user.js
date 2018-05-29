@@ -294,33 +294,6 @@ router.post( '/login', Handlers.login, 'login' )
 
 
 /**
- * Current user
- *
- * This service will return the current session user record, the response will be the
- * object { result : <user record> }, if there is a current record, or { result : null
-  * } if there is no current user.
- *
- * @path		/whoami
- * @verb		get
- * @response	{Object}	{ result : <current user record>|null }.
- */
-router.get( '/whoami', Handlers.whoami, 'whoami' )
-	.response(
-		200,
-		require( '../models/user/whoami' ),
-		Application.getServiceDescription(
-			'session', 'whoami', 'response', module.context.configuration.defaultLanguage )
-	)
-	.summary(
-		"Get current user"
-	)
-	.description(
-		Application.getServiceDescription(
-			'session', 'whoami', 'description', module.context.configuration.defaultLanguage )
-	);
-
-
-/**
  * Logout
  *
  * The service will logout the current user and return the former user record;
@@ -333,7 +306,7 @@ router.get( '/whoami', Handlers.whoami, 'whoami' )
 router.get( '/logout', Handlers.logout, 'logout' )
 	.response(
 		200,
-		require( '../models/user/whoami' ),
+		require( '../models/session/user' ),
 		Application.getServiceDescription(
 			'session', 'logout', 'response', module.context.configuration.defaultLanguage )
 	)

@@ -37,5 +37,89 @@ module.exports = {
 
 		theResponse.send({ result : 'pong' });										// ==>
 
-	}	// ping
+	},	// ping
+	
+	/**
+	 * Who am I?
+	 *
+	 * Return the current user record, if there is a current user, or
+	 * { username : null } if there is no current user.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 * @returns {Object}				The object { result : <user>|null }.
+	 */
+	user : ( theRequest, theResponse ) =>
+	{
+		//
+		// Init result.
+		//
+		const result = { result : null };
+		
+		//
+		// Handle user.
+		//
+		if( theRequest.application.user )
+			result.result = theRequest.application.user;
+		
+		theResponse.send( result );													// ==>
+		
+	},	// user
+	
+	/**
+	 * Hierarchy
+	 *
+	 * Return the manager hierarchy of the current user, the service will return an
+	 * array of user records formatted according to the provided parameters; if there
+	 * is no current user, the service will return null.
+	 *
+	 * The returned list represents the mchain of management starting from the current
+	 * user, up to the root manager.
+	 *
+	 * The response is an object, { result: <result> }, where result is the list of
+	 * managers or null.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 * @returns {Object}				The object { result : <user>|null }.
+	 */
+	hierarchy : ( theRequest, theResponse ) =>
+	{
+		//
+		// Init result.
+		//
+		const result = { result : null };
+		
+		//
+		// Handle user.
+		//
+		if( theRequest.session.uid )
+		{
+			//
+			// Framework.
+			//
+			const User = require( '../classes/User' );
+			
+			//
+			// Instantiate user.
+			//
+			const user = new User( theRequest, theRequest.session.uid );
+			
+			//
+			// Get hierarchy.
+			//
+			result.result = user.managers(
+				theRequest.body.minDepth,
+				theRequest.body.maxDepth,
+				theRequest.body.vField,
+				theRequest.body.eField,
+				theRequest.body.doEdge,
+				theRequest.body.doStrip
+			);
+			
+		}	// Has current user.
+		
+		theResponse.send( result );													// ==>
+		
+	}	// hierarchy
 };
