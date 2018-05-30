@@ -121,13 +121,13 @@ router.get( '/user', Handlers.user, 'user' )
  */
 router.post( '/user/managers', Handlers.managers, 'managers' )
 	.body(
-		require( '../models/session/hierarchy' ),
+		require( '../models/session/managers' ),
 		Application.getServiceDescription(
 			'session', 'managers', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
-		require( '../models/session/hierarchy' ),
+		require( '../models/session/managers' ),
 		Application.getServiceDescription(
 			'session', 'managers', 'response', module.context.configuration.defaultLanguage )
 	)
@@ -137,4 +137,58 @@ router.post( '/user/managers', Handlers.managers, 'managers' )
 	.description(
 		Application.getServiceDescription(
 			'session', 'managers', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Current user managed list
+ *
+ * This service will return the list of users managed by the current session user, the
+ * service will return the hierarchical tree as an object, where _children will
+ * contain the list of managed users, or the flattened array of all managed siblings.
+ *
+ * If there is no current user, the service will return null.
+ *
+ * The response is an object, { result: <value> }, where value is the service result.
+ *
+ * The service expects the following parameters, all optional:
+ *
+ * 	- doTree:		If true, the result will be the hierarchy tree object, starting
+ * 					from the current user and ending with the managed leaf siblings,
+ * 					with a _children field that will contain the array of managed users.
+ * 					(Defaults to true)
+ * 	- doEdge:		If true, the result will be an object with two properties: _vertex
+ * 					will contain the user and _edge will contain the edge.
+ * 					(Defaults to false)
+ * 	- minDepth:		Minimum traversal depth, a numeric where 0 means start with
+ * 					traversal origin and greater values start at higher levels; null
+ * 					means ignore parameter.
+ * 					(Defaults to 0)
+ * 	- maxDepth:		Maximum traversal depth, a numeric where 0 means traverse the
+ * 					whole graph and greater values represent the traversal limit; null
+ * 					means ignore parameter.
+ * 					(Defaults to 0)
+ *
+ * @path		/user/managed
+ * @verb		post
+ * @response	{Object}	{ result : <current user managed siblings hierarchy> }.
+ */
+router.post( '/user/manages', Handlers.manages, 'manages' )
+	.body(
+		require( '../models/session/manages' ),
+		Application.getServiceDescription(
+			'session', 'manages', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/session/manages' ),
+		Application.getServiceDescription(
+			'session', 'manages', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Get current user managed hierarchy."
+	)
+	.description(
+		Application.getServiceDescription(
+			'session', 'manages', 'description', module.context.configuration.defaultLanguage )
 	);

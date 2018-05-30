@@ -1165,49 +1165,6 @@ class User extends Document
 		
 	}	// manages
 	
-	/**
-	 * Return directly managed users
-	 *
-	 * This method will return the list of directly managed users as an array of user
-	 * _id references, the method will only consider those users directly managed by
-	 * the current user.
-	 *
-	 * Note that this method assumes the current object to be persistent, if this is
-	 * not the case, the method will return an empty array; this means that unless you
-	 * test for persistence, you will not know if an empty array means no managers.
-	 *
-	 * @returns {Array}	The list of managed users.
-	 */
-	get managed()
-	{
-		//
-		// Handle persistent object.
-		//
-		if( this._persistent )
-		{
-			//
-			// Set search criteria.
-			//
-			const selector = {};
-			selector._to = this._document._id;
-			selector[ Dict.descriptor.kPredicate ] =
-				`terms/${Dict.term.kPredicateManagedBy}`;
-			const cursor = db._collection( 'schemas' ).byExample( selector );
-			
-			//
-			// Collect _id.
-			//
-			const result = [];
-			while( cursor.hasNext() )
-				result.push( cursor.next()._from );
-			
-			return result;															// ==>
-		}
-		
-		return [];																	// ==>
-		
-	}	// managed
-	
 }	// User.
 
 module.exports = User;

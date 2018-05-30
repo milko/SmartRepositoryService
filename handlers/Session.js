@@ -116,10 +116,69 @@ module.exports = {
 				theRequest.body.doEdge,
 				true
 			);
-		
+			
 		}	// Has current user.
 		
 		theResponse.send( result );													// ==>
 		
-	}	// hierarchy
+	},	// hierarchy
+	
+	/**
+	 * Manages
+	 *
+	 * Return the managed hierarchy of the current user, the service will return an
+	 * array of user records formatted according to the provided parameters; if there
+	 * is no current user, the service will return null.
+	 *
+	 * The returned list represents the chain of management starting from the current
+	 * user, down to the managed siblings. The hierarchy is either the flattened array
+	 * of all siblings or the hierarchical tree, depending on the service parameters.
+	 *
+	 * The response is an object, { result: <value> }, where value is the result of
+	 * the service.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 * @returns {Object}				The object { result : <user>|null }.
+	 */
+	manages : ( theRequest, theResponse ) =>
+	{
+		//
+		// Init result.
+		//
+		const result = { result : null };
+		
+		//
+		// Handle user.
+		//
+		if( theRequest.session.uid )
+		{
+			//
+			// Framework.
+			//
+			const User = require( '../classes/User' );
+			
+			//
+			// Instantiate user.
+			//
+			const user = new User( theRequest, theRequest.session.uid );
+			
+			//
+			// Get managed hierarchy.
+			//
+			result.result = user.manages(
+				theRequest.body.doTree,
+				theRequest.body.minDepth,
+				theRequest.body.maxDepth,
+				null,
+				null,
+				theRequest.body.doEdge,
+				true
+			);
+			
+		}	// Has current user.
+		
+		theResponse.send( result );													// ==>
+		
+	}	// manages
 };

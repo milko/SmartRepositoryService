@@ -1155,7 +1155,7 @@ class Schema
 		//
 		// Perform traversal.
 		//
-		let list =
+		let hierarchy =
 			this.traverseManagedUsers(
 				theRequest,		// Current request.
 				theRoot,		// Traversal origin.
@@ -1170,17 +1170,52 @@ class Schema
 			);
 		
 		//
+		// Collect default hidden properties.
+		//
+		const properties =
+			Dictionary.listUserPrivateProperties
+				.concat([ '_from', '_to' ]);
+		
+		//
 		// Strip private properties.
 		//
 		if( doStrip								// Wanna strip,
-		 && (list.length > 0)					// and have clothes,
+		 && (hierarchy.length > 0)				// and have clothes,
 		 && (theVertexFld === null) )			// and got them all.
+		{
+			//
+			// Pop current user.
+			//
+			let current = null;
+			if( hierarchy[ 0 ][ Dict.descriptor.kUsername ]
+				=== theRoot[ Dict.descriptor.kUsername ] )
+				current = hierarchy.shift();
+			
+			//
+			// Normalise managed.
+			//
 			Dictionary.stripDocumentProperties(
-				list,
-				Dictionary.listUserPrivateProperties
+				hierarchy,
+				properties
 			);
+			
+			//
+			// Normalise current user.
+			//
+			if( current !== null )
+				Dictionary.stripDocumentProperties(
+					current,
+					properties
+				);
+			
+			//
+			// Reconstitute hierarchy.
+			//
+			if( current !== null )
+				hierarchy.unshift( current );
+		}
 		
-		return list;																// ==>
+		return hierarchy;															// ==>
 		
 	}	// getManagedUsersList
 	
@@ -1263,7 +1298,7 @@ class Schema
 		//
 		// Perform traversal.
 		//
-		let tree =
+		let hierarchy =
 			this.traverseManagedUsers(
 				theRequest,		// Current request.
 				theRoot,		// Traversal origin.
@@ -1278,16 +1313,51 @@ class Schema
 			);
 		
 		//
+		// Collect default hidden properties.
+		//
+		const properties =
+			Dictionary.listUserPrivateProperties
+				.concat([ '_from', '_to' ]);
+		
+		//
 		// Strip private properties.
 		//
 		if( doStrip								// Wanna strip,
 		 && (theVertexFld === null) )			// and got all clothes.
+		{
+			//
+			// Pop current user.
+			//
+			let current = null;
+			if( hierarchy[ 0 ][ Dict.descriptor.kUsername ]
+				=== theRoot[ Dict.descriptor.kUsername ] )
+				current = hierarchy.shift();
+			
+			//
+			// Normalise managed.
+			//
 			Dictionary.stripDocumentProperties(
-				tree,
-				Dictionary.listUserPrivateProperties
+				hierarchy,
+				properties
 			);
+			
+			//
+			// Normalise current user.
+			//
+			if( current !== null )
+				Dictionary.stripDocumentProperties(
+					current,
+					properties
+				);
+			
+			//
+			// Reconstitute hierarchy.
+			//
+			if( current !== null )
+				hierarchy.unshift( current );
+		}
 		
-		return tree;																// ==>
+		return hierarchy;															// ==>
 		
 	}	// getManagedUsersTree
 
