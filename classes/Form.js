@@ -26,13 +26,28 @@ class Form
 	/**
 	 * Instantiate form
 	 *
-	 * The constructor expects a single parameter that represents a form reference,
-	 * provided as its '_id' or '_key'.
+	 * The constructor will traverse the form graph adding all fields and sub-forms to
+	 * the object, if you also provide theData, it will add the data elements to the
+	 * structure; note that this parameter will be cloned.
+	 *
+	 * The constructor will initialise the following data members:
+	 *
+	 * 	- branch:	The root form _id.
+	 * 	- form:		The form contents structured as an array of object elements
+	 * 				structured as follows:
+	 * 		- _vertex:		Either the form object, or the descriptor object.
+	 * 		- _edge:		The edge object.
+	 * 		- _value:		If the _vertex is a descriptor, the field data value, if
+	 * 						theValue is provided.
+	 * 		- _children:	An array of elements belonging to the current one, this
+	 * 						property is only relevant for form elements or structure
+	 * 						_vertex elements (STRUCTURES ARE NOT YET SUPPORTED).
 	 *
 	 * @param theRequest	{Object}	The current request.
 	 * @param theForm		{String}	The form reference.
+	 * @param theData		{Object}	The form data.
 	 */
-	constructor( theRequest, theForm )
+	constructor( theRequest, theForm, theData = null )
 	{
 		//
 		// Init descriptors list.
@@ -66,11 +81,33 @@ class Form
 			this.branch = this.form[ 0 ]._vertex._id;
 			
 			//
+			// Clone data.
+			//
+			let data = null;
+			if( K.function.isObject( theData ) )
+				data = JSON.parse(JSON.stringify(theData));
+			
+			//
 			// Normalise and store form hierarchy.
 			//
 			this.form.forEach( (element) => {
-				Form.normaliseForm( theRequest, this.branch, element, this.descriptors );
+				Form.normaliseForm(
+					theRequest,			// Current request.
+					this.branch,		// Form root _id.
+					element,			// Current element.
+					data,				// Eventual data.
+					this.descriptors	// Used descriptor _keys.
+				);
 			});
+			
+			//
+			// Add non-form data values.
+			// ToDo
+			//
+			if( Object.keys( data ).length > 0 )
+			{
+			
+			}	// Values left.
 			
 		}	// Has elements.
 		
@@ -83,10 +120,10 @@ class Form
 	 *
 	 * If any value fails to pass the test, the method will raise an exception.
 	 *
-	 * @param theRequest	{Object}	The current request.
-	 * @param theData		{Object}	The form data.
+	 * @param theRequest	{Object}		The current request.
+	 * @param theData		{Object}|{null}	The form data.
 	 */
-	validate( theRequest, theData )
+	validate( theRequest, theData = null )
 	{
 		//
 		// Traverse form.
@@ -102,11 +139,14 @@ class Form
 	 * This method will add all descriptor Joi validation commands to the provided
 	 * schema in the order they were added in the form.
 	 *
-	 * @param theRequest	{Object}	The current request.
-	 * @param theElement	{Array}		The current form element.
-	 * @param theData		{Object}	The form data.
+	 * If you omit theData, the data values are expected to be found in the form
+	 * elements _value property.
+	 *
+	 * @param theRequest	{Object}		The current request.
+	 * @param theElement	{Array}			The current form element.
+	 * @param theData		{Object}|{null}	The form data.
 	 */
-	static traverseSchema( theRequest, theElement, theData )
+	static traverseSchema( theRequest, theElement, theData = null )
 	{
 		//
 		// Handle vertex validation.
@@ -119,16 +159,36 @@ class Form
 			//
 			const field = theElement._vertex._key;
 			const valid = theElement._vertex[ Dict.descriptor.kValidation ];
-			const data	= ( theData.hasOwnProperty( field ) )
+			const value = ( (theData !== null) && theData.hasOwnProperty( field ) )
 						? theData[ field ]
-						: null;
+						: ( (theElement.hasOwnProperty( '_value' ))
+						  ? theElement._value
+						  : null );
 			
 			//
 			// Validate.
 			//
-			if( data !== null )
-				theData[ field ] =
-					Validation.validateValue( theRequest, valid, data );
+			if( value !== null )
+			{
+				//
+				// Validate value.
+				//
+				const normalised =
+					Validation.validateValue(
+						theRequest,
+						valid,
+						value,
+						field
+					);
+				
+				//
+				// Replace normalised value.
+				//
+				if( theData !== null )
+					theData[ field ] = normalised;
+				else
+					theElement._value = normalised;
+			}
 		}
 		
 		//
@@ -158,17 +218,26 @@ class Form
 	 * modifiers from the edge to the vertex and finally process the eventual element
 	 * siblings.
 	 *
-	 * If you provide the last parameter, all used descriptor _key fields will be
-	 * added to the provided array; to ignore, provide null.
+	 * If you provide theData, the method will add a _value property to descriptor
+	 * elements with the corresponding data value; to ignore, provide null.
+	 *
+	 * If you provide theFields, all used descriptor _key fields will be added to the
+	 * provided array; to ignore, provide null.
 	 *
 	 * The method returns the normalised element.
 	 *
 	 * @param theRequest	{Object}		The current request.
 	 * @param theBranch		{String}		The form tree branch.
 	 * @param theElement	{Object}		The form tree.
+	 * @param theData		{Object}|{null}	The form data object.
 	 * @param theFields		{Array}|{null}	The form fields list.
 	 */
-	static normaliseForm( theRequest, theBranch, theElement, theFields = null )
+	static normaliseForm(
+		theRequest,
+		theBranch,
+		theElement,
+		theData = null,
+		theFields = null )
 	{
 		//
 		// Clean vertex.
@@ -187,14 +256,26 @@ class Form
 		//
 		// Normalise vertex and edge.
 		//
-		Form.normaliseFormElement( theRequest, theBranch, theElement, theFields );
+		Form.normaliseFormElement(
+			theRequest,
+			theBranch,
+			theElement,
+			theData,
+			theFields
+		);
 		
 		//
 		// Normalise siblings.
 		//
 		if( theElement.hasOwnProperty( '_children' ) )
 			theElement._children.forEach( (element) => {
-				Form.normaliseForm( theRequest, theBranch, element, theFields );
+				Form.normaliseForm(
+					theRequest,
+					theBranch,
+					element,
+					theData,
+					theFields
+				);
 			});
 	
 	}	// normaliseForm
@@ -216,10 +297,16 @@ class Form
 	 * @param theRequest	{Object}		The current request.
 	 * @param theBranch		{String}		The form tree branch.
 	 * @param theElement	{Object}		The form tree.
-	 * @returns	{Object}					The normalised tree.
+	 * @param theData		{Object}|{null}	The form data object.
 	 * @param theFields		{Array}|{null}	The form fields list.
+	 * @returns	{Object}					The normalised tree.
 	 */
-	static normaliseFormElement( theRequest, theBranch, theElement, theFields = null )
+	static normaliseFormElement(
+		theRequest,
+		theBranch,
+		theElement,
+		theData = null,
+		theFields = null )
 	{
 		//
 		// Handle edge.
@@ -291,6 +378,24 @@ class Form
 				theElement._vertex[ Dict.descriptor.kValidation ][ Dict.descriptor.kJoi ] =
 					theElement._vertex[ Dict.descriptor.kValidation ][ Dict.descriptor.kJoi ]
 					+ ".required()";
+			
+			//
+			// Add data value to element.
+			//
+			if( (theData !== null)
+			 && theData.hasOwnProperty( theElement._vertex._key ) )
+			{
+				//
+				// Add value.
+				//
+				theElement._value = theData[ theElement._vertex._key ];
+				
+				//
+				// Remove property from data.
+				// MILKO - STRUCTURES ARE NOT SUPPORTED.
+				//
+				delete theData[ theElement._vertex._key ];
+			}
 			
 		}	// Is descriptor.
 	

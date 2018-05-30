@@ -81,6 +81,13 @@ router.post
 		const stamp = time();
 		
 		//
+		// Get data.
+		//
+		const data = ( request.body.hasOwnProperty( 'data' ) )
+				   ? request.body.data
+				   : null;
+		
+		//
 		// Instantiate form.
 		//
 		try
@@ -88,7 +95,7 @@ router.post
 			//
 			// Create form.
 			//
-			const form = new Form( request, request.body.form );
+			const form = new Form( request, request.body.form, data );
 			
 			response.send({
 				branch : form.branch,
@@ -118,7 +125,8 @@ router.post
 )
 	.body(
 		Joi.object({
-			form : Joi.string().required()
+			form : Joi.string().required(),
+			data : Joi.object()
 		}).required(),
 		'Form reference as term _id or _key.'
 	)
@@ -165,6 +173,11 @@ router.post
 	(request, response) =>
 	{
 		//
+		// Set debug options.
+		//
+		const debug = true;
+		
+		//
 		// Init timer.
 		//
 		const stamp = time();
@@ -178,34 +191,50 @@ router.post
 			// Init local storage.
 			//
 			const data = request.body.data;
-			const form = new Form( request, request.body.form );
+			const form = new Form( request, request.body.form, data );
 			
 			//
 			// Validate.
 			//
-			form.validate( request, data );
+			form.validate( request );
 			
 			response.send({
 				branch : form.branch,
-				data : data,
-				time : time() - stamp
+				form   : form.form,
+				fields : form.fields,
+				time   : time() - stamp
 			});
 		}
 		catch( error )
 		{
 			//
-			// Init local storage.
+			// Raise exception.
 			//
-			let http = 500;
+			if( ! debug )
+			{
+				//
+				// Init local storage.
+				//
+				let http = 500;
+				
+				//
+				// Handle MyError exceptions.
+				//
+				if( (error.constructor.name === 'MyError')
+					&& error.hasOwnProperty( 'param_http' ) )
+					http = error.param_http;
+				
+				response.throw( http, error );										// !@! ==>
+			}
 			
 			//
-			// Handle MyError exceptions.
+			// Return error object.
 			//
-			if( (error.constructor.name === 'MyError')
-			 && error.hasOwnProperty( 'param_http' ) )
-				http = error.param_http;
-			
-			response.throw( http, error );										// !@! ==>
+			else
+			{
+				error.description = error.getCodeMessage();
+				response.send(error);
+			}
 		}
 	},
 	'validate'
@@ -213,17 +242,13 @@ router.post
 	.body(
 		Joi.object({
 			form: Joi.string().required(),
-			data: Joi.object().required()
+			data: Joi.object()
 		}).required(),
 		'Form reference as term _id or _key and form data.'
 	)
 	.response(
 		200,
-		Joi.object({
-			branch : Joi.string(),
-			data   : Joi.object(),
-			time   : Joi.number()
-		}),
+		Joi.object(),
 		"The result: 'branch' contains the form branch," +
 		" 'data' contains the form validated data" +
 		" and 'time' contains the elapsed time."
