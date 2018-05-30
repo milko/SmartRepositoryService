@@ -660,7 +660,7 @@
     }
   },
   {
-    "_key" : "s:session:hierarchy",
+    "_key" : "s:session:managers",
     "body" : {
       "ISO:639:3:eng" : "<p>The service expects the following parameters in the POST body:</p><ul><li><strong><code>doEdge</code></strong>: If <code>false</code>, each element of the result array will be a <em>user</em>; if <code>true</code>, each element will be an <em>object</em> where <code>_vertex</code> will contain the user and <code>_edge</code> will contain the edge. If omitted, this parameter will be set to <code>false</code></li><li><strong><code>minDepth</code></strong>: The <em>minimum depth of the traversal</em>, it must be provided as an <em>integer</em> where <code>0</code> represents the origin level and greater values will start the traversal at the according level; if you provide <code>null</code>, the parameter will be ignored (equivalent to providing <code>0</code>). If omitted, this parameter defaults to <code>0</code>.</li><li><strong><code>maxDepth</code></strong>: The <em>maximum depth of the traversal</em>, it must be provided as an <em>integer</em> where <code>0</code> will traverse the graph till the root and greater values will stop the traversal at the according level; if you provide <code>null</code>, the parameter will be ignored (equivalent to providing <code>0</code>). If omitted, this parameter defaults to <code>0</code>.</li></ul><p>All parameters are optional, if omitted, they will be set to their default values.</p>"
     },

@@ -115,26 +115,26 @@ router.get( '/user', Handlers.user, 'user' )
  * 					will contain the user and _edge will contain the edge. (Defaults
  * 					to false)
  *
- * @path		/user/hierarchy
+ * @path		/user/managers
  * @verb		post
  * @response	{Object}	{ result : <current user hierarchy> }.
  */
-router.post( '/user/hierarchy', Handlers.hierarchy, 'hierarchy' )
+router.post( '/user/managers', Handlers.hierarchy, 'managers' )
 	.body(
 		require( '../models/session/hierarchy' ),
 		Application.getServiceDescription(
-			'session', 'hierarchy', 'body', module.context.configuration.defaultLanguage )
+			'session', 'managers', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
 		require( '../models/session/hierarchy' ),
 		Application.getServiceDescription(
-			'session', 'hierarchy', 'response', module.context.configuration.defaultLanguage )
+			'session', 'managers', 'response', module.context.configuration.defaultLanguage )
 	)
 	.summary(
 		"Get current user manager hierarchy."
 	)
 	.description(
 		Application.getServiceDescription(
-			'session', 'hierarchy', 'description', module.context.configuration.defaultLanguage )
+			'session', 'managers', 'description', module.context.configuration.defaultLanguage )
 	);
