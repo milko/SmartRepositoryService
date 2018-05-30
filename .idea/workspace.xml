@@ -2,12 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/data/messages.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/messages.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handlers/Session.js" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/Session.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handlers/User.js" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/User.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/user/login.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/session/login.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/session.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/session.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/user.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dictionary/Dict.js" beforeDir="false" afterPath="$PROJECT_DIR$/dictionary/Dict.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -24,15 +20,6 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="User.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/classes/User.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="561">
-              <caret line="1137" column="29" lean-forward="true" selection-start-line="1137" selection-start-column="29" selection-end-line="1137" selection-end-column="29" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="Schema.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils/Schema.js">
           <provider selected="true" editor-type-id="text-editor">
@@ -69,15 +56,6 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="User.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/routes/test/User.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="918">
-              <caret line="491" column="31" selection-start-line="491" selection-start-column="31" selection-end-line="491" selection-end-column="31" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="Session.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/handlers/Session.js">
           <provider selected="true" editor-type-id="text-editor">
@@ -96,11 +74,36 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="messages.json" pinned="false" current-in-tab="true">
+      <file leaf-file-name="messages.json" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/data/messages.json">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="522">
               <caret line="674" column="22" selection-start-line="674" selection-start-column="22" selection-end-line="674" selection-end-column="22" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Validation.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/utils/Validation.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="778">
+              <caret line="544" column="22" selection-start-line="544" selection-start-column="22" selection-end-line="544" selection-end-column="22" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Validation.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/routes/test/Validation.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-11373" />
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Constants.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/utils/Constants.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-1765">
+              <caret line="191" column="12" selection-start-line="191" selection-start-column="12" selection-end-line="191" selection-end-column="12" />
             </state>
           </provider>
         </entry>
@@ -258,6 +261,12 @@
             <path>
               <item name="APP" type="b2602c69:ProjectViewProjectNode" />
               <item name="APP" type="462c0819:PsiDirectoryNode" />
+              <item name="routes" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="APP" type="b2602c69:ProjectViewProjectNode" />
+              <item name="APP" type="462c0819:PsiDirectoryNode" />
               <item name="utils" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
@@ -305,12 +314,12 @@
       <workItem from="1527530756830" duration="4833000" />
       <workItem from="1527581622494" duration="9962000" />
       <workItem from="1527629417628" duration="2389000" />
-      <workItem from="1527665568501" duration="6193000" />
+      <workItem from="1527665568501" duration="6814000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="66426000" />
+    <option name="totallyTimeSpent" value="67047000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1186" height="1001" extended-state="0" />
@@ -342,13 +351,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/routes/user.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2940">
-          <caret line="196" selection-start-line="196" selection-end-line="196" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/routes/test/User.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="8040">
@@ -431,13 +433,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/models/SessionSchemas.js" />
-    <entry file="file://$PROJECT_DIR$/utils/Validation.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="544" column="22" selection-start-line="544" selection-start-column="22" selection-end-line="544" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/schema/schemaEnumList.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-394" />
@@ -537,13 +532,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/Constants.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="299">
-          <caret line="191" column="12" selection-start-line="191" selection-start-column="12" selection-end-line="191" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/utils/Dictionary.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="296">
@@ -618,6 +606,25 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="522">
           <caret line="674" column="22" selection-start-line="674" selection-start-column="22" selection-end-line="674" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/Validation.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="778">
+          <caret line="544" column="22" selection-start-line="544" selection-start-column="22" selection-end-line="544" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/test/Validation.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-11373" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/Constants.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1765">
+          <caret line="191" column="12" selection-start-line="191" selection-start-column="12" selection-end-line="191" selection-end-column="12" />
         </state>
       </provider>
     </entry>
