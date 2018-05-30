@@ -116,7 +116,7 @@ module.exports = {
 				theRequest.body.doEdge,
 				true
 			);
-			
+		
 		}	// Has current user.
 		
 		theResponse.send( result );													// ==>

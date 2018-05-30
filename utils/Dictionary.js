@@ -956,6 +956,9 @@ class Dictionary
 	 * 	- theProperties:	The list of properties to remove, provided as descriptor
 	 * 						_key values.
 	 *
+	 * In general this method is used to strip private fields from users which include
+	 * _id, _key, _rev, _from and _to, this is to shade identifiers from clients.
+	 *
 	 * All modifications are done in place.
 	 *
 	 * @param theDocument	{Object}|{Array}	The document to normalise.

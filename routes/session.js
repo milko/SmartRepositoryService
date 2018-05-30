@@ -111,25 +111,20 @@ router.get( '/user', Handlers.user, 'user' )
  * 	- maxDepth:		Maximum traversal depth, a numeric where 0 means traverse the
  * 					whole graph and greater values represent the traversal limit; null
  * 					means ignore parameter. (Defaults to 0)
- * 	- vField:		Vertex fields selection, provide the descriptor _key as a string
- * 					or array; null selects all fields. (Defaults to null)
- * 	- eField:		Edge fields selection, provide the descriptor _key as a string
- * 					or array; null selects all fields; this parameter is only relevant
- * 					if you provide true in the doEdges parameter. (Defaults to null)
  * 	- doEdge:		If true, the result will be an object with two properties: _vertex
  * 					will contain the user and _edge will contain the edge. (Defaults
  * 					to false)
- * 	- doStrip:		If true, private fields of both the vertex and edge will be
- * 					stripped: all elements will be stripped of the _id, _key and _rev
- * 					and the managers will be stripped of role. Be aware that if you
- * 					use vField or eField, this parameter will be ignored. (defaults to
- * 					true)
  *
- * @path		/whoami
+ * @path		/user/hierarchy
  * @verb		post
- * @response	{Object}	{ result : <current user record>|null }.
+ * @response	{Object}	{ result : <current user hierarchy> }.
  */
 router.post( '/user/hierarchy', Handlers.hierarchy, 'hierarchy' )
+	.body(
+		require( '../models/session/hierarchy' ),
+		Application.getServiceDescription(
+			'session', 'hierarchy', 'body', module.context.configuration.defaultLanguage )
+	)
 	.response(
 		200,
 		require( '../models/session/hierarchy' ),

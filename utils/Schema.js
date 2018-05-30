@@ -979,7 +979,8 @@ class Schema
 	 * 	- doStrip:		If this parameter is true, the result nodes will be stripped
 	 * 					from private properties, all elements will lack the standard
 	 * 					private properties (Dictionary.listUserPrivateProperties()),
-	 * 					the managers will also lack the roles property.
+	 * 					the managers will also lack the roles property and edges will
+	 * 					lack _from and _to.
 	 *
 	 * The method will return an array of path nodes.
 	 * The method assumes the users and schemas collections to exist.
@@ -1028,6 +1029,13 @@ class Schema
 			);
 		
 		//
+		// Collect default hidden properties.
+		//
+		const properties =
+			Dictionary.listUserPrivateProperties
+				.concat([ '_from', '_to' ]);
+		
+		//
 		// Strip private properties.
 		//
 		if( doStrip								// Wanna strip,
@@ -1047,7 +1055,7 @@ class Schema
 			//
 			Dictionary.stripDocumentProperties(
 				hierarchy,
-				Dictionary.listUserPrivateProperties.concat( Dict.descriptor.kRole )
+				properties.concat( Dict.descriptor.kRole )
 			);
 			
 			//
@@ -1056,7 +1064,7 @@ class Schema
 			if( current !== null )
 				Dictionary.stripDocumentProperties(
 					current,
-					Dictionary.listUserPrivateProperties
+					properties
 				);
 			
 			//

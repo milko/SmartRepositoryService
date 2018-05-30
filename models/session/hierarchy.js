@@ -20,12 +20,12 @@ module.exports = {
 		minDepth: Joi.alternatives().try(
 			Joi.number().integer(),
 			null
-		),
+		).default(1),
 		maxDepth: Joi.alternatives().try(
 			Joi.number().integer(),
 			null
-		),
-		doEdge: Joi.boolean()
+		).default(0),
+		doEdge: Joi.boolean().default(false)
 	}).required(),
 	
 	/**
