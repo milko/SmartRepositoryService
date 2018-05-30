@@ -69,9 +69,12 @@ module.exports = {
 	/**
 	 * Login
 	 *
-	 * Login user.
-	 *
 	 * Logs user in and returns its record: { user : <user> }.
+	 *
+	 * The service expects the following parameters in the POST body:
+	 *
+	 * 	- username:	The user code.
+	 * 	- password:	The user password.
 	 *
 	 * The service throws the following exceptions:
 	 * 	- User not found: 404.
@@ -157,6 +160,127 @@ module.exports = {
 		theResponse.send({ result : user.document });								// ==>
 		
 	},	// login
+	
+	/**
+	 * Return current user credentials form
+	 *
+	 * This service will return the current user record and the credentials form, the
+	 * service will return an object, { form : <form>, user : <user> }, where form is the
+	 * credentials form and user is the current user record; if there is no current user,
+	 * the service will return null in both properties.
+	 *
+	 * The service throws the following exceptions:
+	 * 	- User not found: 404.
+	 * 	- Invalid credentials: 403.
+	 *
+	 * @param theRequest	{Object}	username and password.
+	 * @param theResponse	{Object}	The user.
+	 * @returns {Object}				The object { result : <user> }.
+	 */
+	getCredentials : ( theRequest, theResponse ) =>
+	{
+		//
+		// Init local storage.
+		//
+		const result = { form : null, user : null };
+		
+		//
+		// Check current user.
+		//
+		if( theRequest.session.uid )
+		{
+			//
+			// Framework.
+			//
+			const Form = require( '../classes/Form' );
+			const User = require( '../classes/User' );
+			
+			//
+			// Instantiate user.
+			//
+			const user = new User( theRequest, theRequest.session.uid );
+			
+			//
+			// Instantiate form.
+			//
+			const form = new Form( theRequest, Dict.term.kFormCredentials );
+		
+		}	// There is a session user.
+		
+		return result;																// ==>
+		
+		
+/*
+		//
+		// Get user.
+		//
+		const selector = {};
+		selector[ Dict.descriptor.kUsername ] = theRequest.body.username;
+		const user = new User( theRequest, selector );
+		
+		//
+		// Check user.
+		//
+		if( ! user.resolve( false, false ) )
+			theResponse.throw(
+				404,
+				new MyError(
+					'AuthFailed',						// Error name.
+					K.error.UserNotFound,				// Error code.
+					theRequest.application.language,	// Error language.
+					theRequest.body.username			// Error data.
+				)
+			);																	// !@! ==>
+		
+		//
+		// Check if pending or disabled.
+		//
+		if( user.document.hasOwnProperty( Dict.descriptor.kStatus )
+			&& ( (user.document[ Dict.descriptor.kStatus ] === Dict.term.kStateStatusPending)
+				|| (user.document[ Dict.descriptor.kStatus ] === Dict.term.kStateStatusDisabled) ) )
+			theResponse.throw(
+				403,
+				new MyError(
+					'AuthFailed',						// Error name.
+					K.error.UserNotFound,				// Error code.
+					theRequest.application.language,	// Error language.
+					theRequest.body.username			// Error data.
+				)
+			);																	// !@! ==>
+		
+		//
+		// Check credentials.
+		//
+		const auth = createAuth();
+		const valid = auth.verify(
+			user.document[ Dict.descriptor.kAuthData ],
+			theRequest.body.password );
+		if( ! valid )
+			theResponse.throw(
+				403,
+				new MyError(
+					'AuthFailed',						// Error name.
+					K.error.BadPassword,				// Error code.
+					theRequest.application.language		// Error language.
+				)
+			);																	// !@! ==>
+		
+		//
+		// Login user.
+		//
+		theRequest.session.uid = user.document._id;
+		theRequest.session.data = {};
+		theRequest.sessionStorage.save( theRequest.session );
+		
+		//
+		// Copy user to request.
+		//
+		theRequest.application.user = user.document;
+		
+		theResponse.send({ result : user.document });								// ==>
+*/
+	
+	},	// getCredentials
 	
 	/**
 	 * Logout

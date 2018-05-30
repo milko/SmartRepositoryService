@@ -146,6 +146,36 @@ router.post( '/user/login', Handlers.login, 'login' )
 
 
 /**
+ * User credentials
+ *
+ * This service can be used to request the current user's filled credentials form, it
+ * will return an object, { form : <form>, user : <user> }, where form is the
+ * credentials form and user is the current user record; if there is no current user,
+ * the service will return null in both properties.
+ *
+ * @path		/user/credentials
+ * @verb		get
+ * @response	{Object}	The current user record and the credentials form.
+ */
+/*
+router.post( '/user/credentials', Handlers.getCredentials(), 'getCredentials' )
+	.response(
+		200,
+		require( '../models/session/credentials' ),
+		Application.getServiceDescription(
+			'session', 'login', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Update current user credentials"
+	)
+	.description(
+		Application.getServiceDescription(
+			'session', 'credentials', 'description', module.context.configuration.defaultLanguage )
+	);
+*/
+
+
+/**
  * Logout
  *
  * The service will logout the current user and return the former user record;

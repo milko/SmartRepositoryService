@@ -986,8 +986,7 @@ class User extends Document
 	getLockedFields()
 	{
 		return super.getLockedFields().concat([
-			Dict.descriptor.kUsername,
-			Dict.descriptor.kEmail
+			Dict.descriptor.kUsername
 		]);																			// ==>
 		
 	}	// getLockedFields

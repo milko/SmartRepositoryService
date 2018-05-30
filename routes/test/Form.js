@@ -60,7 +60,8 @@ router.tag( 'testForm' );
  * The service returns an object as { branch : <branch>, form : <form> } where branch
  * is the form branch and form is the normalised form tree.
  *
- * The service body must contain a form reference string.
+ * The service POST body must contain { form : <value> }, where value is the form _id
+ * or _key.
  *
  * If the method raises an exception, the service will forward it using the
  * HTTP code if the exception is of class MyError.
@@ -87,12 +88,13 @@ router.post
 			//
 			// Create form.
 			//
-			const form = new Form( request, request.body );
+			const form = new Form( request, request.body.form );
 			
 			response.send({
 				branch : form.branch,
-				form : form.form,
-				time : time() - stamp
+				form   : form.form,
+				fields : form.fields,
+				time   : time() - stamp
 			});
 		}
 		catch( error )
@@ -115,7 +117,9 @@ router.post
 	'form'
 )
 	.body(
-		Joi.string().required(),
+		Joi.object({
+			form : Joi.string().required()
+		}).required(),
 		'Form reference as term _id or _key.'
 	)
 	.response(
@@ -123,6 +127,7 @@ router.post
 		Joi.object({
 			branch : Joi.string(),
 			form   : Joi.object(),
+			fields : Joi.array().items(Joi.string()),
 			time   : Joi.number()
 		}),
 		"The result: 'branch' contains the form branch, 'form' contains the normalised" +

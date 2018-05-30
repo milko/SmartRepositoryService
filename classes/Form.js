@@ -35,6 +35,11 @@ class Form
 	constructor( theRequest, theForm )
 	{
 		//
+		// Init descriptors list.
+		//
+		this.descriptors = [];
+		
+		//
 		// Get form hierarchy.
 		//
 		this.form =
@@ -64,7 +69,7 @@ class Form
 			// Normalise and store form hierarchy.
 			//
 			this.form.forEach( (element) => {
-				Form.normaliseForm( theRequest, this.branch, element );
+				Form.normaliseForm( theRequest, this.branch, element, this.descriptors );
 			});
 			
 		}	// Has elements.
@@ -153,13 +158,17 @@ class Form
 	 * modifiers from the edge to the vertex and finally process the eventual element
 	 * siblings.
 	 *
+	 * If you provide the last parameter, all used descriptor _key fields will be
+	 * added to the provided array; to ignore, provide null.
+	 *
 	 * The method returns the normalised element.
 	 *
-	 * @param theRequest	{Object}	The current request.
-	 * @param theBranch		{String}	The form tree branch.
-	 * @param theElement	{Object}	The form tree.
+	 * @param theRequest	{Object}		The current request.
+	 * @param theBranch		{String}		The form tree branch.
+	 * @param theElement	{Object}		The form tree.
+	 * @param theFields		{Array}|{null}	The form fields list.
 	 */
-	static normaliseForm( theRequest, theBranch, theElement )
+	static normaliseForm( theRequest, theBranch, theElement, theFields = null )
 	{
 		//
 		// Clean vertex.
@@ -178,14 +187,14 @@ class Form
 		//
 		// Normalise vertex and edge.
 		//
-		Form.normaliseFormElement( theRequest, theBranch, theElement );
+		Form.normaliseFormElement( theRequest, theBranch, theElement, theFields );
 		
 		//
 		// Normalise siblings.
 		//
 		if( theElement.hasOwnProperty( '_children' ) )
 			theElement._children.forEach( (element) => {
-				Form.normaliseForm( theRequest, theBranch, element );
+				Form.normaliseForm( theRequest, theBranch, element, theFields );
 			});
 	
 	}	// normaliseForm
@@ -204,12 +213,13 @@ class Form
 	 * 	- Transfer modifier fields from the edge to the vertex.
 	 * 	- Add 'required()' to Joi validation record if required.
 	 *
-	 * @param theRequest	{Object}	The current request.
-	 * @param theBranch		{String}	The form tree branch.
-	 * @param theElement	{Object}	The form tree.
-	 * @returns	{Object}				The normalised tree.
+	 * @param theRequest	{Object}		The current request.
+	 * @param theBranch		{String}		The form tree branch.
+	 * @param theElement	{Object}		The form tree.
+	 * @returns	{Object}					The normalised tree.
+	 * @param theFields		{Array}|{null}	The form fields list.
 	 */
-	static normaliseFormElement( theRequest, theBranch, theElement )
+	static normaliseFormElement( theRequest, theBranch, theElement, theFields = null )
 	{
 		//
 		// Handle edge.
@@ -262,14 +272,27 @@ class Form
 		}	// Has edge.
 		
 		//
-		// Handle descriptor vertex.
+		// Handle descriptors.
 		//
-		if( theElement._vertex._id.startsWith( 'descriptors/' )
-		 && theElement._vertex.hasOwnProperty( Dict.descriptor.kUsage )
-		 && (theElement._vertex[ Dict.descriptor.kUsage ] === Dict.term.kStateUsageRequired) )
-			theElement._vertex[ Dict.descriptor.kValidation ][ Dict.descriptor.kJoi ] =
-				theElement._vertex[ Dict.descriptor.kValidation ][ Dict.descriptor.kJoi ]
+		if( theElement._vertex._id.startsWith( 'descriptors/' ) )
+		{
+			//
+			// Add descriptor to fields list.
+			//
+			if( Array.isArray( theFields )
+			 && (! theFields.includes( theElement._vertex._key )) )
+				theFields.push( theElement._vertex._key );
+			
+			//
+			// Update Joi command for required fields.
+			//
+			if( theElement._vertex.hasOwnProperty( Dict.descriptor.kUsage )
+			 && (theElement._vertex[ Dict.descriptor.kUsage ] === Dict.term.kStateUsageRequired) )
+				theElement._vertex[ Dict.descriptor.kValidation ][ Dict.descriptor.kJoi ] =
+					theElement._vertex[ Dict.descriptor.kValidation ][ Dict.descriptor.kJoi ]
 					+ ".required()";
+			
+		}	// Is descriptor.
 	
 	}	// normaliseFormElement
 	
@@ -367,6 +390,19 @@ class Form
 		];																			// ==>
 		
 	}	// modifierFields
+	
+	/**
+	 * Return list of descriptors
+	 *
+	 * This method will return the list of descriptor _key fields used in the form.
+	 *
+	 * @returns {Array}	List of descriptor fields.
+	 */
+	get fields()
+	{
+		return this.descriptors;													// ==>
+	
+	}	// descriptors
 	
 }	// Form.
 

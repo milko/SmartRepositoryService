@@ -186,7 +186,7 @@ router.post( '/signin/admin', Handlers.signinAdmin, 'singInAdmin' )
 
 
 /**
- * Create user
+ * Activate user
  *
  * The service will create a user, it expects the post body to contain the following
  * fields:
