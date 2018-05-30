@@ -660,6 +660,27 @@
     }
   },
   {
+    "_key" : "s:session:login",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the user credentials:<ul><li><strong>username</strong>: the user code (<em>string</em>).<li><strong>password</strong>: the user password (<em>string</em>).</ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "<p>The service will return an object, <code>{ result : value }</code>, in which <code>value</code> will be the user record.</p><p>If the user cannot be logged in, the service will return an error:<ul><li><code>404</code>: this error means that the user could not be found.<li><code>403</code>: this error means that the authentication failed.<li><code>500</code>: all other errors are expected to be unforeseen.</ul></p>"
+    },
+    "description" : {
+      "ISO:639:3:eng" : "<p>The service can be used to login a user, it expects two parameters: <code>username</code>, which represents the user identification code and <code>password</code>, which represents the user credentials password.</p><p>If the service succeeds to locate the user and validate its credentials, it will return an object, <code>{ result : value }</code>, where <code>value</code> will contain the user record; in all other cases the service will return an error.</p>"
+    }
+  },
+  {
+    "_key": "s:session:logout",
+    "response": {
+      "ISO:639:3:eng": "If there was a previous session user, the service will return an object, <code>{ result : value }</code>, in which <code>value</code> will be the previous user record, or <code>null</code>, if there was no current session user."
+    },
+    "description": {
+      "ISO:639:3:eng": "The service can be used to logout the current session user, will return an object, <code>{ result : value }</code>, where <code>value</code> will contain the previous session user record, or <code>null</code>, if no user was previously logged in."
+    }
+  },
+  {
     "_key" : "s:session:managers",
     "body" : {
       "ISO:639:3:eng" : "<p>The service expects the following parameters in the POST body:</p><ul><li><strong><code>doEdge</code></strong>: If <code>false</code>, each element of the result array will be a <em>user</em>; if <code>true</code>, each element will be an <em>object</em> where <code>_vertex</code> will contain the user and <code>_edge</code> will contain the edge. If omitted, this parameter will be set to <code>false</code></li><li><strong><code>minDepth</code></strong>: The <em>minimum depth of the traversal</em>, it must be provided as an <em>integer</em> where <code>0</code> represents the origin level and greater values will start the traversal at the according level; if you provide <code>null</code>, the parameter will be ignored (equivalent to providing <code>0</code>). If omitted, this parameter defaults to <code>0</code>.</li><li><strong><code>maxDepth</code></strong>: The <em>maximum depth of the traversal</em>, it must be provided as an <em>integer</em> where <code>0</code> will traverse the graph till the root and greater values will stop the traversal at the according level; if you provide <code>null</code>, the parameter will be ignored (equivalent to providing <code>0</code>). If omitted, this parameter defaults to <code>0</code>.</li></ul><p>All parameters are optional, if omitted, they will be set to their default values.</p>"
@@ -729,27 +750,6 @@
     },
     "description" : {
       "ISO:639:3:eng" : "The service is used to activate a user created with the sign up service, the user creation process works as follows:<ul><li>The user <em>manager</em> creates the user with the <em>sign up</em> service which returns a <em>token</em> which encodes the user properties.</li><li>The client sends a message to the user containing a link that embeds the token: the user presses the link that is transmitted to the client.</li><li>The client receives the token, decodes it and presents the <em>sign in</em> form to the user.</li><li>The signin form is processed by this service which removes the <em>pending status</em> from the user record which activates it and logs in the user.</li></ul><p>The service expects the following information in the request POST body:</p><ul><li><strong><code>token</code></strong>: the user authentication <em>token</em> string.</li><li><strong><code>data</code></strong>: the sign in <em>form contents</em> object which should include the following properties:</li><ul><li><strong><code>username</code></stromg>: the user code.</li><li><strong><code>password</code></stromg>: the user password.</li><li><strong><code>name</code></stromg>: the user full name.</li><li><strong><code>email</code></stromg>: the user e-mail address.</li><li><strong><code>language</code></stromg>: the user preferred language code.</li></ul></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the updated user object.</p>"
-    }
-  },
-  {
-    "_key" : "s:user:login",
-    "body" : {
-      "ISO:639:3:eng" : "Provide the user credentials:<ul><li><strong>username</strong>: the user code (<em>string</em>).<li><strong>password</strong>: the user password (<em>string</em>).</ul>"
-    },
-    "response" : {
-      "ISO:639:3:eng" : "<p>The service will return an object, <code>{ result : value }</code>, in which <code>value</code> will be the user record.</p><p>If the user cannot be logged in, the service will return an error:<ul><li><code>404</code>: this error means that the user could not be found.<li><code>403</code>: this error means that the authentication failed.<li><code>500</code>: all other errors are expected to be unforeseen.</ul></p>"
-    },
-    "description" : {
-      "ISO:639:3:eng" : "<p>The service can be used to login a user, it expects two parameters: <code>username</code>, which represents the user identification code and <code>password</code>, which represents the user credentials password.</p><p>If the service succeeds to locate the user and validate its credentials, it will return an object, <code>{ result : value }</code>, where <code>value</code> will contain the user record; in all other cases the service will return an error.</p>"
-    }
-  },
-  {
-    "_key": "s:user:logout",
-    "response": {
-      "ISO:639:3:eng": "If there was a previous session user, the service will return an object, <code>{ result : value }</code>, in which <code>value</code> will be the previous user record, or <code>null</code>, if there was no current session user."
-    },
-    "description": {
-      "ISO:639:3:eng": "The service can be used to logout the current session user, will return an object, <code>{ result : value }</code>, where <code>value</code> will contain the previous session user record, or <code>null</code>, if no user was previously logged in."
     }
   },
   {

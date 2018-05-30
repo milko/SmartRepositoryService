@@ -93,6 +93,84 @@ router.get( '/user', Handlers.user, 'user' )
 
 
 /**
+ * Login
+ *
+ * The service will login a user.
+ *
+ * The service expects the following parameters in the body:
+ * 	- username:	The user code.
+ * 	- password:	The user password.
+ *
+ * The service will login the user, set the user _id in the session, set the user
+ * record in the request and return the user record; if the user cannot be
+ * authenticated:
+ * 	- User not found: a 404 exception.
+ * 	- Invalid credentials: a 403 exception.
+ *
+ * If the user is found, the service will return the object
+ * { result : <user record> }; the record will be stripped of the _id, _rev, _oldRev
+ * and the authentication data.
+ *
+ * @path		/user/login
+ * @verb		post
+ * @request		{Object}	Authentication parameters from body.
+ * @response	{Object}	The current user record, or exception.
+ */
+router.post( '/user/login', Handlers.login, 'login' )
+	.body(
+		require( '../models/session/login' ),
+		Application.getServiceDescription(
+			'session', 'login', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/session/login' ),
+		Application.getServiceDescription(
+			'session', 'login', 'response', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		404,
+		'User not found.'
+	)
+	.response(
+		403,
+		'Invalid credentials.'
+	)
+	.summary(
+		"Login user"
+	)
+	.description(
+		Application.getServiceDescription(
+			'session', 'login', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Logout
+ *
+ * The service will logout the current user and return the former user record;
+ * if there was no former user, the service will return a null 'username' property.
+ *
+ * @path		/user/logout
+ * @verb		get
+ * @response	{Object}	Former user record.
+ */
+router.get( '/user/logout', Handlers.logout, 'logout' )
+	.response(
+		200,
+		require( '../models/session/user' ),
+		Application.getServiceDescription(
+			'session', 'logout', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Logout current user"
+	)
+	.description(dd`
+  Logout and return former current user.
+`);
+
+
+/**
  * Current user hierarchy
  *
  * This service will return the current session user hierarchy as an array, starting
