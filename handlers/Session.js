@@ -83,7 +83,7 @@ module.exports = {
 	 * @param theResponse	{Object}	The current response.
 	 * @returns {Object}				The object { result : <user>|null }.
 	 */
-	hierarchy : ( theRequest, theResponse ) =>
+	managers : ( theRequest, theResponse ) =>
 	{
 		//
 		// Init result.

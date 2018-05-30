@@ -119,7 +119,7 @@ router.get( '/user', Handlers.user, 'user' )
  * @verb		post
  * @response	{Object}	{ result : <current user hierarchy> }.
  */
-router.post( '/user/managers', Handlers.hierarchy, 'managers' )
+router.post( '/user/managers', Handlers.managers, 'managers' )
 	.body(
 		require( '../models/session/hierarchy' ),
 		Application.getServiceDescription(

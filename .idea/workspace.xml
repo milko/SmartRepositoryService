@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/data/messages.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/messages.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/handlers/Session.js" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/Session.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routes/session.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/session.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -60,8 +59,26 @@
       <file leaf-file-name="Session.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/handlers/Session.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="341">
-              <caret line="96" column="9" lean-forward="true" selection-start-line="96" selection-start-column="9" selection-end-line="96" selection-end-column="9" />
+            <state relative-caret-position="407">
+              <caret line="85" column="9" selection-start-line="85" selection-start-column="4" selection-end-line="85" selection-end-column="12" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="User.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/routes/test/User.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1097">
+              <caret line="623" column="5" selection-start-line="623" selection-start-column="5" selection-end-line="623" selection-end-column="5" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Constants.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/utils/Constants.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="299">
+              <caret line="191" column="12" selection-start-line="191" selection-start-column="12" selection-end-line="191" selection-end-column="12" />
             </state>
           </provider>
         </entry>
@@ -75,18 +92,13 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="messages.json" pinned="false" current-in-tab="true">
+      <file leaf-file-name="messages.json" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/data/messages.json">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="455">
               <caret line="662" column="32" selection-start-line="662" selection-start-column="32" selection-end-line="662" selection-end-column="32" />
             </state>
           </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="login.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/models/user/login.js">
-          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
     </leaf>
@@ -288,18 +300,18 @@
       <workItem from="1527530756830" duration="4833000" />
       <workItem from="1527581622494" duration="9962000" />
       <workItem from="1527629417628" duration="2389000" />
-      <workItem from="1527665568501" duration="2863000" />
+      <workItem from="1527665568501" duration="3107000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="63096000" />
+    <option name="totallyTimeSpent" value="63340000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1186" height="1001" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4937571" visible="true" weight="0.3553648" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4937571" visible="true" weight="0.3553648" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
@@ -325,13 +337,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/classes/Form.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="585">
-          <caret line="39" column="13" selection-start-line="39" selection-start-column="13" selection-end-line="39" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/classes/User.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="15450">
@@ -435,13 +440,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/Constants.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="243">
-          <caret line="350" column="28" selection-start-line="350" selection-start-column="12" selection-end-line="350" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/schema/schemaEnumList.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-394" />
@@ -513,13 +511,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/routes/test/User.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="785">
-          <caret line="769" column="22" selection-start-line="769" selection-start-column="22" selection-end-line="769" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/routes/user.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="4395">
@@ -576,13 +567,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/handlers/Session.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="341">
-          <caret line="96" column="9" lean-forward="true" selection-start-line="96" selection-start-column="9" selection-end-line="96" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/session/hierarchy.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="330">
@@ -601,6 +585,34 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="455">
           <caret line="662" column="32" selection-start-line="662" selection-start-column="32" selection-end-line="662" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/handlers/Session.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="407">
+          <caret line="85" column="9" selection-start-line="85" selection-start-column="4" selection-end-line="85" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/test/User.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1097">
+          <caret line="623" column="5" selection-start-line="623" selection-start-column="5" selection-end-line="623" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/paw/Services.paw">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="178">
+          <caret line="120" column="673" selection-start-line="120" selection-start-column="673" selection-end-line="120" selection-end-column="673" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/Constants.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="299">
+          <caret line="191" column="12" selection-start-line="191" selection-start-column="12" selection-end-line="191" selection-end-column="12" />
         </state>
       </provider>
     </entry>
