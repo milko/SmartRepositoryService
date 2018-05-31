@@ -112,7 +112,8 @@ router.post
 				request,
 				request.body.user,
 				grp,
-				man
+				man,
+				request.body.immute
 			);
 			
 			//
@@ -129,8 +130,9 @@ router.post
 			//
 			// Resolve user.
 			//
+			let resolved = null;
 			if( request.body.resolve )
-				user.resolve(
+				resolved = user.resolve(
 					request.body.replace,
 					request.body.raise
 				);
@@ -147,28 +149,32 @@ router.post
 				);
 			
 			//
-			// Create authorisation data.
-			//
-			if( ! user.persistent )
-			{
-				const data = {};
-				const auth = createAuth();
-				data[ Dict.descriptor.kAuthData ] =
-					auth.create( "secret" );
-				user.loadDocumentData( data, true, false );
-			}
-			
-			//
 			// Insert user.
 			//
-			if( ! user.persistent )
-			{
-				user.insert();
-				inserted = true;
-			}
+			let inserted = null;
+			if( request.body.insert )
+				inserted = user.insert( "secret" );
+			
+			//
+			// Save identifier.
+			//
+			const id = user.document._id;
+			
+			//
+			// Replace user.
+			//
+			let replaced = null;
+			if( request.body.replace )
+				replaced = user.replace( true, "secret" );
+			
+			//
+			// Remove user.
+			//
+			let removed = null;
+			if( request.body.remove )
+				removed = user.remove();
 			
 			response.send({
-				inserted : inserted,
 				group : user.group,
 				manager : user.manager,
 				collection : user.collection,
@@ -177,6 +183,10 @@ router.post
 				revised : user.revised,
 				hasManaged : user.hasManaged(),
 				manages : user.managed,
+				id : id,
+				resolved : resolved,
+				inserted : inserted,
+				replaced : replaced,
 				user : user.document,
 				time : time() - stamp
 			});
@@ -212,6 +222,7 @@ router.post
 			),
 			manager : Joi.alternatives().try(
 				Joi.string(),
+				Joi.object(),
 				null
 			),
 			data	: Joi.alternatives().try(

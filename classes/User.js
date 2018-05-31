@@ -67,11 +67,11 @@ class User extends Document
 	 * When resolving these two parameters, if any of the provided references conflict
 	 * with the values in the database, the method will raise an exception.
 	 *
-	 * @param theRequest	{Object}			The current request.
-	 * @param theReference	{String}|{Object}	The document reference or object.
-	 * @param theGroup		{String}|{null}		The user group reference.
-	 * @param theManager	{String}|{null}		The user manager reference.
-	 * @param isImmutable	{Boolean}			True, instantiate immutable document.
+	 * @param theRequest	{Object}					The current request.
+	 * @param theReference	{String}|{Object}			The document reference or object.
+	 * @param theGroup		{String}|{Object}|{null}	The user group reference.
+	 * @param theManager	{String}|{Object}|{null}	The user manager reference.
+	 * @param isImmutable	{Boolean}					True, instantiate immutable document.
 	 */
 	constructor(
 		theRequest,
@@ -792,8 +792,8 @@ class User extends Document
 	 *
 	 * The method will return the group _id, or null, if the provided parameter was null.
 	 *
-	 * @param theGroup	{String}|{null}	The group reference.
-	 * @returns {String}|{null}			The group _id, or null.
+	 * @param theGroup	{String}|{Object}|{null}	The group reference.
+	 * @returns {String}|{null}						The group _id, or null.
 	 */
 	resolveGroupReference( theGroup )
 	{
@@ -964,8 +964,8 @@ class User extends Document
 	 * The method will return the manager _id, or null, if the provided parameter was
 	 * null.
 	 *
-	 * @param theManager	{String}|{null}	The manager reference.
-	 * @returns {String}|{null}				The manager _id, or null.
+	 * @param theManager	{String}|{Object}|{null}	The manager reference.
+	 * @returns {String}|{null}							The manager _id, or null.
 	 */
 	resolveManagerReference( theManager )
 	{
@@ -979,6 +979,8 @@ class User extends Document
 			// Will raise an exception if not found.
 			//
 			const manager = new User( this._request, theManager );
+			if( ! manager.persistent )
+				manager.resolve( false, true );
 			
 			return manager.document._id;											// ==>
 		}
