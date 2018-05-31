@@ -698,7 +698,7 @@ class User extends Document
 		const selector = {};
 		selector._from = this._document._id;
 		selector[ Dict.descriptor.kPredicate ] =
-			`${this.defaultCollection()}/${Dict.term.kPredicateGroupedBy}`;
+			`terms/${Dict.term.kPredicateGroupedBy}`;
 		
 		//
 		// Resolve selector.
@@ -845,7 +845,7 @@ class User extends Document
 		const selector = {};
 		selector._from = this._document._id;
 		selector[ Dict.descriptor.kPredicate ] =
-			`${this.defaultCollection()}/${Dict.term.kPredicateManagedBy}`;
+			`terms/${Dict.term.kPredicateManagedBy}`;
 		
 		//
 		// Resolve selector.
@@ -934,7 +934,6 @@ class User extends Document
 					)
 				);																// !@! ==>
 			
-/*
 			//
 			// Handle required manager.
 			// Only system administrator can have no manager.
@@ -950,7 +949,6 @@ class User extends Document
 						500										// HTTP error code.
 					)
 				);																// !@! ==>
-*/
 		
 		}	// Edge not found.
 		

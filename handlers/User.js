@@ -104,9 +104,11 @@ module.exports = {
 			if( ! data.hasOwnProperty( Dict.descriptor.kUsername ) )
 				data[ Dict.descriptor.kUsername ] =
 					data[ Dict.descriptor.kEmail ];
+/*
 			if( ! data.hasOwnProperty( Dict.descriptor.kLanguage ) )
 				data[ Dict.descriptor.kLanguage ] =
 					module.context.configuration.defaultLanguage;
+*/
 			data[ Dict.descriptor.kStatus ] = Dict.term.kStateStatusPending;
 			
 			//
@@ -128,9 +130,11 @@ module.exports = {
 			//
 			// Create authorisation data.
 			//
+/*
 			const auth = createAuth();
 			data[ Dict.descriptor.kAuthData ] =
 				auth.create( encode[ Dict.descriptor.kPassword ] );
+*/
 			
 			//
 			// Instantiate user.
@@ -147,7 +151,7 @@ module.exports = {
 			//
 			// Insert user.
 			//
-			user.insert();
+			user.insert( encode[ Dict.descriptor.kPassword ] );
 			
 			//
 			// Return response.
@@ -212,7 +216,7 @@ module.exports = {
 			//
 			// Decode token.
 			//
-			const data = Application.decode(
+			const decoded = Application.decode(
 				Application.userAuthentication( false ).key,
 				theRequest.body.encoded
 			);
@@ -220,13 +224,14 @@ module.exports = {
 			//
 			// Save and remove password.
 			//
-			const token_pass = data[ Dict.descriptor.kPassword ];
-			delete data[ Dict.descriptor.kPassword ];
+			const token_password = decoded[ Dict.descriptor.kPassword ];
+			delete decoded[ Dict.descriptor.kPassword ];
 			
 			//
 			// Get user.
+			// The decoded token has now only the username.
 			//
-			const user = new User( theRequest, data );
+			const user = new User( theRequest, decoded );
 			
 			//
 			// Check user.
@@ -238,17 +243,17 @@ module.exports = {
 						'AuthFailed',						// Error name.
 						K.error.UserNotFound,				// Error code.
 						theRequest.application.language,	// Error language.
-						data.username						// Error data.
+						decoded.username						// Error data.
 					)
 				);																// !@! ==>
 			
 			//
-			// Check credentials.
+			// Check signup credentials.
 			//
 			const auth = createAuth();
 			const valid = auth.verify(
 				user.document[ Dict.descriptor.kAuthData ],
-				token_pass );
+				token_password );
 			if( ! valid )
 				theResponse.throw(
 					403,
@@ -459,10 +464,10 @@ module.exports = {
 			form.validate( theRequest, theRequest.body.data );
 			
 			//
-			// Save user password.
+			// Save and remove user password from uaser record.
 			// User password is required when signin in.
 			//
-			const user_pass = theRequest.body.data[ Dict.descriptor.kPassword ];
+			const password_user = theRequest.body.data[ Dict.descriptor.kPassword ];
 			delete theRequest.body.data[ Dict.descriptor.kPassword ];
 			
 			//
@@ -501,15 +506,6 @@ module.exports = {
 					)
 				);																// !@! ==>
 			
-/*
-			//
-			// Create authorisation data.
-			//
-			auth = createAuth();
-			user.document[ Dict.descriptor.kAuthData ] =
-				auth.create( user_pass );
-*/
-			
 			//
 			// Remove status.
 			//
@@ -518,7 +514,7 @@ module.exports = {
 			//
 			// Replace user.
 			//
-			user.replace( true, user_pass );
+			user.replace( true, password_user );
 			
 			//
 			// Login user.
