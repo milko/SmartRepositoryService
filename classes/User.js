@@ -820,8 +820,8 @@ class User extends Document
 	 *
 	 * If no edge matches the selection and a manager is set in the object, the method
 	 * will raise an exception, because the resolved and existing managers do not
-	 * match (and it will also raise an exception if the current user is not the system
-	 * administrator, since only that user does not have a manager)???.
+	 * match and it will also raise an exception if the current user is not the system
+	 * administrator, since only that user does not have a manager.
 	 *
 	 * The method is called by resolve() which will call it only if the user was
 	 * resolved, this means that the method expects the user to have all its identifiers.

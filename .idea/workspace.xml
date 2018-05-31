@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/User.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/User.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dictionary/Dict.js" beforeDir="false" afterPath="$PROJECT_DIR$/dictionary/Dict.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handlers/User.js" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/User.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -71,8 +67,8 @@
       <file leaf-file-name="User.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/classes/User.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="462">
-              <caret line="944" column="52" lean-forward="true" selection-start-line="944" selection-start-column="52" selection-end-line="944" selection-end-column="52" />
+            <state relative-caret-position="160">
+              <caret line="823" column="66" selection-start-line="823" selection-start-column="66" selection-end-line="823" selection-end-column="66" />
             </state>
           </provider>
         </entry>
@@ -343,24 +339,24 @@
       <workItem from="1527751662380" duration="30668000" />
       <workItem from="1527786469601" duration="766000" />
       <workItem from="1527787338213" duration="112000" />
-      <workItem from="1527787486887" duration="3658000" />
+      <workItem from="1527787486887" duration="3781000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="127084000" />
+    <option name="totallyTimeSpent" value="127207000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="384" y="23" width="1184" height="1176" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4876894" visible="true" weight="0.35597593" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4876894" visible="true" weight="0.35597593" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info anchor="bottom" id="Run" order="2" />
-      <window_info active="true" id="Structure" order="1" sideWeight="0.5123106" side_tool="true" visible="true" weight="0.35597593" />
+      <window_info id="Structure" order="1" sideWeight="0.5123106" side_tool="true" visible="true" weight="0.35597593" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
@@ -649,8 +645,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/User.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="462">
-          <caret line="944" column="52" lean-forward="true" selection-start-line="944" selection-start-column="52" selection-end-line="944" selection-end-column="52" />
+        <state relative-caret-position="160">
+          <caret line="823" column="66" selection-start-line="823" selection-start-column="66" selection-end-line="823" selection-end-column="66" />
         </state>
       </provider>
     </entry>
