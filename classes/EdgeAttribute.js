@@ -75,73 +75,33 @@ class EdgeAttribute extends Edge
 	}	// loadDocumentProperty
 	
 	/**
-	 * Load computed fields
+	 * Compute edge key.
 	 *
-	 * Here we set the _key property and raise an exception if the existing and
-	 * computed _key don't match.
+	 * We overload this method by hashing the _from, _to, predicate and the flattened
+	 * attributes list properties, separated by a tab character, the resulting MD5
+	 * hash will be returned by this method.
 	 *
-	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
-	 * 									(defaults to true).
-	 * @returns {Boolean}				True if valid.
+	 * @returns {String}	The edge _key.
 	 */
-	loadComputedProperties( doAssert = true )
+	computeKey()
 	{
 		//
-		// Check if significat fields are there.
-		// Will raise an exception if false.
+		// Collect hash fields.
 		//
-		if( this.hasSignificantFields( doAssert ) )
-		{
-			//
-			// Create hash fields.
-			// All fields are expected to have been set.
-			//
-			const hash = [];
-			hash.push( this._document._from );
-			hash.push( this._document._to );
-			hash.push( this._document[ Dict.descriptor.kPredicate ] );
-			
-			//
-			// Get key.
-			//
-			const key =
-				crypto.md5(
-					hash.concat(
-						this._document[ Dict.descriptor.kAttributes ]
-					).join( "\t" ) );
-			
-			//
-			// Check key.
-			//
-			if( this._document.hasOwnProperty( '_key' )
-			 && (key !== this._document._key) )
-			{
-				if( doAssert )
-					throw(
-						new MyError(
-							'AmbiguousDocumentReference',			// Error name.
-							K.error.KeyMismatch,					// Message code.
-							this._request.application.language,		// Language.
-							[ this._document._key, key ],			// Arguments.
-							409										// HTTP error code.
-						)
-					);															// !@! ==>
-				
-				return false;
-			}
-			
-			//
-			// Set key.
-			//
-			this._document._key = key;
-			
-			return true;															// ==>
-			
-		}	// Has significant fields.
+		const hash = [];
+		hash.push( this._document._from );
+		hash.push( this._document._to );
+		hash.push( this._document[ Dict.descriptor.kPredicate ] );
 		
-		return false;																// ==>
+		return(
+			crypto.md5(
+				hash.concat(
+					this._document[ Dict.descriptor.kAttributes ]
+				).join( "\t" )
+			)
+		);																			// ==>
 		
-	}	// loadComputedProperties
+	}	// computeKey
 	
 	/**
 	 * Normalise object properties
@@ -160,13 +120,22 @@ class EdgeAttribute extends Edge
 	/**
 	 * Return list of significant fields
 	 *
-	 * In this class we return the node references, the predicate and the attributes
-	 * array.
+	 * In the Edge class family there must be only one combination of significant
+	 * fields, in this class we call the parent method and add the attributes array.
 	 */
 	getSignificantFields()
 	{
-		return super.getSignificantFields()
-			.concat( [ Dict.descriptor.kAttributes ] );								// ==>
+		//
+		// Get default properties.
+		//
+		const selectors = super.getSignificantFields();
+		
+		//
+		// Add attributes to first, and only, selector.
+		//
+		selectors[ 0 ].push( Dict.descriptor.kAttributes );
+		
+		return selectors;															// ==>
 		
 	}	// getSignificantFields
 	
@@ -181,7 +150,9 @@ class EdgeAttribute extends Edge
 	getRequiredFields()
 	{
 		return super.getRequiredFields()
-			.concat( [ Dict.descriptor.kAttributes ] );								// ==>
+			.concat([
+				Dict.descriptor.kAttributes		// The edge attributes.
+			]);																		// ==>
 		
 	}	// getRequiredFields
 	
@@ -196,7 +167,9 @@ class EdgeAttribute extends Edge
 	getLockedFields()
 	{
 		return super.getLockedFields()
-			.concat( [ Dict.descriptor.kAttributes ] );								// ==>
+			.concat([
+				Dict.descriptor.kAttributes		// The edge attributes.
+			]);																		// ==>
 		
 	}	// getLockedFields
 	

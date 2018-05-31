@@ -62,7 +62,15 @@ router.tag( 'testUser' );
  *
  * 	- user:		Either a user object, or a user reference.
  * 	- group:	The optional user group reference.
- * 	- manager:	The optional user manager reference.
+ * 	- manager:	The optional user manager reference, or omit for current user.
+ * 	- data:		Eventual data for testing modification.
+ * 	- immute:	Immutable object.
+ * 	- before:	If data is provided, set data before resolving, or after.
+ * 	- replace:	If true and provided data, replace existing fields.
+ * 	- raise:	Raise exceptions.
+ * 	- resolve:	True, resolve before modifying.
+ * 	- insert:	True, insert object.
+ * 	- remove:	True, remove object.
  *
  * @path		/instantiate
  * @verb		post
@@ -82,16 +90,15 @@ router.post
 		// Get parameters.
 		//
 		const usr = request.body.user;
-		const grp = ( request.body.hasOwnProperty( 'group' ) ) ? request.body.group : null;
-		
-		//
-		// Handle manager.
-		//
-		let man = null;
-		if( request.body.hasOwnProperty( 'manager' ) )
-			man = request.body.manager;
-		else if( request.session.hasOwnProperty( 'uid' ) )
-			man = request.session.uid;
+		const grp = ( request.body.hasOwnProperty( 'group' ) )
+				  ? request.body.group
+				  : null;
+		const man = ( request.body.hasOwnProperty( 'manager' ) )
+				  ? request.body.manager
+				  : request.session.uid;
+		const dat = ( request.body.hasOwnProperty( 'group' ) )
+				  ? request.body.data
+				  : null;
 		
 		//
 		// Test instantiation.
@@ -101,15 +108,43 @@ router.post
 			//
 			// Instantiate user.
 			//
-			const user = new User( request, usr, grp, man );
+			const user = new User(
+				request,
+				request.body.user,
+				grp,
+				man
+			);
+			
+			//
+			// Set data.
+			//
+			if( (dat !== null)
+			 && request.body.before )
+				user.loadDocumentData(
+					dat,
+					request.body.replace,
+					request.body.raise
+				);
 			
 			//
 			// Resolve user.
 			//
-			const doReplace = false;
-			const doAssert  = false;
-			if( ! user.persistent )
-				user.resolve( doReplace, doAssert );
+			if( request.body.resolve )
+				user.resolve(
+					request.body.replace,
+					request.body.raise
+				);
+			
+			//
+			// Set data.
+			//
+			if( (dat !== null)
+			 && (! request.body.before) )
+				user.loadDocumentData(
+					dat,
+					request.body.replace,
+					request.body.raise
+				);
 			
 			//
 			// Create authorisation data.
@@ -126,7 +161,6 @@ router.post
 			//
 			// Insert user.
 			//
-			let inserted = false;
 			if( ! user.persistent )
 			{
 				user.insert();
@@ -176,7 +210,21 @@ router.post
 				Joi.string(),
 				null
 			),
-			manager : Joi.string()
+			manager : Joi.alternatives().try(
+				Joi.string(),
+				null
+			),
+			data	: Joi.alternatives().try(
+				Joi.object(),
+				null
+			),
+			immute	: Joi.boolean().required(),
+			before	: Joi.boolean().required(),
+			replace	: Joi.boolean().required(),
+			raise	: Joi.boolean().required(),
+			resolve	: Joi.boolean().required(),
+			insert	: Joi.boolean().required(),
+			remove	: Joi.boolean().required()
 		}).required(),
 		"An object with 'user' that contains eother the user structure or a string" +
 		" representing the user reference, 'group' containing the user group reference" +

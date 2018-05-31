@@ -49,7 +49,7 @@ class Edge extends Document
 	 * This method will check if the collection is of the correct type, if that is not
 	 * the case, the method will raise an exception.
 	 *
-	 * In this class we assume a document collection.
+	 * In this class we expect an edge collection.
 	 */
 	checkCollectionType()
 	{
@@ -82,27 +82,19 @@ class Edge extends Document
 	loadComputedProperties( doAssert = true )
 	{
 		//
-		// Check if significat fields are there.
-		// Will raise an exception if false.
+		// Check if significant fields are there.
+		// Note that with the Edge class family there should only be one combination
+		// of significant fields.
 		//
-		if( this.hasSignificantFields( doAssert ) )
+		if( this.hasSignificantFields( doAssert ) !== false )
 		{
-			//
-			// Create hash fields.
-			// All fields are expected to have been set.
-			//
-			const hash = [];
-			hash.push( this._document._from );
-			hash.push( this._document._to );
-			hash.push( this._document[ Dict.descriptor.kPredicate ] );
-			
 			//
 			// Get key.
 			//
-			const key = crypto.md5( hash.join( "\t" ) );
+			const key = this.computeKey();
 			
 			//
-			// Check key.
+			// Assert key conflict.
 			//
 			if( this._document.hasOwnProperty( '_key' )
 			 && (key !== this._document._key) )
@@ -118,7 +110,7 @@ class Edge extends Document
 						)
 					);															// !@! ==>
 				
-				return false;
+				return false;														// ==>
 			}
 			
 			//
@@ -135,16 +127,50 @@ class Edge extends Document
 	}	// loadComputedProperties
 	
 	/**
+	 * Compute edge key.
+	 *
+	 * This method is called by loadComputedProperties() and implements the hashing
+	 * algorythm, derived classes should overload this method rather than
+	 * loadComputedProperties().
+	 *
+	 * The method expects the document to have all the required properties to compute
+	 * the key, hasSignificantFields() must have been called by the caller.
+	 *
+	 * The edge key is computed by hashing the _from, _to and predicate fields
+	 * separated by a tab character, the resulting MD5 hash will be returned by this
+	 * method.
+	 *
+	 * @returns {String}	The edge _key.
+	 */
+	computeKey()
+	{
+		//
+		// Collect hash fields.
+		//
+		const hash = [];
+		hash.push( this._document._from );
+		hash.push( this._document._to );
+		hash.push( this._document[ Dict.descriptor.kPredicate ] );
+
+		return crypto.md5( hash.join( "\t" ) );										// ==>
+	
+	}	// computeKey
+	
+	/**
 	 * Return list of significant fields
 	 *
-	 * In this class we return the node references and the predicate.
+	 * In the Edge class family there must be only one combination of significant
+	 * fields, in this class we override the parent method to return the node references
+	 * and the predicate.
 	 */
 	getSignificantFields()
 	{
 		return [
-			'_from',
-			'_to',
-			Dict.descriptor.kPredicate
+			[
+				'_from',
+				'_to',
+				Dict.descriptor.kPredicate
+			]
 		];																			// ==>
 		
 	}	// getSignificantFields
@@ -152,34 +178,38 @@ class Edge extends Document
 	/**
 	 * Return list of required fields
 	 *
-	 * In this class we return the node references and the predicate.
+	 * In this class we add the node references and the predicate.
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
 	getRequiredFields()
 	{
-		return [
-			'_from',
-			'_to',
-			Dict.descriptor.kPredicate
-		];																			// ==>
+		return super.getRequiredFields()
+			.concat([
+				'_key',						// The edge hash.
+				'_from',					// The source node reference.
+				'_to',						// The destination node reference.
+				Dict.descriptor.kPredicate	// The predicate reference.
+			]);																		// ==>
 		
 	}	// getRequiredFields
 	
 	/**
 	 * Return list of locked fields
 	 *
-	 * In this class we return the node references and the predicate.
+	 * In this class we add the node references and the predicate.
 	 *
 	 * @returns {Array}	List of locked fields.
 	 */
 	getLockedFields()
 	{
-		return super.getLockedFields().concat([
-			'_from',
-			'_to',
-			Dict.descriptor.kPredicate
-		]);																			// ==>
+		return super.getLockedFields()
+			.concat([
+				'_key',						// The edge hash.
+				'_from',					// The source node reference.
+				'_to',						// The destination node reference.
+				Dict.descriptor.kPredicate	// The predicate reference.
+			]);																		// ==>
 		
 	}	// getLockedFields
 	

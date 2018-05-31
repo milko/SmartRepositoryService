@@ -350,22 +350,16 @@ module.exports = {
 				);
 			
 			//
-			// Create authorisation data.
+			// Save and remove password.
 			//
-			const auth = createAuth();
-			data[ Dict.descriptor.kAuthData ] =
-				auth.create( data[ Dict.descriptor.kPassword ] );
-			
-			//
-			// Remove password.
-			//
+			const password = data[ Dict.descriptor.kPassword ];
 			delete data[ Dict.descriptor.kPassword ];
 			
 			//
 			// Insert user.
 			//
 			const user = new User( theRequest, data );
-			user.insert();
+			user.insert( password );
 			
 			//
 			// Login user.
@@ -465,7 +459,8 @@ module.exports = {
 			form.validate( theRequest, theRequest.body.data );
 			
 			//
-			// Save password.
+			// Save user password.
+			// User password is required when signin in.
 			//
 			const user_pass = theRequest.body.data[ Dict.descriptor.kPassword ];
 			delete theRequest.body.data[ Dict.descriptor.kPassword ];
@@ -490,7 +485,7 @@ module.exports = {
 				);																// !@! ==>
 			
 			//
-			// Check credentials.
+			// Check signup credentials.
 			//
 			let auth = createAuth();
 			const valid = auth.verify(
@@ -506,12 +501,14 @@ module.exports = {
 					)
 				);																// !@! ==>
 			
+/*
 			//
 			// Create authorisation data.
 			//
 			auth = createAuth();
 			user.document[ Dict.descriptor.kAuthData ] =
 				auth.create( user_pass );
+*/
 			
 			//
 			// Remove status.
@@ -521,7 +518,7 @@ module.exports = {
 			//
 			// Replace user.
 			//
-			user.replace( true );
+			user.replace( true, user_pass );
 			
 			//
 			// Login user.

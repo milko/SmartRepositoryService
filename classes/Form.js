@@ -104,7 +104,8 @@ class Form
 			// Add non-form data values.
 			// ToDo
 			//
-			if( Object.keys( data ).length > 0 )
+			if( K.function.isObject( theData )
+			 && (Object.keys( data ).length > 0) )
 			{
 				//
 				// Prepare last form element.

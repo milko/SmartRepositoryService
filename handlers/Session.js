@@ -350,6 +350,7 @@ module.exports = {
 			
 			//
 			// Instantiate user.
+			// By providing a reference we know the object is persistent.
 			//
 			const user = new User( theRequest, theRequest.session.uid );
 			
@@ -408,6 +409,7 @@ module.exports = {
 			
 			//
 			// Instantiate user.
+			// By providing a reference we know the object is persistent.
 			//
 			const user = new User( theRequest, theRequest.session.uid );
 			

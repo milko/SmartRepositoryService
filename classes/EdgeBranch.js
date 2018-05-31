@@ -58,15 +58,19 @@ class EdgeBranch extends Edge
 	/**
 	 * Return list of required fields
 	 *
-	 * In this class we return the node references, the predicate and the attributes
-	 * array.
+	 * In this class we add the branches array.
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
 	getRequiredFields()
 	{
+		//
+		// Append local properties.
+		//
 		return super.getRequiredFields()
-			.concat( [ Dict.descriptor.kBranches ] );								// ==>
+			.concat([
+				Dict.descriptor.kBranches	// The graph branches.
+			]);																		// ==>
 		
 	}	// getRequiredFields
 	

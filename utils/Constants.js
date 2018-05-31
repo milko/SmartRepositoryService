@@ -262,7 +262,7 @@ module.exports = Object.freeze(
 		// Errors.
 		//
 		error: {
-			MissingCollection	:  1,
+			MissingReqCollection:  1,
 			MissingSession		:  2,
 			UserNotFound		:  3,
 			BadPassword			:  4,
@@ -353,7 +353,11 @@ module.exports = Object.freeze(
 			NoGlobalIdentifier	: 89,
 			DescriptorEmbedded	: 90,
 			DescriptorDefault	: 91,
-			DescriptorStandard	: 92
+			DescriptorStandard	: 92,
+			MissingToResolve	: 93,
+			NoCollection		: 94,
+			BadGroupReference	: 95,
+			BadManagerReference	: 96
 		},
 
 		//

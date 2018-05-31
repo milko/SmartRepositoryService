@@ -5,7 +5,6 @@
 //
 const db = require('@arangodb').db;
 const aql = require('@arangodb').aql;
-const crypto = require('@arangodb/crypto');
 const errors = require('@arangodb').errors;
 const traversal = require("@arangodb/graph/traversal");
 const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
@@ -65,32 +64,38 @@ class User extends Document
 	 * These two parameters should only be provided when instantiating a new non
 	 * persistent object, if the object exists in the database, these can be omitted.
 	 *
-	 * When resolving these two parameters, if any of the references provided as
-	 * parameters conflict with the values in the database, the method will raise an
-	 * exception, there are two dedicated methods to change group and user.
+	 * When resolving these two parameters, if any of the provided references conflict
+	 * with the values in the database, the method will raise an exception.
 	 *
 	 * @param theRequest	{Object}			The current request.
 	 * @param theReference	{String}|{Object}	The document reference or object.
 	 * @param theGroup		{String}|{null}		The user group reference.
 	 * @param theManager	{String}|{null}		The user manager reference.
+	 * @param isImmutable	{Boolean}			True, instantiate immutable document.
 	 */
 	constructor(
 		theRequest,
 		theReference,
 		theGroup = null,
-		theManager = null
+		theManager = null,
+		isImmutable = false
 	)
 	{
 		//
 		// Call parent constructor.
 		// Note that we enforce the users collection.
 		//
-		super( theRequest, theReference, 'users' );
+		super(
+			theRequest,		// Current request.
+			theReference,	// Document reference or user object.
+			null,			// Collection is set by default.
+			isImmutable		// Immutable object.
+		);
 		
 		//
 		// Init local storage.
 		//
-		let reference = null;
+		let reference;
 		
 		//
 		// Resolve group.
@@ -116,8 +121,11 @@ class User extends Document
 	 * We overload this method to resolve the user group and manager.
 	 *
 	 * Note that the parent method will resolve the object according to the
-	 * significant fields in the object: this means that the key field will be the
-	 * user code
+	 * significant fields in the object: this means that the document will be resolved
+	 * using the user code.
+	 *
+	 * Regardless of the doAssert value, if the group or manager cannot be resolved,
+	 * the method will raise an exception: these two references are expected to be valid.
 	 *
 	 * @param doReplace	{Boolean}	Replace existing data (false is default).
 	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
@@ -154,36 +162,63 @@ class User extends Document
 	/**
 	 * Insert object
 	 *
-	 * We overload this method to add the group and manager relationships.
+	 * We overload this method to create the authentication record with the provided
+	 * password and to add the group and manager edges.
+	 *
+	 * The method will proceed as follows:
+	 *
+	 * 	- It will first insert the user document.
+	 * 	- It will then insert the group edge, if provided.
+	 * 	- It will finally insert the manager edge.
+	 * 	- If any of these operations fail, the method will take care of removing the
+	 * 	  user document, the group and manager edges, and will raise an exception.
+	 *
+	 * Note that when inserting the group or the manager edges and there is any error,
+	 * only the newly inserted edges will be deleted.
+	 *
+	 * @param thePassword	{String} The user password.
 	 */
-	insert()
+	insert( thePassword )
 	{
 		//
-		// Set default language.
+		// Init local storage.
 		//
-		if( ! this._document.hasOwnProperty( Dict.descriptor.kLanguage ) )
-			this._document[ Dict.descriptor.kLanguage ] =
-				module.context.configuration.defaultLanguage;
+		let inserted_group = false;
+		let inserted_manager = false;
 		
 		//
-		// Try to insert.
+		// Set authentication record.
+		//
+		this.createAuthentication( thePassword );
+		
+		//
+		// Insert user.
+		// If there is an error, an exception will be raised
+		// before we have a chance of adding group and manager:
+		// this means that any error after this point should trigger
+		// the removal of the user and the eventual group and manager edges.
+		//
+		// This also means that in the remove() method the persistent flag
+		// will determine if the user has to be removed: on errors the persistent flag
+		// will be reset, which means that the parent remove() method will not
+		// proceed; if the user was inserted, the persistent flag will be set.
+		//
+		super.insert();
+		
+		//
+		// Try to insert group and manager.
 		//
 		try
 		{
 			//
-			// Insert current object.
-			//
-			super.insert();
-			
-			//
 			// Insert group relationhip.
 			//
-			this.insertGroup();
+			inserted_group = this.insertGroup();
 			
 			//
 			// Insert manager relationhip.
 			//
-			this.insertManager();
+			inserted_manager = this.insertManager();
 		}
 		catch( error )
 		{
@@ -191,7 +226,7 @@ class User extends Document
 			// Remove current object.
 			// The method will take care of removing eventual group and manager.
 			//
-			this.remove();
+			this.remove( inserted_group, inserted_manager );
 			
 			//
 			// Forward exception.
@@ -205,9 +240,12 @@ class User extends Document
 	 * Insert group relationship
 	 *
 	 * This method will insert the edge relating the current user with its group, if
-	 * the group is missing, the method will do nothing.
+	 * the group was provided.
 	 *
-	 * The method will raise an exception on any error, except for ARANGO_DUPLICATE error.
+	 * The method will raise an exception on any error and return true if the edge was
+	 * inserted.
+	 *
+	 * @returns {Boolean}	True means inserted.
 	 */
 	insertGroup()
 	{
@@ -231,7 +269,11 @@ class User extends Document
 			const edge = new Edge( this._request, doc, 'schemas' );
 			edge.insert();
 			
+			return true;															// ==>
+			
 		}	// Has group.
+		
+		return false;																// ==>
 		
 	}	// insertGroup
 	
@@ -241,7 +283,10 @@ class User extends Document
 	 * This method will insert the edge relating the current user with its manager, if
 	 * the manager is missing, the method will do nothing.
 	 *
-	 * The method will raise an exception on any error, except for ARANGO_DUPLICATE error.
+	 * The method will raise an exception on any error and return true if the edge was
+	 * inserted.
+	 *
+	 * @returns {Boolean}	True means inserted.
 	 */
 	insertManager()
 	{
@@ -265,9 +310,38 @@ class User extends Document
 			const edge = new Edge( this._request, doc, 'schemas' );
 			edge.insert();
 			
+			return true;															// ==>
+			
 		}	// Has manager.
 		
+		return false;																// ==>
+		
 	}	// insertManager
+	
+	/**
+	 * Replace
+	 *
+	 * We overload this method to provide the new password: if null, the
+	 * authentication record will not be changed; if provided, the authentication
+	 * record will be updated.
+	 *
+	 * @param doRevision	{Boolean}		If true, check revision (default).
+	 * @param thePassword	{String}|{null}	If provided, update authentication data.
+	 * @returns {Boolean}	True replaced, false not found, null not persistent.
+	 */
+	replace( doRevision = true, thePassword = null )
+	{
+		//
+		// If persistent and provided password,
+		// update authentication record.
+		//
+		if( this._persistent
+		 && (thePassword !== null) )
+			this.createAuthentication( thePassword );
+		
+		return super.replace( doRevision );											// ==>
+		
+	}	// replace
 	
 	/**
 	 * Remove object
@@ -275,8 +349,6 @@ class User extends Document
 	 * This method will remove the current document from the database, it will first
 	 * remove the user, then the eventual group relationship and finally the manager
 	 * relationship and will return true, if the document exists, or false if it doesn't.
-	 *
-	 * Any exception, except the ARANGO_NOT_FOUND error, will be forwarded.
 	 *
 	 * If the current document revision is different than the existing document
 	 * revision, the method will raise an exception.
@@ -287,30 +359,50 @@ class User extends Document
 	 * If the current user manages other users, but has no manager, the method will
 	 * raise an exception.
 	 *
+	 * The method expects two parameters that were passed by the insertDocument()
+	 * method, these two flags indicate whether the group or manager edges were
+	 * inserted: these are necessary in cases where the insert procedure finds an
+	 * existing edge, removing it might corrupt the database structure.
+	 *
+	 * @param doGroup	{Boolean}	If true, remove group (default).
+	 * @param doManager	{Boolean}	If true, remove manager (default)
 	 * @returns {Boolean}	True removed, false not found, null not persistent.
 	 */
-	remove()
+	remove( doGroup = true, doManager = true )
 	{
 		//
 		// Call parent method.
-		// And forward exceptions.
-		// And exit if the current document doesn't exist
-		// or if the object is not persistent.
+		// The parent method will proceed only if the user is persistent:
+		// if this method was called by insert(), it will proceed only if
+		// the user was actually inserted or if it exists.
 		//
 		const result = super.remove();
+		
+		//
+		// Remove group and manager.
+		// Only if the user has been removed or exists.
+		//
 		if( result === true )
 		{
 			//
 			// Remove group relationship.
 			// Should not fail.
+			// When called by insert(), the doGroup flag indicates whether
+			// the group edge was inserted, if that is not the case, the
+			// group edge might already exist and should not be removed.
 			//
-			this.removeGroup();
+			if( doGroup )
+				this.removeGroup();
 			
 			//
-			// Remove manager relationship.
+			// Remove group relationship.
 			// Should not fail.
+			// When called by insert(), the doGroup flag indicates whether
+			// the group edge was inserted, if that is not the case, the
+			// group edge might already exist and should not be removed.
 			//
-			this.removeManager();
+			if( doManager )
+				this.removeManager();
 			
 		}	// Removed current document.
 		
@@ -345,12 +437,20 @@ class User extends Document
 			const selector = {};
 			selector._from = this._document._id;
 			selector._to   = this.group;
-			selector[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateGroupedBy}`;
+			selector[ Dict.descriptor.kPredicate ] =
+				`terms/${Dict.term.kPredicateGroupedBy}`;
 			
 			//
-			// Remove.
+			// Instantiate edge.
 			//
 			const edge = new Edge( this._request, selector, 'schemas' );
+			
+			//
+			// Resolve edge.
+			// We resolve the edge without raising exceptions,
+			// if the edge exists we remove it and return the status,
+			// if not, we return false.
+			//
 			if( edge.resolve( false, false ) === true )
 				return edge.remove();												// ==>
 			
@@ -369,9 +469,9 @@ class User extends Document
 	 *
 	 * If the edge was not found, the method will not raise an exception.
 	 *
-	 * Uf the current user manages other users, these will be transferred under the
+	 * If the current user manages other users, these will be transferred under the
 	 * current user's manager, note that if we get here it is guaranteed that the user
-	 * has a manager..
+	 * has a manager.
 	 *
 	 * Note: this method will be called only if the user is persistent, therefore it
 	 * is guaranteed that the user _id exists.
@@ -389,29 +489,38 @@ class User extends Document
 		if( this.hasOwnProperty( 'manager' ) )
 		{
 			//
-			// Init local storage.
+			// Prepare managed users selector.
 			//
 			const selector = {};
+			selector._to = this._document._id;
+			selector[ Dict.descriptor.kPredicate ] =
+				`terms/${Dict.term.kPredicateManagedBy}`;
 			
 			//
 			// Select managed.
 			//
-			selector._to = this._document._id;
-			selector[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateManagedBy}`;
 			const managed = db._collection( 'schemas' ).byExample( selector ).toArray();
 			
 			//
-			// Iterate relationships.
+			// Transfer managed to current object's manager,
+			// and remove managed relationships to current user.
 			//
 			for( const edge of managed )
 			{
+				//
+				// ToDo
+				// When removing the edges, a revision mismatch will trigger an exception,
+				// this will corrupt the database.
+				// A solution should be devised to prevent this from happening.
+				//
+				
 				//
 				// Remove relationship to current user.
 				//
 				db._remove( edge );
 				
 				//
-				// Clean.
+				// Remove identifiers and revision.
 				//
 				delete edge._id;
 				delete edge._key;
@@ -423,18 +532,48 @@ class User extends Document
 				edge._to = this.manager;
 				
 				//
-				// Save new relationship.
+				// Instantiate edge.
 				//
 				const new_edge = new Edge( this._request, edge, 'schemas' );
-				new_edge.insert();
+				
+				//
+				// ToDo
+				// If the edge already exists, we do not attempt to insert it,
+				// this case obviously indicates a database structure corruption.
+				// A solution should be devised to prevent this from happening.
+				//
+				
+				//
+				// Resolve edge.
+				// We resolve the edge without raising exceptions,
+				// if the edge doesn't exist we insert it,
+				// if it does, we do nothing.
+				//
+				if( new_edge.resolve( false, false ) !== true )
+					new_edge.insert();
 			}
 			
 			//
-			// Remove manager.
+			// Prepare managed users selector.
 			//
 			selector._from = this._document._id;
 			selector._to   = this.manager;
+			
+			//
+			// Instantiate edge.
+			//
 			const old_edge = new Edge( this._request, selector, 'schemas' );
+			
+			//
+			// ToDo
+			// If the manager doesn't exist it either means the user is the
+			// administrator, or it means that the database is corrupt.
+			// A solution should be devised to clarify this case.
+			//
+			
+			//
+			// Remove manager relationship if it exists.
+			//
 			if( old_edge.resolve( false, false ) === true )
 				return old_edge.remove();											// ==>
 			
@@ -466,7 +605,7 @@ class User extends Document
 	 * This method will check if the collection is of the correct type, if that is not
 	 * the case, the method will raise an exception.
 	 *
-	 * In this class we assume a document collection.
+	 * In this class we expect a document collection.
 	 */
 	checkCollectionType()
 	{
@@ -487,125 +626,160 @@ class User extends Document
 	}	// checkCollectionType
 	
 	/**
+	 * Return default collection name
+	 *
+	 * We override this method to force the users collection.
+	 *
+	 * @returns {String}|{null}	The default collection name.
+	 */
+	defaultCollection()
+	{
+		return 'users';																// ==>
+		
+	}	// defaultCollection
+	
+	/**
+	 * Load computed fields
+	 *
+	 * We overload this method to set the preferred language to the default
+	 * application language if the property is missing.
+	 *
+	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
+	 * 									(defaults to true).
+	 * @returns {Boolean}				True if valid.
+	 */
+	loadComputedProperties( doAssert = true )
+	{
+		//
+		// Set default language.
+		//
+		if( ! this._document.hasOwnProperty( Dict.descriptor.kLanguage ) )
+			this._document[ Dict.descriptor.kLanguage ] =
+				module.context.configuration.defaultLanguage;
+		
+		return true;																// ==>
+		
+	}	// loadComputedProperties
+	
+	/**
 	 * Resolve group edge
 	 *
-	 * This method will attempt to locate the edge holding the current object's _id
-	 * and the member-of predicate.
+	 * This method can be used to set the current user's group relationship, it is
+	 * called when resolving the object and will update the user's group.
 	 *
-	 * If such a document exists, the method will perform the following steps:
+	 * This method will attempt to locate the edge relating the current user with its
+	 * group, if such edge was located, the method will assert if the eventual
+	 * existing group reference matches the found edge: if that is not the case, the
+	 * method will raise an exception; if the current object does not have a group,
+	 * the method will set it.
 	 *
-	 * 	- If the current object has a group, it will compare the found and existing
-	 * 	  values: if these differ, the method will raise an exception; if they are
-	 * 	  equal, the method will return null.
-	 * 	- If the current object does not have a group, the method will set it with the
-	 * 	  found edge's _to reference and return true.
+	 * If more than one edge matches the selection, the method will raise an
+	 * exception, since only one edge should relate a user with a group.
 	 *
-	 * If such document does not exist:
+	 * If no edge matches the selection and a group is set in the object, the method
+	 * will also raise an exception, because the resolved and existing groups do not
+	 * match.
 	 *
-	 * 	- If the persistent flag of the current object is true, the method will raise
-	 * 	  a 500 exception indicating that the database structure is corrupt.
-	 * 	- If the persistent flag of the current object is false, the method will
-	 * 	  return false.
+	 * The method is called by resolve() which will call it only if the user was
+	 * resolved, this means that the method expects the user to have all its identifiers.
 	 *
-	 * If the current object does not yet have a _key, the method will return undefined.
-	 *
-	 * This method is called when resolving the object.
-	 *
-	 * @returns {null}|{true}|{false|{undefined}	The result of the operation.
+	 * The method does not return any value, it either succeeds or it raises an exception.
 	 */
 	resolveGroupEdge()
 	{
 		//
-		// Check if it can resolve.
+		// Init local storage.
 		//
-		if( this._document.hasOwnProperty( '_id' )
-		 || this._document.hasOwnProperty( '_key' ) )
+		const exists = this.hasOwnProperty( 'group' );
+		
+		//
+		// Create selector.
+		//
+		const selector = {};
+		selector._from = this._document._id;
+		selector[ Dict.descriptor.kPredicate ] =
+			`${this.defaultCollection()}/${Dict.term.kPredicateGroupedBy}`;
+		
+		//
+		// Resolve selector.
+		//
+		const cursor = db._collection( 'schemas' ).byExample( selector );
+		
+		//
+		// Handle found.
+		//
+		if( cursor.count() > 0 )
 		{
 			//
-			// Compute _id.
+			// Handle duplicate edge.
 			//
-			const reference = ( this._document.hasOwnProperty( '_id' ) )
-							? this._document._id
-							: `users/${this._document._key}`;
-			
-			//
-			// Resolve.
-			//
-			const example = {};
-			example._from = reference;
-			example[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateGroupedBy}`;
-			const cursor = db._collection( 'schemas' ).byExample( example );
-			
-			//
-			// Handle found.
-			//
-			if( cursor.count() > 0 )
+			if( cursor.count() > 1 )
 			{
 				//
-				// Handle duplicate edge.
+				// Compute signature.
 				//
-				if( cursor.count() > 1 )
-				{
-					//
-					// Compute signature.
-					//
-					const signature = [];
-					for( const field in example )
-						signature.push( `${field} = ${example[field].toString()}` );
-					
+				const signature = [];
+				for( const field in selector )
+					signature.push( `${field} = ${selector[field].toString()}` );
+				
+				throw(
+					new MyError(
+						'DatabaseCorrupt',						// Error name.
+						K.error.DuplicateEdge,					// Message code.
+						this._request.application.language,		// Language.
+						signature.join( ', ' ),					// Arguments.
+						500										// HTTP error code.
+					)
+				);															// !@! ==>
+				
+			}	// Duplicate edge.
+			
+			//
+			// Get group reference.
+			//
+			const group = cursor.toArray()[ 0 ]._to;
+			
+			//
+			// Check current value.
+			//
+			if( exists )
+			{
+				//
+				// Check for conflicts.
+				//
+				if( this.group !== group )
 					throw(
 						new MyError(
-							'DatabaseCorrupt',						// Error name.
-							K.error.DuplicateEdge,					// Message code.
-							this._request.application.language,		// Language.
-							signature.join( ', ' ),					// Arguments.
-							500										// HTTP error code.
+							'UserGroupConflict',				// Error name.
+							K.error.UserGroupConflict,			// Message code.
+							this._request.application.language,	// Language.
+							[ this.group, group ],				// Arguments.
+							409									// HTTP error code.
 						)
 					);															// !@! ==>
-					
-				}	// Duplicate edge.
-				
-				//
-				// Get group reference.
-				//
-				const group = cursor.toArray()[ 0 ]._to;
-				
-				//
-				// Check current value.
-				//
-				if( this.hasOwnProperty( 'group' ) )
-				{
-					//
-					// Check for conflicts.
-					//
-					if( this.group !== group )
-						throw(
-							new MyError(
-								'UserGroupConflict',				// Error name.
-								K.error.UserGroupConflict,			// Message code.
-								this._request.application.language,	// Language.
-								[ this.group, group ],				// Arguments.
-								409									// HTTP error code.
-							)
-						);														// !@! ==>
-					
-					return null;													// ==>
-				}
-				
-				//
-				// Set group.
-				//
-				this.group = group;
-				
-				return true;														// ==>
-				
-			}	// Found edge.
 			
-			return false;															// ==>
+			}	// Has group.
 			
-		}	// Can resolve.
+			//
+			// Set group.
+			//
+			this.group = group;
+			
+		}	// Found edge.
 		
-		return undefined;															// ==>
+		//
+		// Handle existing group and no found group.
+		//
+		else if( exists )
+			throw(
+				new MyError(
+					'UserGroupConflict',				// Error name.
+					K.error.BadGroupReference,			// Message code.
+					this._request.application.language,	// Language.
+					this.group,							// Arguments.
+					409									// HTTP error code.
+				)
+			);																	// !@! ==>
 		
 	}	// resolveGroupEdge
 	
@@ -632,140 +806,153 @@ class User extends Document
 	/**
 	 * Resolve manager edge
 	 *
-	 * This method will attempt to locate the edge holding the current object's _id
-	 * and the managed-by predicate.
+	 * This method can be used to set the current user's manager relationship, it is
+	 * called when resolving the object and will update the user's manager.
 	 *
-	 * If such a document exists, the method will perform the following steps:
+	 * This method will attempt to locate the edge relating the current user with its
+	 * manager, if such edge was located, the method will assert if the eventual
+	 * existing manager reference matches the found edge: if that is not the case, the
+	 * method will raise an exception; if the current object does not have a manager,
+	 * the method will set it.
 	 *
-	 * 	- If the current object has a manager, it will compare the found and existing
-	 * 	  values: if these differ, the method will raise an exception; if they are
-	 * 	  equal, the method will return null.
-	 * 	- If the current object does not have a manager, the method will set it with the
-	 * 	  found edge's _to reference and return true.
+	 * If more than one edge matches the selection, the method will raise an
+	 * exception, since only one edge should relate a user with a manager.
 	 *
-	 * If such document does not exist:
+	 * If no edge matches the selection and a manager is set in the object, the method
+	 * will raise an exception, because the resolved and existing managers do not
+	 * match (and it will also raise an exception if the current user is not the system
+	 * administrator, since only that user does not have a manager)???.
 	 *
-	 * 	- If the persistent flag of the current object is true, the method will raise
-	 * 	  a 500 exception indicating that the database structure is corrupt.
-	 * 	- If the persistent flag of the current object is false, the method will
-	 * 	  return false.
+	 * The method is called by resolve() which will call it only if the user was
+	 * resolved, this means that the method expects the user to have all its identifiers.
 	 *
-	 * If the current object does not yet have a _key, the method will return undefined.
-	 *
-	 * This method is called when resolving the object.
-	 *
-	 * @returns {null}|{true}|{false|{undefined}	The result of the operation.
+	 * The method does not return any value, it either succeeds or it raises an exception.
 	 */
 	resolveManagerEdge()
 	{
 		//
-		// Check if it can resolve.
+		// Load manager name.
+		// Required, to prevent leaking private fields in errors.
 		//
-		if( this._document.hasOwnProperty( '_id' )
-		 || this._document.hasOwnProperty( '_key' ) )
+		let manager_name = null;
+		const exists = this.hasOwnProperty( 'manager' );
+		if( exists )
+			manager_name = db._document( this.manager )[ Dict.descriptor.kName ];
+		
+		//
+		// Create selector.
+		//
+		const selector = {};
+		selector._from = this._document._id;
+		selector[ Dict.descriptor.kPredicate ] =
+			`${this.defaultCollection()}/${Dict.term.kPredicateManagedBy}`;
+		
+		//
+		// Resolve selector.
+		//
+		const cursor = db._collection( 'schemas' ).byExample( selector );
+		
+		//
+		// Handle found.
+		//
+		if( cursor.count() > 0 )
 		{
 			//
-			// Compute _id.
+			// Handle duplicate edge.
 			//
-			const reference = ( this._document.hasOwnProperty( '_id' ) )
-							? this._document._id
-							: `users/${this._document._key}`;
-			
-			//
-			// Resolve.
-			//
-			const example = {};
-			example._from = reference;
-			example[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateManagedBy}`;
-			const cursor = db._collection( 'schemas' ).byExample( example );
-			
-			//
-			// Handle found.
-			//
-			if( cursor.count() > 0 )
+			if( cursor.count() > 1 )
 			{
 				//
-				// Handle duplicate edge.
+				// Compute signature.
 				//
-				if( cursor.count() > 1 )
-				{
-					//
-					// Compute signature.
-					//
-					const signature = [];
-					for( const field in example )
-						signature.push( `${field} = ${example[field].toString()}` );
-					
+				const signature = [];
+				for( const field in selector )
+					signature.push( `${field} = ${selector[field].toString()}` );
+				
+				throw(
+					new MyError(
+						'DatabaseCorrupt',						// Error name.
+						K.error.DuplicateEdge,					// Message code.
+						this._request.application.language,		// Language.
+						signature.join( ', ' ),					// Arguments.
+						500										// HTTP error code.
+					)
+				);															// !@! ==>
+				
+			}	// Duplicate edge.
+			
+			//
+			// Get manager reference.
+			//
+			const manager = cursor.toArray()[ 0 ]._to;
+			const manager_found = db._document( manager )[ Dict.descriptor.kName ];
+			
+			//
+			// Check current value.
+			//
+			if( exists )
+			{
+				//
+				// Check for conflicts.
+				//
+				if( this.manager !== manager )
 					throw(
 						new MyError(
-							'DatabaseCorrupt',						// Error name.
-							K.error.DuplicateEdge,					// Message code.
-							this._request.application.language,		// Language.
-							signature.join( ', ' ),					// Arguments.
-							500										// HTTP error code.
+							'UserManagerConflict',				// Error name.
+							K.error.UserManagerConflict,		// Message code.
+							this._request.application.language,	// Language.
+							[ manager_name, manager_found ],	// Arguments.
+							409									// HTTP error code.
 						)
 					);															// !@! ==>
 				
-				}	// Duplicate edge.
-				
-				//
-				// Get manager reference.
-				//
-				const manager = cursor.toArray()[ 0 ]._to;
-				
-				//
-				// Check current value.
-				//
-				if( this.hasOwnProperty( 'manager' ) )
-				{
-					//
-					// Check for conflicts.
-					//
-					if( this.manager !== manager )
-						throw(
-							new MyError(
-								'UserManagerConflict',				// Error name.
-								K.error.UserManagerConflict,		// Message code.
-								this._request.application.language,	// Language.
-								[ this.manager, manager ],			// Arguments.
-								409									// HTTP error code.
-							)
-						);														// !@! ==>
-					
-					return null;													// ==>
-				}
-				
-				//
-				// Set manager.
-				//
-				this.manager = manager;
-				
-				return true;														// ==>
-			
-			}	// Found edge.
+			}	// Has manager.
 			
 			//
-			// Handle persistent object.
-			// Raise flag only if not Godalmighty.
+			// Set manager.
 			//
-			if( this._persistent
-			 && this._document.hasOwnProperty( Dict.descriptor.kUsername )
-			 && (this._document[ Dict.descriptor.kUsername ] !== module.context.configuration.adminCode) )
+			this.manager = manager;
+			
+		}	// Found edge.
+		
+		//
+		// Handle no manager.
+		//
+		else
+		{
+			//
+			// Handle existing manager and no found manager.
+			//
+			if( exists )
+				throw(
+					new MyError(
+						'UserManagerConflict',				// Error name.
+						K.error.BadManagerReference,		// Message code.
+						this._request.application.language,	// Language.
+						manager_name,						// Arguments.
+						409									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+/*
+			//
+			// Handle required manager.
+			// Only system administrator can have no manager.
+			//
+			else if( this._document[ Dict.descriptor.kUsername ]
+				!== module.context.configuration.adminCode )
 				throw(
 					new MyError(
 						'DatabaseCorrupt',						// Error name.
 						K.error.NoManager,						// Message code.
 						this._request.application.language,		// Language.
-						reference,								// Arguments.
+						this._document[ Dict.descriptor.kName ],
 						500										// HTTP error code.
 					)
 				);																// !@! ==>
-			
-			return false;															// ==>
-			
-		}	// Can resolve.
+*/
 		
-		return undefined;															// ==>
+		}	// Edge not found.
 		
 	}	// resolveManagerEdge
 	
@@ -793,7 +980,7 @@ class User extends Document
 			// Resolve.
 			// Will raise an exception if not found.
 			//
-			const manager = new User( this._request, theManager, this._collection );
+			const manager = new User( this._request, theManager );
 			
 			return manager.document._id;											// ==>
 		}
@@ -823,7 +1010,8 @@ class User extends Document
 		// Note that the previous method must assert the username property.
 		//
 		if( (! this.hasOwnProperty( 'manager' ))
-		 && (this._document[ Dict.descriptor.kUsername ] !== module.context.configuration.adminCode) )
+		 && (this._document[ Dict.descriptor.kUsername ]
+				!== module.context.configuration.adminCode) )
 		{
 			//
 			// Raise exception.
@@ -832,7 +1020,7 @@ class User extends Document
 				throw(
 					new MyError(
 						'IncompleteObject',					// Error name.
-						K.error.MissingField,				// Message code.
+						K.error.MissingUserManager,			// Message code.
 						this._request.application.language,	// Language.
 						'USER MANAGER',						// Arguments.
 						412									// HTTP error code.
@@ -849,8 +1037,20 @@ class User extends Document
 	/**
 	 * Assert if current object is constrained
 	 *
-	 * We overload this method to check whether the current user is a manager, if that
-	 * is the case we return true, or raise an exception.
+	 * This method is called when removing the user, it will check if the current user
+	 * manages other users and if it doesn't have a manager, relevant only for the
+	 * system administrator. If that is the case, we return true, signaling a violated
+	 * constraint, or raise an exception if getMad is true.
+	 *
+	 * When removing a manager user we transfer its managed users under the user's
+	 * manager, to ensure all managed users are still managed. This method will assert
+	 * that if the current user manages other users, it has a manager to transfer
+	 * these relationships: if that is not the case, the method will return true, or
+	 * raise an exception if gotMad.
+	 *
+	 * Note that we first call the inherited method that will return null if the
+	 * object is not persistent or false, if there are no constraints: we only proceed
+	 * if the result of the parent method is false, no constraints.
 	 *
 	 * @param getMad	{Boolean}	True raises an exception (default).
 	 * @returns {Boolean}			True if object is related and null if not persistent.
@@ -858,18 +1058,20 @@ class User extends Document
 	hasConstraints( getMad = true )
 	{
 		//
-		// Check if persistent.
+		// Call parent method and act only
+		// if persistent and has no constraints
 		//
-		if( this._persistent )
+		const result = super.hasConstraints( getMad );
+		if( result === false )
 		{
 			//
-			// Prevent if manages and no manager.
-			// Note we don't check for managed null,
-			// because we know the object is persistent.
+			// Handle manager that has no manager.
+			// Note that we have checked that the user is persistent,
+			// so we are guaranteed the method will return a count
+			// and not null.
 			//
-			const managed = this.hasManaged();
-			if( (managed > 0)
-			 && (! this.hasOwnProperty( 'manager' )) )
+			if( (this.hasManaged() > 0)					// Manages users
+			 && (! this.hasOwnProperty( 'manager' )) )	// and has no manager.
 			{
 				//
 				// Raise exception.
@@ -880,7 +1082,7 @@ class User extends Document
 							'ConstraintViolated',							// Error name.
 							K.error.NoManagerManages,						// Message code.
 							this._request.application.language,				// Language.
-							this._document[ Dict.descriptor.kUsername ],	// Error value.
+							this._document[ Dict.descriptor.kName ],		// Error value.
 							409												// HTTP error code.
 						)
 					);															// !@! ==>
@@ -888,10 +1090,9 @@ class User extends Document
 				return true;														// ==>
 			}
 			
-			return false;															// ==>
-		}
+		}	// Parent has no constraints.
 		
-		return null;																// ==>
+		return result;																// ==>
 		
 	}	// hasConstraints
 	
@@ -927,37 +1128,68 @@ class User extends Document
 	}	// hasManaged
 	
 	/**
+	 * Set user authentication record
+	 *
+	 * This method will set the user authentication record with the provided password.
+	 *
+	 * @param thePassword	{String} The user password.
+	 */
+	createAuthentication( thePassword )
+	{
+		//
+		// Authentication framework.
+		//
+		// const crypto = require('@arangodb/crypto');
+		const createAuth = require('@arangodb/foxx/auth');
+		
+		//
+		// Create authorisation data.
+		//
+		const auth = createAuth();
+		this._document[ Dict.descriptor.kAuthData ] = auth.create( thePassword );
+		
+	}	// createAuthentication
+	
+	/**
 	 * Return list of significant fields
 	 *
-	 * We overload this method to return the user code.
+	 * We override the parent method to return the user code.
 	 *
 	 * @returns {Array}	List of significant fields.
 	 */
 	getSignificantFields()
 	{
-		return [ Dict.descriptor.kUsername ];										// ==>
+		return [
+			[
+				Dict.descriptor.kUsername
+			]
+		];																			// ==>
 		
 	}	// getSignificantFields
 	
 	/**
 	 * Return list of required fields
 	 *
-	 * We overload the method to return the user code, name, e-mail, preferred
+	 * We overload the method to add the user code, name, e-mail, preferred
 	 * language, rank, roles and the authentication record.
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
 	getRequiredFields()
 	{
-		return [
-			Dict.descriptor.kUsername,	// User code.
-			Dict.descriptor.kName,		// User full name.
-			Dict.descriptor.kEmail,		// User e-mail address.
-			Dict.descriptor.kLanguage,	// User preferred language.
-			Dict.descriptor.kRank,		// User rank.
-			Dict.descriptor.kRole,		// User roles.
-			Dict.descriptor.kAuthData	// User authentication record.
-		];																			// ==>
+		//
+		// Append local properties.
+		//
+		return super.getRequiredFields()
+			.concat([
+				Dict.descriptor.kUsername,	// User code.
+				Dict.descriptor.kName,		// User full name.
+				Dict.descriptor.kEmail,		// User e-mail address.
+				Dict.descriptor.kLanguage,	// User preferred language.
+				Dict.descriptor.kRank,		// User rank.
+				Dict.descriptor.kRole,		// User roles.
+				Dict.descriptor.kAuthData	// User authentication record.
+			]);																		// ==>
 		
 	}	// getRequiredFields
 	
@@ -966,13 +1198,16 @@ class User extends Document
 	 *
 	 * This method should return the list of unique properties.
 	 *
-	 * In this class we return the username.
+	 * In this class we add the username.
 	 *
 	 * @returns {Array}	List of unique fields.
 	 */
 	getUniqueFields()
 	{
-		return super.getUniqueFields().concat([ Dict.descriptor.kUsername ]);			// ==>
+		return super.getUniqueFields()
+			.concat([
+				Dict.descriptor.kUsername	// User code.
+			]);																		// ==>
 		
 	}	// getUniqueFields
 	
@@ -985,9 +1220,10 @@ class User extends Document
 	 */
 	getLockedFields()
 	{
-		return super.getLockedFields().concat([
-			Dict.descriptor.kUsername
-		]);																			// ==>
+		return super.getLockedFields()
+			.concat([
+				Dict.descriptor.kUsername	// User code.
+			]);																		// ==>
 		
 	}	// getLockedFields
 	
@@ -1024,8 +1260,7 @@ class User extends Document
 	 * 						the manager users will also lack the roles.
 	 *
 	 * Note that this method assumes the current object to be persistent, if this is
-	 * not the case, the method will return an empty array; this means that unless you
-	 * test for persistence, you will not know if an empty array means no managers.
+	 * not the case, the method will return null.
 	 *
 	 * @returns {Array}	The list of user managers.
 	 */
@@ -1061,7 +1296,7 @@ class User extends Document
 			);																		// ==>
 		}
 		
-		return [];																	// ==>
+		return null;																// ==>
 		
 	}	// managers
 	
@@ -1103,8 +1338,7 @@ class User extends Document
 	 * 						the manager users will also lack the roles.
 	 *
 	 * Note that this method assumes the current object to be persistent, if this is
-	 * not the case, the method will return an empty array; this means that unless you
-	 * test for persistence, you will not know if an empty array means no managers.
+	 * not the case, the method will return null.
 	 *
 	 * @returns {Array}	The list of managed users.
 	 */
@@ -1160,7 +1394,7 @@ class User extends Document
 			);																		// ==>
 		}
 		
-		return [];																	// ==>
+		return null;																// ==>
 		
 	}	// manages
 	
