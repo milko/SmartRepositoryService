@@ -348,7 +348,12 @@ module.exports = Object.freeze(
 			ManagesUsers		: 84,
 			LockedFields		: 85,
 			FormNotFound		: 86,
-			NoManagerManages	: 87
+			NoManagerManages	: 87,
+			NoLocalIdentifier	: 88,
+			NoGlobalIdentifier	: 89,
+			DescriptorEmbedded	: 90,
+			DescriptorDefault	: 91,
+			DescriptorStandard	: 92
 		},
 
 		//
@@ -375,6 +380,13 @@ module.exports = Object.freeze(
 		//
 		pattern: {
 			key			: "/^[a-zA-Z0-9_\\-+=$:;,.@()!*’%\\\\]+$/"
+		},
+		
+		//
+		// Tokens.
+		//
+		token: {
+			idSeparator	: ':'
 		},
 
 		//

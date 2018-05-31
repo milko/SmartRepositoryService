@@ -456,8 +456,6 @@ class Document
 	 *
 	 * This method will set the document class, which is the _key reference of the
 	 * term defining the document class.
-	 *
-	 * In this class there is no defined class, so the value will be null.
 	 */
 	setClass()
 	{

@@ -4,33 +4,270 @@
 // Frameworks.
 //
 const db = require('@arangodb').db;
-const aql = require('@arangodb').aql;
 const errors = require('@arangodb').errors;
-const traversal = require("@arangodb/graph/traversal");
 const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
-const ARANGO_CONFLICT = errors.ERROR_ARANGO_CONFLICT.code;
 
 //
 // Application.
 //
 const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
-const Schema = require( '../utils/Schema' );
 const MyError = require( '../utils/MyError' );
+const Schema = require( '../utils/Schema' );
 const Dictionary = require( '../utils/Dictionary' );
-const Validation = require( '../utils/Validation' );
+
+//
+// Parent.
+//
+const Document = require( './Document' );
+
+//
+// Classes.
+//
+const Edge = require( './Edge' );
 
 
 /**
  * Descriptor class
  *
- * This class implements descriptor helpers.
- *
- * The class expects all required collections to exist.
+ * This class implements a descriptor object.
  */
-class Descriptor
+class Descriptor extends Document
 {
+	/**
+	 * Set class
+	 *
+	 * This method will set the document class, which is the _key reference of the
+	 * term defining the document class.
+	 */
+	setClass()
+	{
+		this._class = 'Descriptor';
+		
+	}	// setClass
+	
+	/**
+	 * Load computed fields
+	 *
+	 * We overload this method to add the validation record.
+	 *
+	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
+	 * 									(defaults to true).
+	 * @returns {Boolean}				True if valid.
+	 */
+	loadComputedProperties( doAssert = true )
+	{
+		//
+		// Call parent method.
+		//
+		if( super.loadComputedProperties( doAssert ) )
+		{
+			//
+			// Compute the global identifier.
+			//
+			const gid = Dictionary.compileGlobalIdentifier( this._document, doAssert );
+			if( gid !== null )
+				this._document[ Dict.descriptor.kGID ] = gid;
+			else
+				return false;														// ==>
+			
+			//
+			// Set validation structure.
+			//
+			this._document[ Dict.descriptor.kValidation ] =
+				Descriptor.getValidationStructure(
+					this._request,
+					Descriptor.getDescriptorValidationRecord(
+						this._request,
+						this._document
+					)
+				);
+			
+			return true;															// ==>
+			
+		}	// Parent method was successful.
+		
+		return false;																// ==>
+		
+	}	// loadComputedProperties
+	
+	/**
+	 * Assert if current object is constrained
+	 *
+	 * This method will check if the current object has constraints that should
+	 * prevent the object from being removed, the method will return true if there is
+	 * a constraint, or it will return false.
+	 *
+	 * If the getMad parameter is true and if the object is constrained, the method will
+	 * raise an exception.
+	 *
+	 * In this class we prevent removing embedded, default and standard descriptors.
+	 *
+	 * This method is called before removing the current object.
+	 *
+	 * @param getMad	{Boolean}	True raises an exception (default).
+	 * @returns {Boolean}			True if object is related and null if not persistent.
+	 */
+	hasConstraints( getMad = true )
+	{
+		//
+		// Check if persistent.
+		//
+		if( this._persistent )
+		{
+			//
+			// Check if embedded.
+			//
+			if( this._document[ Dict.descriptor.kDeploy ]
+				=== Dict.term.kStateApplicationEmbedded )
+			{
+				if( getMad )
+					throw(
+						new MyError(
+							'ConstraintViolated',				// Error name.
+							K.error.DescriptorEmbedded,			// Message code.
+							this._request.application.language,	// Language.
+							this._document._key,				// Error value.
+							409									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return true;														// ==>
+			}
+			
+			//
+			// Check if default.
+			//
+			if( this._document[ Dict.descriptor.kDeploy ]
+				=== Dict.term.kStateApplicationDefault )
+			{
+				if( getMad )
+					throw(
+						new MyError(
+							'ConstraintViolated',				// Error name.
+							K.error.DescriptorDefault,			// Message code.
+							this._request.application.language,	// Language.
+							this._document._key,				// Error value.
+							409									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return true;														// ==>
+			}
+			
+			//
+			// Check if standard.
+			//
+			if( this._document[ Dict.descriptor.kDeploy ]
+				=== Dict.term.kStateApplicationStandard )
+			{
+				if( getMad )
+					throw(
+						new MyError(
+							'ConstraintViolated',				// Error name.
+							K.error.DescriptorStandard,			// Message code.
+							this._request.application.language,	// Language.
+							this._document._key,				// Error value.
+							409									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return true;														// ==>
+			}
+			
+			return false;															// ==>
+		}
+		
+		return null;																// ==>
+		
+	}	// hasConstraints
+	
+	/**
+	 * Return list of significant fields
+	 *
+	 * This method should return the list of properties that will uniquely identify
+	 * the document.
+	 *
+	 * In this class we return the global identifier.
+	 *
+	 * @returns {Array}	List of significant fields.
+	 */
+	getSignificantFields()
+	{
+		return [ Dict.descriptor.kGID ];											// ==>
+		
+	}	// getSignificantFields
+	
+	/**
+	 * Return list of required fields
+	 *
+	 * This method should return the list of required properties.
+	 *
+	 * In this class we return the _key, lid, gid, var, kind, type, format, deploy and
+	 * label.
+	 *
+	 * @returns {Array}	List of required fields.
+	 */
+	getRequiredFields()
+	{
+		return [
+			'_key',
+			Dict.descriptor.kLID,
+			Dict.descriptor.kGID,
+			Dict.descriptor.kVariable,
+			Dict.descriptor.kKind,
+			Dict.descriptor.kType,
+			Dict.descriptor.kFormat,
+			Dict.descriptor.kDeploy,
+			Dict.descriptor.kLabel
+		];																			// ==>
+		
+	}	// getRequiredFields
+	
+	/**
+	 * Return list of unique fields
+	 *
+	 * This method should return the list of unique properties.
+	 *
+	 * In this class we return the key and the global identifier.
+	 *
+	 * @returns {Array}	List of unique fields.
+	 */
+	getUniqueFields()
+	{
+		return super.getUniqueFields().concat([
+			Dict.descriptor.kGID,
+			Dict.descriptor.kVariable
+		]);																			// ==>
+		
+	}	// getUniqueFields
+	
+	/**
+	 * Return list of locked fields
+	 *
+	 * This method should return the list of fields that cannot be changed once the
+	 * document has been inserted.
+	 *
+	 * In this class we return the id, key, revision.
+	 *
+	 * @returns {Array}	List of locked fields.
+	 */
+	getLockedFields()
+	{
+		return super.getLockedFields().concat([
+			Dict.descriptor.kNID,
+			Dict.descriptor.kLID,
+			Dict.descriptor.kGID,
+			Dict.descriptor.kVariable,
+			Dict.descriptor.kKind,
+			Dict.descriptor.kType,
+			Dict.descriptor.kFormat,
+			Dict.descriptor.kDeploy
+		]);																			// ==>
+		
+	}	// getLockedFields
+	
 	/**
 	 * Get descriptor validation record
 	 *
@@ -86,7 +323,7 @@ class Descriptor
 		let types = null;
 		let hierarchy = null;
 		let is_obj = false;
-
+		
 		//
 		// Handle array.
 		//
@@ -94,11 +331,16 @@ class Descriptor
 		{
 			const list = [];
 			for( const descriptor of theType )
-				list.push( this.getDescriptorValidationRecord( theRequest, descriptor ) );
-
+				list.push(
+					Descriptor.getDescriptorValidationRecord(
+						theRequest,
+						descriptor
+					)
+				);
+			
 			return list;															// ==>
 		}
-
+		
 		//
 		// Get base type hierarchy.
 		//
@@ -107,7 +349,7 @@ class Descriptor
 				theRequest,
 				theDescriptor[ Dict.descriptor.kType ]
 			);
-
+		
 		//
 		// If the hierarchy is empty, it means the type is not a data type.
 		//
@@ -120,7 +362,7 @@ class Descriptor
 					theType._id							// Error value.
 				)
 			);																	// !@! ==>
-
+		
 		//
 		// Handle object key and value types.
 		//
@@ -136,7 +378,7 @@ class Descriptor
 			//
 			is_obj = true;
 			let field = null;
-
+			
 			//
 			// Handle key type.
 			//
@@ -151,7 +393,7 @@ class Descriptor
 						theRequest,
 						theDescriptor[ field ][ Dict.descriptor.kType ]
 					);
-
+				
 				//
 				// Ensure it is text.
 				//
@@ -166,18 +408,18 @@ class Descriptor
 							500									// HTTP error code.
 						)
 					);															// !@! ==>
-
+				
 				//
 				// Inject descriptor validation options.
 				//
 				Dictionary.injectValidationFields( hierarchy, theDescriptor[ field ] );
-
+				
 				//
 				// Set hierarchy in object type.
 				//
 				types[ 0 ][ field ] = hierarchy;
 			}
-
+			
 			//
 			// Handle value type.
 			//
@@ -192,19 +434,19 @@ class Descriptor
 						theRequest,
 						theDescriptor[ field ][ Dict.descriptor.kType ]
 					);
-
+				
 				//
 				// Inject descriptor validation options.
 				//
 				Dictionary.injectValidationFields( hierarchy, theDescriptor[ field ]  );
-
+				
 				//
 				// Set hierarchy in object type.
 				//
 				types[ 0 ][ field ] = hierarchy;
 			}
 		}
-
+		
 		//
 		// Get format hierarchy.
 		//
@@ -218,7 +460,7 @@ class Descriptor
 						Dict.term.kTypeDataList
 					);
 				break;
-
+			
 			case Dict.term.kTypeFormatSet:
 				hierarchy =
 					Schema.getTypeHierarchy(
@@ -227,24 +469,24 @@ class Descriptor
 					);
 				break;
 		}
-
+		
 		//
 		// Add list type.
 		//
 		if( hierarchy !== null )
 			types = types.concat( hierarchy );
-
+		
 		//
 		// Inject validation options fields.
 		// Note that we do this only for non-object fields.
 		//
 		if( ! is_obj )
 			Dictionary.injectValidationFields( types, theDescriptor );
-
-		return this.getValidationRecord( theRequest, types );						// ==>
-
+		
+		return Descriptor.getValidationRecord( theRequest, types );					// ==>
+		
 	}	// getDescriptorValidationRecord
-
+	
 	/**
 	 * Get type validation record
 	 *
@@ -270,11 +512,11 @@ class Descriptor
 		{
 			const list = [];
 			for( const term of theType )
-				list.push( this.getTypeValidationRecord( theRequest, term ) );
-
+				list.push( Descriptor.getTypeValidationRecord( theRequest, term ) );
+			
 			return list;															// ==>
 		}
-
+		
 		//
 		// Get type hierarchy.
 		//
@@ -288,11 +530,11 @@ class Descriptor
 					theType._id							// Error value.
 				)
 			);																	// !@! ==>
-
-		return this.getValidationRecord( theRequest, types );						// ==>
-
+		
+		return Descriptor.getValidationRecord( theRequest, types );					// ==>
+		
 	}	// getTypeValidationRecord
-
+	
 	/**
 	 * Get type validation record
 	 *
@@ -401,7 +643,7 @@ class Descriptor
 			Dict.descriptor.kTypeKey,
 			Dict.descriptor.kTypeValue
 		];
-
+		
 		//
 		// Iterate hierarchy.
 		//
@@ -413,7 +655,7 @@ class Descriptor
 			// from general to specific.
 			//
 			const type = theHierarchy.pop();
-
+			
 			//
 			// Handle base type.
 			// This should only occur when creating the first type,
@@ -431,19 +673,19 @@ class Descriptor
 					// Create child placeholder.
 					//
 					current._child = {};
-
+					
 					//
 					// Point to child.
 					//
 					current = current._child;
 				}
-
+				
 				//
 				// Set data type.
 				//
 				current[ Dict.descriptor.kType ] = type[ Dict.descriptor.kVariable ];
 			}
-
+			
 			//
 			// Parse by type.
 			//
@@ -453,43 +695,44 @@ class Descriptor
 				case 'kTypeDataBool':
 					// Do nothin'.
 					break;
-
+				
 				case 'kTypeDataText':
-
+					
 					Dictionary.compileTextValidationRecord( current, type );
 					Dictionary.compileReferenceValidationRecord( current, type );
-
+					
 					break;
-
+				
 				case 'kTypeDataNumeric':
-
+					
 					Dictionary.compileNumericValidationRecord( current, type );
-
+					
 					break;
-
+				
 				case 'kTypeDataList':
-
+					
 					Dictionary.compileListValidationRecord( current, type );
-
+					
 					break;
-
+				
 				case 'kTypeDataStruct':
 					// Contents will be parsed when validating.
 					break;
-
+				
 				case 'kTypeDataObject':
-
+					
 					for( const obj_type of object_types )
 					{
 						if( type.hasOwnProperty( obj_type ) )
 							current[ obj_type ] =
-								this.getValidationRecord(
+								Descriptor.getValidationRecord(
 									theRequest,
-									type[ obj_type ] );
+									type[ obj_type ]
+								);
 					}
-
+					
 					break;
-
+				
 				default:
 					throw(
 						new MyError(
@@ -500,17 +743,17 @@ class Descriptor
 						)
 					);															// !@! ==>
 			}
-
+			
 			//
 			// Set custom validation fields.
 			//
 			Dictionary.compileCustomValidationRecord( current, type );
 		}
-
-		return record;																	// ==>
-
+		
+		return record;																// ==>
+		
 	}	// getValidationRecord
-
+	
 	/**
 	 * Get validation structure
 	 *
@@ -556,36 +799,41 @@ class Descriptor
 		{
 			const list = [];
 			for( const record of theRecord )
-				list.push( this.getValidationStructure( theRequest, record ) );
-
+				list.push(
+					Descriptor.getValidationStructure(
+						theRequest,
+						record
+					)
+				);
+			
 			return list;															// ==>
 		}
-
+		
 		//
 		// Init local storage.
 		//
 		const structure = {};
-
+		
 		//
 		// Set base type.
 		//
 		structure[ Dict.descriptor.kType ] =
 			Dict.term[ theRecord[ Dict.descriptor.kType ] ];
-
+		
 		//
 		// Parse Joi validation string.
 		//
 		structure[ Dict.descriptor.kJoi ] =
 			Dictionary.parseJoi( theRecord );
-
+		
 		//
 		// Point to scalar definition.
 		//
 		let record = ( (theRecord[ Dict.descriptor.kType ] === 'kTypeDataList')
-					&& theRecord.hasOwnProperty( '_child' ) )
-				   ? theRecord._child
-				   : theRecord;
-
+			&& theRecord.hasOwnProperty( '_child' ) )
+					 ? theRecord._child
+					 : theRecord;
+		
 		//
 		// Parse functions.
 		//
@@ -594,12 +842,12 @@ class Descriptor
 			if( record.hasOwnProperty( field ) )
 				structure[ field ] = record[ field ];
 		}
-
+		
 		//
 		// Parse references.
 		//
 		if( record.hasOwnProperty( 'isRef' )
-		 && (record.isRef === true) )
+			&& (record.isRef === true) )
 		{
 			for( const field of Dictionary.listReferenceValidationFields )
 			{
@@ -607,7 +855,7 @@ class Descriptor
 					structure[ field ] = record[ field ];
 			}
 		}
-
+		
 		//
 		// Handle object.
 		//
@@ -622,7 +870,7 @@ class Descriptor
 						theRequest,
 						theRecord[ Dict.descriptor.kTypeKey ]
 					);
-
+			
 			//
 			// Set value Joi string.
 			//
@@ -633,11 +881,11 @@ class Descriptor
 						theRecord[ Dict.descriptor.kTypeValue ]
 					);
 		}
-
+		
 		return structure;															// ==>
-
+		
 	}	// getValidationStructure
-
+	
 }	// Descriptor.
 
 module.exports = Descriptor;

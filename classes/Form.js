@@ -106,6 +106,23 @@ class Form
 			//
 			if( Object.keys( data ).length > 0 )
 			{
+				//
+				// Prepare last form element.
+				//
+				const element = this.form[ this.form.length - 1 ];
+				if( ! element.hasOwnProperty( '_children' ) )
+					element._children = [];
+				
+				//
+				// Iterate data fields.
+				//
+				for( const field in data )
+					Form.addDataValue(
+						theRequest,			// Current request.
+						element._children,	// Elelents receptor.
+						field,				// Data value field.
+						data[ field ]		// Data value.
+					);
 			
 			}	// Values left.
 			
@@ -400,6 +417,36 @@ class Form
 		}	// Is descriptor.
 	
 	}	// normaliseFormElement
+	
+	/**
+	 * Add extra data value
+	 *
+	 * This method will add the provided data value to the last element of the form,
+	 * the method will create a form element with the _vertex property in which it
+	 * will load the descriptor properties related to theField and ad the value in the
+	 * _value property.
+	 *
+	 * All added elements will have the interface property set to
+	 * ':state:interface:field:in:out' by default.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theElements	{Array}		The receptor of the elements.
+	 * @param theField		{String}	Data value field name.
+	 * @param theValue		{*}			Data value.
+	 */
+	static addDataValue( theRequest, theElements, theField, theValue )
+	{
+		//
+		// Init element.
+		//
+		const element = { _vertex : {} };
+		
+		//
+		// Add element.
+		//
+		theElement.push( element );
+	
+	}	// addDataValue
 	
 	/**
 	 * Return the list of edge fields to skip

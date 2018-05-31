@@ -324,6 +324,86 @@ class Dictionary
 		}
 
 	}	// compileReferenceValidationRecord
+	
+	/**
+	 * Compile global identifier
+	 *
+	 * This method will return the global identifier according to the provided record
+	 * contents.
+	 *
+	 * The global identifier is composed by combining the namespace identifier global
+	 * identifier andf the local identifier separated by a colon. If the namespace is
+	 * missing and the second parameter is true, the method will raise an exception,
+	 * if false, the method will return null.
+	 *
+	 * @param theRecord	{Object}	The object to identify.
+	 * @param doAssert	{Boolean}	If true, raise an exception if unable to identify.
+	 * @returns {String}|{null}		The global identifier, or null.
+	 */
+	static compileGlobalIdentifier( theRecord, doAssert = true )
+	{
+		//
+		// Init local storage.
+		//
+		let nid = null;
+		let lid = null;
+		
+		//
+		// Handle namespace.
+		//
+		if( theRecord.hasOwnProperty( Dict.descriptor.kNID ) )
+		{
+			const namespace = db._document( theRecord[ Dict.descriptor.kNID ] );
+			if( namespace.hasOwnProperty( Dict.descriptor.kGID ) )
+				nid = namespace[ Dict.descriptor.kGID ];
+			else
+			{
+				if( doAssert )
+					throw(
+						new MyError(
+							'ConstraintViolated',				// Error name.
+							K.error.NoGlobalIdentifier,			// Message code.
+							this._request.application.language,	// Language.
+							namespace._id,						// Namespace ID.
+							409									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return null;														// ==>
+			}
+		}
+		
+		//
+		// Handle local identifier.
+		//
+		if( theRecord.hasOwnProperty( Dict.descriptor.kLID ) )
+			lid = theRecord[ Dict.descriptor.kLID ];
+		else
+		{
+			if( doAssert )
+				throw(
+					new MyError(
+						'ConstraintViolated',				// Error name.
+						K.error.NoLocalIdentifier,			// Message code.
+						this._request.application.language,	// Language.
+						null,								// No arguments.
+						409									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			return null;															// ==>
+		}
+		
+		//
+		// Compute global identifier.
+		//
+		const gid = ( nid !== null )
+				  ? `${nid}${K.token.idSeparator}${lid}`
+				  : `${lid}`;
+		
+		return gid;																	// ==>
+		
+	}	// compileGlobalIdentifier
 
 	/**
 	 * Inject validation fields
