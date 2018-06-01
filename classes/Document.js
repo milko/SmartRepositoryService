@@ -113,7 +113,7 @@ class Document
 			//
 			// Load document.
 			//
-			this.loadDocumentData( theReference, true, false );
+			this.modify( theReference, true, false );
 		}
 		
 		//
@@ -128,6 +128,28 @@ class Document
 		this.normaliseProperties();
 		
 	}	// constructor
+	
+	/**
+	 * Insert
+	 *
+	 * This method will insert the document in the registered collection after validating
+	 * its contents.
+	 *
+	 * Any validation error or insert error will raise an exception.
+	 *
+	 * @returns {Boolean}	True, document inserted.
+	 */
+	insert()
+	{
+		//
+		// Check contents and insert document.
+		//
+		if( this.validate( true ) )
+			return this.insertDocument();											// ==>
+		
+		return false;																// ==>
+		
+	}	// insert
 	
 	/**
 	 * Resolve
@@ -179,28 +201,83 @@ class Document
 	}	// resolve
 	
 	/**
-	 * Insert
+	 * Load document data
 	 *
-	 * This method will insert the document in the registered collection after validating
-	 * its contents.
+	 * This method will add the provided object properties to the current object's
+	 * data.
 	 *
-	 * Any validation error or insert error will raise an exception.
+	 * The first parameter represents the data to be loaded, the second parameter is a
+	 * flag that determines whether the provided data should replace existing data,
+	 * the third parameter is a flag that indicates whether the method was called when
+	 * the object has been resolved.
 	 *
-	 * @returns {Boolean}	True, document inserted.
+	 * Existing data elements will be replaced if:
+	 *
+	 * 	- doReplace is true.
+	 * 	- Or the field is among the locked properties.
+	 * 	- Or the current document does not have the property.
+	 *
+	 * If the replacement conditions are satisfied, any provided property value of null
+	 * will remove the eventually existing property from the current document, if it
+	 * exists.
+	 *
+	 * The method will raise an exception if you provide a value that is a locked
+	 * property and that is different from an existing value in the current document.
+	 *
+	 * The last parameter determines the exception type, if true it means the data
+	 * comes from the database, if false, it means the data is coming from the client:
+	 *
+	 * 	- true: The method was called when resolving the object, if there is a
+	 * 	  conflict with a locked property it means that we have an ambiguous document,
+	 * 	  the existing and resolved objects have ambiguous identification.
+	 * 	- false: The method was called by the constructor when providing an object as
+	 * 	  reference, in this case no errors should be raised, since the document was
+	 * 	  empty. The method can also be called by clients to update the document's
+	 * 	  contents: in this case any conflicting locked value will raise an error.
+	 *
+	 * All exceptions will be raised by the called loadDocumentProperty() method.
+	 *
+	 * @param theData		{Object}	The object properties to add.
+	 * @param doReplace		{Boolean}	True, overwrite existing properties.
+	 * @param isResolving	{Boolean}	True, called by resolveDocument() (default false).
 	 */
-	insert()
+	modify( theData, doReplace = true, isResolving = false )
 	{
 		//
-		// Check contents.
+		// Load locked fields.
 		//
-		this.validate( true );
+		const locked = this.getLockedFields();
 		
 		//
-		// Insert document.
+		// Iterate properties.
 		//
-		this.insertDocument();
+		for( const field in theData )
+		{
+			//
+			// Save property locked status.
+			//
+			const isLocked = locked.includes( field );
+			
+			//
+			// Determine if the value should be set.
+			//
+			if( doReplace										// Want to replace,
+			 || isLocked										// or field is locked,
+			 || (! this._document.hasOwnProperty( field )) )	// or not in document.
+				this.loadDocumentProperty(
+					field,										// Field name.
+					theData[ field ],							// Field value.
+					isLocked,									// Locked flag.
+					isResolving									// Is resolving flag.
+				);
+		}
 		
-	}	// insert
+		//
+		// Normalise properties.
+		//
+		this.normaliseProperties();
+		
+	}	// modify
 	
 	/**
 	 * Replace
@@ -381,6 +458,11 @@ class Document
 	 *
 	 * This method will perform the actual insertion, it expects the validation to
 	 * have passed.
+	 *
+	 * The method will return the persistent state of the document after the insert,
+	 * or raise an exception on any error.
+	 *
+	 * @returns {Boolean}	Persistent state, or raise an exception.
 	 */
 	insertDocument()
 	{
@@ -476,6 +558,8 @@ class Document
 			
 			throw( error );														// !@! ==>
 		}
+		
+		return this._persistent;													// ==~
 		
 	}	// insertDocument
 	
@@ -628,14 +712,14 @@ class Document
 		// Load example query from significant fields.
 		// Note that the method assumes you have called hasSignificantFields().
 		//
-		const example = {};
+		const selector = {};
 		for( const field of theSelector )
-			example[ field ] = this._document[ field ];
+			selector[ field ] = this._document[ field ];
 		
 		//
 		// Load document.
 		//
-		const cursor = db._collection( this._collection ).byExample( example );
+		const cursor = db._collection( this._collection ).byExample( selector );
 		
 		//
 		// Check if found.
@@ -651,7 +735,7 @@ class Document
 						'AmbiguousDocumentReference',		// Error name.
 						K.error.AmbiguousDocument,			// Message code.
 						this.request.application.language,	// Language.
-						[ Object.keys( example ), this._collection],
+						[ Object.keys( selector ), this._collection],
 						412									// HTTP error code.
 					)
 				);																// !@! ==>
@@ -659,7 +743,7 @@ class Document
 			//
 			// Load found document.
 			//
-			this.loadDocumentData( cursor.toArray()[ 0 ], doReplace, true );
+			this.modify( cursor.toArray()[ 0 ], doReplace, true );
 			
 			//
 			// Set flag.
@@ -682,9 +766,12 @@ class Document
 				// Build reference.
 				//
 				const reference = [];
-				for( const field of example )
-					reference.push( `${field} = ${example.field.toString()}`)
+				for( const field in selector )
+					reference.push( `${field} = ${selector[field].toString()}`)
 				
+				//
+				// Raise exception.
+				//
 				throw(
 					new MyError(
 						'BadDocumentReference',						// Error name.
@@ -707,145 +794,102 @@ class Document
 	}	// resolveDocument
 	
 	/**
-	 * Load document data
-	 *
-	 * This method will add the provided object properties to the current object's
-	 * data.
-	 *
-	 * The first parameter represents the data to be loaded, the second parameter is a
-	 * flag that determines whether the provided data should replace existing data,
-	 * the third parameter is a flag that indicates whether the method was called when
-	 * the object has been resolved.
-	 *
-	 * Existing data elements will be replaced if:
-	 *
-	 * 	- doReplace is true.
-	 * 	- Or the field is among the locked properties.
-	 * 	- Or is the current document does not have the property.
-	 *
-	 * The method will raise an exception if you provide a value that is a locked
-	 * property and that is different from an existing value in the current document.
-	 *
-	 * The last parameter determines the exception type, if true it means the data
-	 * comes from the database, if false, it means the data is coming from the client:
-	 *
-	 * 	- true: The method was called when resolving the object, if there is a
-	 * 	  conflict with a locked property it means that we have an ambiguous document,
-	 * 	  the existing and resolved objects have ambiguous identification.
-	 * 	- false: The method was called by the constructor when providing an object as
-	 * 	  reference, in this case no errors should be raised, since the document was
-	 * 	  empty. The method can also be called by clients to update the document's
-	 * 	  contents: in this case any conflicting locked value will raise an error.
-	 *
-	 * All exceptions will be raised by the called loadDocumentProperty() method.
-	 *
-	 * @param theData		{Object}	The object properties to add.
-	 * @param doReplace		{Boolean}	True, overwrite existing properties.
-	 * @param isResolving	{Boolean}	True, called by resolveDocument() (default false).
-	 */
-	loadDocumentData( theData, doReplace = true, isResolving = false )
-	{
-		//
-		// Load locked fields.
-		//
-		const locked = this.getLockedFields();
-		
-		//
-		// Iterate properties.
-		//
-		for( const field in theData )
-		{
-			//
-			// Determine if the value should be set.
-			//
-			if( doReplace										// Want to replace,
-			 || locked.includes( field )						// or field is locked,
-			 || (! this._document.hasOwnProperty( field )) )	// or not in document.
-				this.loadDocumentProperty(
-					field,
-					theData[ field ],
-					locked,
-					isResolving
-				);
-		}
-		
-		//
-		// Normalise properties.
-		//
-		this.normaliseProperties();
-		
-	}	// loadDocumentData
-	
-	/**
 	 * Load document property
 	 *
-	 * This method wcan be used to set the value of a property, it is called by
-	 * loadDocumentData() in any of the following cases:
+	 * This method can be used to set the value of a property, it is called by
+	 * modify() in any of the following cases:
 	 *
 	 * 	- The client requested to replace existing values.
 	 * 	- The property is locked.
 	 * 	- The document does not have the property.
 	 *
-	 * The method will raise an exception if there is a conflict between an existing
-	 * and provided locked property.
+	 * The method takes care of modifying the existing document value with the
+	 * provided value and ensure data integrity.
+	 *
+	 * If the provided value is null it means that the value should be removed.
+	 *
+	 * The method will raise an exception if there is a mismatch between the existing
+	 * property and the provided one: if the property is locked and the object is
+	 * persistent, the method will raise an exception. This includes setting a new
+	 * value if there is not one, removing an existing value, or changing an existing
+	 * value.
 	 *
 	 * The last parameter determines the type of exception: true means we are
-	 * resolving the document, false means we are updating the document properties.
+	 * resolving the document, false means we are updating the document properties,
+	 * this means that in the first case there is a mismatch between reserved
+	 * properties in the current and persistent documents, while in the second case
+	 * there is an attempt to change a locked value.
 	 *
 	 * @param theProperty	{String}	The property descriptor _key.
 	 * @param theValue		{*}			The property value.
-	 * @param theLocked		{Array}		List of locked properties.
+	 * @param isLocked		{Boolean}	True if locked properties.
 	 * @param isResolving	{Boolean}	True, called by resolveDocument().
 	 */
-	loadDocumentProperty( theProperty, theValue, theLocked, isResolving )
+	loadDocumentProperty( theProperty, theValue, isLocked, isResolving )
 	{
 		//
-		// Check locked properties.
-		// Note that if there is no conflict there is no need to set the value.
+		// Init local storage.
 		//
-		if( theLocked.includes( theProperty )
-		 && this._document.hasOwnProperty( theProperty ) )
-		{
-			//
-			// Handle changes.
-			//
-			if( this._document[ theProperty ] !== theValue )
-			{
-				//
-				// Handle ambiguous.
-				//
-				if( isResolving )
-					throw(
-						new MyError(
-							'AmbiguousDocumentReference',			// Error name.
-							K.error.ResolveMismatch,				// Message code.
-							this._request.application.language,		// Language.
-							theProperty,							// Arguments.
-							409										// HTTP error code.
-						)
-					);															// !@! ==>
-				
-				//
-				// Handle locked.
-				//
-				else
-					throw(
-						new MyError(
-							'LockedProperty',					// Error name.
-							K.error.PropertyLocked,				// Message code.
-							this._request.application.language,	// Language.
-							theProperty,						// Error value.
-							409									// HTTP error code.
-						)
-					);															// !@! ==>
-			}
-		}
+		const value_old = ( this._document.hasOwnProperty( theProperty ) )
+						? this._document[ theProperty ]
+						: null;
 		
 		//
-		// Set value.
+		// Handle value modifications.
 		//
-		else
-			this._document[ theProperty ] = theValue;
+		if( value_old !== theValue )
+		{
+			//
+			// Handle locked field violation.
+			// A locked field can be inserted,
+			// but cannot be modified once inserted.
+			//
+			if( isLocked			// Property is locked
+			 && this._persistent )	// and document is persistent.
+			{
+				//
+				// Set exception type.
+				//
+				let name, type;
+				if( isResolving )
+				{
+					name = 'AmbiguousDocumentReference';
+					type = K.error.ResolveMismatch;
+				}
+				else
+				{
+					name = 'LockedProperty';
+					type = K.error.PropertyLocked;
+				}
+				
+				//
+				// Raise exception.
+				//
+				throw(
+					new MyError(
+						name,									// Error name.
+						type,									// Message code.
+						this._request.application.language,		// Language.
+						theProperty,							// Arguments.
+						409										// HTTP error code.
+					)
+				);																// !@! ==>
+				
+			}	// Property is locked and document is persistent.
+			
+			//
+			// Set new value.
+			//
+			if( theValue !== null )
+				this._document[ theProperty ] = theValue;
+			
+			//
+			// Delete old value.
+			//
+			else if( value_old !== null )
+				delete this._document[ theProperty ];
+			
+		}	// Modify value.
 		
 	}	// loadDocumentProperty
 	

@@ -177,6 +177,7 @@ class User extends Document
 	 * only the newly inserted edges will be deleted.
 	 *
 	 * @param thePassword	{String} The user password.
+	 * @returns {Boolean}	True, document inserted.
 	 */
 	insert( thePassword )
 	{
@@ -203,7 +204,7 @@ class User extends Document
 		// will be reset, which means that the parent remove() method will not
 		// proceed; if the user was inserted, the persistent flag will be set.
 		//
-		super.insert();
+		const result = super.insert();
 		
 		//
 		// Try to insert group and manager.
@@ -219,6 +220,8 @@ class User extends Document
 			// Insert manager relationhip.
 			//
 			inserted_manager = this.insertManager();
+			
+			return result;															// ==>
 		}
 		catch( error )
 		{

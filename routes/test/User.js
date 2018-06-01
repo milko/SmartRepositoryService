@@ -55,22 +55,23 @@ router.tag( 'testUser' );
 
 
 /**
- * Test user instantiation
+ * Test User class
  *
- * The service will instantiate a user and return its data, it expects three parameters
+ * The service will test the User class, it expects the following parameters
  * in the POST body:
  *
- * 	- user:		Either a user object, or a user reference.
- * 	- group:	The optional user group reference.
- * 	- manager:	The optional user manager reference, or omit for current user.
- * 	- data:		Eventual data for testing modification.
- * 	- immute:	Immutable object.
- * 	- before:	If data is provided, set data before resolving, or after.
- * 	- replace:	If true and provided data, replace existing fields.
- * 	- raise:	Raise exceptions.
- * 	- resolve:	True, resolve before modifying.
- * 	- insert:	True, insert object.
- * 	- remove:	True, remove object.
+ * 	- user:			Either a user object, or a user reference.
+ * 	- group:		The optional user group reference or object.
+ * 	- manager:		The optional user manager reference, object, omit for current user.
+ * 	- data:			Eventual modification data.
+ * 	- immutable:	Immutable object.
+ * 	- raise:		Raise exceptions.
+ * 	- modify:		If data is provided, replace values when resolving and modifying.
+ * 	- before:		If data is provided, set data before resolving, or after.
+ * 	- insert:		True, insert object.
+ * 	- resolve:		True, resolve before modifying.
+ * 	- replace:		If true, replace document.
+ * 	- remove:		True, remove object.
  *
  * @path		/instantiate
  * @verb		post
@@ -93,12 +94,12 @@ router.post
 		const grp = ( request.body.hasOwnProperty( 'group' ) )
 				  ? request.body.group
 				  : null;
-		const man = ( request.body.hasOwnProperty( 'manager' ) )
-				  ? request.body.manager
-				  : request.session.uid;
-		const dat = ( request.body.hasOwnProperty( 'group' ) )
+		const dat = ( request.body.hasOwnProperty( 'data' ) )
 				  ? request.body.data
 				  : null;
+		const man = ( request.body.hasOwnProperty( 'manager' ) )
+					? request.body.manager
+					: request.session.uid;
 		
 		//
 		// Test instantiation.
@@ -113,7 +114,7 @@ router.post
 				request.body.user,
 				grp,
 				man,
-				request.body.immute
+				request.body.immutable
 			);
 			
 			//
@@ -121,19 +122,19 @@ router.post
 			//
 			if( (dat !== null)
 			 && request.body.before )
-				user.loadDocumentData(
+				user.modify(
 					dat,
-					request.body.replace,
+					request.body.modify,
 					request.body.raise
 				);
 			
 			//
 			// Resolve user.
 			//
-			let resolved = null;
+			let resolve = null;
 			if( request.body.resolve )
-				resolved = user.resolve(
-					request.body.replace,
+				resolve = user.resolve(
+					request.body.modify,
 					request.body.raise
 				);
 			
@@ -142,18 +143,18 @@ router.post
 			//
 			if( (dat !== null)
 			 && (! request.body.before) )
-				user.loadDocumentData(
+				user.modify(
 					dat,
-					request.body.replace,
+					request.body.modify,
 					request.body.raise
 				);
 			
 			//
 			// Insert user.
 			//
-			let inserted = null;
+			let insert = null;
 			if( request.body.insert )
-				inserted = user.insert( "secret" );
+				insert = user.insert( "secret" );
 			
 			//
 			// Save identifier.
@@ -163,33 +164,39 @@ router.post
 			//
 			// Replace user.
 			//
-			let replaced = null;
+			let replace = null;
 			if( request.body.replace )
-				replaced = user.replace( true, "secret" );
+				replace = user.replace( true, "secret" );
 			
 			//
 			// Remove user.
 			//
-			let removed = null;
+			let remove = null;
 			if( request.body.remove )
-				removed = user.remove();
+				remove = user.remove();
 			
 			response.send({
-				group : user.group,
-				manager : user.manager,
-				collection : user.collection,
-				class : user.classname,
-				persistent : user.persistent,
-				revised : user.revised,
-				hasManaged : user.hasManaged(),
-				manages : user.managed,
-				id : id,
-				resolved : resolved,
-				inserted : inserted,
-				replaced : replaced,
-				user : user.document,
-				time : time() - stamp
-			});
+				params : request.body,
+				result : {
+					resolve : resolve,
+					insert  : insert,
+					replace : replace,
+					remove  : remove
+				},
+				object : {
+					id		   : id,
+					group	   : user.group,
+					manager	   : user.manager,
+					collection : user.collection,
+					class	   : user.classname,
+					persistent : user.persistent,
+					revised	   : user.revised,
+					hasManaged : user.hasManaged(),
+					manages	   : user.managed,
+					document   : user.document,
+				}
+				
+			});																		// ==>
 		}
 		catch( error )
 		{
@@ -212,30 +219,30 @@ router.post
 )
 	.body(
 		Joi.object({
-			user : Joi.alternatives().try(
+			user 		: Joi.alternatives().try(
 				Joi.string().required(),
 				Joi.object().required()
 			).required(),
-			group : Joi.alternatives().try(
+			group 		: Joi.alternatives().try(
 				Joi.string(),
-				null
+				Joi.object()
 			),
-			manager : Joi.alternatives().try(
+			manager 	: Joi.alternatives().try(
 				Joi.string(),
+				Joi.object()
+			),
+			data		: Joi.alternatives().try(
 				Joi.object(),
 				null
-			),
-			data	: Joi.alternatives().try(
-				Joi.object(),
-				null
-			),
-			immute	: Joi.boolean().required(),
-			before	: Joi.boolean().required(),
-			replace	: Joi.boolean().required(),
-			raise	: Joi.boolean().required(),
-			resolve	: Joi.boolean().required(),
-			insert	: Joi.boolean().required(),
-			remove	: Joi.boolean().required()
+			).required(),
+			immutable	: Joi.boolean().required(),
+			raise		: Joi.boolean().required(),
+			modify		: Joi.boolean().required(),
+			before		: Joi.boolean().required(),
+			insert		: Joi.boolean().required(),
+			resolve		: Joi.boolean().required(),
+			replace		: Joi.boolean().required(),
+			remove		: Joi.boolean().required()
 		}).required(),
 		"An object with 'user' that contains eother the user structure or a string" +
 		" representing the user reference, 'group' containing the user group reference" +
@@ -306,7 +313,7 @@ router.post
 			const auth = createAuth();
 			data[ Dict.descriptor.kAuthData ] =
 				auth.create( "secret" );
-			user.loadDocumentData( data, true, false );
+			user.modify( data, true, false );
 			
 			//
 			// Insert user.
