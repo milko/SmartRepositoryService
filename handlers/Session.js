@@ -59,7 +59,8 @@ module.exports = {
 		//
 		// Handle user.
 		//
-		if( theRequest.application.user )
+		if( theRequest.hasOwnProperty( 'application' )
+		 && theRequest.application.hasOwnProperty( 'user' ) )
 			result.result = theRequest.application.user;
 		
 		theResponse.send( result );													// ==>
@@ -187,7 +188,8 @@ module.exports = {
 		//
 		// Check current user.
 		//
-		if( theRequest.session.uid )
+		if( theRequest.session.hasOwnProperty( 'uid' )
+		 && (theRequest.session.uid !== null) )
 		{
 			//
 			// Framework.
@@ -341,7 +343,8 @@ module.exports = {
 		//
 		// Handle user.
 		//
-		if( theRequest.session.uid )
+		if( theRequest.session.hasOwnProperty( 'uid' )
+		 && (theRequest.session.uid !== null) )
 		{
 			//
 			// Framework.
@@ -400,7 +403,8 @@ module.exports = {
 		//
 		// Handle user.
 		//
-		if( theRequest.session.uid )
+		if( theRequest.session.hasOwnProperty( 'uid' )
+		 && (theRequest.session.uid !== null) )
 		{
 			//
 			// Framework.

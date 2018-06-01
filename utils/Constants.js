@@ -357,7 +357,8 @@ module.exports = Object.freeze(
 			MissingToResolve	: 93,
 			NoCollection		: 94,
 			BadGroupReference	: 95,
-			BadManagerReference	: 96
+			BadManagerReference	: 96,
+			CannotManageUser	: 97
 		},
 
 		//

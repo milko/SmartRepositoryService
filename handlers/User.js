@@ -141,7 +141,7 @@ module.exports = {
 			//
 			// Return response.
 			//
-			theResponse.send({ result : token });
+			theResponse.send({ result : token });									// ==>
 		}
 		catch( error )
 		{
@@ -161,6 +161,130 @@ module.exports = {
 		}
 		
 	},	// signUp
+	
+	/**
+	 * Reset user
+	 *
+	 * The service can be used to reset a user, it expects the following properties in
+	 * the POST body:
+	 *
+	 * 	- token:	The user authentication token.
+	 * 	- username:	The user code.
+	 *
+	 * The service will return a string token that will be used when the user will
+	 * signin, it contains the user code and password, these will be used to
+	 * authenticate and load the user data when the user will sign in.
+	 *
+	 * The service will perform the following steps:
+	 *
+	 * 	- Validate the user authentication token.
+	 * 	- Resolve the provided username.
+	 * 	- Check that there is no current user in the session, or that the current user
+	 * 	  can manage the provided user reference.
+	 * 	- Set the user status to pending.
+	 * 	- Set password.
+	 * 	- Encode the username and password.
+	 * 	- Create the authorisation data.
+	 * 	- Replace the user.
+	 * 	- Return the encoded user record token.
+	 *
+	 * If the method raises an exception, the service will forward it using the
+	 * HTTP code if the exception is of class MyError.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 */
+	reset : ( theRequest, theResponse ) =>
+	{
+		//
+		// Procedures.
+		//
+		try
+		{
+			//
+			// Assertions.
+			//
+			Middleware.assert.tokenUser( theRequest, theResponse );
+			
+			//
+			// Instantiate user.
+			//
+			const selector = {};
+			selector[ Dict.descriptor.kUsername ] =
+				theRequest.body.username;
+			
+			//
+			// Instantiate user.
+			// Will raise an exception if not found.
+			//
+			const user = new User( theRequest, selector );
+			user.resolve( true, true );
+			
+			//
+			// Validate current user as manager.
+			//
+			if( theRequest.session.hasOwnProperty( 'uid' )
+			 && (theRequest.session.uid !== null)
+			 && (! user.isManagedBy( theRequest.session.uid )) )
+				theResponse.throw(
+					403,
+					new MyError(
+						'ServiceUnavailable',				// Error name.
+						K.error.CannotManageUser,			// Error code.
+						theRequest.application.language,	// Error language.
+						theRequest.body.username			// Arguments.
+					)
+				);																// !@! ==>
+			
+			//
+			// Set user pending status.
+			//
+			user.document[ Dict.descriptor.kStatus ] = Dict.term.kStateStatusPending;
+			
+			//
+			// Create token data.
+			//
+			const encode = {};
+			encode[ Dict.descriptor.kUsername ] = user.document[ Dict.descriptor.kUsername ];
+			encode[ Dict.descriptor.kPassword ] = crypto.genRandomAlphaNumbers( 48 );
+			
+			//
+			// Generate token.
+			//
+			const token =
+				Application.encode(
+					Application.userAuthentication( false ).key,
+					encode
+				);
+			
+			//
+			// Replace user.
+			//
+			user.replace( true, encode[ Dict.descriptor.kPassword ] );
+			
+			//
+			// Return response.
+			//
+			theResponse.send({ result : token });									// ==>
+		}
+		catch( error )
+		{
+			//
+			// Init default HTTP error type.
+			//
+			const http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				theResponse.throw( error.param_http, error );					// !@! ==>
+			
+			theResponse.throw( http, error );									// !@! ==>
+		}
+		
+	},	// reset
 	
 	/**
 	 * Return sign up form

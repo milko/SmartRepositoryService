@@ -576,6 +576,12 @@
     }
   },
   {
+    "_key" : "e97",
+    "label" : {
+      "ISO:639:3:eng" : "you are not allowed to manage the [@arg@] user."
+    }
+  },
+  {
     "_key": "s:schema:enumIsChoice",
     "body": {
       "ISO:639:3:eng": "<p>The service expects two parameters from the request body:</p><ul><li><strong>term</strong>: The reference(s) to the term to test as its <code>_id</code> or <code>_key</code>: it can be provided as a <em>string</em>, or as an <em>array</em> of strings.</li><li><strong>enum</strong>: An array of term <code>_id</code> or <code>_key</code> values which represent the set of enumerations to which the term should belong. To ignore enumeration membership, provide either an <em>empty array</em> or <code>null</code>, which is the default choice.</li></ul>"
@@ -780,6 +786,18 @@
     },
     "description" : {
       "ISO:639:3:eng" : "The service can be used to retrieve the user record contents corresponding to the sign up token, it expects the following information in the request POST body:<ul><li><strong><code>key</code></strong>: the token <em>key</em> string.</li><li><strong><code>token</code></strong>: the signup <em>token</em> string</li></ul><p>The service will perform the following steps:<ul><li>Decode the provided token.</li><li>Resolve the corresponding user.</li><li>Authenticate the user.</li><li>Return the user record contents.</li></ul></p><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the user record corresponding to the provided token.</p>"
+    }
+  },
+  {
+    "_key" : "s:user:reset",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><token>key</code></strong>: the <em>user authentication token</em> string.</li><li><strong><code>username</code></strong>: the <em>user code</em> string</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be a string token corresponding to the encoded user record."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service can be used to reset a user, it expects the following information in the request POST body:<ul><li><strong><code>token</code></strong>: the user authentication <em>token</em> string.</li><li><strong><code>username</code></strong>: the  <em>user code</em> string of the user to reset.</li></ul><p>The service will perform the following steps:<ul><li>Validate the provided user authentication token.</li><li>Resolve the provided username.</li><li>If there is a current session user, ensure it can manage the resolved user; <em>if there is no current user it means that the user was unable to login and reset the password</em>.</li><li>Set the resolved user status to <em>pending</em>, this will require a new sign in.</li><li>Set a temporary password.</li><li>Encode the user code and password into a string token.</li><li>Update authorisation data in the user record.</li><li>Replace the user resord.</li><li>Return the token.</li></ul></p><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be a string token corresponding to the encoded user record, which will be used later when the user signs in.</p>"
     }
   },
   {

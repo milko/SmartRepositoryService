@@ -1133,6 +1133,48 @@ class User extends Document
 	}	// hasManaged
 	
 	/**
+	 * Is managed by
+	 *
+	 * This method will return a boolean indicating whether the provided user
+	 * reference can manage the current user.
+	 *
+	 * The reference can be provided as the same parameter of the constructor, if the
+	 * manager cannot be resolved, the method will raise an exception.
+	 *
+	 * @param theReference	{String}|{Object}	The manager reference.
+	 * @returns {boolean}						True can manage.
+	 */
+	isManagedBy( theReference )
+	{
+		//
+		// Resolve manager.
+		// May raise an exception.
+		//
+		const manager = new User( this._request, theReference );
+		if( ! manager.persistent )
+			manager.resolve( true, true );
+		
+		//
+		// Get current user managers.
+		//
+		const managers =
+			this.managers(
+				1,			// Skip user.
+				null,		// Traverse full graph.
+				'_id',		// Return _id field.
+				null,		// Ignore edge fields.
+				false,		// Don't include edges.
+				false		// No need to strip privates.
+			);
+		
+		//
+		// Check if in managers chain.
+		//
+		return ( managers.includes( manager.document._id ) );						// ==>
+		
+	}	// isManagedBy
+	
+	/**
 	 * Return list of significant fields
 	 *
 	 * We override the parent method to return the user code.

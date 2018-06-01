@@ -63,7 +63,7 @@ router.tag( 'user' );
  *
  * @path		/signup
  * @verb		post
- * @request		{Object}	Term reference(s) and optional enumerations list.
+ * @request		{Object}	User auth token and signup form contents.
  * @response	{Object}	The result.
  */
 router.post( '/signup', Handlers.signUp, 'signup' )
@@ -108,7 +108,7 @@ router.post( '/signup', Handlers.signUp, 'signup' )
  *
  * @path		/signup/form
  * @verb		post
- * @request		{Object}	Term reference(s) and optional enumerations list.
+ * @request		{Object}	User authentication and signUp tokens.
  * @response	{Object}	The result.
  */
 router.post( '/signup/form', Handlers.signUpForm, 'signupForm' )
@@ -129,6 +129,60 @@ router.post( '/signup/form', Handlers.signUpForm, 'signupForm' )
 	.description(
 		Application.getServiceDescription(
 			'user', 'signupForm', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Reset user
+ *
+ * The service is used to reset a user, that is, re-route the login through the sign
+ * in. It will reset the user's password and return the same token as the sign up
+ * service: the returned token can be used in the same way as the token returned by
+ * the signUp service. The service expects two parameters in the POST body:
+ *
+ * 	- token:	the user authentication token.
+ * 	- username:	the user code.
+ *
+ * The service will perform the following steps:
+ *
+ * 	- Validate the user authentication token.
+ * 	- Resolve the provided username.
+ * 	- Check that there is no current user in the session, or that the current user
+ * 	  can manage the provided user reference.
+ * 	- Set the user status to pending.
+ * 	- Set random password.
+ * 	- Encode the username and password.
+ * 	- Create the authorisation data.
+ * 	- Replace the user.
+ * 	- Return the encoded user record token.
+ *
+ * The service may raise an exception, the HTTP code depends on the exception
+ * class: if MyError and it contains the HTTP code, this will be used, in all
+ * other cases, the code will be 500.
+ *
+ * @path		/reset/user
+ * @verb		post
+ * @request		{Object}	User authentication token and user code.
+ * @response	{Object}	The result.
+ */
+router.post( '/reset/user', Handlers.reset, 'reset' )
+	.body(
+		require( '../models/user/reset' ),
+		Application.getServiceDescription(
+			'user', 'reset', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/user/reset' ),
+		Application.getServiceDescription(
+			'user', 'reset', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Reset user."
+	)
+	.description(
+		Application.getServiceDescription(
+			'user', 'reset', 'description', module.context.configuration.defaultLanguage )
 	);
 
 
@@ -161,7 +215,7 @@ router.post( '/signup/form', Handlers.signUpForm, 'signupForm' )
  *
  * @path		/signin/admin
  * @verb		post
- * @request		{Object}	Term reference(s) and optional enumerations list.
+ * @request		{Object}	Admin authentication token and admin record.
  * @response	{Object}	The result.
  */
 router.post( '/signin/admin', Handlers.signinAdmin, 'singInAdmin' )
@@ -216,7 +270,7 @@ router.post( '/signin/admin', Handlers.signinAdmin, 'singInAdmin' )
  *
  * @path		/signin/user
  * @verb		post
- * @request		{Object}	Term reference(s) and optional enumerations list.
+ * @request		{Object}	User authentication and signUp tokens, and signIn form data.
  * @response	{Object}	The result.
  */
 router.post( '/signin/user', Handlers.signinUser, 'singInUser' )
