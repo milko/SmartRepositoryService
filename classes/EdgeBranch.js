@@ -62,17 +62,17 @@ class EdgeBranch extends Edge
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
-	getRequiredFields()
+	get requiredFields()
 	{
 		//
 		// Append local properties.
 		//
-		return super.getRequiredFields()
+		return super.requiredFields
 			.concat([
 				Dict.descriptor.kBranches	// The graph branches.
 			]);																		// ==>
 		
-	}	// getRequiredFields
+	}	// requiredFields
 	
 	/**
 	 * Add branch and modifier

@@ -129,6 +129,11 @@ class Document
 		
 	}	// constructor
 	
+
+	/************************************************************************************
+	 * PUBLIC METHODS																	*
+	 ************************************************************************************/
+	
 	/**
 	 * Insert
 	 *
@@ -246,7 +251,7 @@ class Document
 		//
 		// Load locked fields.
 		//
-		const locked = this.getLockedFields();
+		const locked = this.lockedFields;
 		
 		//
 		// Iterate properties.
@@ -453,115 +458,10 @@ class Document
 		
 	}	// validate
 	
-	/**
-	 * Insert document
-	 *
-	 * This method will perform the actual insertion, it expects the validation to
-	 * have passed.
-	 *
-	 * The method will return the persistent state of the document after the insert,
-	 * or raise an exception on any error.
-	 *
-	 * @returns {Boolean}	Persistent state, or raise an exception.
-	 */
-	insertDocument()
-	{
-		//
-		// Check collection.
-		//
-		const collection = db._collection( this._collection );
-		if( ! collection )
-			throw(
-				new MyError(
-					'InsertDocument',					// Error name.
-					K.error.NoCollection,				// Message code.
-					this._request.application.language,	// Language.
-					null,								// Arguments.
-					409									// HTTP error code.
-				)
-			);																	// !@! ==>
-			
-		//
-		// Try insertion.
-		//
-		try
-		{
-			//
-			// Insert.
-			//
-			const meta = collection.insert( this._document );
-			
-			//
-			// Update metadata.
-			//
-			this._document._id = meta._id;
-			this._document._key = meta._key;
-			
-			//
-			// Handle revision.
-			//
-			if( this._document.hasOwnProperty( '_rev' )
-			 && (this._document._rev !== meta._rev) )
-				this._revised = true;
-			this._document._rev = meta._rev;
-			
-			//
-			// Set persistent flag.
-			//
-			this._persistent = true;
-		}
-		catch( error )
-		{
-			//
-			// Reset persistent flag.
-			//
-			this._persistent = false;
-			
-			//
-			// Handle unique constraint error.
-			//
-			if( error.isArangoError
-			 && (error.errorNum === ARANGO_DUPLICATE) )
-			{
-				//
-				// Set field references.
-				//
-				let field = null;
-				const reference = {};
-				for( field of this.getUniqueFields() )
-					reference[ field ] = ( this._document.hasOwnProperty( field ) )
-									   ? this._document[ field ]
-									   : null;
-				
-				//
-				// Set field arguments.
-				//
-				let args = [];
-				for( field in reference )
-				{
-					const value = ( Array.isArray( reference[ field ] ) )
-								? `[${reference[field].join(', ')}]`
-								: reference[field];
-					args.push( `${field} = ${value}` );
-				}
-				
-				throw(
-					new MyError(
-						'InsertDocument',					// Error name.
-						K.error.DuplicateDocument,			// Message code.
-						this._request.application.language,	// Language.
-						[ this._collection, args.join( ', ' ) ],
-						409									// HTTP error code.
-					)
-				);																// !@! ==>
-			}
-			
-			throw( error );														// !@! ==>
-		}
-		
-		return this._persistent;													// ==~
-		
-	}	// insertDocument
+	
+	/************************************************************************************
+	 * PROTECTED METHODS																*
+	 ************************************************************************************/
 	
 	/**
 	 * Set class
@@ -574,24 +474,6 @@ class Document
 		this._class = 'Document';
 		
 	}	// setClass
-	
-	/**
-	 * Get class
-	 *
-	 * This method will retrieve the class information from the schema and return it.
-	 *
-	 * @returns {Object}|{null}	The structure object or null if none.
-	 */
-	getClass()
-	{
-		//
-		// This class does not have any class.
-		//
-		return ( this._class !== null )
-			 ? this._class															// ==>
-			 : null;																// ==>
-		
-	}	// getClass
 	
 	/**
 	 * Set collection
@@ -673,6 +555,116 @@ class Document
 		return null;																// ==>
 	
 	}	// defaultCollection
+	
+	/**
+	 * Insert document
+	 *
+	 * This method will perform the actual insertion, it expects the validation to
+	 * have passed.
+	 *
+	 * The method will return the persistent state of the document after the insert,
+	 * or raise an exception on any error.
+	 *
+	 * @returns {Boolean}	Persistent state, or raise an exception.
+	 */
+	insertDocument()
+	{
+		//
+		// Check collection.
+		//
+		const collection = db._collection( this._collection );
+		if( ! collection )
+			throw(
+				new MyError(
+					'InsertDocument',					// Error name.
+					K.error.NoCollection,				// Message code.
+					this._request.application.language,	// Language.
+					null,								// Arguments.
+					409									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+		//
+		// Try insertion.
+		//
+		try
+		{
+			//
+			// Insert.
+			//
+			const meta = collection.insert( this._document );
+			
+			//
+			// Update metadata.
+			//
+			this._document._id = meta._id;
+			this._document._key = meta._key;
+			
+			//
+			// Handle revision.
+			//
+			if( this._document.hasOwnProperty( '_rev' )
+				&& (this._document._rev !== meta._rev) )
+				this._revised = true;
+			this._document._rev = meta._rev;
+			
+			//
+			// Set persistent flag.
+			//
+			this._persistent = true;
+		}
+		catch( error )
+		{
+			//
+			// Reset persistent flag.
+			//
+			this._persistent = false;
+			
+			//
+			// Handle unique constraint error.
+			//
+			if( error.isArangoError
+				&& (error.errorNum === ARANGO_DUPLICATE) )
+			{
+				//
+				// Set field references.
+				//
+				let field = null;
+				const reference = {};
+				for( field of this.uniqueFields )
+					reference[ field ] = ( this._document.hasOwnProperty( field ) )
+										 ? this._document[ field ]
+										 : null;
+				
+				//
+				// Set field arguments.
+				//
+				let args = [];
+				for( field in reference )
+				{
+					const value = ( Array.isArray( reference[ field ] ) )
+								  ? `[${reference[field].join(', ')}]`
+								  : reference[field];
+					args.push( `${field} = ${value}` );
+				}
+				
+				throw(
+					new MyError(
+						'InsertDocument',					// Error name.
+						K.error.DuplicateDocument,			// Message code.
+						this._request.application.language,	// Language.
+						[ this._collection, args.join( ', ' ) ],
+						409									// HTTP error code.
+					)
+				);																// !@! ==>
+			}
+			
+			throw( error );														// !@! ==>
+		}
+		
+		return this._persistent;													// ==~
+		
+	}	// insertDocument
 	
 	/**
 	 * Resolve document
@@ -1058,7 +1050,7 @@ class Document
 	 * Match significant fields combination
 	 *
 	 * This method will iterate through all significant field combinations,
-	 * getSignificantFields(), and return the first match.
+	 * significantFields(), and return the first match.
 	 *
 	 * These combinations are an array of descriptor _key elements that represent
 	 * unique selectors for the document, this method will compare each combination to
@@ -1083,7 +1075,7 @@ class Document
 		//
 		// Iterate significant field selectors.
 		//
-		for( const selector of this.getSignificantFields() )
+		for( const selector of this.significantFields )
 		{
 			//
 			// Iterate selector.
@@ -1149,7 +1141,7 @@ class Document
 		//
 		// Get required fields.
 		//
-		const fields = this.getRequiredFields();
+		const fields = this.requiredFields;
 		
 		//
 		// Check required fields.
@@ -1280,7 +1272,7 @@ class Document
 			//
 			// Intersect locked fields with existing and current objects.
 			//
-			const locked = this.getLockedFields()
+			const locked = this.lockedFields
 				.filter( field => {
 					return ( theExisting.hasOwnProperty( field )
 						  && this._document.hasOwnProperty( field )
@@ -1332,89 +1324,10 @@ class Document
 		// Nothing here.
 	}
 	
-	/**
-	 * Return persistent flag
-	 *
-	 * This method will return true if the object was loaded or stored in the collection.
-	 *
-	 * @returns {Boolean}	Resolved flag: true was resolved.
-	 */
-	isPersistent()
-	{
-		return this._persistent;													// ==>
-		
-	}	// persistent
 	
-	/**
-	 * Return list of significant fields
-	 *
-	 * This method should return the list of properties that will uniquely identify
-	 * the document, it is used when resolving a document from an object.
-	 *
-	 * The method should return an array of elements that represent the combination of
-	 * fields necessary to identify a single instance of the object in the database.
-	 * Each element of the array must be an array of descriptor _key elements: when
-	 * resolving the object, all elements of the returned array will be matched with
-	 * the object contents and if one of these combinations matches the fields in the
-	 * object, the document will be resolved using this combination.
-	 *
-	 * In this class we return an empty array, since there are no defined significant
-	 * properties: to resolve the document you must provide a reference in the
-	 * constructor..
-	 *
-	 * @returns {Array}	List of significant fields.
-	 */
-	getSignificantFields()
-	{
-		return [];																	// ==>
-		
-	}	// getSignificantFields
-	
-	/**
-	 * Return list of required fields
-	 *
-	 * This method should return the list of required properties.
-	 *
-	 * In this class we return no properties, since the key can be database-assigned.
-	 *
-	 * @returns {Array}	List of required fields.
-	 */
-	getRequiredFields()
-	{
-		return [];																	// ==>
-		
-	}	// getRequiredFields
-	
-	/**
-	 * Return list of unique fields
-	 *
-	 * This method should return the list of unique properties.
-	 *
-	 * In this class we return the key.
-	 *
-	 * @returns {Array}	List of unique fields.
-	 */
-	getUniqueFields()
-	{
-		return [ '_key' ];															// ==>
-		
-	}	// getUniqueFields
-	
-	/**
-	 * Return list of locked fields
-	 *
-	 * This method should return the list of fields that cannot be changed once the
-	 * document has been inserted.
-	 *
-	 * In this class we return the id, key and revision.
-	 *
-	 * @returns {Array}	List of locked fields.
-	 */
-	getLockedFields()
-	{
-		return [ '_id', '_key', '_rev' ];											// ==>
-		
-	}	// getLockedFields
+	/************************************************************************************
+	 * GETTER METHODS																	*
+	 ************************************************************************************/
 	
 	/**
 	 * Retrieve class name
@@ -1480,6 +1393,77 @@ class Document
 		return this._revised;														// ==>
 		
 	}	// revised
+	
+	/**
+	 * Return list of significant fields
+	 *
+	 * This method should return the list of properties that will uniquely identify
+	 * the document, it is used when resolving a document from an object.
+	 *
+	 * The method should return an array of elements that represent the combination of
+	 * fields necessary to identify a single instance of the object in the database.
+	 * Each element of the array must be an array of descriptor _key elements: when
+	 * resolving the object, all elements of the returned array will be matched with
+	 * the object contents and if one of these combinations matches the fields in the
+	 * object, the document will be resolved using this combination.
+	 *
+	 * In this class we return an empty array, since there are no defined significant
+	 * properties: to resolve the document you must provide a reference in the
+	 * constructor..
+	 *
+	 * @returns {Array}	List of significant fields.
+	 */
+	get significantFields()
+	{
+		return [];																	// ==>
+		
+	}	// significantFields
+	
+	/**
+	 * Return list of required fields
+	 *
+	 * This method should return the list of required properties.
+	 *
+	 * In this class we return no properties, since the key can be database-assigned.
+	 *
+	 * @returns {Array}	List of required fields.
+	 */
+	get requiredFields()
+	{
+		return [];																	// ==>
+		
+	}	// requiredFields
+	
+	/**
+	 * Return list of unique fields
+	 *
+	 * This method should return the list of unique properties.
+	 *
+	 * In this class we return the key.
+	 *
+	 * @returns {Array}	List of unique fields.
+	 */
+	get uniqueFields()
+	{
+		return [ '_key' ];															// ==>
+		
+	}	// uniqueFields
+	
+	/**
+	 * Return list of locked fields
+	 *
+	 * This method should return the list of fields that cannot be changed once the
+	 * document has been inserted.
+	 *
+	 * In this class we return the id, key and revision.
+	 *
+	 * @returns {Array}	List of locked fields.
+	 */
+	get lockedFields()
+	{
+		return [ '_id', '_key', '_rev' ];											// ==>
+		
+	}	// lockedFields
 	
 }	// Document.
 

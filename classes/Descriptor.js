@@ -219,11 +219,11 @@ class Descriptor extends Document
 	 *
 	 * @returns {Array}	List of significant fields.
 	 */
-	getSignificantFields()
+	get significantFields()
 	{
 		return [ [Dict.descriptor.kGID] ];											// ==>
 		
-	}	// getSignificantFields
+	}	// significantFields
 	
 	/**
 	 * Return list of required fields
@@ -235,7 +235,7 @@ class Descriptor extends Document
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
-	getRequiredFields()
+	get requiredFields()
 	{
 		return [
 			'_key',
@@ -249,7 +249,7 @@ class Descriptor extends Document
 			Dict.descriptor.kLabel
 		];																			// ==>
 		
-	}	// getRequiredFields
+	}	// requiredFields
 	
 	/**
 	 * Return list of unique fields
@@ -260,14 +260,15 @@ class Descriptor extends Document
 	 *
 	 * @returns {Array}	List of unique fields.
 	 */
-	getUniqueFields()
+	get uniqueFields()
 	{
-		return super.getUniqueFields().concat([
-			Dict.descriptor.kGID,
-			Dict.descriptor.kVariable
-		]);																			// ==>
+		return super.uniqueFields
+			.concat([
+				Dict.descriptor.kGID,
+				Dict.descriptor.kVariable
+			]);																		// ==>
 		
-	}	// getUniqueFields
+	}	// uniqueFields
 	
 	/**
 	 * Return list of locked fields
@@ -279,20 +280,21 @@ class Descriptor extends Document
 	 *
 	 * @returns {Array}	List of locked fields.
 	 */
-	getLockedFields()
+	get lockedFields()
 	{
-		return super.getLockedFields().concat([
-			Dict.descriptor.kNID,
-			Dict.descriptor.kLID,
-			Dict.descriptor.kGID,
-			Dict.descriptor.kVariable,
-			Dict.descriptor.kKind,
-			Dict.descriptor.kType,
-			Dict.descriptor.kFormat,
-			Dict.descriptor.kDeploy
-		]);																			// ==>
+		return super.lockedFields
+			.concat([
+				Dict.descriptor.kNID,
+				Dict.descriptor.kLID,
+				Dict.descriptor.kGID,
+				Dict.descriptor.kVariable,
+				Dict.descriptor.kKind,
+				Dict.descriptor.kType,
+				Dict.descriptor.kFormat,
+				Dict.descriptor.kDeploy
+			]);																		// ==>
 		
-	}	// getLockedFields
+	}	// lockedFields
 	
 	/**
 	 * Get descriptor validation record

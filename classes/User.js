@@ -1181,7 +1181,7 @@ class User extends Document
 	 *
 	 * @returns {Array}	List of significant fields.
 	 */
-	getSignificantFields()
+	get significantFields()
 	{
 		return [
 			[
@@ -1189,7 +1189,7 @@ class User extends Document
 			]
 		];																			// ==>
 		
-	}	// getSignificantFields
+	}	// significantFields
 	
 	/**
 	 * Return list of required fields
@@ -1199,12 +1199,12 @@ class User extends Document
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
-	getRequiredFields()
+	get requiredFields()
 	{
 		//
 		// Append local properties.
 		//
-		return super.getRequiredFields()
+		return super.requiredFields
 			.concat([
 				Dict.descriptor.kUsername,	// User code.
 				Dict.descriptor.kName,		// User full name.
@@ -1215,7 +1215,7 @@ class User extends Document
 				Dict.descriptor.kAuthData	// User authentication record.
 			]);																		// ==>
 		
-	}	// getRequiredFields
+	}	// requiredFields
 	
 	/**
 	 * Return list of unique fields
@@ -1226,14 +1226,14 @@ class User extends Document
 	 *
 	 * @returns {Array}	List of unique fields.
 	 */
-	getUniqueFields()
+	get uniqueFields()
 	{
-		return super.getUniqueFields()
+		return super.uniqueFields
 			.concat([
 				Dict.descriptor.kUsername	// User code.
 			]);																		// ==>
 		
-	}	// getUniqueFields
+	}	// uniqueFields
 	
 	/**
 	 * Return list of locked fields
@@ -1242,14 +1242,14 @@ class User extends Document
 	 *
 	 * @returns {Array}	List of locked fields.
 	 */
-	getLockedFields()
+	get lockedFields()
 	{
-		return super.getLockedFields()
+		return super.lockedFields
 			.concat([
 				Dict.descriptor.kUsername	// User code.
 			]);																		// ==>
 		
-	}	// getLockedFields
+	}	// lockedFields
 	
 	/**
 	 * Return manager hierarchy

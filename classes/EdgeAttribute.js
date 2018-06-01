@@ -123,12 +123,12 @@ class EdgeAttribute extends Edge
 	 * In the Edge class family there must be only one combination of significant
 	 * fields, in this class we call the parent method and add the attributes array.
 	 */
-	getSignificantFields()
+	get significantFields()
 	{
 		//
 		// Get default properties.
 		//
-		const selectors = super.getSignificantFields();
+		const selectors = super.significantFields;
 		
 		//
 		// Add attributes to first, and only, selector.
@@ -137,7 +137,7 @@ class EdgeAttribute extends Edge
 		
 		return selectors;															// ==>
 		
-	}	// getSignificantFields
+	}	// significantFields
 	
 	/**
 	 * Return list of required fields
@@ -147,14 +147,14 @@ class EdgeAttribute extends Edge
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
-	getRequiredFields()
+	get requiredFields()
 	{
-		return super.getRequiredFields()
+		return super.requiredFields
 			.concat([
 				Dict.descriptor.kAttributes		// The edge attributes.
 			]);																		// ==>
 		
-	}	// getRequiredFields
+	}	// requiredFields
 	
 	/**
 	 * Return list of locked fields
@@ -164,14 +164,14 @@ class EdgeAttribute extends Edge
 	 *
 	 * @returns {Array}	List of locked fields.
 	 */
-	getLockedFields()
+	get lockedFields()
 	{
-		return super.getLockedFields()
+		return super.lockedFields
 			.concat([
 				Dict.descriptor.kAttributes		// The edge attributes.
 			]);																		// ==>
 		
-	}	// getLockedFields
+	}	// lockedFields
 	
 }	// EdgeAttribute.
 

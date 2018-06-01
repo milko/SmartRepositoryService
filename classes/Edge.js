@@ -163,7 +163,7 @@ class Edge extends Document
 	 * fields, in this class we override the parent method to return the node references
 	 * and the predicate.
 	 */
-	getSignificantFields()
+	get significantFields()
 	{
 		return [
 			[
@@ -173,7 +173,7 @@ class Edge extends Document
 			]
 		];																			// ==>
 		
-	}	// getSignificantFields
+	}	// significantFields
 	
 	/**
 	 * Return list of required fields
@@ -182,9 +182,9 @@ class Edge extends Document
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
-	getRequiredFields()
+	get requiredFields()
 	{
-		return super.getRequiredFields()
+		return super.requiredFields
 			.concat([
 				'_key',						// The edge hash.
 				'_from',					// The source node reference.
@@ -192,7 +192,7 @@ class Edge extends Document
 				Dict.descriptor.kPredicate	// The predicate reference.
 			]);																		// ==>
 		
-	}	// getRequiredFields
+	}	// requiredFields
 	
 	/**
 	 * Return list of locked fields
@@ -201,9 +201,9 @@ class Edge extends Document
 	 *
 	 * @returns {Array}	List of locked fields.
 	 */
-	getLockedFields()
+	get lockedFields()
 	{
-		return super.getLockedFields()
+		return super.lockedFields
 			.concat([
 				'_key',						// The edge hash.
 				'_from',					// The source node reference.
@@ -211,7 +211,7 @@ class Edge extends Document
 				Dict.descriptor.kPredicate	// The predicate reference.
 			]);																		// ==>
 		
-	}	// getLockedFields
+	}	// lockedFields
 	
 }	// Edge.
 

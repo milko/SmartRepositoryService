@@ -1322,8 +1322,9 @@ class Schema
 		//
 		// Strip private properties.
 		//
-		if( doStrip								// Wanna strip,
-		 && (theVertexFld === null) )			// and got all clothes.
+		if( doStrip								// Wanna strip
+		 && (theVertexFld === null)				// and got all clothes
+		 && (hierarchy.length > 0) )			// and found managed.
 		{
 			//
 			// Pop current user.
