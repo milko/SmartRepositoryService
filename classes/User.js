@@ -238,7 +238,7 @@ class User extends Document
 			throw( error );														// !@! ==>
 		}
 		
-	}	// insertDocument
+	}	// insert
 	
 	/**
 	 * Insert group relationship
@@ -364,10 +364,9 @@ class User extends Document
 	 * If the current user manages other users, but has no manager, the method will
 	 * raise an exception.
 	 *
-	 * The method expects two parameters that were passed by the insertDocument()
-	 * method, these two flags indicate whether the group or manager edges were
-	 * inserted: these are necessary in cases where the insert procedure finds an
-	 * existing edge, removing it might corrupt the database structure.
+	 * The method expects two parameters, these two flags indicate whether the group or
+	 * manager edges were inserted: these are necessary in cases where the insert
+	 * procedure finds an existing edge, removing it might corrupt the database structure.
 	 *
 	 * @param doGroup	{Boolean}	If true, remove group (default).
 	 * @param doManager	{Boolean}	If true, remove manager (default)

@@ -147,10 +147,106 @@ class Document
 	insert()
 	{
 		//
-		// Check contents and insert document.
+		// Validate document.
 		//
 		if( this.validate( true ) )
-			return this.insertDocument();											// ==>
+		{
+			//
+			// Check collection.
+			//
+			const collection = db._collection( this._collection );
+			if( ! collection )
+				throw(
+					new MyError(
+						'InsertDocument',					// Error name.
+						K.error.NoCollection,				// Message code.
+						this._request.application.language,	// Language.
+						null,								// Arguments.
+						409									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			//
+			// Try insertion.
+			//
+			try
+			{
+				//
+				// Insert.
+				//
+				const meta = collection.insert( this._document );
+				
+				//
+				// Update metadata.
+				//
+				this._document._id = meta._id;
+				this._document._key = meta._key;
+				
+				//
+				// Handle revision.
+				//
+				if( this._document.hasOwnProperty( '_rev' )
+					&& (this._document._rev !== meta._rev) )
+					this._revised = true;
+				this._document._rev = meta._rev;
+				
+				//
+				// Set persistent flag.
+				//
+				this._persistent = true;
+			}
+			catch( error )
+			{
+				//
+				// Reset persistent flag.
+				//
+				this._persistent = false;
+				
+				//
+				// Handle unique constraint error.
+				//
+				if( error.isArangoError
+					&& (error.errorNum === ARANGO_DUPLICATE) )
+				{
+					//
+					// Set field references.
+					//
+					let field = null;
+					const reference = {};
+					for( field of this.uniqueFields )
+						reference[ field ] = ( this._document.hasOwnProperty( field ) )
+											 ? this._document[ field ]
+											 : null;
+					
+					//
+					// Set field arguments.
+					//
+					let args = [];
+					for( field in reference )
+					{
+						const value = ( Array.isArray( reference[ field ] ) )
+									  ? `[${reference[field].join(', ')}]`
+									  : reference[field];
+						args.push( `${field} = ${value}` );
+					}
+					
+					throw(
+						new MyError(
+							'InsertDocument',					// Error name.
+							K.error.DuplicateDocument,			// Message code.
+							this._request.application.language,	// Language.
+							[ this._collection, args.join( ', ' ) ],
+							409									// HTTP error code.
+						)
+					);															// !@! ==>
+				}
+				
+				throw( error );													// !@! ==>
+			}
+			
+			return this._persistent;												// ==~
+			
+		}	// Document is valid.
 		
 		return false;																// ==>
 		
@@ -555,116 +651,6 @@ class Document
 		return null;																// ==>
 	
 	}	// defaultCollection
-	
-	/**
-	 * Insert document
-	 *
-	 * This method will perform the actual insertion, it expects the validation to
-	 * have passed.
-	 *
-	 * The method will return the persistent state of the document after the insert,
-	 * or raise an exception on any error.
-	 *
-	 * @returns {Boolean}	Persistent state, or raise an exception.
-	 */
-	insertDocument()
-	{
-		//
-		// Check collection.
-		//
-		const collection = db._collection( this._collection );
-		if( ! collection )
-			throw(
-				new MyError(
-					'InsertDocument',					// Error name.
-					K.error.NoCollection,				// Message code.
-					this._request.application.language,	// Language.
-					null,								// Arguments.
-					409									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-		//
-		// Try insertion.
-		//
-		try
-		{
-			//
-			// Insert.
-			//
-			const meta = collection.insert( this._document );
-			
-			//
-			// Update metadata.
-			//
-			this._document._id = meta._id;
-			this._document._key = meta._key;
-			
-			//
-			// Handle revision.
-			//
-			if( this._document.hasOwnProperty( '_rev' )
-				&& (this._document._rev !== meta._rev) )
-				this._revised = true;
-			this._document._rev = meta._rev;
-			
-			//
-			// Set persistent flag.
-			//
-			this._persistent = true;
-		}
-		catch( error )
-		{
-			//
-			// Reset persistent flag.
-			//
-			this._persistent = false;
-			
-			//
-			// Handle unique constraint error.
-			//
-			if( error.isArangoError
-				&& (error.errorNum === ARANGO_DUPLICATE) )
-			{
-				//
-				// Set field references.
-				//
-				let field = null;
-				const reference = {};
-				for( field of this.uniqueFields )
-					reference[ field ] = ( this._document.hasOwnProperty( field ) )
-										 ? this._document[ field ]
-										 : null;
-				
-				//
-				// Set field arguments.
-				//
-				let args = [];
-				for( field in reference )
-				{
-					const value = ( Array.isArray( reference[ field ] ) )
-								  ? `[${reference[field].join(', ')}]`
-								  : reference[field];
-					args.push( `${field} = ${value}` );
-				}
-				
-				throw(
-					new MyError(
-						'InsertDocument',					// Error name.
-						K.error.DuplicateDocument,			// Message code.
-						this._request.application.language,	// Language.
-						[ this._collection, args.join( ', ' ) ],
-						409									// HTTP error code.
-					)
-				);																// !@! ==>
-			}
-			
-			throw( error );														// !@! ==>
-		}
-		
-		return this._persistent;													// ==~
-		
-	}	// insertDocument
 	
 	/**
 	 * Resolve document
