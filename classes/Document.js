@@ -135,6 +135,173 @@ class Document
 	 ************************************************************************************/
 	
 	/**
+	 * Validate document
+	 *
+	 * This method will assert all required fields are present and valid,
+	 * if any of these tests fails, the method will raise an exception.
+	 *
+	 * @param doAssert	{Boolean}	If true, an exception will be raised on errors
+	 * 								(defaults to true).
+	 * @returns {Boolean}			True if valid.
+	 */
+	validate( doAssert = true )
+	{
+		//
+		// Load computed fields.
+		//
+		if( ! this.loadComputedProperties( doAssert ) )
+			return false;															// ==>
+		
+		//
+		// Validate required fields.
+		//
+		if( ! this.hasRequiredFields( doAssert ) )
+			return false;															// ==>
+		
+		//
+		// Validate properties.
+		//
+		if( ! this.validateProperties( doAssert ) )
+			return false;															// ==>
+		
+		return true;																// ==>
+		
+	}	// validate
+	
+	/**
+	 * Resolve
+	 *
+	 * This method will attempt to load the document corresponding to the significant
+	 * fields of the object, if the document was found, its properties will be set in
+	 * the current object according to the falue of doReplace:
+	 *
+	 * 	- true:		The resolved properties will overwrite the existing ones.
+	 * 	- false:	The existing properties will not be replaced.
+	 *
+	 * Note that the _id, _key and _rev properties will overwrite by default the
+	 * existing ones.
+	 *
+	 * The doAssert parameter is used to determine how errors are managed: if true,
+	 * errors will raise an exception, if false, the method will return true, if
+	 * successful, or false if not.
+	 *
+	 * The following assertions will be made:
+	 *
+	 * 	- Assert that the document has the significant fields to resolve the object.
+	 * 	- Assert that only one document matches the significant fields combination.
+	 * 	- Assert that the resolved document _id and _key fields match the eventual
+	 * 	  current ones.
+	 *
+	 * If the current object has the revision field, the method will update the
+	 * _revised flag accordingly. The _persistent flag will also be updated.
+	 *
+	 * @param doReplace	{Boolean}	Replace existing data (false is default).
+	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
+	 * 								(defaults to true).
+	 * @returns {Boolean}			True if found.
+	 */
+	resolve( doReplace = false, doAssert = true )
+	{
+		//
+		// Get significant fields combination.
+		//
+		const match = this.hasSignificantFields( doAssert );
+		
+		//
+		// Check if has significant fields.
+		//
+		if( match !== false )
+		{
+			//
+			// Load example query from significant fields.
+			// Note that the method assumes you have called hasSignificantFields().
+			//
+			const selector = {};
+			for( const field of match )
+				selector[ field ] = this._document[ field ];
+			
+			//
+			// Load document.
+			//
+			const cursor = db._collection( this._collection ).byExample( selector );
+			
+			//
+			// Check if found.
+			//
+			if( cursor.count() > 0 )
+			{
+				//
+				// Handle ambiguous query.
+				//
+				if( cursor.count() > 1 )
+					throw(
+						new MyError(
+							'AmbiguousDocumentReference',		// Error name.
+							K.error.AmbiguousDocument,			// Message code.
+							this.request.application.language,	// Language.
+							[ Object.keys( selector ), this._collection],
+							412									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				//
+				// Load found document.
+				//
+				this.modify( cursor.toArray()[ 0 ], doReplace, true );
+				
+				//
+				// Set flag.
+				//
+				this._persistent = true;
+				
+			}	// Found.
+			
+			//
+			// Handle not found.
+			//
+			else
+			{
+				//
+				// Assert not found.
+				//
+				if( doAssert )
+				{
+					//
+					// Build reference.
+					//
+					const reference = [];
+					for( const field in selector )
+						reference.push( `${field} = ${selector[field].toString()}`)
+					
+					//
+					// Raise exception.
+					//
+					throw(
+						new MyError(
+							'BadDocumentReference',						// Error name.
+							K.error.DocumentNotFound,					// Message code.
+							this._request.application.language,			// Language.
+							[reference.join( ', ' ), this._collection],	// Error value.
+							404											// HTTP error code.
+						)
+					);															// !@! ==>
+				}
+				
+				//
+				// Set flag.
+				//
+				this._persistent = false;
+			}
+			
+			return this._persistent;												// ==>
+			
+		}	// Found match combination.
+		
+		return false;																// ==>
+		
+	}	// resolve
+	
+	/**
 	 * Insert
 	 *
 	 * This method will insert the document in the registered collection after validating
@@ -253,55 +420,6 @@ class Document
 	}	// insert
 	
 	/**
-	 * Resolve
-	 *
-	 * This method will attempt to load the document corresponding to the significant
-	 * fields of the object, if the document was found, its properties will be set in
-	 * the current object according to the falue of doReplace:
-	 *
-	 * 	- true:		The resolved properties will overwrite the existing ones.
-	 * 	- false:	The existing properties will not be replaced.
-	 *
-	 * Note that the _id, _key and _rev properties will overwrite by default the
-	 * existing ones.
-	 *
-	 * The doAssert parameter is used to determine how errors are managed: if true,
-	 * errors will raise an exception, if false, the method will return true, if
-	 * successful, or false if not.
-	 *
-	 * The following assertions will be made:
-	 *
-	 * 	- Assert that the document has the significant fields to resolve the object.
-	 * 	- Assert that only one document matches the significant fields combination.
-	 * 	- Assert that the resolved document _id and _key fields match the eventual
-	 * 	  current ones.
-	 *
-	 * If the current object has the revision field, the method will update the
-	 * _revised flag accordingly. The _persistent flag will also be updated.
-	 *
-	 * @param doReplace	{Boolean}	Replace existing data (false is default).
-	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
-	 * 								(defaults to true).
-	 * @returns {Boolean}			True if found.
-	 */
-	resolve( doReplace = false, doAssert = true )
-	{
-		//
-		// Get significant fields combination.
-		//
-		const selector = this.hasSignificantFields( doAssert );
-		
-		//
-		// Resolve document.
-		//
-		if( selector !== false )
-			return this.resolveDocument( selector, doReplace, doAssert );						// ==>
-		
-		return false;																// ==>
-		
-	}	// resolve
-	
-	/**
 	 * Load document data
 	 *
 	 * This method will add the provided object properties to the current object's
@@ -340,7 +458,7 @@ class Document
 	 *
 	 * @param theData		{Object}	The object properties to add.
 	 * @param doReplace		{Boolean}	True, overwrite existing properties.
-	 * @param isResolving	{Boolean}	True, called by resolveDocument() (default false).
+	 * @param isResolving	{Boolean}	True, called by resolve() (default false).
 	 */
 	modify( theData, doReplace = true, isResolving = false )
 	{
@@ -520,40 +638,6 @@ class Document
 	
 	}	// remove
 	
-	/**
-	 * Validate document
-	 *
-	 * This method will assert all required fields are present and valid,
-	 * if any of these tests fails, the method will raise an exception.
-	 *
-	 * @param doAssert	{Boolean}	If true, an exception will be raised on errors
-	 * 								(defaults to true).
-	 * @returns {Boolean}			True if valid.
-	 */
-	validate( doAssert = true )
-	{
-		//
-		// Load computed fields.
-		//
-		if( ! this.loadComputedProperties( doAssert ) )
-			return false;															// ==>
-		
-		//
-		// Validate required fields.
-		//
-		if( ! this.hasRequiredFields( doAssert ) )
-			return false;															// ==>
-		
-		//
-		// Validate properties.
-		//
-		if( ! this.validateProperties( doAssert ) )
-			return false;															// ==>
-		
-		return true;																// ==>
-		
-	}	// validate
-	
 	
 	/************************************************************************************
 	 * PROTECTED METHODS																*
@@ -653,125 +737,6 @@ class Document
 	}	// defaultCollection
 	
 	/**
-	 * Resolve document
-	 *
-	 * This method will attempt to load the document corresponding to the significant
-	 * fields of the object, if the document is found, its properties will be set in
-	 * the current object according to the falue of doReplace:
-	 *
-	 * 	- true:		The resolved properties will overwrite the existing ones.
-	 * 	- false:	The existing properties will not be replaced.
-	 *
-	 * Note that the _id, _key and _rev properties will overwrite by default the
-	 * existing ones.
-	 *
-	 * This method assumes the object has the necessary properties to resolve it, in
-	 * practice, that you have called hasSignificantFields() beforehand and that the
-	 * method returned true.
-	 *
-	 * The method will return a boolean, true if the document was resolved and false
-	 * if not; if doAssert is true, the method will raise an exception if the document
-	 * could not be resolved.
-	 *
-	 * Note that by resolve we mean that a single document is matched, if more than
-	 * one document is matched it is considered an error.
-	 *
-	 * Please refer to the resolve() method for further documentation.
-	 *
-	 * @param theSelector	{Array}		List of selector fields.
-	 * @param doReplace		{Boolean}	Replace existing data (false is default).
-	 * @param doAssert		{Boolean}	If true, an exception will be raised if not found
-	 * 									(defaults to true).
-	 * @returns {Boolean}				True if found.
-	 */
-	resolveDocument( theSelector, doReplace = false, doAssert = true )
-	{
-		//
-		// Load example query from significant fields.
-		// Note that the method assumes you have called hasSignificantFields().
-		//
-		const selector = {};
-		for( const field of theSelector )
-			selector[ field ] = this._document[ field ];
-		
-		//
-		// Load document.
-		//
-		const cursor = db._collection( this._collection ).byExample( selector );
-		
-		//
-		// Check if found.
-		//
-		if( cursor.count() > 0 )
-		{
-			//
-			// Handle ambiguous query.
-			//
-			if( cursor.count() > 1 )
-				throw(
-					new MyError(
-						'AmbiguousDocumentReference',		// Error name.
-						K.error.AmbiguousDocument,			// Message code.
-						this.request.application.language,	// Language.
-						[ Object.keys( selector ), this._collection],
-						412									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Load found document.
-			//
-			this.modify( cursor.toArray()[ 0 ], doReplace, true );
-			
-			//
-			// Set flag.
-			//
-			this._persistent = true;
-			
-		}	// Found.
-		
-		//
-		// Handle not found.
-		//
-		else
-		{
-			//
-			// Assert not found.
-			//
-			if( doAssert )
-			{
-				//
-				// Build reference.
-				//
-				const reference = [];
-				for( const field in selector )
-					reference.push( `${field} = ${selector[field].toString()}`)
-				
-				//
-				// Raise exception.
-				//
-				throw(
-					new MyError(
-						'BadDocumentReference',						// Error name.
-						K.error.DocumentNotFound,					// Message code.
-						this._request.application.language,			// Language.
-						[reference.join( ', ' ), this._collection],	// Error value.
-						404											// HTTP error code.
-					)
-				);																// !@! ==>
-			}
-			
-			//
-			// Set flag.
-			//
-			this._persistent = false;
-		}
-		
-		return this._persistent;													// ==>
-		
-	}	// resolveDocument
-	
-	/**
 	 * Load document property
 	 *
 	 * This method can be used to set the value of a property, it is called by
@@ -801,7 +766,7 @@ class Document
 	 * @param theProperty	{String}	The property descriptor _key.
 	 * @param theValue		{*}			The property value.
 	 * @param isLocked		{Boolean}	True if locked properties.
-	 * @param isResolving	{Boolean}	True, called by resolveDocument().
+	 * @param isResolving	{Boolean}	True, called by resolve().
 	 */
 	loadDocumentProperty( theProperty, theValue, isLocked, isResolving )
 	{

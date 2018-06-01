@@ -57,7 +57,7 @@ class EdgeAttribute extends Edge
 	 * @param theProperty	{String}	The property name.
 	 * @param theValue		{*}			The property value.
 	 * @param theLocked		{Array}		List of locked properties.
-	 * @param isResolving	{Boolean}	True, called by resolveDocument().
+	 * @param isResolving	{Boolean}	True, called by resolve().
 	 */
 	loadDocumentProperty( theProperty, theValue, theLocked, isResolving )
 	{
