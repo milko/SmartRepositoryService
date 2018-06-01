@@ -229,7 +229,8 @@ router.post
 			),
 			manager 	: Joi.alternatives().try(
 				Joi.string(),
-				Joi.object()
+				Joi.object(),
+				null
 			),
 			data		: Joi.alternatives().try(
 				Joi.object(),

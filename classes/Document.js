@@ -1427,7 +1427,7 @@ class Document
 	{
 		return this._class;															// ==>
 		
-	}	// get classname
+	}	// classname
 	
 	/**
 	 * Retrieve collection name
@@ -1440,7 +1440,7 @@ class Document
 	{
 		return this._collection;													// ==>
 		
-	}	// get collection
+	}	// collection
 	
 	/**
 	 * Retrieve document object
@@ -1453,7 +1453,7 @@ class Document
 	{
 		return this._document;														// ==>
 		
-	}	// get document
+	}	// document
 	
 	/**
 	 * Retrieve persistent flag
@@ -1466,7 +1466,7 @@ class Document
 	{
 		return this._persistent;													// ==>
 		
-	}	// get persistent
+	}	// persistent
 	
 	/**
 	 * Retrieve revised flag
@@ -1479,7 +1479,7 @@ class Document
 	{
 		return this._revised;														// ==>
 		
-	}	// get revised
+	}	// revised
 	
 }	// Document.
 

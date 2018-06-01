@@ -190,7 +190,8 @@ class User extends Document
 		//
 		// Set authentication record.
 		//
-		this.createAuthentication( thePassword );
+		User.authSet( thePassword, this );
+		// this.createAuthentication( thePassword );
 		
 		//
 		// Insert user.
@@ -340,7 +341,8 @@ class User extends Document
 		//
 		if( this._persistent
 		 && (thePassword !== null) )
-			this.createAuthentication( thePassword );
+			User.authSet( thePassword, this );
+			// this.createAuthentication( thePassword );
 		
 		return super.replace( doRevision );											// ==>
 		
@@ -1131,29 +1133,6 @@ class User extends Document
 	}	// hasManaged
 	
 	/**
-	 * Set user authentication record
-	 *
-	 * This method will set the user authentication record with the provided password.
-	 *
-	 * @param thePassword	{String} The user password.
-	 */
-	createAuthentication( thePassword )
-	{
-		//
-		// Authentication framework.
-		//
-		// const crypto = require('@arangodb/crypto');
-		const createAuth = require('@arangodb/foxx/auth');
-		
-		//
-		// Create authorisation data.
-		//
-		const auth = createAuth();
-		this._document[ Dict.descriptor.kAuthData ] = auth.create( thePassword );
-		
-	}	// createAuthentication
-	
-	/**
 	 * Return list of significant fields
 	 *
 	 * We override the parent method to return the user code.
@@ -1400,6 +1379,130 @@ class User extends Document
 		return null;																// ==>
 		
 	}	// manages
+	
+	/**
+	 * Set authentication record
+	 *
+	 * This method will create the authentication record and set it into the provided
+	 * object.
+	 *
+	 * The method will assert that the provided document is indeed an object.
+	 *
+	 * @param thePassword	{String}	The password.
+	 * @param theDocument	{Object}	Receives authentication record.
+	 */
+	static authSet( thePassword, theDocument )
+	{
+		//
+		// Authentication framework.
+		//
+		// const crypto = require('@arangodb/crypto');
+		const createAuth = require('@arangodb/foxx/auth');
+		const auth = createAuth();
+		
+		//
+		// Create authorisation data.
+		//
+		const data = auth.create( thePassword );
+		
+		//
+		// Set in user.
+		//
+		if( theDocument instanceof User )
+			theDocument.document[ Dict.descriptor.kAuthData ] = data;
+		
+		//
+		// Set in structure.
+		//
+		else if( K.function.isObject( theDocument ) )
+			theDocument.document[ Dict.descriptor.kAuthData ] = data;
+		
+		//
+		// Complain.
+		//
+		else
+			throw(
+				new MyError(
+					'BadParam',							// Error name.
+					K.error.MustBeObject,				// Message code.
+					this._request.application.language,	// Language.
+					null,								// Error value.
+					400									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+	}	// authSet
+	
+	/**
+	 * Check authentication record
+	 *
+	 * This method will check whether the provided password authenticates the provided
+	 * object.
+	 *
+	 * The method will return true if the authentication succeeded, false if it didn't
+	 * and null if the provided object does not have the authentication record.
+	 *
+	 * The method will assert that the provided document is indeed an object.
+	 *
+	 * @param thePassword	{String}	The password.
+	 * @param theDocument	{Object}	The object to authenticate.
+	 * @returns {Boolean}|{null}		True OK, false KO, null not there.
+	 */
+	static authCheck( thePassword, theDocument )
+	{
+		//
+		// Init local storage.
+		//
+		let data = null;
+		
+		//
+		// Get authentication record
+		// from User instance.
+		//
+		if( theDocument instanceof User )
+		{
+			if( theDocument.document.hasOwnProperty( Dict.descriptor.kAuthData ) )
+				data = theDocument.document[ Dict.descriptor.kAuthData ];
+			else
+				return null;														// ==>
+		}
+		
+		//
+		// Get authentication record
+		// from object.
+		//
+		else if( K.function.isObject( theDocument ) )
+		{
+			if( theDocument.hasOwnProperty( Dict.descriptor.kAuthData ) )
+				data = theDocument[ Dict.descriptor.kAuthData ];
+			else
+				return null;														// ==>
+		}
+		
+		//
+		// Complain.
+		//
+		else
+			throw(
+				new MyError(
+					'BadParam',							// Error name.
+					K.error.MustBeObject,				// Message code.
+					this._request.application.language,	// Language.
+					null,								// Error value.
+					400									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+		//
+		// Authentication framework.
+		//
+		// const crypto = require('@arangodb/crypto');
+		const createAuth = require('@arangodb/foxx/auth');
+		const auth = createAuth();
+		
+		return auth.verify( data, thePassword );									// ==>
+		
+	}	// authCheck
 	
 }	// User.
 

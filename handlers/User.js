@@ -6,7 +6,6 @@
 const db = require('@arangodb').db;
 const aql = require('@arangodb').aql;
 const crypto = require('@arangodb/crypto');
-const createAuth = require('@arangodb/foxx/auth');
 
 //
 // Errors.
@@ -101,15 +100,10 @@ module.exports = {
 			// Load user data.
 			//
 			const data = theRequest.body.data;
+			data[ Dict.descriptor.kStatus ] = Dict.term.kStateStatusPending;
 			if( ! data.hasOwnProperty( Dict.descriptor.kUsername ) )
 				data[ Dict.descriptor.kUsername ] =
 					data[ Dict.descriptor.kEmail ];
-/*
-			if( ! data.hasOwnProperty( Dict.descriptor.kLanguage ) )
-				data[ Dict.descriptor.kLanguage ] =
-					module.context.configuration.defaultLanguage;
-*/
-			data[ Dict.descriptor.kStatus ] = Dict.term.kStateStatusPending;
 			
 			//
 			// Generate token.
@@ -126,15 +120,6 @@ module.exports = {
 					Application.userAuthentication( false ).key,
 					encode
 				);
-			
-			//
-			// Create authorisation data.
-			//
-/*
-			const auth = createAuth();
-			data[ Dict.descriptor.kAuthData ] =
-				auth.create( encode[ Dict.descriptor.kPassword ] );
-*/
 			
 			//
 			// Instantiate user.
@@ -247,14 +232,11 @@ module.exports = {
 					)
 				);																// !@! ==>
 			
+			
 			//
 			// Check signup credentials.
 			//
-			const auth = createAuth();
-			const valid = auth.verify(
-				user.document[ Dict.descriptor.kAuthData ],
-				token_password );
-			if( ! valid )
+			if( ! User.authCheck( token_password, user ) )
 				theResponse.throw(
 					403,
 					new MyError(
@@ -492,11 +474,7 @@ module.exports = {
 			//
 			// Check signup credentials.
 			//
-			let auth = createAuth();
-			const valid = auth.verify(
-				user.document[ Dict.descriptor.kAuthData ],
-				decoded[ Dict.descriptor.kPassword ] );
-			if( ! valid )
+			if( ! User.authCheck( decoded[ Dict.descriptor.kPassword ], user ) )
 				theResponse.throw(
 					403,
 					new MyError(
