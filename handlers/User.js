@@ -287,6 +287,124 @@ module.exports = {
 	},	// reset
 	
 	/**
+	 * Change user code
+	 *
+	 * The service can be used to modify an existing username, it expects the following
+	 * properties in the POST body:
+	 *
+	 * 	- token:	The user authentication token.
+	 * 	- old:		The existing user code.
+	 * 	- new:		The new user code.
+	 *
+	 * The service will return the new username if the service was successful, or
+	 * raise an exception if not.
+	 *
+	 * The service will perform the following steps:
+	 *
+	 * 	- Assert there is a current user.
+	 * 	- Validate the user authentication token.
+	 * 	- Resolve the provided old username.
+	 * 	- Ensure the current user can manage the resolved user.
+	 * 	- Assert the new username does not exist.
+	 * 	- Update the username in the collection.
+	 * 	- Return the updated username.
+	 *
+	 * If the method raises an exception, the service will forward it using the
+	 * HTTP code if the exception is of class MyError.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 */
+	changeUsername : ( theRequest, theResponse ) =>
+	{
+		//
+		// Procedures.
+		//
+		try
+		{
+			//
+			// Assertions.
+			//
+			Middleware.assert.hasUser( theRequest, theResponse );
+			Middleware.assert.tokenUser( theRequest, theResponse );
+			
+			//
+			// Instantiate user.
+			//
+			const selector = {};
+			selector[ Dict.descriptor.kUsername ] = theRequest.body.old;
+			
+			//
+			// Instantiate user.
+			// Will raise an exception if not found.
+			//
+			const user = new User( theRequest, selector );
+			user.resolve( true, true );
+			
+			//
+			// Validate current user as manager.
+			// We know the session has the uid.
+			// The User method does not include the root node,
+			// this means that a user cannot change its own code:
+			// this ensures the system administrator username will not change.
+			//
+			if( ! user.isManagedBy( theRequest.session.uid ) )
+				theResponse.throw(
+					403,
+					new MyError(
+						'ServiceUnavailable',				// Error name.
+						K.error.CannotManageUser,			// Error code.
+						theRequest.application.language,	// Error language.
+						theRequest.body.old					// Arguments.
+					)
+				);																// !@! ==>
+			
+			//
+			// Check if new username is used.
+			//
+			selector[ Dict.descriptor.kUsername ] = theRequest.body.new;
+			const temp = new User( theRequest, selector );
+			if( temp.resolve( false, false ) )
+				theResponse.throw(
+					403,
+					new MyError(
+						'ConstraintViolated',				// Error name.
+						K.error.UserExists,					// Error code.
+						theRequest.application.language,	// Error language.
+						null								// Arguments.
+					)
+				);																// !@! ==>
+			
+			//
+			// Update username.
+			//
+			db._collection( 'users' ).update( user.document, selector );
+			
+			//
+			// Return response.
+			//
+			theResponse.send({ result : theRequest.body.new });						// ==>
+		}
+		catch( error )
+		{
+			//
+			// Init default HTTP error type.
+			//
+			const http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				theResponse.throw( error.param_http, error );					// !@! ==>
+			
+			theResponse.throw( http, error );									// !@! ==>
+		}
+		
+	},	// changeUsername
+	
+	/**
 	 * Return sign up form
 	 *
 	 * The service will decode the sign up token, resolve the corresponding user and

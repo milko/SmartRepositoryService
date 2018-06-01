@@ -187,6 +187,56 @@ router.post( '/reset/user', Handlers.reset, 'reset' )
 
 
 /**
+ * Chande user code
+ *
+ * The service is used to modify the user code, it is used by a manager to change the
+ * username of a managed user. The service expects two parameters in the POST body:
+ *
+ * 	- token:	the user authentication token.
+ * 	- old:		the old user code.
+ * 	- new:		the new user code.
+ *
+ * The service will perform the following steps:
+ *
+ * 	- Assert there is a current user.
+ * 	- Validate the user authentication token.
+ * 	- Resolve the provided old username.
+ * 	- Ensure the current user can manage the resolved user.
+ * 	- Assert the new username does not exist.
+ * 	- Update the username in the collection.
+ * 	- Return the updated username.
+ *
+ * The service may raise an exception, the HTTP code depends on the exception
+ * class: if MyError and it contains the HTTP code, this will be used, in all
+ * other cases, the code will be 500.
+ *
+ * @path		/change/code
+ * @verb		post
+ * @request		{Object}	User authentication token, old and new usernames.
+ * @response	{Object}	The result.
+ */
+router.post( '/change/code', Handlers.changeUsername, 'changeUsername' )
+	.body(
+		require( '../models/user/changeUsername' ),
+		Application.getServiceDescription(
+			'user', 'setUsername', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/user/changeUsername' ),
+		Application.getServiceDescription(
+			'user', 'setUsername', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Reset user."
+	)
+	.description(
+		Application.getServiceDescription(
+			'user', 'setUsername', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
  * Create administrator user
  *
  * The service will create the system administrator user, it expects the post body to

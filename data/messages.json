@@ -801,6 +801,18 @@
     }
   },
   {
+    "_key" : "s:user:setUsername",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><token>key</code></strong>: the <em>user authentication token</em> string.</li><li><strong><code>old</code></strong>: the <em>current</em> user code string</li><li><strong><code>new</code></strong>: the <em>new</em> user code string</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the updated user code."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service can be used to change a user code, it expects the following information in the request POST body:<ul><li><strong><code>token</code></strong>: the user authentication <em>token</em> string.</li><li><strong><code>old</code></strong>: the <em>existing</em> user code string.</li><li><strong><code>new</code></strong>: the <em>new</em> user code string.</li></ul><p>The service will perform the following steps:<ul><li>Assert there is a current user.</li><li>Validate the provided user authentication token.</li><li>Resolve the provided <em>old</em> username.</li><li>Ensure the current user can manage the resolved user.</li><li>Assert the new username does not exist.</li><li>Update the user code in the collection.</li><li>Return the new username.</li></ul></p><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the new username.</p>"
+    }
+  },
+  {
     "_key" : "s:user:admin",
     "body" : {
       "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>token</code></strong>: the administrator <em>token</em> string.</li><li><strong><code>data</code></strong>: the administrator <em>form contents</em> object which should include the following properties:</li><ul><li><strong><code>name</code></stromg>: the user full name.</li><li><strong><code>password</code></stromg>: the user password.</li><li><strong><code>email</code></stromg>: the user e-mail address.</li><li><strong><code>language</code></stromg>: the user preferred language code.</li></ul></ul>"
