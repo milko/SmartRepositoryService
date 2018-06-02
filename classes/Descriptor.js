@@ -48,32 +48,6 @@ class Descriptor extends Document
 	}	// setClass
 	
 	/**
-	 * Check collection type
-	 *
-	 * This method will check if the collection is of the correct type, if that is not
-	 * the case, the method will raise an exception.
-	 *
-	 * In this class we expect a document collection.
-	 */
-	checkCollectionType()
-	{
-		//
-		// Check collection type.
-		//
-		if( db._collection( this._collection ).type() !== 2 )
-			throw(
-				new MyError(
-					'BadCollection',					// Error name.
-					K.error.ExpectingDocColl,			// Message code.
-					this._request.application.language,	// Language.
-					this._collection,					// Error value.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-	}	// checkCollectionType
-	
-	/**
 	 * Load computed fields
 	 *
 	 * We overload this method to add the validation record.
@@ -117,6 +91,32 @@ class Descriptor extends Document
 		return false;																// ==>
 		
 	}	// setComputedProperties
+	
+	/**
+	 * Check collection type
+	 *
+	 * This method will check if the collection is of the correct type, if that is not
+	 * the case, the method will raise an exception.
+	 *
+	 * In this class we expect a document collection.
+	 */
+	checkCollectionType()
+	{
+		//
+		// Check collection type.
+		//
+		if( db._collection( this._collection ).type() !== 2 )
+			throw(
+				new MyError(
+					'BadCollection',					// Error name.
+					K.error.ExpectingDocColl,			// Message code.
+					this._request.application.language,	// Language.
+					this._collection,					// Error value.
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+	}	// checkCollectionType
 	
 	/**
 	 * Assert if current object is constrained
@@ -209,6 +209,11 @@ class Descriptor extends Document
 		
 	}	// hasConstraints
 	
+	
+	/************************************************************************************
+	 * GETTER METHODS																	*
+	 ************************************************************************************/
+	
 	/**
 	 * Return list of significant fields
 	 *
@@ -295,6 +300,11 @@ class Descriptor extends Document
 			]);																		// ==>
 		
 	}	// lockedFields
+	
+	
+	/************************************************************************************
+	 * STATIC INTERFACE																	*
+	 ************************************************************************************/
 	
 	/**
 	 * Get descriptor validation record
