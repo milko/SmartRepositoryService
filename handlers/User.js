@@ -478,7 +478,7 @@ module.exports = {
 			//
 			// Check signup credentials.
 			//
-			if( ! User.authCheck( token_password, user ) )
+			if( ! User.checkAuthentication( token_password, user ) )
 				theResponse.throw(
 					403,
 					new MyError(
@@ -716,7 +716,7 @@ module.exports = {
 			//
 			// Check signup credentials.
 			//
-			if( ! User.authCheck( decoded[ Dict.descriptor.kPassword ], user ) )
+			if( ! User.checkAuthentication( decoded[ Dict.descriptor.kPassword ], user ) )
 				theResponse.throw(
 					403,
 					new MyError(

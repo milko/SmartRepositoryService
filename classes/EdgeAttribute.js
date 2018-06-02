@@ -70,9 +70,9 @@ class EdgeAttribute extends Edge
 		//
 		// Call parent method.
 		//
-		super.loadDocumentProperty( theProperty, theValue, theLocked, isResolving );
+		super.setProperty( theProperty, theValue, theLocked, isResolving );
 		
-	}	// loadDocumentProperty
+	}	// setProperty
 	
 	/**
 	 * Compute edge key.

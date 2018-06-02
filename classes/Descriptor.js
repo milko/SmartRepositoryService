@@ -82,12 +82,12 @@ class Descriptor extends Document
 	 * 									(defaults to true).
 	 * @returns {Boolean}				True if valid.
 	 */
-	loadComputedProperties( doAssert = true )
+	setComputedProperties( doAssert = true )
 	{
 		//
 		// Call parent method.
 		//
-		if( super.loadComputedProperties( doAssert ) )
+		if( super.setComputedProperties( doAssert ) )
 		{
 			//
 			// Compute the global identifier.
@@ -116,7 +116,7 @@ class Descriptor extends Document
 		
 		return false;																// ==>
 		
-	}	// loadComputedProperties
+	}	// setComputedProperties
 	
 	/**
 	 * Assert if current object is constrained

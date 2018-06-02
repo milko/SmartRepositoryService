@@ -79,7 +79,7 @@ class Edge extends Document
 	 * 									(defaults to true).
 	 * @returns {Boolean}				True if valid.
 	 */
-	loadComputedProperties( doAssert = true )
+	setComputedProperties( doAssert = true )
 	{
 		//
 		// Check if significant fields are there.
@@ -124,14 +124,14 @@ class Edge extends Document
 		
 		return false;																// ==>
 		
-	}	// loadComputedProperties
+	}	// setComputedProperties
 	
 	/**
 	 * Compute edge key.
 	 *
-	 * This method is called by loadComputedProperties() and implements the hashing
+	 * This method is called by setComputedProperties() and implements the hashing
 	 * algorythm, derived classes should overload this method rather than
-	 * loadComputedProperties().
+	 * setComputedProperties().
 	 *
 	 * The method expects the document to have all the required properties to compute
 	 * the key, hasSignificantFields() must have been called by the caller.

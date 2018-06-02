@@ -115,49 +115,10 @@ class User extends Document
 		
 	}	// constructor
 	
-	/**
-	 * Resolve from database
-	 *
-	 * We overload this method to resolve the user group and manager.
-	 *
-	 * Note that the parent method will resolve the object according to the
-	 * significant fields in the object: this means that the document will be resolved
-	 * using the user code.
-	 *
-	 * Regardless of the doAssert value, if the group or manager cannot be resolved,
-	 * the method will raise an exception: these two references are expected to be valid.
-	 *
-	 * @param doReplace	{Boolean}	Replace existing data (false is default).
-	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
-	 * 								(defaults to true).
-	 * @returns {Boolean}			True if found.
-	 */
-	resolve( doReplace = false, doAssert = true )
-	{
-		//
-		// Call parent method.
-		//
-		if( super.resolve( doReplace, doAssert ) )
-		{
-			//
-			// Resolve group.
-			// Any error raises an exception regardless of doAssert.
-			//
-			this.resolveGroupEdge();
-			
-			//
-			// Resolve manager.
-			// Any error raises an exception regardless of doAssert.
-			//
-			this.resolveManagerEdge();
-			
-			return true;															// ==>
-		
-		}	// Found.
-		
-		return false;																// ==>
-		
-	}	// resolve
+	
+	/************************************************************************************
+	 * PUBLIC METHODS																	*
+	 ************************************************************************************/
 	
 	/**
 	 * Insert object
@@ -190,7 +151,7 @@ class User extends Document
 		//
 		// Set authentication record.
 		//
-		User.authSet( thePassword, this );
+		User.setAuthentication( thePassword, this );
 		// this.createAuthentication( thePassword );
 		
 		//
@@ -239,6 +200,422 @@ class User extends Document
 		}
 		
 	}	// insert
+	
+	/**
+	 * Resolve from database
+	 *
+	 * We overload this method to resolve the user group and manager.
+	 *
+	 * Note that the parent method will resolve the object according to the
+	 * significant fields in the object: this means that the document will be resolved
+	 * using the user code.
+	 *
+	 * Regardless of the doAssert value, if the group or manager cannot be resolved,
+	 * the method will raise an exception: these two references are expected to be valid.
+	 *
+	 * @param doReplace	{Boolean}	Replace existing data (false is default).
+	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
+	 * 								(defaults to true).
+	 * @returns {Boolean}			True if found.
+	 */
+	resolve( doReplace = false, doAssert = true )
+	{
+		//
+		// Call parent method.
+		//
+		if( super.resolve( doReplace, doAssert ) )
+		{
+			//
+			// Resolve group.
+			// Any error raises an exception regardless of doAssert.
+			//
+			this.resolveGroupEdge();
+			
+			//
+			// Resolve manager.
+			// Any error raises an exception regardless of doAssert.
+			//
+			this.resolveManagerEdge();
+			
+			return true;															// ==>
+			
+		}	// Found.
+		
+		return false;																// ==>
+		
+	}	// resolve
+	
+	/**
+	 * Replace
+	 *
+	 * We overload this method to provide the new password: if null, the
+	 * authentication record will not be changed; if provided, the authentication
+	 * record will be updated.
+	 *
+	 * @param doRevision	{Boolean}		If true, check revision (default).
+	 * @param thePassword	{String}|{null}	If provided, update authentication data.
+	 * @returns {Boolean}	True replaced, false not found, null not persistent.
+	 */
+	replace( doRevision = true, thePassword = null )
+	{
+		//
+		// If persistent and provided password,
+		// update authentication record.
+		//
+		if( this._persistent
+		 && (thePassword !== null) )
+			User.setAuthentication( thePassword, this );
+		
+		return super.replace( doRevision );											// ==>
+		
+	}	// replace
+	
+	/**
+	 * Remove object
+	 *
+	 * This method will remove the current document from the database, it will first
+	 * remove the user, then the eventual group relationship and finally the manager
+	 * relationship and will return true, if the document exists, or false if it doesn't.
+	 *
+	 * If the current document revision is different than the existing document
+	 * revision, the method will raise an exception.
+	 *
+	 * If the current document doesn't exist or was deleted, the method will set the
+	 * persistent flag to false.
+	 *
+	 * If the current user manages other users, but has no manager, the method will
+	 * raise an exception.
+	 *
+	 * The method expects two parameters, these two flags indicate whether the group or
+	 * manager edges were inserted: these are necessary in cases where the insert
+	 * procedure finds an existing edge, removing it might corrupt the database structure.
+	 *
+	 * @param doGroup	{Boolean}	If true, remove group (default).
+	 * @param doManager	{Boolean}	If true, remove manager (default)
+	 * @returns {Boolean}	True removed, false not found, null not persistent.
+	 */
+	remove( doGroup = true, doManager = true )
+	{
+		//
+		// Call parent method.
+		// The parent method will proceed only if the user is persistent:
+		// if this method was called by insert(), it will proceed only if
+		// the user was actually inserted or if it exists.
+		//
+		const result = super.remove();
+		
+		//
+		// Remove group and manager.
+		// Only if the user has been removed or exists.
+		//
+		if( result === true )
+		{
+			//
+			// Remove group relationship.
+			// Should not fail.
+			// When called by insert(), the doGroup flag indicates whether
+			// the group edge was inserted, if that is not the case, the
+			// group edge might already exist and should not be removed.
+			//
+			if( doGroup )
+				this.removeGroup();
+			
+			//
+			// Remove group relationship.
+			// Should not fail.
+			// When called by insert(), the doGroup flag indicates whether
+			// the group edge was inserted, if that is not the case, the
+			// group edge might already exist and should not be removed.
+			//
+			if( doManager )
+				this.removeManager();
+			
+		}	// Removed current document.
+		
+		return result;																// ==>
+		
+	}	// remove
+	
+	/**
+	 * Return manager hierarchy
+	 *
+	 * This method will return the hierarchy of managers as an array, starting from the
+	 * current user, up to the root user.
+	 *
+	 * The method expects the following parameter:
+	 *
+	 * 	- theMinDepth:		The minimum traversal depth, provide null or 0 to start
+	 * 						with the current user, numbers greater than 0 will move
+	 * 						the origin closer to the root.
+	 * 	- theMaxDepth:		The maximum traversal depth, provide null or 0 to traverse
+	 * 						the whole tree, numbers greater than 0 indicate the levels
+	 * 						that will be traversed; the value must be greater than
+	 * 						theMinDepth.
+	 * 	- theVertexField:	Provide this parameter to select which vertex fields to
+	 * 						display: it can be provided as a string or an array of
+	 * 						strings, whose values represent the descriptor _key values
+	 * 						corresponding to the desired fields. Provide null to ignore.
+	 * 	- theEdgeField:		Provide this parameter to select which edge fields to
+	 * 						display: it can be provided as a string or an array of
+	 * 						strings, whose values represent the descriptor _key values
+	 * 						corresponding to the desired fields; this field is only
+	 * 						relevant if 'doIncludeEdge' is true. Provide null to ignore.
+	 * 	- doIncludeEdge:	If true, the result will be an array of elements in which
+	 * 						the '_vertex' property will contain the user and the
+	 * 						'_edge' property will contain the edge; if false, the
+	 * 						array elements will be user records.
+	 * 	- doStripFields:	If true, private fields will be stripped: all elements
+	 * 						will be stripped of the object identifiers and revision,
+	 * 						the manager users will also lack the roles.
+	 *
+	 * Note that this method assumes the current object to be persistent, if this is
+	 * not the case, the method will return null.
+	 *
+	 * @returns {Array}	The list of user managers.
+	 */
+	managers(
+		theMinDepth = 1,
+		theMaxDepth = null,
+		theVertexField = null,
+		theEdgeField = null,
+		doIncludeEdge = false,
+		doStripFields = true
+	)
+	{
+		//
+		// Handle persistent object.
+		//
+		if( this._persistent )
+		{
+			//
+			// Framework.
+			//
+			const Schema = require( '../utils/Schema' );
+			
+			return Schema.getManagedUsersHierarchy(
+				this._request,						// Current request.
+				this.document,						// Origin node.
+				theMinDepth,						// Minimum depth.
+				theMaxDepth,						// Maximum depth.
+				theVertexField,						// Vertex fields selection.
+				theEdgeField,						// Edge fields selection.
+				true,								// Restrict language.
+				doIncludeEdge,						// Include edges.
+				doStripFields						// Strip privates.
+			);																		// ==>
+		}
+		
+		return null;																// ==>
+		
+	}	// managers
+	
+	/**
+	 * Return managed users
+	 *
+	 * This method will return the flattened list or tree of managed users, the method
+	 * will traverse the graph starting from the current user collecting all managed
+	 * siblings.
+	 *
+	 * The method expects the following parameter:
+	 *
+	 * 	- doTree:			If true, the method will return an object in which the
+	 * 						'_children' property will contain the list of users
+	 * 						managed by the the current node; if false, the method will
+	 * 						return the flattened list of sibling managed users.
+	 * 	- theMinDepth:		The minimum traversal depth, provide null or 0 to start
+	 * 						with the current user, numbers greater than 0 will move
+	 * 						the origin closer to the root.
+	 * 	- theMaxDepth:		The maximum traversal depth, provide null or 0 to traverse
+	 * 						the whole tree, numbers greater than 0 indicate the levels
+	 * 						that will be traversed; the value must be greater than
+	 * 						theMinDepth.
+	 * 	- theVertexField:	Provide this parameter to select which vertex fields to
+	 * 						display: it can be provided as a string or an array of
+	 * 						strings, whose values represent the descriptor _key values
+	 * 						corresponding to the desired fields. Provide null to ignore.
+	 * 	- theEdgeField:		Provide this parameter to select which edge fields to
+	 * 						display: it can be provided as a string or an array of
+	 * 						strings, whose values represent the descriptor _key values
+	 * 						corresponding to the desired fields; this field is only
+	 * 						relevant if 'doIncludeEdge' is true. Provide null to ignore.
+	 * 	- doIncludeEdge:	If true, the result will be an array of elements in which
+	 * 						the '_vertex' property will contain the user and the
+	 * 						'_edge' property will contain the edge; if false, the
+	 * 						array elements will be user records.
+	 * 	- doStripFields:	If true, private fields will be stripped: all elements
+	 * 						will be stripped of the object identifiers and revision,
+	 * 						the manager users will also lack the roles.
+	 *
+	 * Note that this method assumes the current object to be persistent, if this is
+	 * not the case, the method will return null.
+	 *
+	 * @returns {Array}	The list of managed users.
+	 */
+	manages(
+		doTree = false,
+		theMinDepth = 1,
+		theMaxDepth = null,
+		theVertexField = null,
+		theEdgeField = null,
+		doIncludeEdge = false,
+		doStripFields = true
+	)
+	{
+		//
+		// Handle persistent object.
+		//
+		if( this._persistent )
+		{
+			//
+			// Framework.
+			//
+			const Schema = require( '../utils/Schema' );
+			
+			//
+			// Return tree.
+			//
+			if( doTree )
+				return Schema.getManagedUsersTree(
+					this._request,					// Current request.
+					this._document,					// Current user.
+					theMinDepth,					// Minimum depth.
+					theMaxDepth,					// Maximum depth.
+					theVertexField,					// Vertex fields.
+					theEdgeField,					// Edge fields.
+					true,							// Restrict language.
+					doIncludeEdge,					// Include edge.
+					doStripFields					// Strip privates.
+				);																	// ==>
+			
+			//
+			// Return list.
+			//
+			return Schema.getManagedUsersList(
+				this._request,					// Current request.
+				this._document,					// Current user.
+				theMinDepth,					// Minimum depth.
+				theMaxDepth,					// Maximum depth.
+				theVertexField,					// Vertex fields.
+				theEdgeField,					// Edge fields.
+				true,							// Restrict language.
+				doIncludeEdge,					// Include edge.
+				doStripFields					// Strip privates.
+			);																		// ==>
+		}
+		
+		return null;																// ==>
+		
+	}	// manages
+	
+	/**
+	 * Is managed by
+	 *
+	 * This method will return a boolean indicating whether the provided user
+	 * reference can manage the current user.
+	 *
+	 * The reference can be provided as the same parameter of the constructor, if the
+	 * manager cannot be resolved, the method will raise an exception.
+	 *
+	 * @param theReference	{String}|{Object}	The manager reference.
+	 * @returns {boolean}						True can manage.
+	 */
+	isManagedBy( theReference )
+	{
+		//
+		// Resolve manager.
+		// May raise an exception.
+		//
+		const manager = new User( this._request, theReference );
+		if( ! manager.persistent )
+			manager.resolve( true, true );
+		
+		//
+		// Get current user managers.
+		//
+		const managers =
+			this.managers(
+				1,			// Skip user.
+				null,		// Traverse full graph.
+				'_id',		// Return _id field.
+				null,		// Ignore edge fields.
+				false,		// Don't include edges.
+				false		// No need to strip privates.
+			);
+		
+		//
+		// Check if in managers chain.
+		//
+		return ( managers.includes( manager.document._id ) );						// ==>
+		
+	}	// isManagedBy
+	
+	
+	/************************************************************************************
+	 * PROTECTED METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Set class
+	 *
+	 * This method will set the document class, which is the _key reference of the
+	 * term defining the document class.
+	 *
+	 * In this class there is no defined class, so the value will be null.
+	 */
+	setClass()
+	{
+		this._class = 'User';
+		
+	}	// setClass
+	
+	/**
+	 * Load computed fields
+	 *
+	 * We overload this method to set the preferred language to the default
+	 * application language if the property is missing.
+	 *
+	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
+	 * 									(defaults to true).
+	 * @returns {Boolean}				True if valid.
+	 */
+	setComputedProperties( doAssert = true )
+	{
+		//
+		// Set default language.
+		//
+		if( ! this._document.hasOwnProperty( Dict.descriptor.kLanguage ) )
+			this._document[ Dict.descriptor.kLanguage ] =
+				module.context.configuration.defaultLanguage;
+		
+		return true;																// ==>
+		
+	}	// setComputedProperties
+	
+	/**
+	 * Check collection type
+	 *
+	 * This method will check if the collection is of the correct type, if that is not
+	 * the case, the method will raise an exception.
+	 *
+	 * In this class we expect a document collection.
+	 */
+	checkCollectionType()
+	{
+		//
+		// Check collection type.
+		//
+		if( db._collection( this._collection ).type() !== 2 )
+			throw(
+				new MyError(
+					'BadCollection',					// Error name.
+					K.error.ExpectingDocColl,			// Message code.
+					this._request.application.language,	// Language.
+					this._collection,					// Error value.
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+	}	// checkCollectionType
 	
 	/**
 	 * Insert group relationship
@@ -321,98 +698,6 @@ class User extends Document
 		return false;																// ==>
 		
 	}	// insertManager
-	
-	/**
-	 * Replace
-	 *
-	 * We overload this method to provide the new password: if null, the
-	 * authentication record will not be changed; if provided, the authentication
-	 * record will be updated.
-	 *
-	 * @param doRevision	{Boolean}		If true, check revision (default).
-	 * @param thePassword	{String}|{null}	If provided, update authentication data.
-	 * @returns {Boolean}	True replaced, false not found, null not persistent.
-	 */
-	replace( doRevision = true, thePassword = null )
-	{
-		//
-		// If persistent and provided password,
-		// update authentication record.
-		//
-		if( this._persistent
-		 && (thePassword !== null) )
-			User.authSet( thePassword, this );
-			// this.createAuthentication( thePassword );
-		
-		return super.replace( doRevision );											// ==>
-		
-	}	// replace
-	
-	/**
-	 * Remove object
-	 *
-	 * This method will remove the current document from the database, it will first
-	 * remove the user, then the eventual group relationship and finally the manager
-	 * relationship and will return true, if the document exists, or false if it doesn't.
-	 *
-	 * If the current document revision is different than the existing document
-	 * revision, the method will raise an exception.
-	 *
-	 * If the current document doesn't exist or was deleted, the method will set the
-	 * persistent flag to false.
-	 *
-	 * If the current user manages other users, but has no manager, the method will
-	 * raise an exception.
-	 *
-	 * The method expects two parameters, these two flags indicate whether the group or
-	 * manager edges were inserted: these are necessary in cases where the insert
-	 * procedure finds an existing edge, removing it might corrupt the database structure.
-	 *
-	 * @param doGroup	{Boolean}	If true, remove group (default).
-	 * @param doManager	{Boolean}	If true, remove manager (default)
-	 * @returns {Boolean}	True removed, false not found, null not persistent.
-	 */
-	remove( doGroup = true, doManager = true )
-	{
-		//
-		// Call parent method.
-		// The parent method will proceed only if the user is persistent:
-		// if this method was called by insert(), it will proceed only if
-		// the user was actually inserted or if it exists.
-		//
-		const result = super.remove();
-		
-		//
-		// Remove group and manager.
-		// Only if the user has been removed or exists.
-		//
-		if( result === true )
-		{
-			//
-			// Remove group relationship.
-			// Should not fail.
-			// When called by insert(), the doGroup flag indicates whether
-			// the group edge was inserted, if that is not the case, the
-			// group edge might already exist and should not be removed.
-			//
-			if( doGroup )
-				this.removeGroup();
-			
-			//
-			// Remove group relationship.
-			// Should not fail.
-			// When called by insert(), the doGroup flag indicates whether
-			// the group edge was inserted, if that is not the case, the
-			// group edge might already exist and should not be removed.
-			//
-			if( doManager )
-				this.removeManager();
-			
-		}	// Removed current document.
-		
-		return result;																// ==>
-		
-	}	// remove
 	
 	/**
 	 * Remove group relationship
@@ -588,82 +873,6 @@ class User extends Document
 		return null;																// ==>
 		
 	}	// removeManager
-	
-	/**
-	 * Set class
-	 *
-	 * This method will set the document class, which is the _key reference of the
-	 * term defining the document class.
-	 *
-	 * In this class there is no defined class, so the value will be null.
-	 */
-	setClass()
-	{
-		this._class = 'User';
-		
-	}	// setClass
-	
-	/**
-	 * Check collection type
-	 *
-	 * This method will check if the collection is of the correct type, if that is not
-	 * the case, the method will raise an exception.
-	 *
-	 * In this class we expect a document collection.
-	 */
-	checkCollectionType()
-	{
-		//
-		// Check collection type.
-		//
-		if( db._collection( this._collection ).type() !== 2 )
-			throw(
-				new MyError(
-					'BadCollection',					// Error name.
-					K.error.ExpectingDocColl,			// Message code.
-					this._request.application.language,	// Language.
-					this._collection,					// Error value.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-	}	// checkCollectionType
-	
-	/**
-	 * Return default collection name
-	 *
-	 * We override this method to force the users collection.
-	 *
-	 * @returns {String}|{null}	The default collection name.
-	 */
-	defaultCollection()
-	{
-		return 'users';																// ==>
-		
-	}	// defaultCollection
-	
-	/**
-	 * Load computed fields
-	 *
-	 * We overload this method to set the preferred language to the default
-	 * application language if the property is missing.
-	 *
-	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
-	 * 									(defaults to true).
-	 * @returns {Boolean}				True if valid.
-	 */
-	loadComputedProperties( doAssert = true )
-	{
-		//
-		// Set default language.
-		//
-		if( ! this._document.hasOwnProperty( Dict.descriptor.kLanguage ) )
-			this._document[ Dict.descriptor.kLanguage ] =
-				module.context.configuration.defaultLanguage;
-		
-		return true;																// ==>
-		
-	}	// loadComputedProperties
 	
 	/**
 	 * Resolve group edge
@@ -1132,48 +1341,6 @@ class User extends Document
 	}	// hasManaged
 	
 	/**
-	 * Is managed by
-	 *
-	 * This method will return a boolean indicating whether the provided user
-	 * reference can manage the current user.
-	 *
-	 * The reference can be provided as the same parameter of the constructor, if the
-	 * manager cannot be resolved, the method will raise an exception.
-	 *
-	 * @param theReference	{String}|{Object}	The manager reference.
-	 * @returns {boolean}						True can manage.
-	 */
-	isManagedBy( theReference )
-	{
-		//
-		// Resolve manager.
-		// May raise an exception.
-		//
-		const manager = new User( this._request, theReference );
-		if( ! manager.persistent )
-			manager.resolve( true, true );
-		
-		//
-		// Get current user managers.
-		//
-		const managers =
-			this.managers(
-				1,			// Skip user.
-				null,		// Traverse full graph.
-				'_id',		// Return _id field.
-				null,		// Ignore edge fields.
-				false,		// Don't include edges.
-				false		// No need to strip privates.
-			);
-		
-		//
-		// Check if in managers chain.
-		//
-		return ( managers.includes( manager.document._id ) );						// ==>
-		
-	}	// isManagedBy
-	
-	/**
 	 * Return list of significant fields
 	 *
 	 * We override the parent method to return the user code.
@@ -1250,176 +1417,28 @@ class User extends Document
 		
 	}	// lockedFields
 	
-	/**
-	 * Return manager hierarchy
-	 *
-	 * This method will return the hierarchy of managers as an array, starting from the
-	 * current user, up to the root user.
-	 *
-	 * The method expects the following parameter:
-	 *
-	 * 	- theMinDepth:		The minimum traversal depth, provide null or 0 to start
-	 * 						with the current user, numbers greater than 0 will move
-	 * 						the origin closer to the root.
-	 * 	- theMaxDepth:		The maximum traversal depth, provide null or 0 to traverse
-	 * 						the whole tree, numbers greater than 0 indicate the levels
-	 * 						that will be traversed; the value must be greater than
-	 * 						theMinDepth.
-	 * 	- theVertexField:	Provide this parameter to select which vertex fields to
-	 * 						display: it can be provided as a string or an array of
-	 * 						strings, whose values represent the descriptor _key values
-	 * 						corresponding to the desired fields. Provide null to ignore.
-	 * 	- theEdgeField:		Provide this parameter to select which edge fields to
-	 * 						display: it can be provided as a string or an array of
-	 * 						strings, whose values represent the descriptor _key values
-	 * 						corresponding to the desired fields; this field is only
-	 * 						relevant if 'doIncludeEdge' is true. Provide null to ignore.
-	 * 	- doIncludeEdge:	If true, the result will be an array of elements in which
-	 * 						the '_vertex' property will contain the user and the
-	 * 						'_edge' property will contain the edge; if false, the
-	 * 						array elements will be user records.
-	 * 	- doStripFields:	If true, private fields will be stripped: all elements
-	 * 						will be stripped of the object identifiers and revision,
-	 * 						the manager users will also lack the roles.
-	 *
-	 * Note that this method assumes the current object to be persistent, if this is
-	 * not the case, the method will return null.
-	 *
-	 * @returns {Array}	The list of user managers.
-	 */
-	managers(
-		theMinDepth = 1,
-		theMaxDepth = null,
-		theVertexField = null,
-		theEdgeField = null,
-		doIncludeEdge = false,
-		doStripFields = true
-	)
-	{
-		//
-		// Handle persistent object.
-		//
-		if( this._persistent )
-		{
-			//
-			// Framework.
-			//
-			const Schema = require( '../utils/Schema' );
-			
-			return Schema.getManagedUsersHierarchy(
-				this._request,						// Current request.
-				this.document,						// Origin node.
-				theMinDepth,						// Minimum depth.
-				theMaxDepth,						// Maximum depth.
-				theVertexField,						// Vertex fields selection.
-				theEdgeField,						// Edge fields selection.
-				true,								// Restrict language.
-				doIncludeEdge,						// Include edges.
-				doStripFields						// Strip privates.
-			);																		// ==>
-		}
-		
-		return null;																// ==>
-		
-	}	// managers
+	
+	/************************************************************************************
+	 * DEFAULT GLOBALS																	*
+	 ************************************************************************************/
 	
 	/**
-	 * Return managed users
+	 * Return default collection name
 	 *
-	 * This method will return the flattened list or tree of managed users, the method
-	 * will traverse the graph starting from the current user collecting all managed
-	 * siblings.
+	 * We override this method to force the users collection.
 	 *
-	 * The method expects the following parameter:
-	 *
-	 * 	- doTree:			If true, the method will return an object in which the
-	 * 						'_children' property will contain the list of users
-	 * 						managed by the the current node; if false, the method will
-	 * 						return the flattened list of sibling managed users.
-	 * 	- theMinDepth:		The minimum traversal depth, provide null or 0 to start
-	 * 						with the current user, numbers greater than 0 will move
-	 * 						the origin closer to the root.
-	 * 	- theMaxDepth:		The maximum traversal depth, provide null or 0 to traverse
-	 * 						the whole tree, numbers greater than 0 indicate the levels
-	 * 						that will be traversed; the value must be greater than
-	 * 						theMinDepth.
-	 * 	- theVertexField:	Provide this parameter to select which vertex fields to
-	 * 						display: it can be provided as a string or an array of
-	 * 						strings, whose values represent the descriptor _key values
-	 * 						corresponding to the desired fields. Provide null to ignore.
-	 * 	- theEdgeField:		Provide this parameter to select which edge fields to
-	 * 						display: it can be provided as a string or an array of
-	 * 						strings, whose values represent the descriptor _key values
-	 * 						corresponding to the desired fields; this field is only
-	 * 						relevant if 'doIncludeEdge' is true. Provide null to ignore.
-	 * 	- doIncludeEdge:	If true, the result will be an array of elements in which
-	 * 						the '_vertex' property will contain the user and the
-	 * 						'_edge' property will contain the edge; if false, the
-	 * 						array elements will be user records.
-	 * 	- doStripFields:	If true, private fields will be stripped: all elements
-	 * 						will be stripped of the object identifiers and revision,
-	 * 						the manager users will also lack the roles.
-	 *
-	 * Note that this method assumes the current object to be persistent, if this is
-	 * not the case, the method will return null.
-	 *
-	 * @returns {Array}	The list of managed users.
+	 * @returns {String}|{null}	The default collection name.
 	 */
-	manages(
-		doTree = false,
-		theMinDepth = 1,
-		theMaxDepth = null,
-		theVertexField = null,
-		theEdgeField = null,
-		doIncludeEdge = false,
-		doStripFields = true
-	)
+	get defaultCollection()
 	{
-		//
-		// Handle persistent object.
-		//
-		if( this._persistent )
-		{
-			//
-			// Framework.
-			//
-			const Schema = require( '../utils/Schema' );
-			
-			//
-			// Return tree.
-			//
-			if( doTree )
-				return Schema.getManagedUsersTree(
-					this._request,					// Current request.
-					this._document,					// Current user.
-					theMinDepth,					// Minimum depth.
-					theMaxDepth,					// Maximum depth.
-					theVertexField,					// Vertex fields.
-					theEdgeField,					// Edge fields.
-					true,							// Restrict language.
-					doIncludeEdge,					// Include edge.
-					doStripFields					// Strip privates.
-				);																	// ==>
-			
-			//
-			// Return list.
-			//
-			return Schema.getManagedUsersList(
-				this._request,					// Current request.
-				this._document,					// Current user.
-				theMinDepth,					// Minimum depth.
-				theMaxDepth,					// Maximum depth.
-				theVertexField,					// Vertex fields.
-				theEdgeField,					// Edge fields.
-				true,							// Restrict language.
-				doIncludeEdge,					// Include edge.
-				doStripFields					// Strip privates.
-			);																		// ==>
-		}
+		return 'users';																// ==>
 		
-		return null;																// ==>
-		
-	}	// manages
+	}	// defaultCollection
+	
+	
+	/************************************************************************************
+	 * STATIC INTERFACE																	*
+	 ************************************************************************************/
 	
 	/**
 	 * Set authentication record
@@ -1432,7 +1451,7 @@ class User extends Document
 	 * @param thePassword	{String}	The password.
 	 * @param theDocument	{Object}	Receives authentication record.
 	 */
-	static authSet( thePassword, theDocument )
+	static setAuthentication( thePassword, theDocument )
 	{
 		//
 		// Authentication framework.
@@ -1472,7 +1491,7 @@ class User extends Document
 				)
 			);																	// !@! ==>
 		
-	}	// authSet
+	}	// setAuthentication
 	
 	/**
 	 * Check authentication record
@@ -1489,7 +1508,7 @@ class User extends Document
 	 * @param theDocument	{Object}	The object to authenticate.
 	 * @returns {Boolean}|{null}		True OK, false KO, null not there.
 	 */
-	static authCheck( thePassword, theDocument )
+	static checkAuthentication( thePassword, theDocument )
 	{
 		//
 		// Init local storage.
@@ -1543,7 +1562,7 @@ class User extends Document
 		
 		return auth.verify( data, thePassword );									// ==>
 		
-	}	// authCheck
+	}	// checkAuthentication
 	
 }	// User.
 
