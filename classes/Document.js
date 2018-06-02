@@ -71,7 +71,13 @@ class Document
 	 * 	  load the corresponding object from the database, you will have to call the
 	 * 	  resolve() method. In this case the collection parameter is required.
 	 *
-	 * This strategy must be followed by all derived classes.
+	 * All derived classes should support instantiating a document from the first two
+	 * parameter of the constructor, custom arguments can be provided after these two.
+	 * In particular:
+	 *
+	 * 	- If the derived class has a single default collection, the collection
+	 * 	  argument should be omitted from the constructor.
+	 * 	- isImmutable should always be the last argument.
 	 *
 	 * Any error will raise an exception.
 	 *
@@ -592,8 +598,8 @@ class Document
 			// Determine if the value should be set.
 			//
 			if( doReplace										// Want to replace,
-				|| isLocked										// or field is locked,
-				|| (! this._document.hasOwnProperty( field )) )	// or not in document.
+			 || isLocked										// or field is locked,
+			 || (! this._document.hasOwnProperty( field )) )	// or not in document.
 				this.setProperty(
 					field,										// Field name.
 					theData[ field ],							// Field value.
@@ -735,18 +741,18 @@ class Document
 	 * properties in the current and persistent documents, while in the second case
 	 * there is an attempt to change a locked value.
 	 *
-	 * @param theProperty	{String}	The property descriptor _key.
+	 * @param theField		{String}	The property descriptor _key.
 	 * @param theValue		{*}			The property value.
 	 * @param isLocked		{Boolean}	True if locked properties.
 	 * @param isResolving	{Boolean}	True, called by resolve().
 	 */
-	setProperty( theProperty, theValue, isLocked, isResolving )
+	setProperty( theField, theValue, isLocked, isResolving )
 	{
 		//
 		// Init local storage.
 		//
-		const value_old = ( this._document.hasOwnProperty( theProperty ) )
-						  ? this._document[ theProperty ]
+		const value_old = ( this._document.hasOwnProperty( theField ) )
+						  ? this._document[ theField ]
 						  : null;
 		
 		//
@@ -760,7 +766,7 @@ class Document
 			// but cannot be modified once inserted.
 			//
 			if( isLocked			// Property is locked
-				&& this._persistent )	// and document is persistent.
+			 && this._persistent )	// and document is persistent.
 			{
 				//
 				// Set exception type.
@@ -785,7 +791,7 @@ class Document
 						name,									// Error name.
 						type,									// Message code.
 						this._request.application.language,		// Language.
-						theProperty,							// Arguments.
+						theField,							// Arguments.
 						409										// HTTP error code.
 					)
 				);																// !@! ==>
@@ -796,13 +802,13 @@ class Document
 			// Set new value.
 			//
 			if( theValue !== null )
-				this._document[ theProperty ] = theValue;
+				this._document[ theField ] = theValue;
 			
 			//
 			// Delete old value.
 			//
 			else if( value_old !== null )
-				delete this._document[ theProperty ];
+				delete this._document[ theField ];
 			
 		}	// Modify value.
 		

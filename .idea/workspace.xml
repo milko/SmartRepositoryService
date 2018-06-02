@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/classes/Term.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/Descriptor.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Descriptor.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Document.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/EdgeAttribute.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/EdgeAttribute.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -22,8 +26,26 @@
       <file leaf-file-name="Document.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/Document.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="230">
-              <caret line="1269" selection-start-line="1263" selection-end-line="1269" />
+            <state relative-caret-position="146">
+              <caret line="748" column="15" selection-start-line="748" selection-start-column="4" selection-end-line="748" selection-end-column="15" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Term.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/classes/Term.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="402">
+              <caret line="110" column="18" lean-forward="true" selection-start-line="110" selection-start-column="18" selection-end-line="110" selection-end-column="18" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Dictionary.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/utils/Dictionary.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-77">
+              <caret line="342" column="11" selection-start-line="342" selection-start-column="11" selection-end-line="342" selection-end-column="11" />
             </state>
           </provider>
         </entry>
@@ -31,44 +53,17 @@
       <file leaf-file-name="User.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/User.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="174">
-              <caret line="1442" selection-start-line="1436" selection-end-line="1442" />
+            <state relative-caret-position="482">
+              <caret line="75" column="4" selection-start-line="75" selection-start-column="4" selection-end-line="75" selection-end-column="4" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Descriptor.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Descriptor.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/Descriptor.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="353">
-              <caret line="308" selection-start-line="308" selection-end-line="308" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Edge.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/classes/Edge.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="620">
-              <caret line="163" selection-start-line="157" selection-end-line="163" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="EdgeAttribute.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/classes/EdgeAttribute.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="797">
-              <caret line="118" column="4" selection-start-line="118" selection-start-column="4" selection-end-line="118" selection-end-column="4" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="EdgeBranch.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="781">
-              <caret line="145" selection-start-line="145" selection-end-line="145" />
+            <state relative-caret-position="408">
+              <caret line="80" selection-start-line="80" selection-end-line="81" />
             </state>
           </provider>
         </entry>
@@ -84,8 +79,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>hasManaged</find>
-      <find>getSignificantFields</find>
       <find>managers</find>
       <find>resolveManagerEdge</find>
       <find>${this.defaultCollection()}</find>
@@ -110,10 +103,12 @@
       <find>setClass</find>
       <find>insertDocument</find>
       <find>resolveDocument</find>
-      <find>setComputedProperties</find>
       <find>defaultCollection</find>
       <find>setPropeerty</find>
       <find>loadComputedProperties</find>
+      <find>normaliseProperties</find>
+      <find>setProperty</find>
+      <find>setComputedProperties</find>
     </findStrings>
     <replaceStrings>
       <replace>Descriptor.</replace>
@@ -157,13 +152,14 @@
         <option value="$PROJECT_DIR$/handlers/User.js" />
         <option value="$PROJECT_DIR$/routes/test/User.js" />
         <option value="$PROJECT_DIR$/utils/Schema.js" />
-        <option value="$PROJECT_DIR$/classes/Document.js" />
         <option value="$PROJECT_DIR$/classes/User.js" />
         <option value="$PROJECT_DIR$/classes/Edge.js" />
         <option value="$PROJECT_DIR$/utils/Dictionary.js" />
-        <option value="$PROJECT_DIR$/classes/EdgeAttribute.js" />
         <option value="$PROJECT_DIR$/classes/EdgeBranch.js" />
+        <option value="$PROJECT_DIR$/classes/EdgeAttribute.js" />
+        <option value="$PROJECT_DIR$/classes/Document.js" />
         <option value="$PROJECT_DIR$/classes/Descriptor.js" />
+        <option value="$PROJECT_DIR$/classes/Term.js" />
       </list>
     </option>
   </component>
@@ -307,16 +303,15 @@
       <workItem from="1527787486887" duration="5930000" />
       <workItem from="1527841643092" duration="20972000" />
       <workItem from="1527878310941" duration="3607000" />
-      <workItem from="1527939978204" duration="3288000" />
+      <workItem from="1527939978204" duration="6423000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="157370000" />
+    <option name="totallyTimeSpent" value="160505000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="385" y="23" width="1184" height="1176" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49147728" visible="true" weight="0.35597593" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -349,9 +344,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/handlers/User.js">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/routes/user.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1560">
@@ -561,38 +553,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Form.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="406">
-          <caret line="528" column="11" selection-start-line="528" selection-start-column="11" selection-end-line="528" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/utils/Schema.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="463">
           <caret line="1326" column="69" selection-start-line="1326" selection-start-column="69" selection-end-line="1326" selection-end-column="69" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/utils/Dictionary.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="857">
-          <caret line="404" selection-start-line="404" selection-end-line="404" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Edge.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="620">
-          <caret line="163" selection-start-line="157" selection-end-line="163" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/classes/EdgeAttribute.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="797">
-          <caret line="118" column="4" selection-start-line="118" selection-start-column="4" selection-end-line="118" selection-end-column="4" />
         </state>
       </provider>
     </entry>
@@ -603,24 +567,59 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Document.js">
+    <entry file="file://$PROJECT_DIR$/classes/Form.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="230">
-          <caret line="1269" selection-start-line="1263" selection-end-line="1269" />
+        <state relative-caret-position="440">
+          <caret line="44" column="6" lean-forward="true" selection-start-line="44" selection-start-column="6" selection-end-line="44" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Edge.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="215">
+          <caret line="136" column="37" selection-start-line="136" selection-start-column="37" selection-end-line="136" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/Dictionary.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-77">
+          <caret line="342" column="11" selection-start-line="342" selection-start-column="11" selection-end-line="342" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/EdgeAttribute.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="257">
+          <caret line="25" lean-forward="true" selection-start-line="25" selection-end-line="25" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/User.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="174">
-          <caret line="1442" selection-start-line="1436" selection-end-line="1442" />
+        <state relative-caret-position="482">
+          <caret line="75" column="4" selection-start-line="75" selection-start-column="4" selection-end-line="75" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Document.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="146">
+          <caret line="748" column="15" selection-start-line="748" selection-start-column="4" selection-end-line="748" selection-end-column="15" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/Descriptor.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="353">
-          <caret line="308" selection-start-line="308" selection-end-line="308" />
+        <state relative-caret-position="408">
+          <caret line="80" selection-start-line="80" selection-end-line="81" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Term.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="402">
+          <caret line="110" column="18" lean-forward="true" selection-start-line="110" selection-start-column="18" selection-end-line="110" selection-end-column="18" />
         </state>
       </provider>
     </entry>

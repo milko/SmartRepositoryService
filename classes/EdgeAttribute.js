@@ -54,23 +54,23 @@ class EdgeAttribute extends Edge
 	 *
 	 * We overload this method to sort the provided attributes array before processing.
 	 *
-	 * @param theProperty	{String}	The property name.
+	 * @param theField		{String}	The property name.
 	 * @param theValue		{*}			The property value.
 	 * @param theLocked		{Array}		List of locked properties.
 	 * @param isResolving	{Boolean}	True, called by resolve().
 	 */
-	setProperty( theProperty, theValue, theLocked, isResolving )
+	setProperty( theField, theValue, theLocked, isResolving )
 	{
 		//
 		// Handle attributes.
 		//
-		if( theProperty === Dict.descriptor.kAttributes )
+		if( theField === Dict.descriptor.kAttributes )
 			theValue.sort();
 		
 		//
 		// Call parent method.
 		//
-		super.setProperty( theProperty, theValue, theLocked, isResolving );
+		super.setProperty( theField, theValue, theLocked, isResolving );
 		
 	}	// setProperty
 	

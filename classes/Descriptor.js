@@ -67,8 +67,20 @@ class Descriptor extends Document
 			// Compute the global identifier.
 			//
 			const gid = Dictionary.compileGlobalIdentifier( this._document, doAssert );
+			
+			//
+			// Set the global identifier.
+			// Will raise an exception if it is unable to compute,
+			// or if the eventual existing GID is different (locked flag):
+			// if the field doesn't exist set it, since it is required.
+			//
 			if( gid !== null )
-				this._document[ Dict.descriptor.kGID ] = gid;
+				this.setProperty(
+					Dict.descriptor.kGID,	// Field name.
+					gid,					// Field value.
+					this._document.hasOwnProperty( Dict.descriptor.kGID ),
+					false					// Validating, thus not resolving.
+				);
 			else
 				return false;														// ==>
 			
