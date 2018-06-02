@@ -59,7 +59,7 @@ class EdgeAttribute extends Edge
 	 * @param theLocked		{Array}		List of locked properties.
 	 * @param isResolving	{Boolean}	True, called by resolve().
 	 */
-	loadDocumentProperty( theProperty, theValue, theLocked, isResolving )
+	setProperty( theProperty, theValue, theLocked, isResolving )
 	{
 		//
 		// Handle attributes.
@@ -116,6 +116,11 @@ class EdgeAttribute extends Edge
 		if( this._document.hasOwnProperty( Dict.descriptor.kAttributes ) )
 			this._document[ Dict.descriptor.kAttributes ].sort();
 	}
+	
+	
+	/************************************************************************************
+	 * GETTER METHODS																	*
+	 ************************************************************************************/
 	
 	/**
 	 * Return list of significant fields

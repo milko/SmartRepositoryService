@@ -397,11 +397,9 @@ class Dictionary
 		//
 		// Compute global identifier.
 		//
-		const gid = ( nid !== null )
-				  ? `${nid}${K.token.idSeparator}${lid}`
-				  : `${lid}`;
-		
-		return gid;																	// ==>
+		return ( nid !== null )
+			 ? `${nid}${K.token.idSeparator}${lid}`									// ==>
+			 : `${lid}`;															// ==>
 		
 	}	// compileGlobalIdentifier
 

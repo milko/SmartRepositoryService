@@ -56,25 +56,6 @@ class EdgeBranch extends Edge
 	}	// setClass
 	
 	/**
-	 * Return list of required fields
-	 *
-	 * In this class we add the branches array.
-	 *
-	 * @returns {Array}	List of required fields.
-	 */
-	get requiredFields()
-	{
-		//
-		// Append local properties.
-		//
-		return super.requiredFields
-			.concat([
-				Dict.descriptor.kBranches	// The graph branches.
-			]);																		// ==>
-		
-	}	// requiredFields
-	
-	/**
 	 * Add branch and modifier
 	 *
 	 * This method will add a branch and the eventual modifiers to the current edge.
@@ -156,6 +137,30 @@ class EdgeBranch extends Edge
 		}
 		
 	}	// delBranch
+	
+	
+	/************************************************************************************
+	 * GETTER METHODS																	*
+	 ************************************************************************************/
+	
+	/**
+	 * Return list of required fields
+	 *
+	 * In this class we add the branches array.
+	 *
+	 * @returns {Array}	List of required fields.
+	 */
+	get requiredFields()
+	{
+		//
+		// Append local properties.
+		//
+		return super.requiredFields
+			.concat([
+				Dict.descriptor.kBranches	// The graph branches.
+			]);																		// ==>
+		
+	}	// requiredFields
 	
 }	// EdgeBranch.
 

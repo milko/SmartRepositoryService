@@ -44,32 +44,6 @@ class Edge extends Document
 	}	// setClass
 	
 	/**
-	 * Check collection type
-	 *
-	 * This method will check if the collection is of the correct type, if that is not
-	 * the case, the method will raise an exception.
-	 *
-	 * In this class we expect an edge collection.
-	 */
-	checkCollectionType()
-	{
-		//
-		// Check collection type.
-		//
-		if( db._collection( this._collection ).type() !== 3 )
-			throw(
-				new MyError(
-					'BadCollection',					// Error name.
-					K.error.ExpectingEdgeColl,			// Message code.
-					this._request.application.language,	// Language.
-					this._collection,					// Error value.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-	}	// checkCollectionType
-	
-	/**
 	 * Load computed fields
 	 *
 	 * Here we set the _key property and raise an exception if the existing and
@@ -97,7 +71,7 @@ class Edge extends Document
 			// Assert key conflict.
 			//
 			if( this._document.hasOwnProperty( '_key' )
-			 && (key !== this._document._key) )
+				&& (key !== this._document._key) )
 			{
 				if( doAssert )
 					throw(
@@ -119,12 +93,38 @@ class Edge extends Document
 			this._document._key = key;
 			
 			return true;															// ==>
-		
+			
 		}	// Has significant fields.
 		
 		return false;																// ==>
 		
 	}	// setComputedProperties
+	
+	/**
+	 * Check collection type
+	 *
+	 * This method will check if the collection is of the correct type, if that is not
+	 * the case, the method will raise an exception.
+	 *
+	 * In this class we expect an edge collection.
+	 */
+	checkCollectionType()
+	{
+		//
+		// Check collection type.
+		//
+		if( db._collection( this._collection ).type() !== 3 )
+			throw(
+				new MyError(
+					'BadCollection',					// Error name.
+					K.error.ExpectingEdgeColl,			// Message code.
+					this._request.application.language,	// Language.
+					this._collection,					// Error value.
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+	}	// checkCollectionType
 	
 	/**
 	 * Compute edge key.
@@ -155,6 +155,11 @@ class Edge extends Document
 		return crypto.md5( hash.join( "\t" ) );										// ==>
 	
 	}	// computeKey
+	
+	
+	/************************************************************************************
+	 * GETTER METHODS																	*
+	 ************************************************************************************/
 	
 	/**
 	 * Return list of significant fields
