@@ -614,6 +614,28 @@ class NewDocument
 	}	// validateDocumentProperties
 	
 	/**
+	 * Validate document constraints
+	 *
+	 * This method is called before deleting a document, it should ensure the current
+	 * document has no constraints that would prevent it from being deleted.
+	 *
+	 * If the current document is not persistent, the method will return null; if
+	 * there are no constraints, the method will return true; if there are
+	 * constraints, the method will raise an exception if doAssert is true, or return
+	 * false.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception (default).
+	 * @returns {Boolean}			True/false if no constraints and null if not
+	 * 								persistent.
+	 */
+	validateDocumentConstraints( doAssert = true )
+	{
+		return ( this._persistent ) ? true											// ==>
+									: null;											// ==>
+		
+	}	// validateDocumentConstraints
+	
+	/**
 	 * Assert all required fields have been set
 	 *
 	 * This method can be used to check whether the current document has all of its
@@ -746,6 +768,76 @@ class NewDocument
 	}	// validateSignificantProperties
 	
 	/**
+	 * Validate locked properties
+	 *
+	 * This method is used to check if the current document would modify any existing
+	 * locked properties. The method will return null, if the current document is not
+	 * persistent, true if there are no locked properties conflicts and false if there
+	 * is a conflict or raise an exception if there is a conflict and doAssert is true.
+	 *
+	 * The method will load the copy of the current document residing in the database
+	 * and check if any locked property would be changed. This operation will raise an
+	 * exception, regardless of doAssert, if the document cannot be located in the
+	 * database. This also means that the method expects the current document to have
+	 * the _id property.
+	 *
+	 * @param doAssert	{Boolean}	If true, an exception will be raised on errors
+	 * 								(defaults to true).
+	 * @returns {Boolean}|{null}	True/false for locked, or null if not persistent.
+	 */
+	validateLockedProperties( doAssert = true )
+	{
+		//
+		// Check if persistent.
+		//
+		if( this._persistent )
+		{
+			//
+			// Locate document in database.
+			//
+			const existing = db._document( this._document._id );
+			
+			//
+			// Intersect locked fields with existing and current objects.
+			//
+			const locked = this.lockedFields
+				.filter( field => {
+						return ( existing.hasOwnProperty( field )
+							&& this._document.hasOwnProperty( field )
+							&& existing[ field ] !== this._document[ field ] );
+					}
+				);
+			
+			//
+			// Handle conflicts.
+			//
+			if( locked.length > 0 )
+			{
+				//
+				// Raise exception.
+				//
+				if( doAssert )
+					throw(
+						new MyError(
+							'ConstraintViolated',				// Error name.
+							K.error.LockedFields,				// Message code.
+							this._request.application.language,	// Language.
+							locked.join( ', ' ),				// Arguments.
+							412									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return true;														// ==>
+			}
+			
+			return false;															// ==>
+		}
+		
+		return null;																// ==>
+		
+	}	// validateLockedProperties
+	
+	/**
 	 * Validate collection type
 	 *
 	 * Collections can either be of type document or edge: this method will check if
@@ -785,6 +877,8 @@ class NewDocument
 	 *
 	 * Any error encountered in this method will raise an exception, including
 	 * validation errors.
+	 *
+	 * @returns {Boolean}	True if inserted.
 	 */
 	insertDocument()
 	{
@@ -829,7 +923,7 @@ class NewDocument
 			// Handle unique constraint error.
 			//
 			if( error.isArangoError
-				&& (error.errorNum === ARANGO_DUPLICATE) )
+			 && (error.errorNum === ARANGO_DUPLICATE) )
 			{
 				//
 				// Set field references.
@@ -873,6 +967,8 @@ class NewDocument
 			
 			throw( error );														// !@! ==>
 		}
+		
+		return this._persistent;													// ==>
 		
 	}	// insertDocument
 	
@@ -1217,6 +1313,146 @@ class NewDocument
 		return null;																// ==>
 		
 	}	// resolveDocumentByContent
+	
+	/**
+	 * replaceDocument
+	 *
+	 * This method will replace the contents of the current document in the database, it
+	 * will first check if the current object is persistent, if that is the case, it
+	 * will validate the current document and replace its contents in the database and
+	 * return true.
+	 *
+	 * If the current object is not persistent, the method will do nothing and return
+	 * null.
+	 *
+	 * The method will raise an exception if any of the following conditions are met:
+	 *
+	 * 	- Any current property is invalid.
+	 * 	- Any current value replaces an existing locked value.
+	 * 	- The current object does not exist.
+	 * 	- doRevision is true and current and existing revisions do not match.
+	 *
+	 * If the current document revision is different than the existing document
+	 * revision, the method will raise an exception.
+	 *
+	 * @param doRevision	{Boolean}	If true, check revision (default).
+	 * @returns {Boolean}|{null}		True if replaced or null if not persistent.
+	 */
+	replaceDocument( doRevision = true )
+	{
+		//
+		// Only if persistent.
+		//
+		if( this._persistent )
+		{
+			//
+			// Validate contents.
+			//
+			this.validateDocument( true );
+			
+			//
+			// Check locked fields.
+			// Will raise an exception if unsuccessful.
+			//
+			this.validateLockedProperties( true );
+			
+			//
+			// Replace document.
+			//
+			const meta =
+				db._replace(
+					{ _id : this._document._id },	// Selector.
+					this._document,					// New data.
+					{ overwrite : (! doRevision) }	// Handle revision.
+				);
+			
+			//
+			// Set revision flag.
+			//
+			this._revised = ( meta._rev !== meta.oldRev );
+			
+			//
+			// Set revision.
+			//
+			this._document._rev = meta._rev;
+			
+			return true;															// ==>
+			
+		}	// Is persistent.
+		
+		return null;																// ==>
+		
+	}	// replaceDocument
+	
+	/**
+	 * Remove document
+	 *
+	 * This method will remove the document from the database, it will first check if
+	 * the current object is persistent, if that is the case, it will proceed to
+	 * delete the document from the database and will return true.
+	 *
+	 * If the document does not exist, the method will return false.
+	 *
+	 * If the current object is not persistent, the method will do nothing and return
+	 * null.
+	 *
+	 * If the current document revision is different than the existing document
+	 * revision, the method will raise an exception.
+	 *
+	 * @returns {Boolean}|{null}	True removed, false not found, null not persistent.
+	 */
+	removeDocument()
+	{
+		//
+		// Only if persistent.
+		//
+		if( this._persistent )
+		{
+			//
+			// Clear from constraints.
+			// Errors will raise an exception.
+			//
+			this.validateDocumentConstraints( true );
+			
+			//
+			// Remove.
+			//
+			try
+			{
+				//
+				// Delete.
+				//
+				db._remove( this._document );
+				
+				//
+				// Update persistent flag.
+				//
+				this._persistent = false;
+				
+				return true;														// ==>
+			}
+			catch( error )
+			{
+				//
+				// Ignore not found.
+				//
+				if( (! error.isArangoError)
+				 || (error.errorNum !== ARANGO_NOT_FOUND) )
+					throw( error );												// !@! ==>
+				
+				//
+				// Update persistent flag.
+				//
+				this._persistent = false;
+				
+				return false;														// ==>
+			}
+			
+		}	// Is persistent.
+		
+		return null;																// ==>
+		
+	}	// removeDocument
 	
 	
 	/************************************************************************************

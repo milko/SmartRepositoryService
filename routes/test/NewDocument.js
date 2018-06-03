@@ -88,14 +88,38 @@ router.post
 			//
 			// Resolve document.
 			//
-			if( ! doc._persistent )
-				doc.resolveDocument( false, true );
+			// if( ! doc._persistent )
+			// 	doc.resolveDocument( false, true );
 			
 			//
 			// Insert document.
 			//
-			// if( ! doc._persistent )
-			// 	doc.insertDocument();
+			if( ! doc._persistent )
+				doc.insertDocument();
+			
+			//
+			// Modify document.
+			//
+			if( doc.document.hasOwnProperty( 'name' ) )
+			{
+				doc.document.description = { "ISO:639:3:eng" : "MODIFIED" };
+				doc.setDocumentProperty( 'name', null, false, false );
+			}
+			else
+			{
+				doc.document.name = "MODIFIED";
+				doc.setDocumentProperty( 'description', null, false, false );
+			}
+			
+			//
+			// Replace document.
+			//
+			doc.replaceDocument();
+			
+			//
+			// Delete document.
+			//
+			doc.removeDocument();
 			
 			response.send({
 				params : request.body,
