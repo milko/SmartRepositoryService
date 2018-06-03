@@ -1105,7 +1105,7 @@ class Document
 			);																	// !@! ==>
 		}
 		
-	}	// resolveReference
+	}	// initDocumentFromReference
 	
 	/**
 	 * Match significant fields combination

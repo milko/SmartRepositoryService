@@ -1111,67 +1111,6 @@ class Dictionary
 		}	// Provided properties.
 		
 	}	// stripDocumentProperties
-	
-	
-	/************************************************************************************
-	 * STATIC ASSERTION METHODS															*
-	 ************************************************************************************/
-	
-	/**
-	 * Is edge collection
-	 *
-	 * This method will check if the provided collection type is edge, if that is not
-	 * the case, the method will raise an exception.
-	 *
-	 * The raised exception has the HTTP status of 412.
-	 *
-	 * @param theCollection	{String}|{null}		The document collection.
-	 */
-	static isEdgeCollection( theCollection )
-	{
-		//
-		// Check collection type.
-		//
-		if( db._collection( this._collection ).type() !== 3 )
-			throw(
-				new MyError(
-					'BadCollection',					// Error name.
-					K.error.ExpectingEdgeColl,			// Message code.
-					this._request.application.language,	// Language.
-					theCollection,						// Error value.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-	}	// isEdgeCollection
-	
-	/**
-	 * Is document collection
-	 *
-	 * This method will check if the provided collection type is document, if that is not
-	 * the case, the method will raise an exception.
-	 *
-	 * The raised exception has the HTTP status of 412.
-	 *
-	 * @param theCollection	{String}|{null}		The document collection.
-	 */
-	static isDocumentCollection( theCollection )
-	{
-		//
-		// Check collection type.
-		//
-		if( db._collection( this._collection ).type() !== 2 )
-			throw(
-				new MyError(
-					'BadCollection',					// Error name.
-					K.error.ExpectingDocColl,			// Message code.
-					this._request.application.language,	// Language.
-					theCollection,						// Error value.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-	}	// isDocumentCollection
 
 	/**
 	 * List language description fields.

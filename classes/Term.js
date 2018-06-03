@@ -414,7 +414,7 @@ class Term extends Document
 			);																	// !@! ==>
 		}
 		
-	}	// resolveReference
+	}	// initDocumentFromReference
 	
 	/**
 	 * Match significant fields combination
