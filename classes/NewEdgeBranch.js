@@ -540,75 +540,20 @@ class NewEdgeBranch extends NewEdge
 	}	// branched
 	
 	/**
-	 * Return list of significant fields
-	 *
-	 * This method should return the list of properties that will uniquely identify
-	 * the document, it is used when resolving a document from an object.
-	 *
-	 * The method should return an array of elements that represent the combination of
-	 * fields necessary to identify a single instance of the object in the database.
-	 * Each element of the array must be an array of descriptor _key elements: when
-	 * resolving the object, all elements of the returned array will be matched with
-	 * the object contents and if one of these combinations matches the fields in the
-	 * object, the document will be resolved using this combination.
-	 *
-	 * In this class we return an empty array, since there are no defined significant
-	 * properties: to resolve the document you must provide a reference in the
-	 * constructor..
-	 *
-	 * @returns {Array}	List of significant fields.
-	 */
-	get significantFields()
-	{
-		return [];																	// ==>
-		
-	}	// significantFields
-	
-	/**
 	 * Return list of required fields
 	 *
-	 * This method should return the list of required properties.
-	 *
-	 * In this class we return no properties, since the key can be database-assigned.
+	 * We overload this mathod to add the branches list.
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
 	get requiredFields()
 	{
-		return [];																	// ==>
+		return super.requiredFields
+			.concat([
+				Dict.descriptor.kBranches	// The branches list.
+			]);																		// ==>
 		
 	}	// requiredFields
-	
-	/**
-	 * Return list of unique fields
-	 *
-	 * This method should return the list of unique properties.
-	 *
-	 * In this class we return the key.
-	 *
-	 * @returns {Array}	List of unique fields.
-	 */
-	get uniqueFields()
-	{
-		return [ '_key' ];															// ==>
-		
-	}	// uniqueFields
-	
-	/**
-	 * Return list of locked fields
-	 *
-	 * This method should return the list of fields that cannot be changed once the
-	 * document has been inserted.
-	 *
-	 * In this class we return the id, key and revision.
-	 *
-	 * @returns {Array}	List of locked fields.
-	 */
-	get lockedFields()
-	{
-		return [ '_id', '_key', '_rev' ];											// ==>
-		
-	}	// lockedFields
 	
 	
 	/************************************************************************************
