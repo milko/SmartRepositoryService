@@ -256,5 +256,11 @@
     "label" : {
       "ISO:639:3:eng" : "Missing required parameter: "
     }
+  },
+  {
+    "_key" : "Bug",
+    "label" : {
+      "ISO:639:3:eng" : "Internal uncaught error: "
+    }
   }
 ]

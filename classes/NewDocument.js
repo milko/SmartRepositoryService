@@ -1402,7 +1402,8 @@ class NewDocument
 	 * If the document does not exist, the method will return false.
 	 *
 	 * If the current object is not persistent, the method will do nothing and return
-	 * null.
+	 * null: because of this the client should check beforehand if the document is
+	 * persistent and resolve it if not.
 	 *
 	 * If the current document revision is different than the existing document
 	 * revision, the method will raise an exception.
