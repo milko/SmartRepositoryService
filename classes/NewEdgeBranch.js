@@ -30,6 +30,64 @@ const NewEdge = require( './NewEdge' );
  * of document _id references that represent all the graph branches that pass through
  * the current edge.
  *
+ * Instances of this class are identified in the same way as its ancestor, the only
+ * difference is how they manage their two reserved fields:
+ *
+ * 	- branches:		An array of document _id references that define the graph branches
+ * 					that traverse the current edge.
+ * 	- modifiers:	A structure whose property names match the branches elements and
+ * 					whose value is an object containing values that apply specifically
+ * 					to the branch named by the property name.
+ *
+ * The edge may contain additional properties that apply to the edge relationships,
+ * these values may be overridden by the values of the modifier fields, so:
+ *
+ * 	- If the edge has a property, this applies to the relationship.
+ * 	- If the modifiers structure contains an object, its values override the edge
+ * 	  values, only for that specific branch.
+ *
+ * In practice, if we assume an enumerated value: the edge may contain a label, which
+ * overrides the relationship source's label for all branches passing through the
+ * edge; if the edge contains a modifiers object and that object contains a property
+ * whose name is among the edge branches and that property contains a label, this
+ * label overrides both the label featured by the source node and the label contained
+ * in the edge, only for that particular branch.
+ *
+ * Instances of this class behave exactly as their ancestor, except that both the
+ * branches and modifier properties are reserved, in other words, they can only be
+ * managed through a specific method interface.
+ *
+ * The branches and modifier properties are only loaded when the object is resolved,
+ * these properties can only be modified using the following interface:
+ *
+ * 	- branchAdd:	Add a new branch.
+ * 	- modifierAdd:	Add a modifier record and its branch, if not yet there.
+ * 	- branchDel:	Remove a branch.
+ * 	- modifierDel:	remove a modifier record.
+ *
+ * These operations are performed on two provate object data members and are
+ * synchronised with the document contents only when persisting the object. Since in
+ * most cases such edges will be instantiated and inserted once, while the majority of
+ * the operations will involve adding and updating branches and modifiers, the
+ * following method will only update the branches and modifiers in the persistent copy
+ * of the edge in the database:
+ *
+ * 	- sync:				Synchronise branches and modifiers.
+ * 	- syncBranches:		Synchronise branches.
+ * 	- syncModifiers:	Synchronise modifiers.
+ *
+ * The above methods will perform updates directly in the database and will only
+ * concern branches and modifiers, while to perform any other change, use the
+ * inherited interface.
+ *
+ * The above functionality is only available on persistent objects, that is, the edge
+ * must have been loaded from the database. Clients use the branch and modifiers add
+ * and delete methods to update these properties, when all changes are done, they can
+ * use the sync interface to only update branches an/or modifiers, or use the replace
+ * method to update the whole object.
+ *
+ *
+ *
  * The class behaves like its ancestor, except that it implements the following
  * branch specific members:
  *
