@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/classes/NewEdgeBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/NewEdgeBranch.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/test/NewDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/test/NewDocument.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -37,11 +39,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="NewEdgeBranch.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="NewEdgeBranch.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/NewEdgeBranch.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="487">
-              <caret line="234" column="14" lean-forward="true" selection-start-line="234" selection-start-column="14" selection-end-line="234" selection-end-column="14" />
+            <state relative-caret-position="327">
+              <caret line="278" column="10" lean-forward="true" selection-start-line="278" selection-start-column="10" selection-end-line="278" selection-end-column="10" />
             </state>
           </provider>
         </entry>
@@ -55,20 +57,20 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="EdgeBranch.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js">
+      <file leaf-file-name="NewDocument.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/routes/test/NewDocument.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2175">
-              <caret line="145" selection-start-line="145" selection-end-line="145" />
+            <state relative-caret-position="456">
+              <caret line="654" column="35" lean-forward="true" selection-start-line="654" selection-start-column="35" selection-end-line="654" selection-end-column="35" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="NewDocument.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/routes/test/NewDocument.js">
+      <file leaf-file-name="EdgeBranch.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="22" column="24" lean-forward="true" selection-start-line="22" selection-start-column="24" selection-end-line="22" selection-end-column="24" />
+            <state relative-caret-position="592">
+              <caret line="132" column="32" lean-forward="true" selection-start-line="132" selection-start-column="32" selection-end-line="132" selection-end-column="32" />
             </state>
           </provider>
         </entry>
@@ -111,7 +113,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>this._collection</find>
       <find>initClassProperties</find>
       <find>isEdgeCollection</find>
       <find>resolveReference</find>
@@ -141,6 +142,7 @@
       <find>lodash</find>
       <find>normaliseDocumentProperties</find>
       <find>setBranch</find>
+      <find>branch</find>
     </findStrings>
     <replaceStrings>
       <replace>Descriptor.</replace>
@@ -195,7 +197,6 @@
         <option value="$PROJECT_DIR$/classes/Document.new.js" />
         <option value="$PROJECT_DIR$/utils/Dictionary.js" />
         <option value="$PROJECT_DIR$/main.js" />
-        <option value="$PROJECT_DIR$/routes/test/NewDocument.js" />
         <option value="$PROJECT_DIR$/utils/Application.js" />
         <option value="$PROJECT_DIR$/classes/NewEdge.js" />
         <option value="$PROJECT_DIR$/data/errors.json" />
@@ -203,6 +204,7 @@
         <option value="$PROJECT_DIR$/classes/NewDocument.js" />
         <option value="$PROJECT_DIR$/data/messages.json" />
         <option value="$PROJECT_DIR$/classes/NewEdgeBranch.js" />
+        <option value="$PROJECT_DIR$/routes/test/NewDocument.js" />
       </list>
     </option>
   </component>
@@ -352,12 +354,12 @@
       <workItem from="1527939978204" duration="6423000" />
       <workItem from="1527960520685" duration="7738000" />
       <workItem from="1528026248236" duration="24470000" />
-      <workItem from="1528096055912" duration="29662000" />
+      <workItem from="1528096055912" duration="30747000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="222375000" />
+    <option name="totallyTimeSpent" value="223460000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1194" height="1001" extended-state="0" />
@@ -367,7 +369,7 @@
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.49621212" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.49602723" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info active="true" id="Structure" order="1" sideWeight="0.507378" side_tool="true" visible="true" weight="0.34612104" />
@@ -628,13 +630,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2175">
-          <caret line="145" selection-start-line="145" selection-end-line="145" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/schema/schemaEnumList.js">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -642,13 +637,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2835">
           <caret line="189" column="19" lean-forward="true" selection-start-line="189" selection-start-column="19" selection-end-line="189" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/routes/test/NewDocument.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="22" column="24" lean-forward="true" selection-start-line="22" selection-start-column="24" selection-end-line="22" selection-end-column="24" />
         </state>
       </provider>
     </entry>
@@ -666,10 +654,24 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="592">
+          <caret line="132" column="32" lean-forward="true" selection-start-line="132" selection-start-column="32" selection-end-line="132" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/classes/NewEdgeBranch.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="487">
-          <caret line="234" column="14" lean-forward="true" selection-start-line="234" selection-start-column="14" selection-end-line="234" selection-end-column="14" />
+        <state relative-caret-position="327">
+          <caret line="278" column="10" lean-forward="true" selection-start-line="278" selection-start-column="10" selection-end-line="278" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/test/NewDocument.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="456">
+          <caret line="654" column="35" lean-forward="true" selection-start-line="654" selection-start-column="35" selection-end-line="654" selection-end-column="35" />
         </state>
       </provider>
     </entry>
