@@ -2,14 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/classes/NewEdge.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/NewDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/NewDocument.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/errors.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/errors.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/messages.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/messages.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/NewEdge.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/NewEdge.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/test/NewDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/test/NewDocument.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/Constants.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/Constants.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -38,8 +34,8 @@
       <file leaf-file-name="NewDocument.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/classes/NewDocument.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="552">
-              <caret line="1405" column="39" selection-start-line="1405" selection-start-column="39" selection-end-line="1405" selection-end-column="39" />
+            <state relative-caret-position="636">
+              <caret line="1747" selection-start-line="1747" selection-end-line="1747" />
             </state>
           </provider>
         </entry>
@@ -47,8 +43,8 @@
       <file leaf-file-name="NewEdge.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/NewEdge.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1571">
-              <caret line="7" lean-forward="true" selection-start-line="7" selection-end-line="7" />
+            <state relative-caret-position="-1089">
+              <caret line="198" selection-start-line="198" selection-end-line="198" />
             </state>
           </provider>
         </entry>
@@ -56,8 +52,8 @@
       <file leaf-file-name="NewDocument.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/routes/test/NewDocument.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="627">
-              <caret line="422" selection-start-line="422" selection-end-line="422" />
+            <state relative-caret-position="385">
+              <caret line="323" column="10" lean-forward="true" selection-start-line="323" selection-start-column="10" selection-end-line="323" selection-end-column="10" />
             </state>
           </provider>
         </entry>
@@ -100,7 +96,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>defaultCollection</find>
       <find>setPropeerty</find>
       <find>loadComputedProperties</find>
       <find>normaliseProperties</find>
@@ -130,6 +125,7 @@
       <find>collection</find>
       <find>MissingToResolve</find>
       <find>request</find>
+      <find>Dict</find>
     </findStrings>
     <replaceStrings>
       <replace>Descriptor.</replace>
@@ -189,6 +185,7 @@
         <option value="$PROJECT_DIR$/utils/Constants.js" />
         <option value="$PROJECT_DIR$/classes/NewEdge.js" />
         <option value="$PROJECT_DIR$/routes/test/NewDocument.js" />
+        <option value="$PROJECT_DIR$/utils/Application.js" />
         <option value="$PROJECT_DIR$/classes/NewDocument.js" />
       </list>
     </option>
@@ -336,12 +333,12 @@
       <workItem from="1527939978204" duration="6423000" />
       <workItem from="1527960520685" duration="7738000" />
       <workItem from="1528026248236" duration="24470000" />
-      <workItem from="1528096055912" duration="12175000" />
+      <workItem from="1528096055912" duration="13535000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="204888000" />
+    <option name="totallyTimeSpent" value="206248000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1194" height="1001" extended-state="0" />
@@ -474,13 +471,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/Application.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="810" column="11" selection-start-line="810" selection-start-column="11" selection-end-line="810" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/session/login.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="465">
@@ -575,13 +565,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="675">
-          <caret line="45" column="21" lean-forward="true" selection-start-line="45" selection-start-column="21" selection-end-line="45" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/routes/test/Document.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="315">
@@ -640,22 +623,36 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/NewEdge.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1571">
-          <caret line="7" lean-forward="true" selection-start-line="7" selection-end-line="7" />
+        <state relative-caret-position="-1089">
+          <caret line="198" selection-start-line="198" selection-end-line="198" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/Application.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="307">
+          <caret line="361" selection-start-line="361" selection-end-line="361" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-532">
+          <caret line="45" column="21" lean-forward="true" selection-start-line="45" selection-start-column="21" selection-end-line="45" selection-end-column="21" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/routes/test/NewDocument.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="627">
-          <caret line="422" selection-start-line="422" selection-end-line="422" />
+        <state relative-caret-position="385">
+          <caret line="323" column="10" lean-forward="true" selection-start-line="323" selection-start-column="10" selection-end-line="323" selection-end-column="10" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/NewDocument.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="552">
-          <caret line="1405" column="39" selection-start-line="1405" selection-start-column="39" selection-end-line="1405" selection-end-column="39" />
+        <state relative-caret-position="636">
+          <caret line="1747" selection-start-line="1747" selection-end-line="1747" />
         </state>
       </provider>
     </entry>

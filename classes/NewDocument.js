@@ -12,6 +12,7 @@ const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
 // Application.
 //
 const K = require( '../utils/Constants' );
+const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
 
 
@@ -519,8 +520,40 @@ class NewDocument
 	normaliseDocumentProperties( doAssert = true )
 	{
 		return true;																// ==>
-	
+		
 	}	// normaliseDocumentProperties
+	
+	/**
+	 * Normalise insert properties
+	 *
+	 * This method should load any default properties set when inserting the object.
+	 *
+	 * In this class we do notning.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	normaliseInsertProperties( doAssert = true )
+	{
+		return true;																// ==>
+		
+	}	// normaliseInsertProperties
+	
+	/**
+	 * Normalise replace properties
+	 *
+	 * This method should load any default properties set when replacing the object.
+	 *
+	 * In this class we do notning.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	normaliseReplaceProperties( doAssert = true )
+	{
+		return true;																// ==>
+		
+	}	// normaliseReplaceProperties
 	
 	
 	/************************************************************************************
@@ -900,6 +933,12 @@ class NewDocument
 		//
 		try
 		{
+			//
+			// Set insert information.
+			//
+			if( ! this.normaliseInsertProperties( true ) )
+				return false;														// ==>
+			
 			//
 			// Insert.
 			//
@@ -1365,6 +1404,12 @@ class NewDocument
 			this.validateLockedProperties( true );
 			
 			//
+			// Set replace information.
+			//
+			if( ! this.normaliseReplaceProperties( true ) )
+				return false;														// ==>
+			
+			//
 			// Replace document.
 			//
 			const meta =
@@ -1645,11 +1690,12 @@ class NewDocument
 	 *
 	 * The raised exception has the HTTP status of 412.
 	 *
-	 * @param theCollection	{String}	The document collection.
+	 * @param theRequest	{Object}	The current request.
+	 * @param theCollection	{String}	The collection name.
 	 * @param doAssert		{Boolean}	True raises an exception on error (default).
-	 * @returns {Boolean}				True if all required fields are there.
+	 * @returns {Boolean}				True if of the correct type.
 	 */
-	static isEdgeCollection( theCollection, doAssert = true )
+	static isEdgeCollection( theRequest, theCollection, doAssert = true )
 	{
 		//
 		// Check collection type.
@@ -1662,7 +1708,7 @@ class NewDocument
 				new MyError(
 					'BadCollection',					// Error name.
 					K.error.ExpectingEdgeColl,			// Message code.
-					this._request.application.language,	// Language.
+					theRequest.application.language,	// Language.
 					theCollection,						// Error value.
 					412									// HTTP error code.
 				)
@@ -1680,9 +1726,12 @@ class NewDocument
 	 *
 	 * The raised exception has the HTTP status of 412.
 	 *
-	 * @param theCollection	{String}|{null}		The document collection.
+	 * @param theRequest	{Object}	The current request.
+	 * @param theCollection	{String}	The collection name.
+	 * @param doAssert		{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}				True if of the correct type.
 	 */
-	static isDocumentCollection( theCollection )
+	static isDocumentCollection( theRequest, theCollection, doAssert = true )
 	{
 		//
 		// Check collection type.
@@ -1695,7 +1744,7 @@ class NewDocument
 				new MyError(
 					'BadCollection',					// Error name.
 					K.error.ExpectingDocColl,			// Message code.
-					this._request.application.language,	// Language.
+					theRequest.application.language,	// Language.
 					theCollection,						// Error value.
 					412									// HTTP error code.
 				)

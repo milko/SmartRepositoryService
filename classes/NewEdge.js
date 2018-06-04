@@ -141,6 +141,64 @@ class NewEdge extends NewDocument
 		
 	}	// normaliseDocumentProperties
 	
+	/**
+	 * Normalise insert properties
+	 *
+	 * This method should load any default properties set when inserting the object.
+	 *
+	 * In this class we set the creation time stamp.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	normaliseInsertProperties( doAssert = true )
+	{
+		//
+		// Call parent method.
+		//
+		if( super.normaliseInsertProperties( doAssert ) )
+		{
+			//
+			// Set creation time stamp.
+			//
+			this._document[ Dict.descriptor.kCStamp ] = Date.now();
+			
+			return true;															// ==>
+		}
+		
+		return false;																// ==>
+		
+	}	// normaliseInsertProperties
+	
+	/**
+	 * Normalise replace properties
+	 *
+	 * This method should load any default properties set when replacing the object.
+	 *
+	 * In this class we set the modification time stamp.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	normaliseReplaceProperties( doAssert = true )
+	{
+		//
+		// Call parent method.
+		//
+		if( super.normaliseReplaceProperties( doAssert ) )
+		{
+			//
+			// Set creation time stamp.
+			//
+			this._document[ Dict.descriptor.kMStamp ] = Date.now();
+			
+			return true;															// ==>
+		}
+		
+		return false;																// ==>
+		
+	}	// normaliseReplaceProperties
+	
 	
 	/************************************************************************************
 	 * VALIDATION METHODS																*
@@ -157,7 +215,10 @@ class NewEdge extends NewDocument
 	 */
 	validateCollectionType( theCollection, doAssert = true )
 	{
-		return NewDocument.isEdgeCollection( theCollection, doAssert );				// ==>
+		return NewDocument.isEdgeCollection(
+			this._request,
+			theCollection,
+			doAssert );																// ==>
 		
 	}	// validateCollectionType
 
