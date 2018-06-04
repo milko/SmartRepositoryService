@@ -86,6 +86,26 @@ const NewEdge = require( './NewEdge' );
  * use the sync interface to only update branches an/or modifiers, or use the replace
  * method to update the whole object.
  *
+ * To insert a new edge:
+ *
+ * 	- Instantiate edge with its contents.
+ * 	- Set branches and modifiers.
+ * 	- Insert the object.
+ *
+ * To update an edge:
+ *
+ * 	- Instantiate the edge with contents or reference.
+ * 	- Resolve object if necessary.
+ * 	- Set branches and modifiers.
+ * 	- Replace the object.
+ *
+ * To only update branches and modifiers:
+ *
+ * 	- Instantiate the edge with contents or reference.
+ * 	- Resolve object if necessary.
+ * 	- Set branches and modifiers.
+ * 	- Sync the object.
+ *
  *
  *
  * The class behaves like its ancestor, except that it implements the following
