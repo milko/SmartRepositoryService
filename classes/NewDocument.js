@@ -25,30 +25,16 @@ const MyError = require( '../utils/MyError' );
  * 						is instanttiated.
  * 	- _collection:		Holds the collection name, it is either explicitly provided in
  * 						the constructor, or it is set to the default value in the
- * 						constructor.
+ * 						constructor, or it is extracted when resolvinf the object.
+ * 	- _document:		Holds the document structure.
  * 	- _instance:		Holds the document instance, or class, it defines the current
  * 						instance class or instance use.
- * 	- _document:		Holds the document structure.
  * 	- _persistent:		A boolean flag indicating whether the document was retrieved or
  * 						stored in the collection, if true, it means the object was
  * 						retrieved from its collection.
  * 	- _revised:			A boolean flag indicating whether the revision has changed in
  * 						the event the object was loaded from its collection.
  * 						The value can be retrieved with the revised() getter.
- *
- * The class implements the following public interface:
- *
- * 	- constructor():	The constructor will instantiate the document in these stemps:
- * 		- initProperties():		Set the default properties of the object, derived
- * 								classes should overload this method if they implement
- * 								additional data members.
- * 		- initDocument():		Set the document data structure, this will either be
- * 								from the provided object, or by resolving the provided
- * 								reference.
- * 		- normaliseDocument():	Update document with eventual computed properties, or
- * 								other data.
- * 		- resolveRelated():		Resolve related documents, load, resolve or locate
- * 								related documents.
  */
 class NewDocument
 {
@@ -58,15 +44,15 @@ class NewDocument
 	 * The constructor instantiates a document from the following parameters:
 	 *
 	 * 	- theRequest:		The current request, it will be stored in the 'request'
-	 * 						property, it is used for parameter passing and to provide
-	 * 						environment variables.
-	 * 	- theReference:		The document contents provided either as a string, in which
-	 * 						case it should represent the object reference, or as an
-	 * 						object, in which case it represents the document contents.
-	 * 	- theCollection:	The name of the collection where the object is stored. In
-	 * 						classes that implement objects that are stored in a
-	 * 						specific collection, you can omit this parameter and
-	 * 						overload the defaultCollection() method.
+	 * 						property, it is used to access environment variables.
+	 * 	- theReference:		This parameter represents either the document reference or
+	 * 						its initial contents: if provided as a string, it is
+	 * 						expected to be the document _id or _key; if provided as an
+	 * 						object it is expected to be the document contents; if
+	 * 						omitted or null, the object will be an empty document and
+	 * 						the collection argument will be asserted.
+	 * 	- theCollection:	The name of the collection where the object is stored; if
+	 * 						omitted or null, it will be inferred.
 	 * 	- isImmutable:		This parameter is only relevant when instantiating the
 	 * 						object from a string reference: if true, the resulting
 	 * 						document will be immutable, that is, its properties cannot
@@ -80,12 +66,12 @@ class NewDocument
 	 * 	  the collection is required and if omitted, the method will raise an illegal
 	 * 	  document handle exception.
 	 * 	- If you provide an object, it is assumed you want to create a new instance,
-	 * 	  or that you do not have either the _id or _key: in this case, if you want to
-	 * 	  load the corresponding object from the database, you will have to call the
+	 * 	  or that you do not have either the _id or _key. If you want to load the
+	 * 	  corresponding object from the database, you will have to explicitly call the
 	 * 	  resolve() method. In this case the collection parameter is required.
 	 *
 	 * All derived classes should support instantiating a document from the first two
-	 * parameter of the constructor, custom arguments can be provided after these two.
+	 * parameters of the constructor, custom arguments can be provided after these two.
 	 * In particular:
 	 *
 	 * 	- If the derived class has a single default collection, the collection
@@ -94,12 +80,16 @@ class NewDocument
 	 *
 	 * Any error will raise an exception.
 	 *
-	 * @param theRequest	{Object}			The current request.
-	 * @param theReference	{String}|{Object}	The document reference or object.
-	 * @param theCollection	{String}|{null}		The document collection.
-	 * @param isImmutable	{Boolean}			True, instantiate immutable document.
+	 * @param theRequest	{Object}					The current request.
+	 * @param theReference	{String}|{Object}|”null}	The document reference or object.
+	 * @param theCollection	{String}|{null}				The document collection.
+	 * @param isImmutable	{Boolean}					True, instantiate immutable document.
 	 */
-	constructor( theRequest, theReference, theCollection = null, isImmutable = false )
+	constructor(
+		theRequest,
+		theReference = null,
+		theCollection = null,
+		isImmutable = false )
 	{
 		//
 		// Init properties.
@@ -120,12 +110,13 @@ class NewDocument
 			// Load document.
 			//
 			this.setDocumentProperties( theReference, true, false );
-		}
+		
+		}	// Provided document properties.
 		
 		//
 		// Handle document reference.
 		//
-		else
+		else if( theReference !== null )
 		{
 			//
 			// Resolve document.
@@ -142,7 +133,28 @@ class NewDocument
 			// We get here only if successful.
 			//
 			this._persistent = true;
-		}
+		
+		}	// Provided document reference.
+		
+		//
+		// Init document properties.
+		//
+		else
+			this._document = {};
+		
+		//
+		// Assert collection.
+		//
+		if( ! this.hasOwnProperty( '_collection' ) )
+			throw(
+				new MyError(
+					'MissingRequiredParameter',			// Error name.
+					K.error.NoCollection,				// Message code.
+					this._request.application.language,	// Language.
+					theCollection,						// Error value.
+					400									// HTTP error code.
+				)
+			);																// !@! ==>
 		
 		//
 		// Normalise properties.
@@ -289,7 +301,7 @@ class NewDocument
 	
 	
 	/************************************************************************************
-	 * MODIFICATION PUBLIC METHODS														*
+	 * MODIFICATION METHODS																*
 	 ************************************************************************************/
 	
 	/**
@@ -376,11 +388,6 @@ class NewDocument
 		}
 		
 	}	// setDocumentProperties
-	
-	
-	/************************************************************************************
-	 * MODIFICATION PROTECTED METHODS													*
-	 ************************************************************************************/
 	
 	/**
 	 * Set document property
@@ -758,7 +765,7 @@ class NewDocument
 					'IncompleteObject',					// Error name.
 					K.error.MissingToResolve,			// Message code.
 					this._request.application.language,	// Language.
-					null,								// Arguments.
+					missing.join( ', ' ),				// Arguments.
 					412									// HTTP error code.
 				)
 			);																	// !@! ==>
@@ -931,9 +938,10 @@ class NewDocument
 				let field;
 				const reference = {};
 				for( field of this.uniqueFields )
-					reference[ field ] = ( this._document.hasOwnProperty( field ) )
-									   ? this._document[ field ]
-									   : null;
+				{
+					if( this._document.hasOwnProperty( field ) )
+						reference[ field ] = this._document[ field ];
+				}
 				
 				//
 				// Set field arguments.

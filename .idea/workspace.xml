@@ -3,6 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/classes/NewDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/NewDocument.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/errors.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/errors.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/messages.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/messages.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routes/test/NewDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/test/NewDocument.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -23,8 +26,8 @@
       <file leaf-file-name="Document.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/Document.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="490">
-              <caret line="1269" selection-start-line="1241" selection-end-line="1269" />
+            <state relative-caret-position="865">
+              <caret line="1294" selection-start-line="1294" selection-end-line="1294" />
             </state>
           </provider>
         </entry>
@@ -32,8 +35,8 @@
       <file leaf-file-name="NewDocument.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/NewDocument.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="768">
-              <caret line="1447" column="28" selection-start-line="1447" selection-start-column="28" selection-end-line="1447" selection-end-column="28" />
+            <state relative-caret-position="75">
+              <caret line="5" selection-start-line="5" selection-end-line="6" />
             </state>
           </provider>
         </entry>
@@ -41,8 +44,8 @@
       <file leaf-file-name="NewDocument.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/routes/test/NewDocument.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="377">
-              <caret line="85" column="34" lean-forward="true" selection-start-line="85" selection-start-column="34" selection-end-line="85" selection-end-column="34" />
+            <state relative-caret-position="156">
+              <caret line="147" column="30" selection-start-line="147" selection-start-column="30" selection-end-line="147" selection-end-column="30" />
             </state>
           </provider>
         </entry>
@@ -50,8 +53,17 @@
       <file leaf-file-name="Constants.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils/Constants.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="142">
-              <caret line="291" column="26" selection-start-line="291" selection-start-column="12" selection-end-line="291" selection-end-column="26" />
+            <state relative-caret-position="454">
+              <caret line="357" column="24" selection-start-line="357" selection-start-column="12" selection-end-line="357" selection-end-column="24" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="errors.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/data/errors.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="726">
+              <caret line="254" column="29" selection-start-line="254" selection-start-column="29" selection-end-line="254" selection-end-column="29" />
             </state>
           </provider>
         </entry>
@@ -59,26 +71,8 @@
       <file leaf-file-name="messages.json" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/data/messages.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="325">
-              <caret line="166" column="69" lean-forward="true" selection-start-line="166" selection-start-column="5" selection-end-line="166" selection-end-column="69" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Dictionary.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/utils/Dictionary.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1113" selection-start-line="1113" selection-end-line="1113" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="User.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/classes/User.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1494" selection-start-line="1436" selection-end-line="1494" />
+            <state relative-caret-position="267">
+              <caret line="562" column="43" selection-start-line="562" selection-start-column="33" selection-end-line="562" selection-end-column="43" />
             </state>
           </provider>
         </entry>
@@ -94,10 +88,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>getLockedFields</find>
-      <find>setClass</find>
-      <find>insertDocument</find>
-      <find>resolveDocument</find>
       <find>defaultCollection</find>
       <find>setPropeerty</find>
       <find>loadComputedProperties</find>
@@ -121,9 +111,13 @@
       <find>assertCollectionType</find>
       <find>validateCollectionType</find>
       <find>Validation</find>
-      <find>collection</find>
       <find>checkLockedProperties</find>
       <find>validateLockedProperties</find>
+      <find>request.body.user</find>
+      <find>doc</find>
+      <find>collection</find>
+      <find>MissingToResolve</find>
+      <find>request</find>
     </findStrings>
     <replaceStrings>
       <replace>Descriptor.</replace>
@@ -131,6 +125,7 @@
       <replace>_instance</replace>
       <replace>doAssert</replace>
       <replace>validateDocumentProperties</replace>
+      <replace>request.body.doc</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -141,7 +136,6 @@
       <list>
         <option value="$PROJECT_DIR$/routes/test/Schema.js" />
         <option value="$PROJECT_DIR$/utils/Validation.js" />
-        <option value="$PROJECT_DIR$/data/errors.json" />
         <option value="$PROJECT_DIR$/models/schema/schemaUserHierarchy.js" />
         <option value="$PROJECT_DIR$/classes/Schema.js" />
         <option value="$PROJECT_DIR$/handlers/Schema.js" />
@@ -166,7 +160,6 @@
         <option value="$PROJECT_DIR$/models/user/reset.js" />
         <option value="$PROJECT_DIR$/models/user/changeUsername.js" />
         <option value="$PROJECT_DIR$/routes/user.js" />
-        <option value="$PROJECT_DIR$/data/messages.json" />
         <option value="$PROJECT_DIR$/handlers/User.js" />
         <option value="$PROJECT_DIR$/routes/test/User.js" />
         <option value="$PROJECT_DIR$/utils/Schema.js" />
@@ -180,6 +173,8 @@
         <option value="$PROJECT_DIR$/classes/Document.new.js" />
         <option value="$PROJECT_DIR$/utils/Dictionary.js" />
         <option value="$PROJECT_DIR$/main.js" />
+        <option value="$PROJECT_DIR$/data/messages.json" />
+        <option value="$PROJECT_DIR$/data/errors.json" />
         <option value="$PROJECT_DIR$/classes/NewDocument.js" />
         <option value="$PROJECT_DIR$/routes/test/NewDocument.js" />
       </list>
@@ -195,16 +190,17 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="385" />
+    <option name="x" value="1280" />
     <option name="y" value="23" />
-    <option name="width" value="1184" />
-    <option name="height" value="1176" />
+    <option name="width" value="1194" />
+    <option name="height" value="1001" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -275,7 +271,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -300,9 +295,6 @@
         </RuleState>
       </list>
     </option>
-  </component>
-  <component name="StructureViewFactory">
-    <option name="ACTIVE_ACTIONS" value=",HIDE_INHERITED_FROM_OBJECT" />
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -331,26 +323,28 @@
       <workItem from="1527939978204" duration="6423000" />
       <workItem from="1527960520685" duration="7738000" />
       <workItem from="1528026248236" duration="24470000" />
+      <workItem from="1528096055912" duration="7126000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="192713000" />
+    <option name="totallyTimeSpent" value="199839000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="385" y="23" width="1184" height="1176" extended-state="0" />
+    <frame x="1280" y="23" width="1194" height="1001" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.48958334" visible="true" weight="0.3576956" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4937571" visible="true" weight="0.3546462" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.49621212" />
-      <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info anchor="bottom" id="Run" order="2" />
-      <window_info active="true" id="Structure" order="1" sideWeight="0.5104167" side_tool="true" visible="true" weight="0.3576956" />
+      <window_info anchor="bottom" id="Version Control" order="9" />
+      <window_info active="true" id="Structure" order="1" sideWeight="0.50624293" side_tool="true" visible="true" weight="0.3546462" />
       <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -458,13 +452,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/Descriptor.old.js" />
-    <entry file="file://$PROJECT_DIR$/data/errors.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="423">
-          <caret line="110" column="22" selection-start-line="110" selection-start-column="14" selection-end-line="110" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/routes/session.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="823">
@@ -572,31 +559,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Term.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="110" column="18" selection-start-line="110" selection-start-column="18" selection-end-line="110" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Term.js" />
     <entry file="file://$PROJECT_DIR$/classes/User.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1494" selection-start-line="1436" selection-end-line="1494" />
+        <state relative-caret-position="22680">
+          <caret line="1512" selection-start-line="1512" selection-end-line="1512" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/Dictionary.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1113" selection-start-line="1113" selection-end-line="1113" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/routes/test/User.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="628">
-          <caret line="237" selection-start-line="214" selection-end-line="237" />
+        <state relative-caret-position="16665">
+          <caret line="1111" selection-start-line="1111" selection-end-line="1111" />
         </state>
       </provider>
     </entry>
@@ -604,13 +578,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="675">
           <caret line="45" column="21" lean-forward="true" selection-start-line="45" selection-start-column="21" selection-end-line="45" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/utils/Constants.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="142">
-          <caret line="291" column="26" selection-start-line="291" selection-start-column="12" selection-end-line="291" selection-end-column="26" />
         </state>
       </provider>
     </entry>
@@ -628,31 +595,52 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/data/messages.json">
+    <entry file="file://$PROJECT_DIR$/classes/Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="325">
-          <caret line="166" column="69" lean-forward="true" selection-start-line="166" selection-start-column="5" selection-end-line="166" selection-end-column="69" />
+        <state relative-caret-position="865">
+          <caret line="1294" selection-start-line="1294" selection-end-line="1294" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Document.js">
+    <entry file="file://$PROJECT_DIR$/routes/test/User.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="490">
-          <caret line="1269" selection-start-line="1241" selection-end-line="1269" />
+        <state relative-caret-position="591">
+          <caret line="302" selection-start-line="56" selection-end-line="302" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data/messages.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="267">
+          <caret line="562" column="43" selection-start-line="562" selection-start-column="33" selection-end-line="562" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/Constants.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="454">
+          <caret line="357" column="24" selection-start-line="357" selection-start-column="12" selection-end-line="357" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data/errors.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="726">
+          <caret line="254" column="29" selection-start-line="254" selection-start-column="29" selection-end-line="254" selection-end-column="29" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/NewDocument.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="768">
-          <caret line="1447" column="28" selection-start-line="1447" selection-start-column="28" selection-end-line="1447" selection-end-column="28" />
+        <state relative-caret-position="75">
+          <caret line="5" selection-start-line="5" selection-end-line="6" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/routes/test/NewDocument.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="377">
-          <caret line="85" column="34" lean-forward="true" selection-start-line="85" selection-start-column="34" selection-end-line="85" selection-end-column="34" />
+        <state relative-caret-position="156">
+          <caret line="147" column="30" selection-start-line="147" selection-start-column="30" selection-end-line="147" selection-end-column="30" />
         </state>
       </provider>
     </entry>

@@ -11,14 +11,29 @@
 //
 const dd = require('dedent');							// For multiline text.
 const Joi = require('joi');								// Validation framework.
+const db = require('@arangodb').db;						// Database.
 const time = require('@arangodb').time;					// Timer functions.
 const createAuth = require('@arangodb/foxx/auth');		// Authentication framework.
 const createRouter = require('@arangodb/foxx/router');	// Router class.
 
 //
-// Instantiate objects.
+// Instantiate test object.
 //
 const NewDocument = require( '../../classes/NewDocument' );
+class TestDocument extends NewDocument {
+	get significantFields() {
+		return super.significantFields.concat([ ['var'] ]);																	// ==>
+	}
+	get requiredFields() {
+		return super.requiredFields.concat(['var']);																	// ==>
+	}
+	get uniqueFields() {
+		return super.uniqueFields.concat(['var']);																	// ==>
+	}
+	get lockedFields() {
+		return super.lockedFields.concat(['var']);																	// ==>
+	}
+}
 
 //
 // Instantiate router.
@@ -34,21 +49,31 @@ router.tag( 'testNewDocument' );
 
 
 /**
- * Test document creation
+ * Test User class
  *
- * The service will instantiate a document and return its data, it expects the following
- * parameters in the POST body:
+ * The service will test the User class, it expects the following parameters
+ * in the POST body:
  *
- * 	- collection:	Collection name.
- * 	- reference:	Either a document reference or an object.
+ * 	- user:			Either a user object, or a user reference.
+ * 	- group:		The optional user group reference or object.
+ * 	- manager:		The optional user manager reference, object, omit for current user.
+ * 	- data:			Eventual modification data.
+ * 	- immutable:	Immutable object.
+ * 	- raise:		Raise exceptions.
+ * 	- modify:		If data is provided, replace values when resolving and modifying.
+ * 	- before:		If data is provided, set data before resolving, or after.
+ * 	- insert:		True, insert object.
+ * 	- resolve:		True, resolve before modifying.
+ * 	- replace:		If true, replace document.
+ * 	- remove:		True, remove object.
  *
- * @path		/instantiate/document
+ * @path		/instantiate
  * @verb		post
  * @response	{Object}	The operation result.
  */
 router.post
 (
-	'/instantiate/new/document',
+	'/instantiate',
 	(request, response) =>
 	{
 		//
@@ -57,12 +82,14 @@ router.post
 		const stamp = time();
 		
 		//
-		// Init local storage.
+		// Get parameters.
 		//
-		let id;
+		const dat = ( request.body.hasOwnProperty( 'data' ) )
+					? request.body.data
+					: null;
 		const collection = ( request.body.hasOwnProperty( 'collection' ) )
-						 ? request.body.collection
-						 : null;
+					? request.body.collection
+					: null;
 		
 		//
 		// Test instantiation.
@@ -70,74 +97,121 @@ router.post
 		try
 		{
 			//
-			// Instantiate document.
+			// Instantiate user.
 			//
-			const doc =
-				new NewDocument(
-					request,
-					request.body.reference,
-					collection,
-					false
+			const document = new TestDocument(
+				request,						// Current request.
+				request.body.doc,				// Selector.
+				request.body.collection,		// Collection.
+				request.body.immutable			// Is immutable.
+			);
+			
+			//
+			// Set data before resolving.
+			//
+			if( (dat !== null)
+			 && request.body.before )
+				document.setDocumentProperties(
+					dat,
+					request.body.modify
 				);
 			
 			//
-			// Set ID.
+			// Resolve user.
 			//
-			id = doc.document._id;
+			let resolve = null;
+			if( request.body.resolve )
+				resolve = document.resolveDocument(
+					request.body.modify,
+					request.body.raise
+				);
 			
 			//
-			// Resolve document.
+			// Set data after resolving.
 			//
-			// if( ! doc._persistent )
-			// 	doc.resolveDocument( false, true );
+			if( (dat !== null)
+			 && (! request.body.before) )
+				document.setDocumentProperties(
+					dat,
+					request.body.modify
+				);
 			
 			//
 			// Insert document.
 			//
-			if( ! doc._persistent )
-				doc.insertDocument();
+			let insert = null;
+			if( request.body.insert )
+			{
+				insert = document.insertDocument();
+				if( insert )
+				{
+					if( ! db._exists( document.document ) )
+						theResponse.throw( 500, "Document not inserted." );
+				}
+			}
 			
 			//
-			// Modify document.
+			// Save identifier.
 			//
-			if( doc.document.hasOwnProperty( 'name' ) )
-			{
-				doc.document.description = { "ISO:639:3:eng" : "MODIFIED" };
-				doc.setDocumentProperty( 'name', null, false, false );
-			}
-			else
-			{
-				doc.document.name = "MODIFIED";
-				doc.setDocumentProperty( 'description', null, false, false );
-			}
+			let id = undefined;
+			if( document.persistent )
+				id = document.document._id;
 			
 			//
 			// Replace document.
 			//
-			doc.replaceDocument();
+			let replace = null;
+			if( request.body.replace )
+				replace = document.replaceDocument(
+					request.body.revision
+				);
 			
 			//
-			// Delete document.
+			// Remove document.
 			//
-			doc.removeDocument();
+			let remove = null;
+			if( request.body.remove )
+			{
+				//
+				// Remove document.
+				//
+				remove = document.removeDocument();
+				
+				//
+				// Validate removal.
+				//
+				let cursor;
+				const selector = {};
+				
+				//
+				// Check document.
+				//
+				selector._id = id;
+				cursor = db._collection( document.collection ).byExample( selector );
+				if( cursor.count() > 0 )
+					theResponse.throw( 500, "Document not deleted." );
+			}
 			
 			response.send({
 				params : request.body,
 				result : {
-/*
 					resolve : resolve,
 					insert  : insert,
 					replace : replace,
 					remove  : remove
-*/
 				},
 				object : {
 					id		   : id,
-					collection : doc.collection,
-					instance   : doc.instance,
-					persistent : doc.persistent,
-					revised	   : doc.revised,
-					document   : doc.document
+					collection : document.collection,
+					instance   : document.instance,
+					persistent : document.persistent,
+					revised	   : document.revised,
+					document   : document.document,
+				},
+				stats  : {
+					significant: document.significantFields,
+					required   : document.requiredFields,
+					locked	   : document.lockedFields
 				}
 				
 			});																		// ==>
@@ -153,40 +227,46 @@ router.post
 			// Handle MyError exceptions.
 			//
 			if( (error.constructor.name === 'MyError')
-			 && error.hasOwnProperty( 'param_http' ) )
+				&& error.hasOwnProperty( 'param_http' ) )
 				http = error.param_http;
 			
 			response.throw( http, error );										// !@! ==>
 		}
 	},
-	'instantiateEdge'
+	'instantiate'
 )
 	.body(
 		Joi.object({
-			collection : Joi.string(),
-			reference : Joi.alternatives().try(
-				Joi.string().required(),
-				Joi.object().required()
-			).required()
+			doc 		: Joi.alternatives().try(
+							Joi.string().required(),
+							Joi.object().required()
+						),
+			collection 	: Joi.string(),
+			data		: Joi.object(),
+			immutable	: Joi.boolean().required(),
+			raise		: Joi.boolean().required(),
+			modify		: Joi.boolean().required(),
+			before		: Joi.boolean().required(),
+			insert		: Joi.boolean().required(),
+			resolve		: Joi.boolean().required(),
+			replace		: Joi.boolean().required(),
+			remove		: Joi.boolean().required(),
+			revision	: Joi.boolean().required()
 		}).required(),
-		"The collection name and the document reference or object."
+		"An object with 'user' that contains eother the user structure or a string" +
+		" representing the user reference, 'group' containing the user group reference" +
+		" and 'manager' containing the eventual user manager reference."
 	)
 	.response(
 		200,
-		Joi.object({
-			collection : Joi.string(),
-			resolved : Joi.boolean(),
-			persistent : Joi.boolean(),
-			revised : Joi.boolean(),
-			data : Joi.object(),
-			time : Joi.number()
-		}),
-		"The result: 'data' contains the resolved document and 'time' contains the" +
-		" elapsed time."
+		Joi.object(),
+		"The result: 'user' contains the user object, 'group' con tains the" +
+		" group reference, 'manager' contains the eventual user manager object " +
+		"and 'time' contains the elapsed time."
 	)
 	.summary(
-		"Instantiate a document."
+		"Instantiate a user object."
 	)
 	.description(dd`
-  Instantiates and returns a document.
+  Instantiates and returns a user object
 `);

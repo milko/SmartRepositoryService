@@ -250,5 +250,11 @@
     "label" : {
       "ISO:639:3:eng" : "Constraint violation: "
     }
+  },
+  {
+    "_key" : "MissingRequiredParameter",
+    "label" : {
+      "ISO:639:3:eng" : "Missing required parameter: "
+    }
   }
 ]
