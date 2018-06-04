@@ -110,7 +110,11 @@ class NewDocument
 			//
 			// Load document.
 			//
-			this.setDocumentProperties( theReference, true, false );
+			this.setDocumentProperties(
+				theReference,			// Provided contents.
+				true,					// Replace values.
+				false					// Is resolving.
+			);
 		
 		}	// Provided document properties.
 		
@@ -507,7 +511,8 @@ class NewDocument
 	 * This method should finalise the contents of the document, such as setting
 	 * eventual missing default values or computing dynamic properties.
 	 *
-	 * The method should be called before validating the contents of the document.
+	 * The method is called at the end of the constructor and before validating the
+	 * contents of the document.
 	 *
 	 * The provided parameter is a flag that determines whether errors raise
 	 * exceptions or not, it is set to false by default.

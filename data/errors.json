@@ -228,6 +228,12 @@
     }
   },
   {
+    "_key" : "ReservedProperty",
+    "label" : {
+      "ISO:639:3:eng" : "Property is reserved: "
+    }
+  },
+  {
     "_key" : "UserGroupConflict",
     "label" : {
       "ISO:639:3:eng" : "User group conflict: "
