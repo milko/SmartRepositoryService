@@ -70,6 +70,13 @@ const NewEdge = require( './NewEdge' );
  * Once these two properties have been updated, you can use the inherited persistence
  * interface to save the document.
  *
+ * The class also provides two getters, branches and modifiers, which return the
+ * respective properties of the object, or null, if not there.
+ *
+ * The class adds a flag getter, branched, that returns true if the object is not
+ * persistent, or if the object is persistent and has the branches property: this can
+ * be used to check if a resolved edge is indeed a branched edge.
+ *
  * When using this class, you will most often need to simply make changes in the
  * branches and modifier fields, leaving the rest of the object untouched, rather than
  * instantiating, resolving, modifying and replacing the object, this class provides
@@ -88,6 +95,41 @@ const NewEdge = require( './NewEdge' );
  */
 class NewEdgeBranch extends NewEdge
 {
+	/**
+	 * Constructor
+	 *
+	 * We overload the constructor to set the branched data member if resolved.
+	 *
+	 * @param theRequest	{Object}					The current request.
+	 * @param theReference	{String}|{Object}|”null}	The document reference or object.
+	 * @param theCollection	{String}|{null}				The document collection.
+	 * @param isImmutable	{Boolean}					True, instantiate immutable document.
+	 */
+	constructor(
+		theRequest,
+		theReference = null,
+		theCollection = null,
+		isImmutable = false )
+	{
+		//
+		// Call parent method.
+		//
+		super( theRequest, theReference, theCollection, isImmutable );
+		
+		//
+		// Set branched flag.
+		//
+		if( this._persistent )
+			this._branched =
+				( this._document.hasOwnProperty( Dict.descriptor.kBranches ) );
+		
+	}	// constructor
+	
+	
+	/************************************************************************************
+	 * MODIFICATION METHODS																*
+	 ************************************************************************************/
+	
 	/**
 	 * Set document property
 	 *
@@ -130,9 +172,32 @@ class NewEdgeBranch extends NewEdge
 	
 	
 	/************************************************************************************
-	 * PERSISTENCE
-	 * METHODS																*
+	 * PERSISTENCE METHODS																*
 	 ************************************************************************************/
+	
+	/**
+	 * Resolve document
+	 *
+	 * We overload this method to set the branched flag data member.
+	 *
+	 * @param doReplace	{Boolean}	Replace existing data (false is default).
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if resolved.
+	 */
+	resolveDocument( doReplace = false, doAssert = true )
+	{
+		//
+		// Call parent method.
+		// Parent returns the persistent status.
+		//
+		const result = super.resolveDocument( doReplace, doAssert );
+		if( result )
+			this._branched =
+				( this._document.hasOwnProperty( Dict.descriptor.kBranches ) );
+		
+		return result;																// ==>
+		
+	}	// resolveDocument
 	
 	/**
 	 * replaceDocument
@@ -158,6 +223,27 @@ class NewEdgeBranch extends NewEdge
 		return super.replaceDocument();												// ==>
 		
 	}	// replaceDocument
+	
+	/**
+	 * Remove document
+	 *
+	 * We overload this method to reset the branched flag data member.
+	 *
+	 * @returns {Boolean}|{null}	True removed, false not found, null not persistent.
+	 */
+	removeDocument()
+	{
+		//
+		// Call parent method.
+		// Parent returns the persistent status.
+		//
+		const result = super.removeDocument;
+		if( result === true )
+			delete this._branched;
+		
+		return result;																// ==>
+		
+	}	// removeDocument
 	
 	
 	/************************************************************************************
@@ -269,10 +355,67 @@ class NewEdgeBranch extends NewEdge
 		
 	}	// requiredFields
 	
+	/**
+	 * Return true if branched or not yet persistent
+	 *
+	 * This method serves the purpose of asserting whether the current edge is
+	 * branched: it will return true if the object is persistent and has branches,
+	 * false if the resolved object did not have branches and null, if the object is
+	 * not yet persistent.
+	 *
+	 * Note that this value is set once the edge has been resolved, which means that
+	 * you can check its value even after adding the branches.
+	 *
+	 * @returns {Boolean}|{null}	True branched, false not, null not persistent.
+	 */
+	get branched()
+	{
+		//
+		// Check object member.
+		// Note that if the member exists it means the object is persistent.
+		//
+		if( this.hasOwnProperty( '_branched' ) )
+			return this._branched;													// ==>
+		
+		return null;																// ==>
+		
+	}	// branched
+	
+	/**
+	 * Return current branches
+	 *
+	 * This method will return the current list of branches, or null, if not there.
+	 *
+	 * @returns {Array}|{null}	Branches list or null if no branches.
+	 */
+	get branches()
+	{
+		if( this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
+			return this._document[ Dict.descriptor.kBranches ];						// ==>
+		
+		return null;																// ==>
+		
+	}	// branches
+	
+	/**
+	 * Return current modifiers
+	 *
+	 * This method will return the current modifier records, or null, if not there.
+	 *
+	 * @returns {Object}|{null}	Modifier records or null if no modifiers.
+	 */
+	get modifiers()
+	{
+		if( this._document.hasOwnProperty( Dict.descriptor.kModifiers ) )
+			return this._document[ Dict.descriptor.kModifiers ];					// ==>
+		
+		return null;																// ==>
+		
+	}	// modifiers
+	
 	
 	/************************************************************************************
-	 * STATIC
-	 * INTERFACE																	*
+	 * STATIC INTERFACE																	*
 	 ************************************************************************************/
 	
 	/**

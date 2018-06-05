@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/classes/NewDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/NewDocument.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/NewEdgeBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/NewEdgeBranch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/Validation.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/Validation.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -24,8 +22,8 @@
       <file leaf-file-name="NewDocument.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/NewDocument.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="720">
-              <caret line="1376" selection-start-line="1350" selection-end-line="1376" />
+            <state relative-caret-position="546">
+              <caret line="1529" selection-start-line="1458" selection-end-line="1529" />
             </state>
           </provider>
         </entry>
@@ -42,8 +40,8 @@
       <file leaf-file-name="NewEdgeBranch.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/classes/NewEdgeBranch.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="733">
-              <caret line="447" column="36" selection-start-line="447" selection-start-column="36" selection-end-line="447" selection-end-column="36" />
+            <state relative-caret-position="368">
+              <caret line="472" selection-start-line="472" selection-end-line="472" />
             </state>
           </provider>
         </entry>
@@ -64,7 +62,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>resolveDocumentByReference</find>
       <find>assertCollectionType</find>
       <find>Validation</find>
       <find>checkLockedProperties</find>
@@ -87,13 +84,14 @@
       <find>setBranch</find>
       <find>branch</find>
       <find>has_branches</find>
-      <find>branched</find>
       <find>theObject._document</find>
       <find>theObject</find>
       <find>this</find>
       <find>this._document</find>
       <find>validateCollectionType</find>
       <find>aql</find>
+      <find>branched</find>
+      <find>isBranched</find>
     </findStrings>
     <replaceStrings>
       <replace>Descriptor.</replace>
@@ -270,6 +268,9 @@
       </list>
     </option>
   </component>
+  <component name="StructureViewFactory">
+    <option name="ACTIVE_ACTIONS" value=",HIDE_INHERITED_FROM_OBJECT" />
+  </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -301,12 +302,12 @@
       <workItem from="1528147769525" duration="1758000" />
       <workItem from="1528150642188" duration="211000" />
       <workItem from="1528187538573" duration="10061000" />
-      <workItem from="1528197961735" duration="5856000" />
+      <workItem from="1528197961735" duration="8333000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="241346000" />
+    <option name="totallyTimeSpent" value="243823000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1194" height="1001" extended-state="0" />
@@ -554,15 +555,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/NewDocument.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="720">
-          <caret line="1376" selection-start-line="1350" selection-end-line="1376" />
+        <state relative-caret-position="546">
+          <caret line="1529" selection-start-line="1458" selection-end-line="1529" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/NewEdgeBranch.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="733">
-          <caret line="447" column="36" selection-start-line="447" selection-start-column="36" selection-end-line="447" selection-end-column="36" />
+        <state relative-caret-position="368">
+          <caret line="472" selection-start-line="472" selection-end-line="472" />
         </state>
       </provider>
     </entry>
