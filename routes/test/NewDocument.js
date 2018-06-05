@@ -526,7 +526,7 @@ router.post
 
 
 /**
- * Test Edge class
+ * Test EdgeBranch class
  *
  * The service will test the Edge class, the parameters should be provided in the
  * POST body and they determine which actions the service will perform.
@@ -572,19 +572,35 @@ router.post
 				request,						// Current request.
 				request.body.doc,				// Selector.
 				request.body.collection,		// Collection.
-				request.body.branch,			// Branch.
 				request.body.immutable			// Is immutable.
 			);
 			
 			//
 			// Set data before resolving.
 			//
-			if( (dat !== null)
-				&& request.body.before )
-				document.setDocumentProperties(
-					dat,
-					request.body.modify
-				);
+			if( request.body.before )
+			{
+				//
+				// Set data.
+				//
+				if( dat !== null )
+					document.setDocumentProperties(
+						dat,
+						request.body.modify
+					);
+				
+				//
+				// Set branch.
+				//
+				if( request.body.branch !== null )
+					document.branchSet( request.body.branch, request.body.add );
+				
+				//
+				// Set modifier.
+				//
+				if( request.body.modifier !== null )
+					document.modifierSet( request.body.modifier, request.body.add );
+			}
 			
 			//
 			// Resolve document.
@@ -599,12 +615,29 @@ router.post
 			//
 			// Set data after resolving.
 			//
-			if( (dat !== null)
-				&& (! request.body.before) )
-				document.setDocumentProperties(
-					dat,
-					request.body.modify
-				);
+			if( ! request.body.before )
+			{
+				//
+				// Set data.
+				//
+				if( dat !== null )
+					document.setDocumentProperties(
+						dat,
+						request.body.modify
+					);
+				
+				//
+				// Set branch.
+				//
+				if( request.body.branch !== null )
+					document.branchSet( request.body.branch, request.body.add );
+				
+				//
+				// Set modifier.
+				//
+				if( request.body.modifier !== null )
+					document.modifierSet( request.body.modifier, request.body.add );
+			}
 			
 			//
 			// Insert document.
@@ -660,21 +693,9 @@ router.post
 					selector._id = id;
 					cursor = db._collection( document.collection ).byExample( selector );
 					if( cursor.count() > 0 )
-						theResponse.throw( 500, "Document not deleted." );
+						response.throw( 500, "Document not deleted." );
 				}
 			}
-			
-			//
-			// Add branch.
-			//
-			if( request.body.branchAdd )
-				document.branchAdd();
-			
-			//
-			// Delete branch.
-			//
-			if( request.body.branchDel )
-				document.branchDel();
 			
 			response.send({
 				params : request.body,
@@ -727,18 +748,22 @@ router.post
 			),
 			collection 	: Joi.string(),
 			branch		: Joi.alternatives().try(
-				Joi.string().required(),
-				Joi.object().required()
-			),
+				Joi.string(),
+				Joi.array(),
+				null
+			).required(),
+			modifier	: Joi.alternatives().try(
+				Joi.object(),
+				null
+			).required(),
 			data		: Joi.object(),
 			insert		: Joi.boolean().required(),
 			resolve		: Joi.boolean().required(),
 			replace		: Joi.boolean().required(),
 			remove		: Joi.boolean().required(),
-			branchAdd	: Joi.boolean().required(),
-			branchDel	: Joi.boolean().required(),
 			raise		: Joi.boolean().required(),
 			modify		: Joi.boolean().required(),
+			add			: Joi.boolean().required(),
 			before		: Joi.boolean().required(),
 			immutable	: Joi.boolean().required(),
 			revision	: Joi.boolean().required()

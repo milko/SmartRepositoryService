@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/classes/NewEdgeBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/NewEdgeBranch.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/test/NewDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/test/NewDocument.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -40,8 +42,17 @@
       <file leaf-file-name="NewEdgeBranch.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/classes/NewEdgeBranch.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="633">
-              <caret line="833" selection-start-line="833" selection-end-line="833" />
+            <state relative-caret-position="413">
+              <caret line="291" column="4" lean-forward="true" selection-start-line="291" selection-start-column="4" selection-end-line="291" selection-end-column="4" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="NewDocument.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/routes/test/NewDocument.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1307">
+              <caret line="682" column="17" lean-forward="true" selection-start-line="682" selection-start-column="17" selection-end-line="682" selection-end-column="17" />
             </state>
           </provider>
         </entry>
@@ -89,7 +100,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>request.body.user</find>
       <find>doc</find>
       <find>MissingToResolve</find>
       <find>request</find>
@@ -119,6 +129,7 @@
       <find>Ambiguous</find>
       <find>NoCollection</find>
       <find>is_object</find>
+      <find>removeDocument</find>
     </findStrings>
     <replaceStrings>
       <replace>Descriptor.</replace>
@@ -176,11 +187,11 @@
         <option value="$PROJECT_DIR$/utils/Application.js" />
         <option value="$PROJECT_DIR$/classes/NewEdge.js" />
         <option value="$PROJECT_DIR$/data/errors.json" />
-        <option value="$PROJECT_DIR$/routes/test/NewDocument.js" />
         <option value="$PROJECT_DIR$/classes/NewDocument.js" />
         <option value="$PROJECT_DIR$/utils/Validation.js" />
         <option value="$PROJECT_DIR$/utils/Constants.js" />
         <option value="$PROJECT_DIR$/data/messages.json" />
+        <option value="$PROJECT_DIR$/routes/test/NewDocument.js" />
         <option value="$PROJECT_DIR$/classes/NewEdgeBranch.js" />
       </list>
     </option>
@@ -327,16 +338,15 @@
       <workItem from="1528150642188" duration="211000" />
       <workItem from="1528187538573" duration="10061000" />
       <workItem from="1528197961735" duration="12111000" />
-      <workItem from="1528220089127" duration="4842000" />
+      <workItem from="1528220089127" duration="8322000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="252443000" />
+    <option name="totallyTimeSpent" value="255923000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="351" y="23" width="1194" height="1177" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.48817408" visible="true" weight="0.34526855" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -532,7 +542,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js" />
-    <entry file="file://$PROJECT_DIR$/routes/test/NewDocument.js" />
     <entry file="file://$PROJECT_DIR$/classes/NewEdge.js">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -585,10 +594,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/routes/test/NewDocument.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1307">
+          <caret line="682" column="17" lean-forward="true" selection-start-line="682" selection-start-column="17" selection-end-line="682" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/classes/NewEdgeBranch.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="633">
-          <caret line="833" selection-start-line="833" selection-end-line="833" />
+        <state relative-caret-position="413">
+          <caret line="291" column="4" lean-forward="true" selection-start-line="291" selection-start-column="4" selection-end-line="291" selection-end-column="4" />
         </state>
       </provider>
     </entry>

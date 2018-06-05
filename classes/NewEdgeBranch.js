@@ -268,6 +268,10 @@ class NewEdgeBranch extends NewEdge
 	 * means that no paths traverse the current edge, so instead of replacing the edge
 	 * we remove it. In this case the method returns the result of removeDocument().
 	 *
+	 * Note that the operation will only perform if the current object is persistent,
+	 * you must always remember to resolve the object, if not already done, before
+	 * calling this method.
+	 *
 	 * @param doRevision	{Boolean}	If true, check revision (default).
 	 * @returns {Boolean}|{null}		True if replaced or null if not persistent.
 	 */
@@ -299,7 +303,7 @@ class NewEdgeBranch extends NewEdge
 		// Call parent method.
 		// Parent returns the persistent status.
 		//
-		const result = super.removeDocument;
+		const result = super.removeDocument();
 		if( result === true )
 			delete this._branched;
 		
