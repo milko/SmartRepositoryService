@@ -6,7 +6,6 @@
 const fs = require('fs');
 const Joi = require('joi');
 const db = require('@arangodb').db;
-const aql = require('@arangodb').aql;
 const crypto = require('@arangodb/crypto');
 const errors = require('@arangodb').errors;
 const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;

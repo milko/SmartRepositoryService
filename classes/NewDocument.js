@@ -159,7 +159,7 @@ class NewDocument
 					theCollection,						// Error value.
 					400									// HTTP error code.
 				)
-			);																// !@! ==>
+			);																	// !@! ==>
 		
 		//
 		// Normalise properties.

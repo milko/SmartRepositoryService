@@ -5,6 +5,7 @@
 //
 const _ = require('lodash');
 const db = require('@arangodb').db;
+const aql = require('@arangodb').aql;
 const errors = require('@arangodb').errors;
 const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
@@ -129,7 +130,8 @@ class NewEdgeBranch extends NewEdge
 	
 	
 	/************************************************************************************
-	 * PERSISTENCE METHODS																*
+	 * PERSISTENCE
+	 * METHODS																*
 	 ************************************************************************************/
 	
 	/**
@@ -269,7 +271,8 @@ class NewEdgeBranch extends NewEdge
 	
 	
 	/************************************************************************************
-	 * STATIC INTERFACE																	*
+	 * STATIC
+	 * INTERFACE																	*
 	 ************************************************************************************/
 	
 	/**
@@ -279,7 +282,8 @@ class NewEdgeBranch extends NewEdge
 	 * persistent copy of the edge in the database, it expects the following parameters:
 	 *
 	 * 	- theRequest:		The current service request.
-	 * 	- theReference:		Either a document reference or a selector object, in the
+	 * 	- theReference:		Either a document reference or a selector object, in
+	 * the
 	 * 						last case, there must be only one matched document, or the
 	 * 						method will raise an exception.
 	 * 	- theBranch:		The branches to be added or removed.
@@ -301,8 +305,11 @@ class NewEdgeBranch extends NewEdge
 	 * 	- Update branches and modifiers.
 	 * 	- Update the document in the database.
 	 *
-	 * When updating the database, if the retrieved revision is different, the method
+	 * When updating the database, if the retrieved revision are different, the method
 	 * will raise an exception.
+	 *
+	 * If the collection is missing or it is not of edge type, the method will raise
+	 * an exception.
 	 *
 	 * the method will return the updated record; remember that the record will only
 	 * contain the _id, _rev, branches and modifiers.
@@ -311,7 +318,8 @@ class NewEdgeBranch extends NewEdge
 	 * SetBranch() and SetModifier() static methods.
 	 *
 	 * If neither the branches or the modifiers were provided, or if both parameters
-	 * are empty, the method will return null.
+	 * are empty, the method will return null; if the edge was not found and you
+	 * provided false in doAssert, the method will return false.
 	 *
 	 * @param theRequest	{Object}					The current request.
 	 * @param theReference	{String}|{Object}|{null}	The document reference or object.
@@ -332,8 +340,189 @@ class NewEdgeBranch extends NewEdge
 		doAssert = true )
 	{
 		//
+		// Init local storage.
+		//
+		const edge = {};
+		const bprop = Dict.descriptor.kBranches;
+		const mprop = Dict.descriptor.kModifiers;
+		
+		//
 		// Resolve collection.
 		//
+		if( theCollection === null )
+			theCollection = theReference.toString().split( '/' )[ 0 ];
+		
+		//
+		// Check collection.
+		//
+		const collection = db._collection( theCollection );
+		if( ! collection )
+			throw(
+				new MyError(
+					'BadCollection',					// Error name.
+					K.error.InvalidColName,				// Message code.
+					theRequest.application.language,	// Language.
+					theCollection,						// Arguments.
+					400									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+		//
+		// Check collection type.
+		// Will raise an exception.
+		//
+		Document.isEdgeCollection( theRequest, theCollection, true );
+		
+		//
+		// Resolve edge.
+		//
+		try
+		{
+			//
+			// Resolve object reference.
+			//
+			if( K.function.isObject( theReference ) )
+			{
+				//
+				// Locate by content.
+				//
+				const cursor = db._collection( theCollection ).byExample( theReference );
+				
+				//
+				// Handle ambiguous query.
+				//
+				if( cursor.count() > 1 )
+					throw(
+						new MyError(
+							'AmbiguousDocumentReference',		// Error name.
+							K.error.AmbiguousDocument,			// Message code.
+							this.request.application.language,	// Language.
+							[ Object.keys( theReference ), theCollection],
+							412									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				//
+				// Assert not found.
+				//
+				if( cursor.count() === 0 )
+				{
+					//
+					// Raise exception.
+					//
+					if( doAssert )
+					{
+						//
+						// Build reference.
+						//
+						const reference = [];
+						for( const field in theReference )
+							reference.push( `${field} = ${selector[field].toString()}`)
+						
+						//
+						// Raise exception.
+						//
+						throw(
+							new MyError(
+								'BadDocumentReference',						// Error name.
+								K.error.DocumentNotFound,					// Message code.
+								theRequest.application.language,			// Language.
+								[reference.join( ', ' ), theCollection],	// Error value.
+								404											// HTTP error code.
+							)
+						);														// !@! ==>
+					}
+					
+					return false;													// ==>
+				}
+				
+				//
+				// Copy fields.
+				//
+				const temp = cursor.toArray()[ 0 ];
+				edge._id = temp._id;
+				edge._rev = temp._rev;
+				if( temp.hasOwnProperty( bprop ) )
+					edge[ bprop ] = temp[ bprop ];
+				if( temp.hasOwnProperty( mprop ) )
+					edge[ mprop ] = tow
+				temp[ mprop ];
+			}
+			
+			//
+			// Resolve string reference.
+			//
+			else
+				cursor = db._collection( theCollection ).document( theReference );
+		}
+		catch( error )
+		{
+			//
+			// Raise exceptions other than not found.
+			//
+			if( (! error.isArangoError)
+			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				throw( error );												// !@! ==>
+			
+			//
+			// Handle bad reference.
+			//
+			if( doAssert )
+				throw(
+					new MyError(
+						'BadDocumentReference',				// Error name.
+						K.error.DocumentNotFound,			// Message code.
+						this._request.application.language,	// Language.
+						[theReference, this._collection],	// Error value.
+						404									// HTTP error code.
+					)
+				);															// !@! ==>
+			
+			return false;														// ==>
+		}
+		
+		
+		
+		
+		//
+		// Init local storage.
+		//
+		
+		//
+		// Check provided object.
+		//
+		if( K.function.isObject( theReference ) )
+		{
+			//
+			// Ensure collection.
+			//
+			if( ! provided_collection )
+				throw(
+					new MyError(
+						'MissingRequiredParameter',			// Error name.
+						K.error.NoCollection,				// Message code.
+						this._request.application.language,	// Language.
+						theCollection,						// Error value.
+						400									// HTTP error code.
+					)
+				);																// !@! ==>
+		}
+		
+		//
+		// Locate edge.
+		//
+		let result;
+		if( ! provided_collection )
+		{
+			result =
+				db._query( aql`
+					FOR item IN ${db._collection(theCollection)}
+						FILTER item._id == ${theReference}
+						RETURN item._key
+					`);
+			
+			return( result.count() > 0 );											// ==>
+		}
 		
 	}	// BranchUpdate
 	
