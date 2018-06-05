@@ -506,6 +506,8 @@ class NewEdgeBranch extends NewEdge
 	 * 		- If found:
 	 * 			- If the edge has no branches, raise an exception.
 	 * 			- If there are more than one resolved edge, raise an exception.
+	 * 		- If not found:
+	 * 			- If provided an _id or _key reference, raise an exception.
 	 * 	- Retain from the resolved edge only the _id, _rev, branches and modifier fields.
 	 * 	- Update local branches and modifiers.
 	 * 	- If no branches are left:
@@ -522,7 +524,8 @@ class NewEdgeBranch extends NewEdge
 	 * documentation.
 	 *
 	 * If neither the branches or the modifiers were provided, or if both parameters
-	 * are empty, the method will return null.
+	 * are empty, the method will return null; if the edge was deleted, due to the
+	 * branches becoming empty, the method will return false.
 	 *
 	 * @param theRequest	{Object}					The current request.
 	 * @param theReference	{String}|{Object}|{null}	The document reference or object.
@@ -553,29 +556,37 @@ class NewEdgeBranch extends NewEdge
 			//
 			let found = false;
 			const record = {};
-			const sel_by_obj = K.function.isObject( theReference );
+			const selectors = [
+				'_to',
+				'_from',
+				Dict.descriptor.kPredicate
+			];
 			
 			//
 			// Assert collection.
 			//
-			if( sel_by_obj
-			 && (theCollection === null) )
-				throw(
-					new MyError(
-						'MissingRequiredParameter',			// Error name.
-						K.error.NoCollection,				// Message code.
-						theRequest.application.language,	// Language.
-						theCollection,						// Error value.
-						400									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Resolve collection.
-			//
-			if( (! sel_by_obj)
-			 && (theCollection === null) )
+			if( theCollection === null )
+			{
+				//
+				// Collection is required.
+				//
+				if( K.function.isObject( theReference ) )
+					throw(
+						new MyError(
+							'MissingRequiredParameter',			// Error name.
+							K.error.NoCollection,				// Message code.
+							theRequest.application.language,	// Language.
+							null,								// Error value.
+							400									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				//
+				// Extract collection from reference.
+				//
 				theCollection = theReference.toString().split( '/' )[ 0 ];
+				
+			}	// Collection not provided.
 			
 			//
 			// Check collection.
@@ -601,17 +612,12 @@ class NewEdgeBranch extends NewEdge
 			//
 			// Resolve by contents.
 			//
-			if( sel_by_obj )
+			if( K.function.isObject( theReference ) )
 			{
 				//
 				// Init local storage.
 				//
 				const missing = [];
-				const selectors = [
-					'_to',
-					'_from',
-					Dict.descriptor.kPredicate
-				];
 				
 				//
 				// Fill record.
@@ -649,47 +655,68 @@ class NewEdgeBranch extends NewEdge
 				//
 				// Resolve edge.
 				//
-				try
+				const cursor = collection.byExample( record );
+				
+				//
+				// Handle ambiguous edge.
+				//
+				if( cursor.count() > 1 )
+					throw(
+						new MyError(
+							'AmbiguousDocumentReference',		// Error name.
+							K.error.AmbiguousEdge,				// Message code.
+							this.request.application.language,	// Language.
+							[record._from, record._to, record[Dict.descriptor.kPredicate]],
+							412									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				//
+				// Handle found edge.
+				//
+				if( cursor.count() === 1 )
 				{
 					//
-					// Resolve.
+					// Set identifier and revision.
 					//
-					const cursor = db._collection( theCollection ).byExample( record );
+					record._id = temp._id;
+					record._rev = temp._rev;
 					
 					//
-					// Handle ambiguous edge.
+					// Load branches.
 					//
-					if( cursor.count() > 1 )
+					const temp = cursor.toArray()[ 0 ];
+					if( temp.hasOwnProperty( Dict.descriptor.kBranches ) )
+						record[ Dict.descriptor.kBranches ] =
+							temp[ Dict.descriptor.kBranches ];
+					else
 						throw(
 							new MyError(
-								'AmbiguousDocumentReference',		// Error name.
-								K.error.AmbiguousEdge,				// Message code.
-								this.request.application.language,	// Language.
-								[record._from, record._to, record[Dict.descriptor.kPredicate]],
+								'ConstraintViolated',				// Error name.
+								K.error.NotBranchedEdge,			// Message code.
+								this._request.application.language,	// Language.
+								[
+									record._from,
+									record[ Dict.descriptor.kPredicate ],
+									record._to
+								],
 								412									// HTTP error code.
 							)
 						);														// !@! ==>
 					
 					//
-					// Load
+					// Load modifiers.
+					//
+					if( temp.hasOwnProperty( Dict.descriptor.kModifiers ) )
+						record[ Dict.descriptor.kModifiers ] =
+							temp[ Dict.descriptor.kModifiers ];
 					
 					//
 					// Set found flag.
 					//
-					found = ( cursor.count() > 0 );
+					found = true;
 					
-					//
-					// Load
-				}
-				catch( error )
-				{
-					//
-					// Raise exceptions other than not found.
-					//
-					if( (! error.isArangoError)
-					 || (error.errorNum !== ARANGO_NOT_FOUND) )
-						throw( error );											// !@! ==>
-				}
+				}	// Found edge.
 				
 			}	// Provided selector.
 			
@@ -698,173 +725,139 @@ class NewEdgeBranch extends NewEdge
 			//
 			else
 			{
+				//
+				// Resolve reference.
+				// Will raise an exception if not found.
+				//
+				const temp = collection.document( theReference );
+				
+				//
+				// Set identifier and revision.
+				//
+				record._id = temp._id;
+				record._rev = temp._rev;
+				
+				//
+				// Load selectors.
+				//
+				for( const selector of selectors )
+					record[ selector ] = temp[ selector ];
+				
+				//
+				// Load branches.
+				//
+				if( temp.hasOwnProperty( Dict.descriptor.kBranches ) )
+					record[ Dict.descriptor.kBranches ] =
+						temp[ Dict.descriptor.kBranches ];
+				else
+					throw(
+						new MyError(
+							'ConstraintViolated',				// Error name.
+							K.error.NotBranchedEdge,			// Message code.
+							this._request.application.language,	// Language.
+							[
+								record._from,
+								record[ Dict.descriptor.kPredicate ],
+								record._to
+							],
+							412									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				//
+				// Load modifiers.
+				//
+				if( temp.hasOwnProperty( Dict.descriptor.kModifiers ) )
+					record[ Dict.descriptor.kModifiers ] =
+						temp[ Dict.descriptor.kModifiers ];
+				
+				//
+				// Set found flag.
+				//
+				found = true;
 			
 			}	// Provided reference.
+			
+			//
+			// Update branches.
+			//
+			if( theBranch !== null )
+				NewEdgeBranch.SetBranch( record, theBranch, doAdd );
+			
+			//
+			// Check if branches left.
+			//
+			if( ! record.hasOwnProperty( Dict.descriptor.kBranches ) )
+			{
+				if( found )
+					collection.remove( record );
+				
+				return false;														// ==>
+			}
+			
+			//
+			// Update modifiers.
+			//
+			if( theModifier !== null )
+				NewEdgeBranch.SetModifier( record, theModifier, doAdd );
+			
+			//
+			// Update.
+			//
+			if( found )
+			{
+				//
+				// Init local storage.
+				//
+				const updator = {};
+				
+				//
+				// Handle branches.
+				//
+				if( theBranch !== null )
+					updator[ Dict.descriptor.kBranches ] =
+						record[ Dict.descriptor.kBranches ];
+				
+				//
+				// Handle modifiers.
+				//
+				if( theModifier !== null )
+					updator[ Dict.descriptor.kModifiers ] =
+						( record.hasOwnProperty( Dict.descriptor.kModifiers ) )
+							? record[ Dict.descriptor.kModifiers ]
+							: null;
+				
+				//
+				// Update edge.
+				// Will raise an exception on errors.
+				//
+				collection.update( record, updator, { keepNull : false } );
+				
+			}	// Existing edge.
+			
+			//
+			// Insert.
+			//
+			else
+			{
+				//
+				// Insert.
+				//
+				const meta = collection.insert( record );
+				
+				//
+				// Update record.
+				//
+				record._id = meta._id;
+				record._rev = meta._rev;
+				
+			}	//  New edge.
+			
+			return record;															// ==>
 			
 		}	// Provided data.
 		
 		return null;																// ==>
-
-
-
-
-
-
-		//
-		// Init local storage.
-		//
-		const edge = {};
-		const bprop = Dict.descriptor.kBranches;
-		const mprop = Dict.descriptor.kModifiers;
-		
-		
-		
-		//
-		// Check collection type.
-		// Will raise an exception.
-		//
-		Document.isEdgeCollection( theRequest, theCollection, true );
-		
-		//
-		// Resolve edge.
-		//
-		try
-		{
-			//
-			// Resolve object reference.
-			//
-			if( K.function.isObject( theReference ) )
-			{
-				//
-				// Locate by content.
-				//
-				const cursor = db._collection( theCollection ).byExample( theReference );
-				
-				//
-				// Handle ambiguous query.
-				//
-				
-				//
-				// Assert not found.
-				//
-				if( cursor.count() === 0 )
-				{
-					//
-					// Raise exception.
-					//
-					if( doAssert )
-					{
-						//
-						// Build reference.
-						//
-						const reference = [];
-						for( const field in theReference )
-							reference.push( `${field} = ${selector[field].toString()}`)
-						
-						//
-						// Raise exception.
-						//
-						throw(
-							new MyError(
-								'BadDocumentReference',						// Error name.
-								K.error.DocumentNotFound,					// Message code.
-								theRequest.application.language,			// Language.
-								[reference.join( ', ' ), theCollection],	// Error value.
-								404											// HTTP error code.
-							)
-						);														// !@! ==>
-					}
-					
-					return false;													// ==>
-				}
-				
-				//
-				// Copy fields.
-				//
-				const temp = cursor.toArray()[ 0 ];
-				edge._id = temp._id;
-				edge._rev = temp._rev;
-				if( temp.hasOwnProperty( bprop ) )
-					edge[ bprop ] = temp[ bprop ];
-				if( temp.hasOwnProperty( mprop ) )
-					edge[ mprop ] = tow
-				temp[ mprop ];
-			}
-			
-			//
-			// Resolve string reference.
-			//
-			else
-				cursor = db._collection( theCollection ).document( theReference );
-		}
-		catch( error )
-		{
-			//
-			// Raise exceptions other than not found.
-			//
-			if( (! error.isArangoError)
-			 || (error.errorNum !== ARANGO_NOT_FOUND) )
-				throw( error );												// !@! ==>
-			
-			//
-			// Handle bad reference.
-			//
-			if( doAssert )
-				throw(
-					new MyError(
-						'BadDocumentReference',				// Error name.
-						K.error.DocumentNotFound,			// Message code.
-						this._request.application.language,	// Language.
-						[theReference, this._collection],	// Error value.
-						404									// HTTP error code.
-					)
-				);															// !@! ==>
-			
-			return false;														// ==>
-		}
-		
-		
-		
-		
-		//
-		// Init local storage.
-		//
-		
-		//
-		// Check provided object.
-		//
-		if( K.function.isObject( theReference ) )
-		{
-			//
-			// Ensure collection.
-			//
-			if( ! provided_collection )
-				throw(
-					new MyError(
-						'MissingRequiredParameter',			// Error name.
-						K.error.NoCollection,				// Message code.
-						this._request.application.language,	// Language.
-						theCollection,						// Error value.
-						400									// HTTP error code.
-					)
-				);																// !@! ==>
-		}
-		
-		//
-		// Locate edge.
-		//
-		let result;
-		if( ! provided_collection )
-		{
-			result =
-				db._query( aql`
-					FOR item IN ${db._collection(theCollection)}
-						FILTER item._id == ${theReference}
-						RETURN item._key
-					`);
-			
-			return( result.count() > 0 );											// ==>
-		}
 		
 	}	// BranchUpdate
 	
