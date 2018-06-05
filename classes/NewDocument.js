@@ -1224,7 +1224,22 @@ class NewDocument
 			// Set collection.
 			//
 			if( ! this.hasOwnProperty( '_collection' ) )
-				this._collection = theReference.split( '/' )[ 0 ];
+			{
+				//
+				// Extract collection name.
+				//
+				const collection = theReference.split( '/' )[ 0 ];
+				
+				//
+				// Validate collection type.
+				//
+				this.validateCollectionType( collection, doAssert );
+				
+				//
+				// Set collection member.
+				//
+				this._collection = collection;
+			}
 			
 			return ( isImmutable ) ? document										// ==>
 								   : JSON.parse(JSON.stringify(document));			// ==>

@@ -180,8 +180,11 @@ class NewEdgeBranch extends NewEdge
 	 *
 	 * If you provide an empty array, the method will simply return the existing value.
 	 *
-	 * Note that the provided document reference will not be validated here, these
+	 * Note that the provided document references will not be validated here, these
 	 * will be checked when persisting the object.
+	 *
+	 * This method calls the SetBranch() static method, because the functionality is
+	 * needed both by member and static methods.
 	 *
 	 * @param theBranch	{Array}|{String}	The branch to add or delete.
 	 * @param doAdd		{Boolean}			If true, add branch, if false, delete it.
@@ -190,111 +193,9 @@ class NewEdgeBranch extends NewEdge
 	branchSet( theBranch, doAdd )
 	{
 		//
-		// Init local storage.
+		// Use static method.
 		//
-		const bprop = Dict.descriptor.kBranches;
-		
-		//
-		// Convert to array.
-		//
-		if( ! Array.isArray( theBranch ) )
-			theBranch = [ theBranch ];
-		
-		//
-		// Skip empty array.
-		//
-		if( theBranch.length > 0 )
-		{
-			//
-			// Init local storage.
-			//
-			const mprop = Dict.descriptor.kModifiers;
-			const has_branches = this._document.hasOwnProperty( bprop );
-			
-			//
-			// Add branches.
-			//
-			if( doAdd )
-			{
-				//
-				// Create property.
-				//
-				if( ! has_branches )
-					this._document[ bprop ]
-						= theBranch;
-				
-				//
-				// Update property.
-				//
-				else
-				{
-					//
-					// Add branches.
-					//
-					for( const item of theBranch )
-					{
-						if( ! this._document[ bprop ].includes( item ) )
-							this._document[ bprop ].push( item );
-					}
-				}
-				
-			}	// Add branches.
-			
-			//
-			// Remove branch.
-			//
-			else
-			{
-				//
-				// Handle empty list.
-				//
-				if( ! has_branches )
-					return null;													// ==>
-				
-				//
-				// Remove branches and modifiers.
-				//
-				this._document[ bprop ] =
-					this._document[ bprop ].filter(
-						( item ) =>
-						{
-							//
-							// Determine match.
-							//
-							const match = (! theBranch.includes( item ));
-							
-							//
-							// Remove modifiers.
-							//
-							if( this._document.hasOwnProperty( mprop )
-							 && this._document[ mprop ].hasOwnProperty( item ) )
-								delete this._document[ mprop ][ item ];
-							
-							return match;
-						}
-					);
-				
-				//
-				// Remove modifiers if empty.
-				//
-				if( this._document.hasOwnProperty( mprop )
-				 && (Object.keys( this._document[ mprop ] ).length === 0) )
-					delete this._document[ mprop ];
-				
-				//
-				// Handle empty array.
-				//
-				if( this._document[ bprop ].length === 0 )
-				{
-					delete this._document[ bprop ];
-					return null;													// ==>
-				}
-				
-			}	// Delete branches.
-			
-		}	// Provided something.
-		
-		return this._document[ bprop ];												// ==>
+		return NewEdgeBranch.SetBranch( this._document, theBranch, doAdd );			// ==>
 		
 	}	// branchSet
 	
@@ -329,6 +230,9 @@ class NewEdgeBranch extends NewEdge
 	 * Note that the provided branch references will not be validated here, these
 	 * will be checked when persisting the object.
 	 *
+	 * This method calls the SetModifier() static method, because the functionality is
+	 * needed both by member and static methods.
+	 *
 	 * @param theModifier	{Object}	The modifiers to add or delete.
 	 * @param doAdd			{Boolean}	If true, add, if false, delete.
 	 * @returns {Object}|{null}			The updated mofdifier records.
@@ -336,159 +240,9 @@ class NewEdgeBranch extends NewEdge
 	modifierSet( theModifier, doAdd = true )
 	{
 		//
-		// Init local storage.
+		// Use static method.
 		//
-		const mprop = Dict.descriptor.kModifiers;
-		
-		//
-		// Skip if provided object is empty.
-		//
-		if( Object.keys( theModifier ).length > 0 )
-		{
-			//
-			// Init local storage.
-			//
-			let has_modifiers = this._document.hasOwnProperty( mprop );
-			
-			//
-			// Add or delete modifiers.
-			//
-			if( doAdd )
-			{
-				//
-				// Init local storage.
-				//
-				const bprop = Dict.descriptor.kBranches;
-				let has_branches = this._document.hasOwnProperty( bprop );
-				
-				//
-				// Iterate provided modifiers.
-				//
-				for( const reference in theModifier )
-				{
-					//
-					// Add record.
-					//
-					if( theModifier[ reference ] !== null )
-					{
-						//
-						// Init modifiers.
-						//
-						if( ! has_modifiers )
-						{
-							this._document[ mprop ] = {};
-							has_modifiers = true;
-						}
-						
-						//
-						// Add modifier.
-						//
-						this._document[ mprop ][ reference ] = theModifier[ reference ];
-						
-						//
-						// Add branch.
-						//
-						if( (! has_branches)
-						 || (! this._document[ bprop ].includes( reference )) )
-						{
-							//
-							// Init branches.
-							//
-							if( ! has_branches )
-							{
-								this._document[ bprop ] = [];
-								has_branches = true;
-							}
-							
-							//
-							// Set branch.
-							//
-							this._document[ bprop ].push( reference );
-						}
-					
-					}	// Provided a record.
-					
-					//
-					// Delete record.
-					//
-					else
-					{
-						//
-						// Assert modifiers.
-						//
-						if( has_modifiers )
-						{
-							//
-							// Check branch record.
-							//
-							if( this._document[ mprop ].hasOwnProperty( reference ) )
-							{
-								//
-								// Delete record.
-								//
-								delete this._document[ mprop ][ reference ];
-								
-								//
-								// Delete property.
-								//
-								if( Object.keys( this._document[ mprop ] ).length === 0 )
-								{
-									delete this._document[ mprop ];
-									return null;									// ==>
-								}
-							}
-						
-						}	// Has modifiers.
-					
-					}	// Provided null.
-					
-				}	// Iterating provided modifiers.
-			
-			}	// Add or delete modifiers.
-			
-			//
-			// Remove modifiers.
-			//
-			else
-			{
-				//
-				// Skip if no modifiers.
-				//
-				if( ! has_modifiers )
-					return null;													// ==>
-				
-				//
-				// Iterate provided modifiers.
-				//
-				for( const reference in theModifier )
-				{
-					//
-					// Check branch record.
-					//
-					if( this._document[ mprop ].hasOwnProperty( reference ) )
-					{
-						//
-						// Delete record.
-						//
-						delete this._document[ mprop ][ reference ];
-						
-						//
-						// Delete property.
-						//
-						if( Object.keys( this._document[ mprop ] ).length === 0 )
-						{
-							delete this._document[ mprop ];
-							return null;											// ==>
-						}
-					}
-					
-				}	// Iterating provided modifiers.
-			
-			}	// Remove modifiers.
-			
-		}	// Provided something.
-		
-		return this._document[ mprop ];												// ==>
+		return NewEdgeBranch.SetModifier( this._document, theModifier, doAdd );		// ==>
 		
 	}	// modifierSet
 	
@@ -512,6 +266,412 @@ class NewEdgeBranch extends NewEdge
 			]);																		// ==>
 		
 	}	// requiredFields
+	
+	
+	/************************************************************************************
+	 * STATIC INTERFACE																	*
+	 ************************************************************************************/
+	
+	/**
+	 * Update branches and modifiers
+	 *
+	 * This method can be used to add or remove branches and modifiers from the
+	 * persistent copy of the edge in the database, it expects the following parameters:
+	 *
+	 * 	- theRequest:		The current service request.
+	 * 	- theReference:		Either a document reference or a selector object, in the
+	 * 						last case, there must be only one matched document, or the
+	 * 						method will raise an exception.
+	 * 	- theBranch:		The branches to be added or removed.
+	 * 	- theModifiers:		The modifier records to be added or removed.
+	 * 	- theCollection:	If you provide an _id reference this parameter can be
+	 * 						omitted or null; in all other cases it must be provided.
+	 * 	- doAdd:			A boolean flag, if true add provided values; if false
+	 * 						remove them.
+	 * 	- doAssert:			A boolean flag that if true will raise exceptions on
+	 * 						errors.
+	 *
+	 * The method will perform the following steps:
+	 *
+	 * 	- Assert the collection is of type edge.
+	 * 	- Resolve the provided reference, if it results in more than one edge, the
+	 * 	  method will raise an exception; if the edge was not found, the method will
+	 * 	  return false or raise an exception if doAssert is true.
+	 * 	- Retain from the resolved edge only the _id, _rev, branches and modifier fields.
+	 * 	- Update branches and modifiers.
+	 * 	- Update the document in the database.
+	 *
+	 * When updating the database, if the retrieved revision is different, the method
+	 * will raise an exception.
+	 *
+	 * the method will return the updated record; remember that the record will only
+	 * contain the _id, _rev, branches and modifiers.
+	 *
+	 * The behaviour of theBtanch, theModifier and doAdd is documented in the
+	 * SetBranch() and SetModifier() static methods.
+	 *
+	 * If neither the branches or the modifiers were provided, or if both parameters
+	 * are empty, the method will return null.
+	 *
+	 * @param theRequest	{Object}					The current request.
+	 * @param theReference	{String}|{Object}|{null}	The document reference or object.
+	 * @param theBranch		{String}|{Array}|{null}		The branches.
+	 * @param theModifier	{Object}|{null}				The modifiers.
+	 * @param theCollection	{String}|{null}				The edge collection.
+	 * @param doAdd			{Boolean}					True add, false delete.
+	 * @param doAssert		{Boolean}					True raises exception on errors.
+	 * @returns {Object}|{null}							The updated record.
+	 */
+	static BranchUpdate(
+		theRequest,
+		theReference,
+		theBranch = null,
+		theModifier = null,
+		theCollection = null,
+		doAdd = true,
+		doAssert = true )
+	{
+		//
+		// Resolve collection.
+		//
+		
+	}	// BranchUpdate
+	
+	/**
+	 * Set branch
+	 *
+	 * This method can be used to add or remove branches, it expects the following
+	 * parameters:
+	 *
+	 * 	- theObject:	The object containing the branches and the modifiers.
+	 * 	- theBranch:	Either a string or an array of strings representing the
+	 * 					branches to add or remove.
+	 * 	- doAdd:		A boolean flag indicating whether we intend to add the
+	 * 					branches, true, or remove them, false.
+	 *
+	 * The method will return the updated list ov branches, if the list becomes empty,
+	 * the method will remove the property and return null.
+	 *
+	 * If you provide an empty array, the method will simply return the existing value.
+	 *
+	 * We implement this method statically, to provide its services both to member and
+	 * static methods: when called from an object pass the object document as the
+	 * first parameter.
+	 *
+	 * The method must not raise exceptions.
+	 *
+	 * @param theObject	{Object}			The object to update.
+	 * @param theBranch	{Array}|{String}	The branch to add or delete.
+	 * @param doAdd		{Boolean}			If true, add branch, if false, delete it.
+	 * @returns {Array}|{null}				The updated list of branches.
+	 */
+	static SetBranch( theObject, theBranch, doAdd )
+	{
+		//
+		// Init local storage.
+		//
+		const bprop = Dict.descriptor.kBranches;
+		
+		//
+		// Convert to array.
+		//
+		if( ! Array.isArray( theBranch ) )
+			theBranch = [ theBranch ];
+		
+		//
+		// Skip empty array.
+		//
+		if( theBranch.length > 0 )
+		{
+			//
+			// Init local storage.
+			//
+			const mprop = Dict.descriptor.kModifiers;
+			const has_branches = theObject.hasOwnProperty( bprop );
+			
+			//
+			// Add branches.
+			//
+			if( doAdd )
+			{
+				//
+				// Create property.
+				//
+				if( ! has_branches )
+					theObject[ bprop ] = theBranch;
+				
+				//
+				// Update property.
+				//
+				else
+				{
+					//
+					// Add branches.
+					//
+					for( const item of theBranch )
+					{
+						if( ! theObject[ bprop ].includes( item ) )
+							theObject[ bprop ].push( item );
+					}
+				}
+				
+			}	// Add branches.
+			
+			//
+			// Remove branch.
+			//
+			else
+			{
+				//
+				// Handle empty list.
+				//
+				if( ! has_branches )
+					return null;													// ==>
+				
+				//
+				// Remove branches and modifiers.
+				//
+				theObject[ bprop ] =
+					theObject[ bprop ].filter(
+						( item ) =>
+						{
+							//
+							// Determine match.
+							//
+							const match = (! theBranch.includes( item ));
+							
+							//
+							// Remove modifiers.
+							//
+							if( theObject.hasOwnProperty( mprop )
+							 && theObject[ mprop ].hasOwnProperty( item ) )
+								delete theObject[ mprop ][ item ];
+							
+							return match;
+						}
+					);
+				
+				//
+				// Remove modifiers if empty.
+				//
+				if( theObject.hasOwnProperty( mprop )
+				 && (Object.keys( theObject[ mprop ] ).length === 0) )
+					delete theObject[ mprop ];
+				
+				//
+				// Handle empty array.
+				//
+				if( theObject[ bprop ].length === 0 )
+				{
+					delete theObject[ bprop ];
+					return null;													// ==>
+				}
+				
+			}	// Delete branches.
+			
+		}	// Provided something.
+		
+		return theObject[ bprop ];													// ==>
+		
+	}	// SetBranch
+	
+	/**
+	 * Set modifier
+	 *
+	 * This method can be used to add or remove modifiers, it expects the following
+	 * parameters:
+	 *
+	 * 	- theModifier:	An object where the property names represent the branches and
+	 * 					the values are objects containing the modifier options.
+	 * 	- doAdd:		A boolean flag indicating whether we intend to add the
+	 * 					modifiers, true, or remove them, false.
+	 *
+	 * The method will return the updated list of modifiers, if the object becomes empty,
+	 * the method will remove the property and return null.
+	 *
+	 * An alternative for removing modifiers is to set the provided property value to
+	 * null, for this reason we provide a default value of true to doAdd.
+	 *
+	 * When providing false to doAdd, the value of the provided property object is not
+	 * considered.
+	 *
+	 * If a provided modifier record does not match a branch, the branch will be added.
+	 *
+	 * If you provide an empty object, the method will simply return the current value.
+	 *
+	 * It must be noted that when adding modifiers, the corresponding branch will also
+	 * be added; when removing modifiers, the branches will remain untouched: this is
+	 * why we have two methods.
+	 *
+	 * We implement this method statically, to provide its services both to member and
+	 * static methods: when called from an object pass the object document as the
+	 * first parameter.
+	 *
+	 * The method must not raise exceptions.
+	 *
+	 * @param theObject	{Object}		The object to update.
+	 * @param theModifier	{Object}	The modifiers to add or delete.
+	 * @param doAdd			{Boolean}	If true, add, if false, delete.
+	 * @returns {Object}|{null}			The updated mofdifier records.
+	 */
+	static SetModifier( theObject, theModifier, doAdd = true )
+	{
+		//
+		// Init local storage.
+		//
+		const mprop = Dict.descriptor.kModifiers;
+		
+		//
+		// Skip if provided object is empty.
+		//
+		if( Object.keys( theModifier ).length > 0 )
+		{
+			//
+			// Init local storage.
+			//
+			let has_modifiers = theObject.hasOwnProperty( mprop );
+			
+			//
+			// Add or delete modifiers.
+			//
+			if( doAdd )
+			{
+				//
+				// Init local storage.
+				//
+				const bprop = Dict.descriptor.kBranches;
+				let has_branches = theObject.hasOwnProperty( bprop );
+				
+				//
+				// Iterate provided modifiers.
+				//
+				for( const reference in theModifier )
+				{
+					//
+					// Add record.
+					//
+					if( theModifier[ reference ] !== null )
+					{
+						//
+						// Init modifiers.
+						//
+						if( ! has_modifiers )
+						{
+							theObject[ mprop ] = {};
+							has_modifiers = true;
+						}
+						
+						//
+						// Add modifier.
+						//
+						theObject[ mprop ][ reference ] = theModifier[ reference ];
+						
+						//
+						// Add branch.
+						//
+						if( (! has_branches)
+							|| (! theObject[ bprop ].includes( reference )) )
+						{
+							//
+							// Init branches.
+							//
+							if( ! has_branches )
+							{
+								theObject[ bprop ] = [];
+								has_branches = true;
+							}
+							
+							//
+							// Set branch.
+							//
+							theObject[ bprop ].push( reference );
+						}
+						
+					}	// Provided a record.
+					
+					//
+					// Delete record.
+					//
+					else
+					{
+						//
+						// Assert modifiers.
+						//
+						if( has_modifiers )
+						{
+							//
+							// Check branch record.
+							//
+							if( theObject[ mprop ].hasOwnProperty( reference ) )
+							{
+								//
+								// Delete record.
+								//
+								delete theObject[ mprop ][ reference ];
+								
+								//
+								// Delete property.
+								//
+								if( Object.keys( theObject[ mprop ] ).length === 0 )
+								{
+									delete theObject[ mprop ];
+									return null;									// ==>
+								}
+							}
+							
+						}	// Has modifiers.
+						
+					}	// Provided null.
+					
+				}	// Iterating provided modifiers.
+				
+			}	// Add or delete modifiers.
+			
+			//
+			// Remove modifiers.
+			//
+			else
+			{
+				//
+				// Skip if no modifiers.
+				//
+				if( ! has_modifiers )
+					return null;													// ==>
+				
+				//
+				// Iterate provided modifiers.
+				//
+				for( const reference in theModifier )
+				{
+					//
+					// Check branch record.
+					//
+					if( theObject[ mprop ].hasOwnProperty( reference ) )
+					{
+						//
+						// Delete record.
+						//
+						delete theObject[ mprop ][ reference ];
+						
+						//
+						// Delete property.
+						//
+						if( Object.keys( theObject[ mprop ] ).length === 0 )
+						{
+							delete theObject[ mprop ];
+							return null;											// ==>
+						}
+					}
+					
+				}	// Iterating provided modifiers.
+				
+			}	// Remove modifiers.
+			
+		}	// Provided something.
+		
+		return theObject[ mprop ];													// ==>
+		
+	}	// SetModifier
 	
 }	// NewEdgeBranch.
 
