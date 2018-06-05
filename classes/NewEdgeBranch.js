@@ -26,190 +26,73 @@ const NewEdge = require( './NewEdge' );
  * Branched edge class
  *
  * This class overloads the Edge class to implement a branched edge: branched edges
- * are edges that contain a required array parameter, branches, which contains a set
- * of document _id references that represent all the graph branches that pass through
- * the current edge.
+ * are edges that feature a required array parameter, 'branches', which contains a set
+ * of document _id references which represent all the graph branches that pass through
+ * the current edge, and 'modifiers', that contain overload values applying to
+ * specific edge branches.
  *
- * Instances of this class are identified in the same way as its ancestor, the only
- * difference is how they manage their two reserved fields:
+ * This kind of edge is used when many different paths go through a single edge and it
+ * is necessary to identify specific paths. For instance, in controlled vocabularies
+ * you can use the same subset of paths in different controlled vocabularies: the
+ * relationship between a country and a province may appear in the countries
+ * constolled vocabulary, but you may also want it to appear in the locations
+ * controlled vocabulary, rather than duplicating edges, we keep a single edge, but we
+ * mark each path that traverses it, so that the number of edges is reduced and it
+ * becomes possible to easily move gub-graphs around. The paths that traverse the
+ * current edge are stored in the 'branches' property, which is an array of _id
+ * references that mark the path: by following a specific reference in the graph, we
+ * can traverse the graph using a specific path.
  *
- * 	- branches:		An array of document _id references that define the graph branches
- * 					that traverse the current edge.
- * 	- modifiers:	A structure whose property names match the branches elements and
- * 					whose value is an object containing values that apply specifically
- * 					to the branch named by the property name.
+ * Besides defining a relationship between two nodes, edges also hold information that
+ * can be used to customise the significant node of the relationship: for instance in
+ * forms, the label is first taken from the field, the edge may feature a label
+ * property which will override the node's label in order to customise the message.
+ * This kind of edge features a 'modifiers' property which is an object in which the
+ * property names match the 'branches' values and the values are objects, the object
+ * values override the corresponding node and edge values for the specific path marked
+ * by the property name. This allows an edge to modify the properties of a node for
+ * all paths except those that appear in 'modifiers'.
  *
- * The edge may contain additional properties that apply to the edge relationships,
- * these values may be overridden by the values of the modifier fields, so:
+ * This class behaves exactly as its ancestor, except that the branches and modifier
+ * parameters are reserved: clients are only allowed to explicitly modify these
+ * properties using a specific method interface, these properties will only be loaded
+ * automatically when resolving the object. The following methods can be used to
+ * manage branches:
  *
- * 	- If the edge has a property, this applies to the relationship.
- * 	- If the modifiers structure contains an object, its values override the edge
- * 	  values, only for that specific branch.
+ * 	- branchSet:	Add or remove branches, this will update the branches property,
+ * 					when removing branches, if there is a corresponding modifier
+ * 					record, it will also be removed. If the branches list becomes
+ * 					empty, the property will be deleted.
+ * 	- modifierSet:	Add or remove modifier records, if no modifier records are left,
+ * 					the property will be deleted.
  *
- * In practice, if we assume an enumerated value: the edge may contain a label, which
- * overrides the relationship source's label for all branches passing through the
- * edge; if the edge contains a modifiers object and that object contains a property
- * whose name is among the edge branches and that property contains a label, this
- * label overrides both the label featured by the source node and the label contained
- * in the edge, only for that particular branch.
+ * Once these two properties have been updated, you can use the inherited persistence
+ * interface to save the document.
  *
- * Instances of this class behave exactly as their ancestor, except that both the
- * branches and modifier properties are reserved, in other words, they can only be
- * managed through a specific method interface.
+ * When using this class, you will most often need to simply make changes in the
+ * branches and modifier fields, leaving the rest of the object untouched, rather than
+ * instantiating, resolving, modifying and replacing the object, this class provides
+ * an additional static method that can be used to make these changes with one call:
  *
- * The branches and modifier properties are only loaded when the object is resolved,
- * these properties can only be modified using the following interface:
+ * - BranchUpdate:	The method expects the same selector as the constructor, a
+ * 					parameter that holds the branches to modify another parameter that
+ * 					holds the modifiers to update and two boolean flags that indicate
+ * 					whether we want to add or delete the corresponding entries.
  *
- * 	- branchAdd:	Add a new branch.
- * 	- modifierAdd:	Add a modifier record and its branch, if not yet there.
- * 	- branchDel:	Remove a branch.
- * 	- modifierDel:	remove a modifier record.
- *
- * These operations are performed on two provate object data members and are
- * synchronised with the document contents only when persisting the object. Since in
- * most cases such edges will be instantiated and inserted once, while the majority of
- * the operations will involve adding and updating branches and modifiers, the
- * following method will only update the branches and modifiers in the persistent copy
- * of the edge in the database:
- *
- * 	- sync:				Synchronise branches and modifiers.
- * 	- syncBranches:		Synchronise branches.
- * 	- syncModifiers:	Synchronise modifiers.
- *
- * The above methods will perform updates directly in the database and will only
- * concern branches and modifiers, while to perform any other change, use the
- * inherited interface.
- *
- * The above functionality is only available on persistent objects, that is, the edge
- * must have been loaded from the database. Clients use the branch and modifiers add
- * and delete methods to update these properties, when all changes are done, they can
- * use the sync interface to only update branches an/or modifiers, or use the replace
- * method to update the whole object.
- *
- * To insert a new edge:
- *
- * 	- Instantiate edge with its contents.
- * 	- Set branches and modifiers.
- * 	- Insert the object.
- *
- * To update an edge:
- *
- * 	- Instantiate the edge with contents or reference.
- * 	- Resolve object if necessary.
- * 	- Set branches and modifiers.
- * 	- Replace the object.
- *
- * To only update branches and modifiers:
- *
- * 	- Instantiate the edge with contents or reference.
- * 	- Resolve object if necessary.
- * 	- Set branches and modifiers.
- * 	- Sync the object.
- *
- *
- *
- * The class behaves like its ancestor, except that it implements the following
- * branch specific members:
- *
- * 	- _branch:		The current edge branch, which can be set or retrieved using the
- * 					getter/setter branch methods.
- * 	- _branched:	If the current branch is among the edge branches, this flag will
- * 					be true. It must be noted that whenever the object is resolved,
- * 					the branches member will be overwritten and this flag updated
- * 					accordingly. Branches should never be set by the client, but
- * 					updated using the specific methods.
- *
- * and the following methods:
- *
- * 	- branchAdd():	Will add the current branch to the edge stored in the database.
- * 					The method will only execute if the current edge is persistent and
- * 					will not modify any other property.
- * 	- branchDel():	Will remove the current branch from the edge stored in the
- * 					database. The will only execute if the current edge is persistent
- * 					and will not modify any other property.
- *
- * If the only operation to be performed is adding a branch to the edge, the following
- * syteps should be taken:
- *
- * 	- Instantiate the class.
- * 	- If not instantiated with a document reference resolve the object.
- * 	- If the branch was not provided in the constructor, set it now.
- * 	- Call branchAdd(), and the branch will be added to the current object.
- *
- * If the only operation to be performed is removing a branch from the edge, the following
- * syteps should be taken:
- *
- * 	- Instantiate the class.
- * 	- If not instantiated with a document reference resolve the object.
- * 	- If the branch was not provided in the constructor, set it now.
- * 	- Call branchDel(), and the branch will be removed from the current object.
- *
- * Note that when removing branches, if the edge is left without any branch, it will
- * be deleted by default.
- *
- * The branch can only be set once, if you try to change it after it has already been
- * set, an exception will be raised: for this reason you must use the specific branch
- * getter and setter.
- *
- * The setter method will not add the branch to the current branches list, this will
- * be performed by the normaliseDocumentProperties() method at the beginning of the
- * validation procedure. This means that the current branch will be added only when
- * inserting or replacing the object, so despite the fact that an edge may be
- * persistent, this does not mean that it contains the current branch.
- *
- * The branches list property is reserved, that means it can only be set when
- * resolving the object, any attempt from the client to set or change its contsnts,
- * other than using the reserved methods, will fail with an exception.
+ * Since these two properties are reserved, when updating the object contents it will
+ * be forbidden to set the above properties: these will be loaded only when resolving
+ * the object.
  *
  * The class expects all required collections to exist.
  */
 class NewEdgeBranch extends NewEdge
 {
 	/**
-	 * Constructor
-	 *
-	 * We overload the constructor to provide the current branch.
-	 *
-	 * Any error will raise an exception.
-	 *
-	 * @param theRequest	{Object}					The current request.
-	 * @param theReference	{String}|{Object}|”null}	The document reference or
-	 *     object.
-	 * @param theCollection	{String}|{null}				The document collection.
-	 * @param theBranch		{String}|{null}				The Edge branch.
-	 * @param isImmutable	{Boolean}					True, instantiate immutable
-	 *     document.
-	 */
-	constructor(
-		theRequest,
-		theReference = null,
-		theCollection = null,
-		theBranch = null,
-		isImmutable = false )
-	{
-		//
-		// Call parent method.
-		//
-		super( theRequest, theReference, theCollection, isImmutable );
-		
-		//
-		// Set branch.
-		//
-		if( theBranch !== null )
-			this.branch = theBranch;
-		
-	}	// constructor
-	
-	
-	/************************************************************************************
-	 * MODIFICATION METHODS																*
-	 ************************************************************************************/
-	
-	/**
 	 * Set document property
 	 *
-	 * We overload this method to handle the branches list: if we are resolving, we
-	 * allow changing that value, if not, we raise an exception.
+	 * We overload this method to handle the branches and modifiers: these two
+	 * properties are reserved, if we are resolving, we allow changes, if not we raise
+	 * an exception.
 	 *
 	 * @param theField		{String}	The property descriptor _key.
 	 * @param theValue		{*}			The property value.
@@ -223,7 +106,8 @@ class NewEdgeBranch extends NewEdge
 		// or if we are resolving the document.
 		//
 		if( isResolving
-		 || (theField !== Dict.descriptor.kBranches) )
+		 || (! [ Dict.descriptor.kBranches,
+				 Dict.descriptor.kModifiers ].includes( theField )) )
 			return super.setDocumentProperty(
 				theField,
 				theValue,
@@ -249,49 +133,11 @@ class NewEdgeBranch extends NewEdge
 	 ************************************************************************************/
 	
 	/**
-	 * Insert document
-	 *
-	 * We overload this method to handle the current branch: if there is a current
-	 * branch we add it to the list of branches; if the operation fails, we reset the
-	 * branches list in the object.
-	 *
-	 * @returns {Boolean}	True if inserted.
-	 */
-	insertDocument()
-	{
-		//
-		// Set branch.
-		//
-		const current = this.setBranch( false );
-		
-		//
-		// Insert object.
-		//
-		try
-		{
-			return super.insertDocument();											// ==>
-		}
-		catch( error )
-		{
-			//
-			// Reset branches list.
-			//
-			if( current !== null )
-				this._document[ Dict.descriptor.kBranches ] = current;
-			else
-				delete this._document[ Dict.descriptor.kBranches ];
-			
-			throw( error );														// !@! ==>
-		}
-		
-	}	// insertDocument
-	
-	/**
 	 * replaceDocument
 	 *
-	 * We overload this method to handle the current branch: if there is a current
-	 * branch we add it to the list of branches; if the operation fails, we reset the
-	 * branches list in the object.
+	 * We overload this method to handle the branches and modifiers: when removing
+	 * branches, if the list becomes empty, the property is removed, a nranched edge
+	 * without branches cannot exist, so we actually remove the edge.
 	 *
 	 * @param doRevision	{Boolean}	If true, check revision (default).
 	 * @returns {Boolean}|{null}		True if replaced or null if not persistent.
@@ -299,322 +145,357 @@ class NewEdgeBranch extends NewEdge
 	replaceDocument( doRevision = true )
 	{
 		//
-		// Only if persistent.
+		// Handle no more branches.
 		//
-		if( this._persistent )
-		{
-			//
-			// Set branch.
-			//
-			const current = this.setBranch( false );
-			
-			//
-			// Insert object.
-			//
-			try
-			{
-				return super.replaceDocument( doRevision );							// ==>
-			}
-			catch( error )
-			{
-				//
-				// Reset branches list.
-				//
-				if( current !== null )
-					this._document[ Dict.descriptor.kBranches ] = current;
-				else
-					delete this._document[ Dict.descriptor.kBranches ];
-				
-				throw( error );													// !@! ==>
-			}
-			
-		}	// Is persistent.
+		if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
+			return this.removeDocument();											// ==>
 		
-		return null;																// ==>
+		//
+		// Call parent method.
+		//
+		return super.replaceDocument();												// ==>
 		
 	}	// replaceDocument
 	
-	/**
-	 * Add branch
-	 *
-	 * This method can be used to add a branch to an existing edge, it will use the
-	 * current branch and return true if the operation succeeded or raise an exception
-	 * if it didn't; if the object is not persistent, or there is no current branch, the
-	 * method will do nothing and return null.
-	 *
-	 * This method will use the current revision to validate the update operation,
-	 * this means that if the revision has not changed, all the other persistent
-	 * properties of the object should not habe changed.
-	 *
-	 * If the update fails, the branches list will be reset to how it was.
-	 *
-	 * @returns {Boolean}|{null}	True added, null not persistent or no branch.
-	 */
-	branchAdd()
-	{
-		//
-		// Only if persistent and has branch.
-		//
-		if( this._persistent
-		 && (this.branch !== null) )
-		{
-			//
-			// Set branch in clone.
-			//
-			const old = this.setBranch( true );
-			
-			//
-			// Create selector.
-			//
-			const selector = {
-				_id : this._document._id,
-				_rev: this._document._rev
-			};
-			
-			//
-			// Create updator with clone.
-			//
-			const updator = {};
-			updator[ Dict.descriptor.kBranches ] = old;
-			
-			//
-			// Update in database.
-			// Will raise an exception if there is a revision mismatch.
-			//
-			db._update( selector, updator );
-			
-			//
-			// Update current object.
-			//
-			this._document[ Dict.descriptor.kBranches ] = old;
-			
-			return true;															// ==>
-		
-		}	// Is persistent.
-		
-		return null;																// ==>
-		
-	}	// branchAdd
-	
-	/**
-	 * Delete branch
-	 *
-	 * This method can be used to remove a branch from an existing edge, it will use the
-	 * current branch and return true if the operation succeeded or raise an exception
-	 * if it didn't; if the object is not persistent, or there is no current branch, the
-	 * method will do nothing and return null. If the current branch is not in the
-	 * list, the method will return false.
-	 *
-	 * The method will also remove the eventual associated modifier entry if there.
-	 *
-	 * This method will use the current revision to validate the remove operation,
-	 * this means that if the revision has not changed, all the other persistent
-	 * properties of the object should not habe changed.
-	 *
-	 * Note that the operation will only perform if the current object has a list of
-	 * branches, if the object is persistent and it has no branches list, the method
-	 * will return false, since you are attempting to remove a branch that you have
-	 * not yet added.
-	 *
-	 * If the update fails, the cranches list will be reset to how it was.
-	 *
-	 * @returns {Boolean}|{null}	True added, null not persistent or no branch.
-	 */
-	branchDel()
-	{
-		//
-		// Get branch.
-		//
-		const branch = this.branch;
-		
-		//
-		// Only if persistent and has branch and has branches.
-		//
-		if( this._persistent
-		 && (branch !== null) )
-		{
-			//
-			// Assert branch in list.
-			//
-			if( (! this._document.hasOwnProperty( Dict.descriptor.kBranches ))
-			 || (! this._document[ Dict.descriptor.kBranches ].includes( branch )) )
-				return false;														// ==>
-			
-			//
-			// Get branches.
-			//
-			const branches =
-				this._document[ Dict.descriptor.kBranches ] .filter( x => x !== branch );
-			
-			//
-			// Remove document if no more branches.
-			//
-			if( branches.length === 0 )
-				return this.removeDocument();										// ==>
-			
-			//
-			// Get modifiers.
-			//
-			let modifiers = null;
-			if( this._document.hasOwnProperty( Dict.descriptor.kModifiers ) )
-			{
-				modifiers = _.omit( this._document[ Dict.descriptor.kModifiers ], branch );
-				if( Object.keys( modifiers ).length === 0 )
-					modifiers = null;
-			}
-			
-			//
-			// Create selector.
-			//
-			const selector = {
-				_id : this._document._id,
-				_rev: this._document._rev
-			};
-			
-			//
-			// Create updator.
-			//
-			const updator = {};
-			updator[ Dict.descriptor.kBranches ] = branches;
-			if( modifiers !== null )
-				updator[ Dict.descriptor.kModifiers ] = modifiers;
-			
-			//
-			// Update in database.
-			// Will raise an exception if there is a revision mismatch.
-			//
-			db._update( selector, updator, { keepNull : false } );
-			
-			//
-			// Update current object.
-			//
-			this._document[ Dict.descriptor.kBranches ] =
-				updator[ Dict.descriptor.kBranches ];
-			if( this._document.hasOwnProperty( Dict.descriptor.kModifiers ) )
-			{
-				if( modifiers === null )
-					delete this._document[ Dict.descriptor.kModifiers ];
-				else
-					this._document[ Dict.descriptor.kModifiers ] = modifiers;
-			}
-			else if( modifiers !== null )
-				this._document[ Dict.descriptor.kModifiers ] = modifiers;
-			
-			return true;															// ==>
-			
-		}	// Is persistent.
-		
-		return null;																// ==>
-		
-	}	// branchDel
-	
 	
 	/************************************************************************************
-	 * PRIVATE METHODS																	*
+	 * BRANCHING METHODS																*
 	 ************************************************************************************/
 	
 	/**
 	 * Set branch
 	 *
-	 * This method can be used to set the current branch in the branches list and
-	 * retrieve a clone of the original list in case the operation has to be reverted.
+	 * This method can be used to add or remove branches, it expects the following
+	 * parameters:
 	 *
-	 * The method expects a boolean flag parameter that if false, the default, will
-	 * perform the changes on the current document list and return the old clone; if
-	 * true, the operation will be performed on the clone which will be returned. This
-	 * last option is used when adding a branch to the stored document: the current
-	 * document list will be updated only if the operation succeeds.
+	 * 	- theBranch:	Either a string or an array of strings representing the
+	 * 					branches to add or remove.
+	 * 	- doAdd:		A boolean flag indicating whether we intend to add the
+	 * 					branches, true, or remove them, false.
 	 *
-	 * The method returns an array, or null, if the list doesn't exist.
+	 * The method will return the updated list ov branches, if the list becomes empty,
+	 * the method will remove the property and return null. Note that a missing
+	 * branches property will be caught when storing the edge, since that property is
+	 * required.
 	 *
-	 * @param	{Boolean}		True add branch to clone, false to current document.
-	 * @return {Array}|{null}	The cloned list.
+	 * If you provide an empty array, the method will simply return the existing value.
+	 *
+	 * Note that the provided document reference will not be validated here, these
+	 * will be checked when persisting the object.
+	 *
+	 * @param theBranch	{Array}|{String}	The branch to add or delete.
+	 * @param doAdd		{Boolean}			If true, add branch, if false, delete it.
+	 * @returns {Array}|{null}				The updated list of branches.
 	 */
-	setBranch( doClone = false )
+	branchSet( theBranch, doAdd )
 	{
 		//
 		// Init local storage.
 		//
-		const branch = this.branch;
-		let old = ( this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
-				? JSON.parse(
-						JSON.stringify(
-							this._document[ Dict.descriptor.kBranches ]))
-				: null;
+		const bprop = Dict.descriptor.kBranches;
 		
 		//
-		// Check branch.
+		// Convert to array.
 		//
-		if( branch !== null )
+		if( ! Array.isArray( theBranch ) )
+			theBranch = [ theBranch ];
+		
+		//
+		// Skip empty array.
+		//
+		if( theBranch.length > 0 )
 		{
 			//
-			// Create branches list.
+			// Init local storage.
 			//
-			if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
-			{
-				if( doClone )
-					return [ branch ];												// ==>
-				
-				this._document[ Dict.descriptor.kBranches ] = [ branch ];
-				
-				return null;														// ==>
-			}
+			const mprop = Dict.descriptor.kModifiers;
+			const has_branches = this._document.hasOwnProperty( bprop );
 			
 			//
-			// Append branch if necessary.
+			// Add branches.
 			//
-			if( ! this._document[ Dict.descriptor.kBranches ].includes( branch ) )
+			if( doAdd )
 			{
-				if( doClone )
-					old.push( branch );
+				//
+				// Create property.
+				//
+				if( ! has_branches )
+					this._document[ bprop ]
+						= theBranch;
+				
+				//
+				// Update property.
+				//
 				else
-					this._document[ Dict.descriptor.kBranches ].push( branch );
-			}
+				{
+					//
+					// Add branches.
+					//
+					for( const item of theBranch )
+					{
+						if( ! this._document[ bprop ].includes( item ) )
+							this._document[ bprop ].push( item );
+					}
+				}
+				
+			}	// Add branches.
+			
+			//
+			// Remove branch.
+			//
+			else
+			{
+				//
+				// Handle empty list.
+				//
+				if( ! has_branches )
+					return null;													// ==>
+				
+				//
+				// Remove branches and modifiers.
+				//
+				this._document[ bprop ] =
+					this._document[ bprop ].filter(
+						( item ) =>
+						{
+							//
+							// Determine match.
+							//
+							const match = (! theBranch.includes( item ));
+							
+							//
+							// Remove modifiers.
+							//
+							if( this._document.hasOwnProperty( mprop )
+							 && this._document[ mprop ].hasOwnProperty( item ) )
+								delete this._document[ mprop ][ item ];
+							
+							return match;
+						}
+					);
+				
+				//
+				// Remove modifiers if empty.
+				//
+				if( this._document.hasOwnProperty( mprop )
+				 && (Object.keys( this._document[ mprop ] ).length === 0) )
+					delete this._document[ mprop ];
+				
+				//
+				// Handle empty array.
+				//
+				if( this._document[ bprop ].length === 0 )
+				{
+					delete this._document[ bprop ];
+					return null;													// ==>
+				}
+				
+			}	// Delete branches.
+			
+		}	// Provided something.
 		
-		}	// Has current branch.
+		return this._document[ bprop ];												// ==>
 		
-		return old;																	// ==>
+	}	// branchSet
+	
+	/**
+	 * Set modifier
+	 *
+	 * This method can be used to add or remove modifiers, it expects the following
+	 * parameters:
+	 *
+	 * 	- theModifier:	An object where the property names represent the branches and
+	 * 					the values are objects containing the modifier options.
+	 * 	- doAdd:		A boolean flag indicating whether we intend to add the
+	 * 					modifiers, true, or remove them, false.
+	 *
+	 * The method will return the updated list of modifiers, if the object becomes empty,
+	 * the method will remove the property and return null.
+	 *
+	 * An alternative for removing modifiers is to set the provided property value to
+	 * null, for this reason we provide a default value of true to doAdd.
+	 *
+	 * When providing false to doAdd, the value of the provided property object is not
+	 * considered.
+	 *
+	 * If a provided modifier record does not match a branch, the branch will be added.
+	 *
+	 * If you provide an empty object, the method will simply return the current value.
+	 *
+	 * It must be noted that when adding modifiers, the corresponding branch will also
+	 * be added; when removing modifiers, the branches will remain untouched: this is
+	 * why we have two methods.
+	 *
+	 * Note that the provided branch references will not be validated here, these
+	 * will be checked when persisting the object.
+	 *
+	 * @param theModifier	{Object}	The modifiers to add or delete.
+	 * @param doAdd			{Boolean}	If true, add, if false, delete.
+	 * @returns {Object}|{null}			The updated mofdifier records.
+	 */
+	modifierSet( theModifier, doAdd = true )
+	{
+		//
+		// Init local storage.
+		//
+		const mprop = Dict.descriptor.kModifiers;
 		
-	}	// setBranch
+		//
+		// Skip if provided object is empty.
+		//
+		if( Object.keys( theModifier ).length > 0 )
+		{
+			//
+			// Init local storage.
+			//
+			let has_modifiers = this._document.hasOwnProperty( mprop );
+			
+			//
+			// Add or delete modifiers.
+			//
+			if( doAdd )
+			{
+				//
+				// Init local storage.
+				//
+				const bprop = Dict.descriptor.kBranches;
+				let has_branches = this._document.hasOwnProperty( bprop );
+				
+				//
+				// Iterate provided modifiers.
+				//
+				for( const reference in theModifier )
+				{
+					//
+					// Add record.
+					//
+					if( theModifier[ reference ] !== null )
+					{
+						//
+						// Init modifiers.
+						//
+						if( ! has_modifiers )
+						{
+							this._document[ mprop ] = {};
+							has_modifiers = true;
+						}
+						
+						//
+						// Add modifier.
+						//
+						this._document[ mprop ][ reference ] = theModifier[ reference ];
+						
+						//
+						// Add branch.
+						//
+						if( (! has_branches)
+						 || (! this._document[ bprop ].includes( reference )) )
+						{
+							//
+							// Init branches.
+							//
+							if( ! has_branches )
+							{
+								this._document[ bprop ] = [];
+								has_branches = true;
+							}
+							
+							//
+							// Set branch.
+							//
+							this._document[ bprop ].push( reference );
+						}
+					
+					}	// Provided a record.
+					
+					//
+					// Delete record.
+					//
+					else
+					{
+						//
+						// Assert modifiers.
+						//
+						if( has_modifiers )
+						{
+							//
+							// Check branch record.
+							//
+							if( this._document[ mprop ].hasOwnProperty( reference ) )
+							{
+								//
+								// Delete record.
+								//
+								delete this._document[ mprop ][ reference ];
+								
+								//
+								// Delete property.
+								//
+								if( Object.keys( this._document[ mprop ] ).length === 0 )
+								{
+									delete this._document[ mprop ];
+									return null;									// ==>
+								}
+							}
+						
+						}	// Has modifiers.
+					
+					}	// Provided null.
+					
+				}	// Iterating provided modifiers.
+			
+			}	// Add or delete modifiers.
+			
+			//
+			// Remove modifiers.
+			//
+			else
+			{
+				//
+				// Skip if no modifiers.
+				//
+				if( ! has_modifiers )
+					return null;													// ==>
+				
+				//
+				// Iterate provided modifiers.
+				//
+				for( const reference in theModifier )
+				{
+					//
+					// Check branch record.
+					//
+					if( this._document[ mprop ].hasOwnProperty( reference ) )
+					{
+						//
+						// Delete record.
+						//
+						delete this._document[ mprop ][ reference ];
+						
+						//
+						// Delete property.
+						//
+						if( Object.keys( this._document[ mprop ] ).length === 0 )
+						{
+							delete this._document[ mprop ];
+							return null;											// ==>
+						}
+					}
+					
+				}	// Iterating provided modifiers.
+			
+			}	// Remove modifiers.
+			
+		}	// Provided something.
+		
+		return this._document[ mprop ];												// ==>
+		
+	}	// modifierSet
 	
 	
 	/************************************************************************************
 	 * GETTER METHODS																	*
 	 ************************************************************************************/
-	
-	/**
-	 * Retrieve branched flag
-	 *
-	 * This method will return the branched status, the method will return:
-	 *
-	 * 	- True:		The current branch is set in the branches.
-	 * 	- False:	The current branch is not among the branches.
-	 * 	- Null:		The current object is not persistent, or there is no current
-	 * branch.
-	 *
-	 * @returns {Boolean}|{null}	True if branch exists.
-	 */
-	get branched()
-	{
-		//
-		// Check if persistent.
-		//
-		if( this._persistent )
-		{
-			//
-			// Check branch and branches.
-			//
-			const branch = this.branch;
-			if( branch !== null )
-				return (
-					this._document.hasOwnProperty( Dict.descriptor.kBranches )
-				 && this._document[ Dict.descriptor.kBranches ].includes( branch )
-				);																	// ==>
-		}
-		
-		return null;																// ==>
-		
-	}	// branched
 	
 	/**
 	 * Return list of required fields
@@ -631,70 +512,6 @@ class NewEdgeBranch extends NewEdge
 			]);																		// ==>
 		
 	}	// requiredFields
-	
-	
-	/************************************************************************************
-	 * BRANCH SETTERS AND GETTERS														*
-	 ************************************************************************************/
-	
-	/**
-	 * Set current branch
-	 *
-	 * This method will set the current branch, if the provided value cannot be
-	 * resolved as a document _id, the method will raise an exception.
-	 *
-	 * @param theBranch	{String}	The branch reference.
-	 */
-	set branch( theBranch )
-	{
-		//
-		// Check if overwriting.
-		//
-		if( this.hasOwnProperty( '_branch' ) )
-			throw(
-				new MyError(
-					'ConstraintViolated',				// Error name.
-					K.error.LockedFields,				// Message code.
-					this._request.application.language,	// Language.
-					"BRANCH",							// Arguments.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-		//
-		// Check reference.
-		//
-		const found = db._exists( theBranch );
-		if( found === false )
-			throw(
-				new MyError(
-					'BadDocumentReference',				// Error name.
-					K.error.BadDocumentHandle,			// Message code.
-					this._request.application.language,	// Language.
-					theBranch,							// Error value.
-					404									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-		//
-		// Set branch.
-		//
-		this._branch = theBranch;
-		
-	}	// branch
-	
-	/**
-	 * Get current branch
-	 *
-	 * This method will return the current branch, or null if not set.
-	 *
-	 * @returns {String}|{null}	The branch reference.
-	 */
-	get branch()
-	{
-		return ( this.hasOwnProperty( '_branch' ) ) ? this._branch : null;			// ==>
-		
-	}	// branch
 	
 }	// NewEdgeBranch.
 
