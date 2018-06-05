@@ -98,7 +98,9 @@ class NewEdgeBranch extends NewEdge
 	/**
 	 * Constructor
 	 *
-	 * We overload the constructor to set the branched data member if resolved.
+	 * We overload the constructor to set the branched data member if resolved and to
+	 * assert that the current edge, if resolved, is indeed branched: in this last
+	 * case, the method will raise an exception.
 	 *
 	 * @param theRequest	{Object}					The current request.
 	 * @param theReference	{String}|{Object}|”null}	The document reference or object.
@@ -117,11 +119,33 @@ class NewEdgeBranch extends NewEdge
 		super( theRequest, theReference, theCollection, isImmutable );
 		
 		//
-		// Set branched flag.
+		// Handle persistent object.
 		//
 		if( this._persistent )
-			this._branched =
-				( this._document.hasOwnProperty( Dict.descriptor.kBranches ) );
+		{
+			//
+			// Check if branched.
+			//
+			if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
+				throw(
+					new MyError(
+						'ConstraintViolated',				// Error name.
+						K.error.NotBranchedEdge,			// Message code.
+						this._request.application.language,	// Language.
+						[
+							this._document._from,
+							this._document[ Dict.descriptor.kPredicate ],
+							this._document._to
+						],
+						412									// HTTP error code.
+					)
+				);																// !@! ==>
+				
+			//
+			// Set branched flag.
+			//
+			this._branched = true;
+		}
 		
 	}	// constructor
 	
@@ -178,7 +202,8 @@ class NewEdgeBranch extends NewEdge
 	/**
 	 * Resolve document
 	 *
-	 * We overload this method to set the branched flag data member.
+	 * We overload this method to set the branched flag data member and return false
+	 * or raise an exception if the resolved edge is not branched.
 	 *
 	 * @param doReplace	{Boolean}	Replace existing data (false is default).
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
@@ -192,8 +217,44 @@ class NewEdgeBranch extends NewEdge
 		//
 		const result = super.resolveDocument( doReplace, doAssert );
 		if( result )
-			this._branched =
-				( this._document.hasOwnProperty( Dict.descriptor.kBranches ) );
+		{
+			//
+			// Check if branched.
+			//
+			if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
+			{
+				//
+				// Raise exception.
+				//
+				if( doAssert )
+					throw(
+						new MyError(
+							'ConstraintViolated',				// Error name.
+							K.error.NotBranchedEdge,			// Message code.
+							this._request.application.language,	// Language.
+							[
+								this._document._from,
+								this._document[ Dict.descriptor.kPredicate ],
+								this._document._to
+							],
+							412									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				//
+				// Set branched flag.
+				//
+				this._branched = false;
+				
+				return false;														// ==>
+			}
+			
+			//
+			// Set branched flag.
+			//
+			this._branched = true;
+			
+		}
 		
 		return result;																// ==>
 		
@@ -202,9 +263,10 @@ class NewEdgeBranch extends NewEdge
 	/**
 	 * replaceDocument
 	 *
-	 * We overload this method to handle the branches and modifiers: when removing
-	 * branches, if the list becomes empty, the property is removed, a nranched edge
-	 * without branches cannot exist, so we actually remove the edge.
+	 * We overload this method to handle branches: if after updating the list of
+	 * branches, the list becomes empty, the branches property will be deleted. This
+	 * means that no paths traverse the current edge, so instead of replacing the edge
+	 * we remove it. In this case the method returns the result of removeDocument().
 	 *
 	 * @param doRevision	{Boolean}	If true, check revision (default).
 	 * @returns {Boolean}|{null}		True if replaced or null if not persistent.
@@ -426,43 +488,41 @@ class NewEdgeBranch extends NewEdge
 	 *
 	 * 	- theRequest:		The current service request.
 	 * 	- theReference:		Either a document reference or a selector object, in
-	 * the
-	 * 						last case, there must be only one matched document, or the
-	 * 						method will raise an exception.
+	 * 						the last case, the object is expected to have the _from,
+	 * 						predicate and _to properties, only these will be used to
+	 * 						resolve the document.
 	 * 	- theBranch:		The branches to be added or removed.
 	 * 	- theModifiers:		The modifier records to be added or removed.
 	 * 	- theCollection:	If you provide an _id reference this parameter can be
 	 * 						omitted or null; in all other cases it must be provided.
 	 * 	- doAdd:			A boolean flag, if true add provided values; if false
 	 * 						remove them.
-	 * 	- doAssert:			A boolean flag that if true will raise exceptions on
-	 * 						errors.
 	 *
 	 * The method will perform the following steps:
 	 *
+	 * 	- Check the collection.
 	 * 	- Assert the collection is of type edge.
-	 * 	- Resolve the provided reference, if it results in more than one edge, the
-	 * 	  method will raise an exception; if the edge was not found, the method will
-	 * 	  return false or raise an exception if doAssert is true.
+	 * 	- Resolve the provided reference:
+	 * 		- If found:
+	 * 			- If the edge has no branches, raise an exception.
+	 * 			- If there are more than one resolved edge, raise an exception.
 	 * 	- Retain from the resolved edge only the _id, _rev, branches and modifier fields.
-	 * 	- Update branches and modifiers.
-	 * 	- Update the document in the database.
+	 * 	- Update local branches and modifiers.
+	 * 	- If no branches are left:
+	 * 		- Remove the edge.
+	 * 		- Return false.
+	 *  - If there are branches left:
+	 * 		- Update the document in the database.
+	 * 		- Raise an exception if there is a revision mismatch.
+	 * 		- Return the updated record containing only the _id, branches and modifiers.
 	 *
-	 * When updating the database, if the retrieved revision are different, the method
-	 * will raise an exception.
-	 *
-	 * If the collection is missing or it is not of edge type, the method will raise
-	 * an exception.
-	 *
-	 * the method will return the updated record; remember that the record will only
-	 * contain the _id, _rev, branches and modifiers.
-	 *
-	 * The behaviour of theBtanch, theModifier and doAdd is documented in the
-	 * SetBranch() and SetModifier() static methods.
+	 * The behaviour of theBranch, theModifier and doAdd is documented in the
+	 * SetBranch() and SetModifier() static methods. Note that SetModifier() may
+	 * remove modifiers if the property value is null, please refer to those methods
+	 * documentation.
 	 *
 	 * If neither the branches or the modifiers were provided, or if both parameters
-	 * are empty, the method will return null; if the edge was not found and you
-	 * provided false in doAssert, the method will return false.
+	 * are empty, the method will return null.
 	 *
 	 * @param theRequest	{Object}					The current request.
 	 * @param theReference	{String}|{Object}|{null}	The document reference or object.
@@ -470,7 +530,6 @@ class NewEdgeBranch extends NewEdge
 	 * @param theModifier	{Object}|{null}				The modifiers.
 	 * @param theCollection	{String}|{null}				The edge collection.
 	 * @param doAdd			{Boolean}					True add, false delete.
-	 * @param doAssert		{Boolean}					True raises exception on errors.
 	 * @returns {Object}|{null}							The updated record.
 	 */
 	static BranchUpdate(
@@ -479,9 +538,178 @@ class NewEdgeBranch extends NewEdge
 		theBranch = null,
 		theModifier = null,
 		theCollection = null,
-		doAdd = true,
-		doAssert = true )
+		doAdd = true )
 	{
+		//
+		// Check parameters.
+		//
+		if( ( (theBranch !== null)
+		   && (theBranch.length > 0) )
+		 || ( (theModifier !== null)
+		   && (Object.keys( theModifier ).length > 0) ) )
+		{
+			//
+			// Init local storage.
+			//
+			let found = false;
+			const record = {};
+			const sel_by_obj = K.function.isObject( theReference );
+			
+			//
+			// Assert collection.
+			//
+			if( sel_by_obj
+			 && (theCollection === null) )
+				throw(
+					new MyError(
+						'MissingRequiredParameter',			// Error name.
+						K.error.NoCollection,				// Message code.
+						theRequest.application.language,	// Language.
+						theCollection,						// Error value.
+						400									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			//
+			// Resolve collection.
+			//
+			if( (! sel_by_obj)
+			 && (theCollection === null) )
+				theCollection = theReference.toString().split( '/' )[ 0 ];
+			
+			//
+			// Check collection.
+			//
+			const collection = db._collection( theCollection );
+			if( ! collection )
+				throw(
+					new MyError(
+						'BadCollection',					// Error name.
+						K.error.InvalidColName,				// Message code.
+						theRequest.application.language,	// Language.
+						theCollection,						// Arguments.
+						400									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			//
+			// Check collection type.
+			// Will raise an exception.
+			//
+			Document.isEdgeCollection( theRequest, theCollection, true );
+			
+			//
+			// Resolve by contents.
+			//
+			if( sel_by_obj )
+			{
+				//
+				// Init local storage.
+				//
+				const missing = [];
+				const selectors = [
+					'_to',
+					'_from',
+					Dict.descriptor.kPredicate
+				];
+				
+				//
+				// Fill record.
+				//
+				for( const selector of selectors )
+				{
+					//
+					// Add selector.
+					//
+					if( theReference.hasOwnProperty( selector ) )
+						record[ selector ] =
+							theReference[ selector ];
+					
+					//
+					// Add to error list.
+					//
+					else
+						missing.push( selector );
+				}
+				
+				//
+				// Handle errors.
+				//
+				if( missing.length > 0 )
+					throw(
+						new MyError(
+							'MissingRequiredParameter',			// Error name.
+							K.error.MissingToResolve,			// Message code.
+							theRequest.application.language,	// Language.
+							missing.join( ', ' ),				// Error value.
+							400									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				//
+				// Resolve edge.
+				//
+				try
+				{
+					//
+					// Resolve.
+					//
+					const cursor = db._collection( theCollection ).byExample( record );
+					
+					//
+					// Handle ambiguous edge.
+					//
+					if( cursor.count() > 1 )
+						throw(
+							new MyError(
+								'AmbiguousDocumentReference',		// Error name.
+								K.error.AmbiguousEdge,				// Message code.
+								this.request.application.language,	// Language.
+								[record._from, record._to, record[Dict.descriptor.kPredicate]],
+								412									// HTTP error code.
+							)
+						);														// !@! ==>
+					
+					//
+					// Load
+					
+					//
+					// Set found flag.
+					//
+					found = ( cursor.count() > 0 );
+					
+					//
+					// Load
+				}
+				catch( error )
+				{
+					//
+					// Raise exceptions other than not found.
+					//
+					if( (! error.isArangoError)
+					 || (error.errorNum !== ARANGO_NOT_FOUND) )
+						throw( error );											// !@! ==>
+				}
+				
+			}	// Provided selector.
+			
+			//
+			// Resolve by reference.
+			//
+			else
+			{
+			
+			}	// Provided reference.
+			
+		}	// Provided data.
+		
+		return null;																// ==>
+
+
+
+
+
+
 		//
 		// Init local storage.
 		//
@@ -489,26 +717,7 @@ class NewEdgeBranch extends NewEdge
 		const bprop = Dict.descriptor.kBranches;
 		const mprop = Dict.descriptor.kModifiers;
 		
-		//
-		// Resolve collection.
-		//
-		if( theCollection === null )
-			theCollection = theReference.toString().split( '/' )[ 0 ];
 		
-		//
-		// Check collection.
-		//
-		const collection = db._collection( theCollection );
-		if( ! collection )
-			throw(
-				new MyError(
-					'BadCollection',					// Error name.
-					K.error.InvalidColName,				// Message code.
-					theRequest.application.language,	// Language.
-					theCollection,						// Arguments.
-					400									// HTTP error code.
-				)
-			);																	// !@! ==>
 		
 		//
 		// Check collection type.
@@ -534,16 +743,6 @@ class NewEdgeBranch extends NewEdge
 				//
 				// Handle ambiguous query.
 				//
-				if( cursor.count() > 1 )
-					throw(
-						new MyError(
-							'AmbiguousDocumentReference',		// Error name.
-							K.error.AmbiguousDocument,			// Message code.
-							this.request.application.language,	// Language.
-							[ Object.keys( theReference ), theCollection],
-							412									// HTTP error code.
-						)
-					);															// !@! ==>
 				
 				//
 				// Assert not found.
