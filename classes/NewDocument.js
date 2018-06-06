@@ -1265,7 +1265,12 @@ class NewDocument
 			
 			return null;															// ==>
 			
-		}	// Expect _key reference.
+		}	// Document has collection.
+		
+		//
+		// Document doesn't have collection:
+		// assume _id and extract collection from it.
+		//
 		
 		//
 		// Expect _id reference.
@@ -1358,6 +1363,7 @@ class NewDocument
 	{
 		//
 		// Get significant fields combination.
+		// Will raise an exception if doAssert is true.
 		//
 		const match = this.validateSignificantProperties( doAssert );
 		

@@ -3,10 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/classes/NewDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/NewDocument.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/NewEdge.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/NewEdge.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/NewEdgeAttribute.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/NewEdgeAttribute.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/NewEdgeBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/NewEdgeBranch.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/test/NewDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/test/NewDocument.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -26,26 +26,26 @@
       <file leaf-file-name="NewDocument.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/NewDocument.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="155">
-              <caret line="832" column="28" selection-start-line="832" selection-start-column="4" selection-end-line="832" selection-end-column="28" />
+            <state relative-caret-position="-732">
+              <caret line="1372" column="17" selection-start-line="1372" selection-start-column="12" selection-end-line="1372" selection-end-column="17" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="NewEdgeAttribute.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="NewEdgeAttribute.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/classes/NewEdgeAttribute.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="517">
-              <caret line="263" column="65" selection-start-line="263" selection-start-column="65" selection-end-line="263" selection-end-column="65" />
+            <state relative-caret-position="297">
+              <caret line="171" column="10" lean-forward="true" selection-start-line="171" selection-start-column="10" selection-end-line="171" selection-end-column="10" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="NewEdgeBranch.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="NewEdgeBranch.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/NewEdgeBranch.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="93" column="68" selection-start-line="93" selection-start-column="68" selection-end-line="93" selection-end-column="68" />
+            <state relative-caret-position="457">
+              <caret line="122" column="36" selection-start-line="122" selection-start-column="36" selection-end-line="122" selection-end-column="36" />
             </state>
           </provider>
         </entry>
@@ -53,8 +53,8 @@
       <file leaf-file-name="NewEdge.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/NewEdge.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="277">
-              <caret line="240" column="8" selection-start-line="240" selection-start-column="8" selection-end-line="240" selection-end-column="8" />
+            <state relative-caret-position="249">
+              <caret line="243" column="47" lean-forward="true" selection-start-line="243" selection-start-column="47" selection-end-line="243" selection-end-column="47" />
             </state>
           </provider>
         </entry>
@@ -106,11 +106,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>collection</find>
-      <find>filter</find>
-      <find>lodash</find>
-      <find>setBranch</find>
-      <find>branch</find>
       <find>has_branches</find>
       <find>theObject._document</find>
       <find>theObject</find>
@@ -135,7 +130,12 @@
       <find>validateDocument</find>
       <find>matchLockedProperty</find>
       <find>matchPropertyValue</find>
+      <find>setDocumentProperties</find>
       <find>sort()</find>
+      <find>_instance</find>
+      <find>resolveDocumentByReference</find>
+      <find>_request</find>
+      <find>resolveDocumentByContent</find>
     </findStrings>
     <replaceStrings>
       <replace>Descriptor.</replace>
@@ -196,10 +196,10 @@
         <option value="$PROJECT_DIR$/data/messages.json" />
         <option value="$PROJECT_DIR$/utils/Constants.js" />
         <option value="$PROJECT_DIR$/routes/test/NewDocument.js" />
-        <option value="$PROJECT_DIR$/classes/NewEdge.js" />
-        <option value="$PROJECT_DIR$/classes/NewDocument.js" />
         <option value="$PROJECT_DIR$/classes/NewEdgeAttribute.js" />
         <option value="$PROJECT_DIR$/classes/NewEdgeBranch.js" />
+        <option value="$PROJECT_DIR$/classes/NewDocument.js" />
+        <option value="$PROJECT_DIR$/classes/NewEdge.js" />
       </list>
     </option>
   </component>
@@ -346,25 +346,25 @@
       <workItem from="1528187538573" duration="10061000" />
       <workItem from="1528197961735" duration="12111000" />
       <workItem from="1528220089127" duration="8322000" />
-      <workItem from="1528272095808" duration="19029000" />
+      <workItem from="1528272095808" duration="21584000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="274952000" />
+    <option name="totallyTimeSpent" value="277507000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1176" height="1001" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.48808172" visible="true" weight="0.35064936" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.48808172" visible="true" weight="0.35064936" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.49602723" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" order="9" />
-      <window_info id="Structure" order="1" sideWeight="0.51191825" side_tool="true" visible="true" weight="0.35064936" />
+      <window_info active="true" id="Structure" order="1" sideWeight="0.51191825" side_tool="true" visible="true" weight="0.35064936" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -599,31 +599,31 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/NewEdge.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="277">
-          <caret line="240" column="8" selection-start-line="240" selection-start-column="8" selection-end-line="240" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/classes/NewDocument.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="155">
-          <caret line="832" column="28" selection-start-line="832" selection-start-column="4" selection-end-line="832" selection-end-column="28" />
+        <state relative-caret-position="-732">
+          <caret line="1372" column="17" selection-start-line="1372" selection-start-column="12" selection-end-line="1372" selection-end-column="17" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/NewEdgeAttribute.js">
+    <entry file="file://$PROJECT_DIR$/classes/NewEdge.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="517">
-          <caret line="263" column="65" selection-start-line="263" selection-start-column="65" selection-end-line="263" selection-end-column="65" />
+        <state relative-caret-position="249">
+          <caret line="243" column="47" lean-forward="true" selection-start-line="243" selection-start-column="47" selection-end-line="243" selection-end-column="47" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/NewEdgeBranch.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="93" column="68" selection-start-line="93" selection-start-column="68" selection-end-line="93" selection-end-column="68" />
+        <state relative-caret-position="457">
+          <caret line="122" column="36" selection-start-line="122" selection-start-column="36" selection-end-line="122" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/NewEdgeAttribute.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="297">
+          <caret line="171" column="10" lean-forward="true" selection-start-line="171" selection-start-column="10" selection-end-line="171" selection-end-column="10" />
         </state>
       </provider>
     </entry>

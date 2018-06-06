@@ -28,10 +28,6 @@ const NewDocument = require( './NewDocument' );
  */
 class NewEdge extends NewDocument
 {
-	/************************************************************************************
-	 * INITIALISATION METHODS															*
-	 ************************************************************************************/
-	
 	/**
 	 * Init document properties
 	 *
@@ -225,6 +221,45 @@ class NewEdge extends NewDocument
 			doAssert );																// ==>
 		
 	}	// validateCollectionType
+	
+	
+	/************************************************************************************
+	 * PERSISTENCE METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Resolve document by content
+	 *
+	 * Edges must contain only one set of significant fields which are then used to
+	 * compute the document key, for this reason we overload this method to use the
+	 * computed reference for resolving the document.
+	 *
+	 * This method is only called when explicitly resolving the document, if you
+	 * provide an object as the constructor reference, the document will not be
+	 * resolved by default.
+	 *
+	 * @param doAssert		{Boolean}	True raises an exception on error (default).
+	 * @returns {Object}|{null}			Resolved document or null.
+	 */
+	resolveDocumentByContent( doAssert = true )
+	{
+		//
+		// Get significant fields combination.
+		// Check if has significant fields and resolve.
+		// We have already checked that all necessary fields are there.
+		// Persistent flag is managed by method.
+		// If not found method returns null or raises an exception.
+		//
+		if( this.validateSignificantProperties( doAssert ) !== false )
+			return this.resolveDocumentByReference(
+				this.key,							// Computed key.
+				doAssert,							// Provided assert flag.
+				false								// Get a mutable object.
+			);																		// ==>
+		
+		return null;																// ==>
+		
+	}	// resolveDocumentByContent
 
 
 	/************************************************************************************

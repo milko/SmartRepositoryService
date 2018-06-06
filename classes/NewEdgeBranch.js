@@ -102,6 +102,34 @@ const NewEdge = require( './NewEdge' );
 class NewEdgeBranch extends NewEdge
 {
 	/**
+	 * Init document properties
+	 *
+	 * We overload this method to set the instance member.
+	 *
+	 * @param theRequest	{Object}			The current request.
+	 * @param theCollection	{String}|{null}		The document collection.
+	 * @param isImmutable	{Boolean}			True, instantiate immutable document.
+	 */
+	initDocumentMembers( theRequest, theCollection, isImmutable )
+	{
+		//
+		// Call parent method.
+		//
+		super.initDocumentMembers( theRequest, theCollection, isImmutable );
+		
+		//
+		// Set edge instance.
+		//
+		this._instance = 'EdgeBranch';
+		
+	}	// initDocumentMembers
+	
+	
+	/************************************************************************************
+	 * MODIFICATION METHODS																*
+	 ************************************************************************************/
+	
+	/**
 	 * Set document property
 	 *
 	 * We overload this method to handle the branches and modifiers: these two
