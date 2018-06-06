@@ -278,15 +278,33 @@ class NewEdgeBranch extends NewEdge
 	replaceDocument( doRevision = true )
 	{
 		//
-		// Handle no more branches.
+		// Prevent replacing non persistent objects.
+		// We check this here to catch eventual blunders.
 		//
-		if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
-			return this.removeDocument();											// ==>
+		if( this._persistent )
+		{
+			//
+			// Handle no more branches.
+			//
+			if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
+				return this.removeDocument();										// ==>
+			
+			//
+			// Call parent method.
+			//
+			return super.replaceDocument();											// ==>
+			
+		}	// Document is persistent.
 		
-		//
-		// Call parent method.
-		//
-		return super.replaceDocument();												// ==>
+		throw(
+			new MyError(
+				'ReplaceDocument',					// Error name.
+				K.error.IsNotPersistent,			// Message code.
+				this._request.application.language,	// Language.
+				null,								// Arguments.
+				409									// HTTP error code.
+			)
+		);																		// !@! ==>
 		
 	}	// replaceDocument
 	
@@ -300,14 +318,32 @@ class NewEdgeBranch extends NewEdge
 	removeDocument()
 	{
 		//
-		// Call parent method.
-		// Parent returns the persistent status.
+		// Prevent replacing non persistent objects.
+		// We check this here to catch eventual blunders.
 		//
-		const result = super.removeDocument();
-		if( result === true )
-			delete this._branched;
+		if( this._persistent )
+		{
+			//
+			// Call parent method.
+			// Parent returns the persistent status.
+			//
+			const result = super.removeDocument();
+			if( result === true )
+				delete this._branched;
+			
+			return result;															// ==>
+			
+		}	// Document is persistent.
 		
-		return result;																// ==>
+		throw(
+			new MyError(
+				'RemoveDocument',					// Error name.
+				K.error.IsNotPersistent,			// Message code.
+				this._request.application.language,	// Language.
+				null,								// Arguments.
+				409									// HTTP error code.
+			)
+		);																		// !@! ==>
 		
 	}	// removeDocument
 	

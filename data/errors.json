@@ -36,6 +36,18 @@
     }
   },
   {
+    "_key" : "ReplaceDocument",
+    "label" : {
+      "ISO:639:3:eng" : "Unable to replace document: "
+    }
+  },
+  {
+    "_key" : "RemoveDocument",
+    "label" : {
+      "ISO:639:3:eng" : "Unable to remove document: "
+    }
+  },
+  {
     "_key" : "InsertUser",
     "label" : {
       "ISO:639:3:eng" : "Unable to insert user: "

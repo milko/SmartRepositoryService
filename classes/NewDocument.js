@@ -920,6 +920,9 @@ class NewDocument
 	 * If the operation was successful, the persistent status of the current document
 	 * will be set to true, if not, it will be set to false.
 	 *
+	 * Before performing any action, this method will check if the current document is
+	 * persistent, if that is the case, it will raise an exception.
+	 *
 	 * Any error encountered in this method will raise an exception, including
 	 * validation errors.
 	 *
@@ -928,99 +931,117 @@ class NewDocument
 	insertDocument()
 	{
 		//
-		// Validate document contents.
-		// Will raise an exception on error.
+		// Prevent inserting persistent objects.
+		// We check this here to catch eventual blunders.
 		//
-		this.validateDocument( true );
-		
-		//
-		// Try insertion.
-		//
-		try
+		if( ! this._persistent )
 		{
 			//
-			// Set insert information.
+			// Validate document contents.
+			// Will raise an exception on error.
 			//
-			if( ! this.normaliseInsertProperties( true ) )
-				return false;														// ==>
+			this.validateDocument( true );
 			
 			//
-			// Insert.
+			// Try insertion.
 			//
-			const meta =
-				db._collection( this._collection )
-					.insert( this._document );
-			
-			//
-			// Update metadata.
-			//
-			this._document._id = meta._id;
-			this._document._key = meta._key;
-			this._document._rev = meta._rev;
-			
-			//
-			// Set persistent flag.
-			//
-			this._persistent = true;
-		}
-		catch( error )
-		{
-			//
-			// Reset persistent flag.
-			//
-			this._persistent = false;
-			
-			//
-			// Handle unique constraint error.
-			//
-			if( error.isArangoError
-			 && (error.errorNum === ARANGO_DUPLICATE) )
+			try
 			{
 				//
-				// Set field references.
+				// Set insert information.
 				//
-				let field;
-				const reference = {};
-				for( field of this.uniqueFields )
-				{
-					if( this._document.hasOwnProperty( field ) )
-						reference[ field ] = this._document[ field ];
-				}
+				if( ! this.normaliseInsertProperties( true ) )
+					return false;													// ==>
 				
 				//
-				// Set field arguments.
+				// Insert.
 				//
-				let args = [];
-				for( field in reference )
+				const meta =
+					db._collection( this._collection )
+						.insert( this._document );
+				
+				//
+				// Update metadata.
+				//
+				this._document._id = meta._id;
+				this._document._key = meta._key;
+				this._document._rev = meta._rev;
+				
+				//
+				// Set persistent flag.
+				//
+				this._persistent = true;
+			}
+			catch( error )
+			{
+				//
+				// Reset persistent flag.
+				//
+				this._persistent = false;
+				
+				//
+				// Handle unique constraint error.
+				//
+				if( error.isArangoError
+					&& (error.errorNum === ARANGO_DUPLICATE) )
 				{
 					//
-					// Format display value.
+					// Set field references.
 					//
-					const value = ( Array.isArray( reference[ field ] ) )
-								? `[${reference[field].join(', ')}]`
-								: reference[field];
+					let field;
+					const reference = {};
+					for( field of this.uniqueFields )
+					{
+						if( this._document.hasOwnProperty( field ) )
+							reference[ field ] = this._document[ field ];
+					}
 					
 					//
-					// Add error argument.
+					// Set field arguments.
 					//
-					args.push( `${field} = ${value}` );
+					let args = [];
+					for( field in reference )
+					{
+						//
+						// Format display value.
+						//
+						const value = ( Array.isArray( reference[ field ] ) )
+									  ? `[${reference[field].join(', ')}]`
+									  : reference[field];
+						
+						//
+						// Add error argument.
+						//
+						args.push( `${field} = ${value}` );
+					}
+					
+					throw(
+						new MyError(
+							'InsertDocument',					// Error name.
+							K.error.DuplicateDocument,			// Message code.
+							this._request.application.language,	// Language.
+							[ this._collection, args.join( ', ' ) ],
+							409									// HTTP error code.
+						)
+					);															// !@! ==>
 				}
 				
-				throw(
-					new MyError(
-						'InsertDocument',					// Error name.
-						K.error.DuplicateDocument,			// Message code.
-						this._request.application.language,	// Language.
-						[ this._collection, args.join( ', ' ) ],
-						409									// HTTP error code.
-					)
-				);																// !@! ==>
+				throw( error );													// !@! ==>
 			}
 			
-			throw( error );														// !@! ==>
-		}
+			return this._persistent;												// ==>
+			
+		}	// Document is not persistent
 		
-		return this._persistent;													// ==>
+		throw(
+			new MyError(
+				'InsertDocument',					// Error name.
+				K.error.IsPersistent,				// Message code.
+				this._request.application.language,	// Language.
+				this._document._id,					// Arguments.
+				409									// HTTP error code.
+			)
+		);																		// !@! ==>
 		
 	}	// insertDocument
 	
@@ -1389,8 +1410,7 @@ class NewDocument
 	 * will validate the current document and replace its contents in the database and
 	 * return true.
 	 *
-	 * If the current object is not persistent, the method will do nothing and return
-	 * null.
+	 * If the current object is not persistent, the method will raise an exception.
 	 *
 	 * The method will raise an exception if any of the following conditions are met:
 	 *
@@ -1403,12 +1423,13 @@ class NewDocument
 	 * revision, the method will raise an exception.
 	 *
 	 * @param doRevision	{Boolean}	If true, check revision (default).
-	 * @returns {Boolean}|{null}		True if replaced or null if not persistent.
+	 * @returns {Boolean}				True if replaced or null if not persistent.
 	 */
 	replaceDocument( doRevision = true )
 	{
 		//
-		// Only if persistent.
+		// Prevent replacing non persistent objects.
+		// We check this here to catch eventual blunders.
 		//
 		if( this._persistent )
 		{
@@ -1453,7 +1474,15 @@ class NewDocument
 			
 		}	// Is persistent.
 		
-		return null;																// ==>
+		throw(
+			new MyError(
+				'ReplaceDocument',					// Error name.
+				K.error.IsNotPersistent,			// Message code.
+				this._request.application.language,	// Language.
+				null,								// Arguments.
+				409									// HTTP error code.
+			)
+		);																		// !@! ==>
 		
 	}	// replaceDocument
 	
@@ -1464,21 +1493,20 @@ class NewDocument
 	 * the current object is persistent, if that is the case, it will proceed to
 	 * delete the document from the database and will return true.
 	 *
-	 * If the document does not exist, the method will return false.
+	 * If the document is not persistent, the method will raise an exception.
 	 *
-	 * If the current object is not persistent, the method will do nothing and return
-	 * null: because of this the client should check beforehand if the document is
-	 * persistent and resolve it if not.
+	 * If the current object is not persistent, the method will raise an exception.
 	 *
 	 * If the current document revision is different than the existing document
 	 * revision, the method will raise an exception.
 	 *
-	 * @returns {Boolean}|{null}	True removed, false not found, null not persistent.
+	 * @returns {Boolean}	True removed, false not found, null not persistent.
 	 */
 	removeDocument()
 	{
 		//
-		// Only if persistent.
+		// Prevent replacing non persistent objects.
+		// We check this here to catch eventual blunders.
 		//
 		if( this._persistent )
 		{
@@ -1524,7 +1552,15 @@ class NewDocument
 			
 		}	// Is persistent.
 		
-		return null;																// ==>
+		throw(
+			new MyError(
+				'RemoveDocument',					// Error name.
+				K.error.IsNotPersistent,			// Message code.
+				this._request.application.language,	// Language.
+				null,								// Arguments.
+				409									// HTTP error code.
+			)
+		);																		// !@! ==>
 		
 	}	// removeDocument
 	

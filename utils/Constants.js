@@ -361,7 +361,9 @@ module.exports = Object.freeze(
 			CannotManageUser	:  97,
 			BugEdgeKeyMissFld	:  98,
 			CannotManageBranches:  99,
-			NotBranchedEdge		: 100
+			NotBranchedEdge		: 100,
+			IsPersistent		: 101,
+			IsNotPersistent		: 102
 		},
 
 		//
