@@ -27,7 +27,7 @@ const Document = require( './Document' );
 //
 // Classes.
 //
-const Edge = require( './Edge' );
+const Edge = require( './NewEdge' );
 
 
 /**

@@ -3,12 +3,7 @@
 //
 // Frameworks.
 //
-const _ = require('lodash');
 const db = require('@arangodb').db;
-const aql = require('@arangodb').aql;
-const errors = require('@arangodb').errors;
-const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
-const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
 
 //
 // Application.
@@ -20,7 +15,6 @@ const MyError = require( '../utils/MyError' );
 //
 // Parent.
 //
-const Document = require( './NewDocument' );
 const NewEdge = require( './NewEdge' );
 
 
@@ -596,6 +590,11 @@ class NewEdgeBranch extends NewEdge
 		theCollection = null,
 		doAdd = true )
 	{
+		//
+		// Framework.
+		//
+		const Document = require( './NewDocument' );
+		
 		//
 		// Check parameters.
 		//

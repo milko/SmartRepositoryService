@@ -15,6 +15,16 @@ const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
 
+//
+// Parent.
+//
+const Document = require( './NewDocument' );
+
+//
+// Classes.
+//
+const Edge = require( './NewEdge' );
+
 
 /**
  * Document virtual class
@@ -37,136 +47,176 @@ const MyError = require( '../utils/MyError' );
  * 						the event the object was loaded from its collection.
  * 						The value can be retrieved with the revised() getter.
  */
-class NewDocument
+class NewUser extends Document
 {
 	/**
 	 * Constructor
 	 *
-	 * The constructor instantiates a document from the following parameters:
+	 * We overload the constructor to intercept the group and manager from the
+	 * provided object reference, if provided, these properties must resolve, or by
+	 * resolving them if the object was resolved.
 	 *
-	 * 	- theRequest:		The current request, it will be stored in the 'request'
-	 * 						property, it is used to access environment variables.
-	 * 	- theReference:		This parameter represents either the document reference or
-	 * 						its initial contents: if provided as a string, it is
-	 * 						expected to be the document _id or _key; if provided as an
-	 * 						object it is expected to be the document contents; if
-	 * 						omitted or null, the object will be an empty document and
-	 * 						the collection argument will be asserted.
-	 * 	- theCollection:	The name of the collection where the object is stored; if
-	 * 						omitted or null, it will be inferred.
-	 * 	- isImmutable:		This parameter is only relevant when instantiating the
-	 * 						object from a string reference: if true, the resulting
-	 * 						document will be immutable, that is, its properties cannot
-	 * 						be modified.
+	 * The class features two custom data members:
 	 *
-	 * The constructor follows this strategy:
+	 * 	- _group:	The user group _id reference.
+	 * 	- _manager:	The user manager User _id reference.
 	 *
-	 * 	- If you provide a string reference, it is assumed you want to load a document
-	 * 	  from the database, the reference is expected to be either the document _id
-	 * 	  or its _key. If you provide the _id, the collection can be omitted, if not,
-	 * 	  the collection is required and if omitted, the method will raise an illegal
-	 * 	  document handle exception.
-	 * 	- If you provide an object, it is assumed you want to create a new instance,
-	 * 	  or that you do not have either the _id or _key. If you want to load the
-	 * 	  corresponding object from the database, you will have to explicitly call the
-	 * 	  resolve() method. In this case the collection parameter is required.
+	 * These two members can be retirieved by the respective group and manager
+	 * getters, they, however, can only be set from an object reference provided in
+	 * the constructor, or modified using a custom interface; the group is optional,
+	 * the manager is required for all users, except the system administrator.
 	 *
-	 * All derived classes must support this constructor signature, eventual custom
-	 * arguments should be set using a local method interface, or provided in the
-	 * object selector as custom arguments that should be caught, resolved and removed
-	 * in the derived constructor; these arguments should start by '__' as a convention.
+	 * When providing these members to the constructor using an object reference, you
+	 * should use the following custom property names:
 	 *
-	 * If the derived class has a single default collection, the collection argument
-	 * will be overwritten by the defaultCollection() getter, so, in this case,
-	 * clients should omit or set the collection parameter to null.
+	 * 	__group:	For the group.
+	 * 	__manager:	For the manager.
 	 *
-	 * Any error will raise an exception.
+	 * Note that if the document was resolved, both the resolved group and manager
+	 * will be used:
+	 *
+	 * The user has two unique fields: the _key and the username.
+	 *
+	 * In this class we follow these steps:
+	 *
+	 * 	- Extract and remove group and manager references from the provided object
+	 * 	  selector.
+	 * 	- Call the parent constructor.
+	 * 	- Resolve the group and manager.
+	 * 	- If the object is persistent:
+	 * 		- Assert that the resolved group and manager match the eventual provided ones.
+	 * 		- Assert that the user has a manager, or that it is the system administrator.
+	 *
+	 * Note that both the group and manager MUST be provided either as an object
+	 * selector or as their _id reference.
+	 *
+	 * The constructor adds an extra private parameter to prevent an instantiation
+	 * cascading: when resolving managers, for instance, we instantiate the manager
+	 * user, this means that if it has a manager the process will go on: if you
+	 * provide false in the last parameter, the group and manager will not be
+	 * reserved, since you are only interested in the _id of the group or manager.
 	 *
 	 * @param theRequest	{Object}					The current request.
 	 * @param theReference	{String}|{Object}|”null}	The document reference or object.
 	 * @param theCollection	{String}|{null}				The document collection.
 	 * @param isImmutable	{Boolean}					True, instantiate immutable document.
+	 * @param doRelated		{Boolean}					True, resolve group and manager.
 	 */
 	constructor(
 		theRequest,
 		theReference = null,
 		theCollection = null,
-		isImmutable = false )
+		isImmutable = false,
+		doRelated = true )
 	{
 		//
-		// Init properties.
+		// Init local storage.
 		//
-		this.initProperties( theRequest, theCollection, isImmutable );
+		let group = null;
+		let manager = null;
 		
 		//
-		// Handle document object.
+		// Handle object reference.
 		//
 		if( K.function.isObject( theReference ) )
 		{
 			//
-			// Init document.
+			// Extract group.
 			//
-			this._document = {};
+			if( theReference.hasOwnProperty( '__group' ) )
+			{
+				group = theReference.__group;
+				delete theReference.__group;
+			}
 			
 			//
-			// Load document.
+			// Extract manager.
 			//
-			this.setDocumentProperties(
-				theReference,			// Provided contents.
-				true,					// Replace values.
-				false					// Is resolving.
-			);
-		
-		}	// Provided document properties.
+			if( theReference.hasOwnProperty( '__manager' ) )
+			{
+				manager = theReference.__manager;
+				delete theReference.__manager;
+			}
+			
+		}	// Provided an object initialiser.
 		
 		//
-		// Handle document reference.
+		// Call parent constructor.
 		//
-		else if( theReference !== null )
+		super( theRequest, theReference, theCollection, isImmutable );
+		
+		//
+		// Handle related objects.
+		//
+		if( doRelated )
 		{
 			//
-			// Resolve document.
+			// Resolve provided group.
+			// Can be either group _id or selector.
 			//
-			this._document =
-				this.resolveDocumentByReference(
-					theReference,					// _id or _key.
-					true,							// Raise exception.
-					isImmutable						// Immutable flag.
-				);
+			if( (group !== null)
+			 && K.function.isObject( group) )
+				group = this.ResolveGroup( group );
 			
 			//
-			// Set persistence flag.
-			// We get here only if successful.
+			// Resolve provided manager.
+			// Can be either manager _id or selector.
 			//
-			this._persistent = true;
-		
-		}	// Provided document reference.
-		
-		//
-		// Init document properties.
-		//
-		else
-			this._document = {};
-		
-		//
-		// Assert collection.
-		//
-		if( ! this.hasOwnProperty( '_collection' ) )
-			throw(
-				new MyError(
-					'MissingRequiredParameter',			// Error name.
-					K.error.NoCollection,				// Message code.
-					this._request.application.language,	// Language.
-					theCollection,						// Error value.
-					400									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-		//
-		// Normalise properties.
-		// We force exceptions if the document is persistent.
-		//
-		this.normaliseDocumentProperties( this._persistent );
+			if( (manager !== null)
+			 && K.function.isObject( manager) )
+				group = this.ResolveManager( manager );
+			
+			//
+			// Match persistent copies.
+			//
+			if( this._persistent )
+			{
+				//
+				// Get stored group and handle mismatches.
+				//
+				this._group = this.resolveGroup();
+				if( group !== this._group )
+					throw(
+						new MyError(
+							'UserGroupConflict',				// Error name.
+							K.error.UserGroupConflict,			// Message code.
+							this._request.application.language,	// Language.
+							null,								// For privacy reasons.
+							409									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				//
+				// Handle mismatch.
+				//
+				this._manager = this.resolveManager();
+				if( manager !== this._manager )
+					throw(
+						new MyError(
+							'UserGroupConflict',				// Error name.
+							K.error.UserManagerConflict,		// Message code.
+							this._request.application.language,	// Language.
+							null,								// For privacy reasons.
+							409									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+			}	// Object is persistent.
+			
+			//
+			// Handle new object.
+			//
+			else
+			{
+				//
+				// Set from provided properties.
+				//
+				this._group = group;
+				this._manager = manager;
+				
+			}	// Object was not resolved.
+			
+		}	// Resolve group and manager.
 		
 	}	// constructor
 	
@@ -176,45 +226,9 @@ class NewDocument
 	 ************************************************************************************/
 	
 	/**
-	 * Init properties
-	 *
-	 * This method is called at the beginning of the instantiation process, its duty
-	 * is to set the main object properties before resolving or finalising the
-	 * instantiation.
-	 *
-	 * This method performs the following steps:
-	 *
-	 * 	- initDocumentMembers():		Set default document data members.
-	 * 	- initDocumentCollection():		Set collection properties.
-	 *
-	 * Any error in this phase should raise an exception.
-	 *
-	 * @param theRequest	{Object}			The current request.
-	 * @param theCollection	{String}|{null}		The document collection.
-	 * @param isImmutable	{Boolean}			True, instantiate immutable document.
-	 */
-	initProperties( theRequest, theCollection, isImmutable )
-	{
-		//
-		// Initialise object data members.
-		//
-		this.initDocumentMembers( theRequest, isImmutable );
-		
-		//
-		// Initialise object environment.
-		//
-		this.initDocumentCollection( theRequest, theCollection );
-		
-	}	// initProperties
-	
-	/**
 	 * Init document properties
 	 *
-	 * This method is called by initProperties(), its duty is to initialise the main
-	 * object properties.
-	 *
-	 * The properties initialised in this method should be of a static or default
-	 * nature, by default hey concern:
+	 * We overload this method to set the instance member.
 	 *
 	 * 	- _request:		The current service request record.
 	 * 	- _immutable:	The immutable status.
@@ -234,76 +248,16 @@ class NewDocument
 	initDocumentMembers( theRequest, theCollection, isImmutable )
 	{
 		//
-		// Initialise object properties.
+		// Call parent method.
 		//
-		this._request = theRequest;
-		this._immutable = isImmutable;
-		this._persistent = false;
-		this._revised = false;
+		super.initDocumentMembers( theRequest, theCollection, isImmutable );
+		
+		//
+		// Set edge instance.
+		//
+		this._instance = 'User';
 		
 	}	// initDocumentMembers
-	
-	/**
-	 * Init document collection
-	 *
-	 * This method is called by initProperties(), its duty is to initialise the
-	 * document collection environment.
-	 *
-	 * This method calls two methods that can be overloaded by derived classes:
-	 *
-	 * 	- defaultCollection():		Returns the default collection if documents of this
-	 * 								class are stored in a single specific collection.
-	 * 	- checkCollectionType():	Asserts that the collection is of the correct
-	 * 								type: document or edge.
-	 *
-	 *
-	 *
-	 * Any error in this phase should raise an exception.
-	 *
-	 * @param theRequest	{Object}			The current request.
-	 * @param theCollection	{String}|{null}		The document collection.
-	 */
-	initDocumentCollection( theRequest, theCollection )
-	{
-		//
-		// Force default collection.
-		//
-		const collection = this.defaultCollection;
-		if( collection !== null )
-			theCollection = collection;
-		
-		//
-		// Check collection.
-		//
-		if( theCollection !== null )
-		{
-			//
-			// Check collection.
-			//
-			if( ! db._collection( theCollection ) )
-				throw(
-					new MyError(
-						'BadCollection',					// Error name.
-						K.error.InvalidColName,				// Message code.
-						this._request.application.language,	// Language.
-						theCollection,						// Error value.
-						412									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Check collection type.
-			// Will raise an exception if unsuccessful.
-			//
-			this.validateCollectionType( theCollection, true );
-			
-			//
-			// Set collection.
-			//
-			this._collection = theCollection;
-		}
-		
-	}	// initDocumentCollection
 	
 	
 	/************************************************************************************
@@ -311,237 +265,31 @@ class NewDocument
 	 ************************************************************************************/
 	
 	/**
-	 * Set document properties
-	 *
-	 * This method will add the provided object properties to the current object's
-	 * data.
-	 *
-	 * The first parameter represents the data to be loaded, the second parameter is a
-	 * flag that determines whether the provided data should replace existing properties,
-	 * the third parameter is a private flag that indicates whether the method was called
-	 * when resolving the object, clients should ignore it.
-	 *
-	 * This method will iterate all provided properties and call the
-	 * setDocumentProperty() for each field/value pair if the following conditions are
-	 * satisfied:
-	 *
-	 * 	- doReplace is true, meaning that the client requires provided properties to
-	 * 	  replace existing ones.
-	 * 	- Or the field is among the document locked properties.
-	 * 	- Or the current document does not have the property.
-	 *
-	 * If all required conditions are satisfied, the provided value will replace the
-	 * existing one as follows:
-	 *
-	 * 	- If the property doesn't exist, it will be set.
-	 * 	- If the property exists, it will be replaced.
-	 * 	- If the provided value is null and the property exists, it will be removed.
-	 *
-	 * The called method will raise an exception if the property is locked, the
-	 * provided and existing values do not match and the object is persistent; a
-	 * locked property is one that can be inserted, but not modified.
-	 *
-	 * The last parameter determines the exception type, if true it means the data
-	 * comes from the database, if false, it means the data is coming from the client:
-	 *
-	 * 	- true: The method was called when resolving the object, if there is a
-	 * 	  conflict with a locked property it means that we have an ambiguous document,
-	 * 	  the existing and resolved objects have ambiguous identification.
-	 * 	- false: The method was called by the constructor when providing an object as
-	 * 	  reference, in this case no errors should be raised, since the document was
-	 * 	  empty. The method can also be called by clients to update the document's
-	 * 	  contents: in this case any conflicting locked value will raise an error.
-	 *
-	 * Once the client has finished updating properties it should call the
-	 * normaliseDocumentProperties(), which tajes care of finalising the contents of the
-	 * document, such as loading default values and computing dynamic properties.
-	 *
-	 * All exceptions will be raised by the called setDocumentProperty() method.
-	 *
-	 * @param theData		{Object}	The object properties to add.
-	 * @param doReplace		{Boolean}	True, overwrite existing properties.
-	 * @param isResolving	{Boolean}	True, called by resolve() (default false).
-	 */
-	setDocumentProperties( theData, doReplace = true, isResolving = false )
-	{
-		//
-		// Get locked fields.
-		//
-		const locked = this.lockedFields;
-		
-		//
-		// Iterate provided properties.
-		//
-		for( const field in theData )
-		{
-			//
-			// Save property locked status.
-			//
-			const isLocked = locked.includes( field );
-			
-			//
-			// Determine if the value should be set.
-			//
-			if( doReplace										// Want to replace,
-			 || isLocked										// or field is locked,
-			 || (! this._document.hasOwnProperty( field )) )	// or not in document.
-				this.setDocumentProperty(
-					field,										// Field name.
-					theData[ field ],							// Field value.
-					isLocked,									// Locked flag.
-					isResolving									// Is resolving flag.
-				);
-		}
-		
-	}	// setDocumentProperties
-	
-	/**
-	 * Set document property
-	 *
-	 * This method can be used to set a single document property, it expects the
-	 * following parameters:
-	 *
-	 * 	- theField:		The property field name: the descriptor _key.
-	 * 	- theValue:		The property value, if null, it means we want to remove the
-	 * 					existing one.
-	 * 	- isLocked:		Will be true if the property is locked.
-	 * 	- isResolving:	Will be true if the method was called while resolving the
-	 * 					document.
-	 *
-	 * The method is protected and will be called if any of the following conditions
-	 * is satisfied:
-	 *
-	 * 	- The client requested to replace an existing value,
-	 * 	- or the property is locked,
-	 * 	- or the document does not have that property.
-	 *
-	 * The method will update values as follows: null means remove the property and
-	 * any other value means replace.
-	 *
-	 * The method will raise an exception if the provided and existing values do not
-	 * match, the current document is persistent and the property is locked.
-	 *
-	 * The last parameter determines the type of exception: true means we are
-	 * resolving the document, which means that there is a mismatch between reserved
-	 * properties in the current and persistent documents; false means that we are
-	 * modifying a document, which means that there is an attempt to change a locked
-	 * value.
-	 *
-	 * @param theField		{String}	The property descriptor _key.
-	 * @param theValue		{*}			The property value.
-	 * @param isLocked		{Boolean}	True if locked properties.
-	 * @param isResolving	{Boolean}	True, called by resolve().
-	 */
-	setDocumentProperty( theField, theValue, isLocked, isResolving )
-	{
-		//
-		// Save existing value.
-		//
-		const value_old = ( this._document.hasOwnProperty( theField ) )
-						? this._document[ theField ]
-						: null;
-		
-		//
-		// Normalise provided value.
-		//
-		if( theValue === undefined )
-			theValue = null;
-		
-		//
-		// Handle value modifications.
-		//
-		if( ! this.matchPropertyValue( theField, value_old, theValue ) )
-		{
-			//
-			// Handle locked field violation.
-			// A locked field can be inserted,
-			// but cannot be modified once inserted.
-			//
-			if( isLocked			// Property is locked
-			 && this._persistent )	// and document is persistent.
-			{
-				//
-				// Set exception type.
-				//
-				let name, type;
-				if( isResolving )
-				{
-					name = 'AmbiguousDocumentReference';
-					type = K.error.ResolveMismatch;
-				}
-				else
-				{
-					name = 'LockedProperty';
-					type = K.error.PropertyLocked;
-				}
-				
-				//
-				// Raise exception.
-				//
-				throw(
-					new MyError(
-						name,									// Error name.
-						type,									// Message code.
-						this._request.application.language,		// Language.
-						theField,								// Arguments.
-						409										// HTTP error code.
-					)
-				);																// !@! ==>
-				
-			}	// Property is locked and document is persistent.
-			
-			//
-			// Set value.
-			//
-			if( theValue !== null )
-				this._document[ theField ] = theValue;
-			
-			//
-			// Delete value.
-			//
-			else if( value_old !== null )			// Superflous?
-				delete this._document[ theField ];
-			
-		}	// Modify value.
-		
-	}	// setDocumentProperty
-	
-	/**
-	 * Normalise document properties
-	 *
-	 * This method should finalise the contents of the document, such as setting
-	 * eventual missing default values or computing dynamic properties.
-	 *
-	 * The method is called at the end of the constructor and before validating the
-	 * contents of the document.
-	 *
-	 * The provided parameter is a flag that determines whether errors raise
-	 * exceptions or not, it is set to false by default.
-	 *
-	 * In this class we have no dynamic properties.
-	 *
-	 * @param doAssert	{Boolean}	True raises an exception on error (default).
-	 * @returns {Boolean}			True if valid.
-	 */
-	normaliseDocumentProperties( doAssert = true )
-	{
-		return true;																// ==>
-		
-	}	// normaliseDocumentProperties
-	
-	/**
 	 * Normalise insert properties
 	 *
 	 * This method should load any default properties set when inserting the object.
 	 *
-	 * In this class we do notning.
+	 * In this class we set the creation time stamp.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
 	 */
 	normaliseInsertProperties( doAssert = true )
 	{
-		return true;																// ==>
+		//
+		// Call parent method.
+		//
+		if( super.normaliseInsertProperties( doAssert ) )
+		{
+			//
+			// Set creation time stamp.
+			//
+			this._document[ Dict.descriptor.kCStamp ] = Date.now();
+			
+			return true;															// ==>
+		}
+		
+		return false;																// ==>
 		
 	}	// normaliseInsertProperties
 	
@@ -550,14 +298,27 @@ class NewDocument
 	 *
 	 * This method should load any default properties set when replacing the object.
 	 *
-	 * In this class we do notning.
+	 * In this class we set the modification time stamp.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
 	 */
 	normaliseReplaceProperties( doAssert = true )
 	{
-		return true;																// ==>
+		//
+		// Call parent method.
+		//
+		if( super.normaliseReplaceProperties( doAssert ) )
+		{
+			//
+			// Set creation time stamp.
+			//
+			this._document[ Dict.descriptor.kMStamp ] = Date.now();
+			
+			return true;															// ==>
+		}
+		
+		return false;																// ==>
 		
 	}	// normaliseReplaceProperties
 	
@@ -569,17 +330,8 @@ class NewDocument
 	/**
 	 * Validate document
 	 *
-	 * This method will assert that the current document contents are valid and that
-	 * the object is ready to be stored in the database, it will perform the following
-	 * steps:
-	 *
-	 * 	- Normalise document: load any default or computed required property.
-	 * 	- Assert if all required properties are there.
-	 * 	- Validate all document properties.
-	 *
-	 * If the provided parameter is true, is any of these checks fails, the method
-	 * will raise an exception; if the parameter is false, the method will return a
-	 * boolean indicating whether the operation was successful, true, or not, false.
+	 * We overload this method to assert that users other than the system
+	 * administrator have a manager.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
@@ -587,77 +339,41 @@ class NewDocument
 	validateDocument( doAssert = true )
 	{
 		//
-		// Load computed fields.
+		// Call parent method.
 		//
-		if( ! this.normaliseDocumentProperties( doAssert ) )
-			return false;															// ==>
+		const result = super.validateDocument( doAssert );
 		
 		//
-		// Validate required fields.
+		// Continue if OK.
 		//
-		if( ! this.validateRequiredProperties( doAssert ) )
-			return false;															// ==>
+		if( result === true )
+		{
+			//
+			// Handle missing manager.
+			//
+			if( (this.manager === null)								// No manager
+			 && (this._document[ Dict.descriptor.kUsername ]		// and username
+					!== module.context.configuration.adminCode) )	// not sysadm.
+			{
+				if( doAssert )
+					throw(
+						new MyError(
+							'IncompleteObject',					// Error name.
+							K.error.MissingUserManager,			// Message code.
+							this._request.application.language,	// Language.
+							'USER MANAGER',						// Arguments.
+							412									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return false;														// ==>
+			}
+			
+		}	// Object is valid.
 		
-		//
-		// Validate properties.
-		//
-		if( ! this.validateDocumentProperties( doAssert ) )
-			return false;															// ==>
-		
-		return true;																// ==>
+		return result;																// ==>
 		
 	}	// validateDocument
-	
-	/**
-	 * Validate document properties
-	 *
-	 * This method will check if all document fields are valid; if that is not the
-	 * case the method will raise an exception, if doAssert is true, or return false.
-	 *
-	 * The validation is performed by feeding the Validation.validateStructure() with
-	 * the current contents of the document.
-	 *
-	 * This method expects the current document to be complete, this means that
-	 * normaliseDocument() and validateRequiredProperties() must have been called before.
-	 *
-	 * @param doAssert	{Boolean}	True raises an exception on error (default).
-	 * @returns {Boolean}			True if valid.
-	 */
-	validateDocumentProperties( doAssert = true )
-	{
-		//
-		// Framework.
-		//
-		const Validation = require( '../utils/Validation' );
-		
-		//
-		// Validate document.
-		//
-		try
-		{
-			//
-			// Validate document structure.
-			//
-			this._document =
-				Validation.validateStructure(
-					this._request,
-					this._document
-				);
-			
-			return true;															// ==>
-		}
-		catch( error )
-		{
-			//
-			// Raise errors.
-			//
-			if( doAssert )
-				throw( error );													// !@! ==>
-		}
-		
-		return false;																// ==>
-		
-	}	// validateDocumentProperties
 	
 	/**
 	 * Validate document constraints
@@ -850,11 +566,11 @@ class NewDocument
 				this.lockedFields
 					.filter( field => {
 						return ( existing.hasOwnProperty( field )
-							  && this._document.hasOwnProperty( field )
-							  && (! this.matchPropertyValue(
-							  			field,
-										existing[ field ],
-										this._document[ field ]
+							&& this._document.hasOwnProperty( field )
+							&& (! this.matchPropertyValue(
+								field,
+								existing[ field ],
+								this._document[ field ]
 							))
 						);
 					});
@@ -1020,7 +736,7 @@ class NewDocument
 				// Handle unique constraint error.
 				//
 				if( error.isArangoError
-				 && (error.errorNum === ARANGO_DUPLICATE) )
+					&& (error.errorNum === ARANGO_DUPLICATE) )
 				{
 					//
 					// Set field references.
@@ -1233,7 +949,7 @@ class NewDocument
 				document = collection.document( theReference );
 				
 				return ( isImmutable ) ? document									// ==>
-					   				   : JSON.parse(JSON.stringify(document));		// ==>
+									   : JSON.parse(JSON.stringify(document));		// ==>
 			}
 			catch( error )
 			{
@@ -1246,7 +962,7 @@ class NewDocument
 				// Raise exceptions other than not found.
 				//
 				if( (! error.isArangoError)
-				 || (error.errorNum !== ARANGO_NOT_FOUND) )
+					|| (error.errorNum !== ARANGO_NOT_FOUND) )
 					throw( error );												// !@! ==>
 				
 				//
@@ -1318,7 +1034,7 @@ class NewDocument
 			// Handle exceptions.
 			//
 			if( (! error.isArangoError)
-			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				|| (error.errorNum !== ARANGO_NOT_FOUND) )
 				throw( error );													// !@! ==>
 			
 			//
@@ -1582,7 +1298,7 @@ class NewDocument
 				// Ignore not found.
 				//
 				if( (! error.isArangoError)
-				 || (error.errorNum !== ARANGO_NOT_FOUND) )
+					|| (error.errorNum !== ARANGO_NOT_FOUND) )
 					throw( error );												// !@! ==>
 				
 				//
@@ -1629,7 +1345,7 @@ class NewDocument
 	 * Retrieve instance name
 	 *
 	 * This method will return the current document instance name.
-	 * 
+	 *
 	 * This class does not implement a specific instance, so it will return undefined.
 	 *
 	 * @returns {String}|{undefined}	The document instance name.
@@ -1853,6 +1569,6 @@ class NewDocument
 		
 	}	// isDocumentCollection
 	
-}	// Document.
+}	// NewUser.
 
-module.exports = NewDocument;
+module.exports = NewUser;

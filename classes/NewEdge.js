@@ -3,7 +3,6 @@
 //
 // Frameworks.
 //
-const db = require('@arangodb').db;
 const crypto = require('@arangodb/crypto');
 
 //
@@ -16,7 +15,7 @@ const MyError = require( '../utils/MyError' );
 //
 // Parent.
 //
-const NewDocument = require( './NewDocument' );
+const Document = require( './NewDocument' );
 
 
 /**
@@ -26,7 +25,7 @@ const NewDocument = require( './NewDocument' );
  *
  * The class expects all required collections to exist.
  */
-class NewEdge extends NewDocument
+class NewEdge extends Document
 {
 	/**
 	 * Init document properties
@@ -215,10 +214,11 @@ class NewEdge extends NewDocument
 	 */
 	validateCollectionType( theCollection, doAssert = true )
 	{
-		return NewDocument.isEdgeCollection(
-			this._request,
-			theCollection,
-			doAssert );																// ==>
+		return Document.isEdgeCollection(
+								this._request,
+								theCollection,
+								doAssert
+							);														// ==>
 		
 	}	// validateCollectionType
 	
