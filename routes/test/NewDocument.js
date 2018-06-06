@@ -808,3 +808,133 @@ router.post
 	.description(dd`
   Test the EdgeBranch class.
 `);
+
+
+/**
+ * Test EdgeBranch BranchUpdate() static method
+ *
+ * @path		/Edge
+ * @verb		post
+ * @response	{Object}	The operation result.
+ */
+router.post
+(
+	'/EdgeBranchBranchUpdate',
+	(request, response) =>
+	{
+		//
+		// Init timer.
+		//
+		const stamp = time();
+		
+		//
+		// Create test class.
+		//
+		const TestClass = require( '../../classes/NewEdgeBranch' );
+		
+		//
+		// Get parameters.
+		//
+		const collection = ( request.body.hasOwnProperty( 'collection' ) )
+						   ? request.body.collection
+						   : null;
+		
+		//
+		// Test instantiation.
+		//
+		try
+		{
+			//
+			// Instantiate class.
+			//
+			const document = TestClass.BranchUpdate(
+				request,						// Current request.
+				request.body.doc,				// Selector.
+				request.body.branch,			// Branch.
+				request.body.modifier,			// Modifier.
+				request.body.collection,		// Collection.
+				request.body.add				// Add/remove flag.
+			);
+			
+			response.send({
+				params : request.body,
+				result : document
+			});																		// ==>
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+				&& error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'EdgeBranchBranchUpdate'
+)
+	.body(
+		Joi.object({
+			doc 		: Joi.alternatives().try(
+				Joi.string().required(),
+				Joi.object().required()
+			),
+			collection 	: Joi.string(),
+			branch		: Joi.alternatives().try(
+				Joi.string(),
+				Joi.array(),
+				null
+			).required(),
+			modifier	: Joi.alternatives().try(
+				Joi.object(),
+				null
+			).required(),
+			add			: Joi.boolean().required()
+		}).required(),
+		"An object that contains the following parameters:" +
+		"<ul>" +
+		"	<li><strong>doc</strong>: Either the <code>_id</code> or <code>_key</code>" +
+		" of the document, the document contents, or omit.</li>" +
+		"	<li><strong>collection</strong>: The collection name, or omit if you" +
+		" provided the document <code>_id</code>.</li>" +
+		"	<li><strong>data</strong>: The document contents as an object, or omit.</li>" +
+		"	<li><strong>insert</strong>: A boolean indicating whether to insert the" +
+		" document.</li>" +
+		"	<li><strong>resolve</strong>: A boolean indicating whether to resolve the" +
+		" document.</li>" +
+		"	<li><strong>replace</strong>: A boolean indicating whether to replace the" +
+		" document.</li>" +
+		"	<li><strong>remove</strong>: A boolean indicating whether to remove the" +
+		" document.</li>" +
+		"	<li><strong>raise</strong>: A boolean insicating whether errors should" +
+		" raise exceptions.</li>" +
+		"	<li><strong>modify</strong>: A boolean indicating whether the provided" +
+		" <strong>data</strong> parameter contents should overwrite existing values.</li>" +
+		"	<li><strong>before</strong>: A boolean indicating whether the provided" +
+		" <strong>data</strong> contents should be set before resolving the" +
+		" document.</li>" +
+		"	<li><strong>immutable</strong>: A boolean indicating whether the" +
+		" resolved document should be immutable.</li>" +
+		"	<li><strong>revision</strong>: A boolean indicating whether to check" +
+		" document revisions.</li>" +
+		"</ul>"
+	)
+	.response(
+		200,
+		Joi.object(),
+		"The result will return the provided parameters, the flags indicating which" +
+		" operations were performed, the object contents and the object statistics."
+	)
+	.summary(
+		"Test EdgeBranch BranchUpdate() static method."
+	)
+	.description(dd`
+  Test the EdgeBranch BranchUpdate() static method.
+`);

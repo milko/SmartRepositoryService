@@ -20,6 +20,7 @@ const MyError = require( '../utils/MyError' );
 //
 // Parent.
 //
+const Document = require( './NewDocument' );
 const NewEdge = require( './NewEdge' );
 
 
@@ -546,17 +547,22 @@ class NewEdgeBranch extends NewEdge
 	 * 		- If found:
 	 * 			- If the edge has no branches, raise an exception.
 	 * 			- If there are more than one resolved edge, raise an exception.
+	 * 			- Retain from the resolved edge only the _id, _rev, branches and
+	 * 			  modifier fields.
 	 * 		- If not found:
 	 * 			- If provided an _id or _key reference, raise an exception.
-	 * 	- Retain from the resolved edge only the _id, _rev, branches and modifier fields.
 	 * 	- Update local branches and modifiers.
 	 * 	- If no branches are left:
 	 * 		- Remove the edge.
 	 * 		- Return false.
 	 *  - If there are branches left:
-	 * 		- Update the document in the database.
-	 * 		- Raise an exception if there is a revision mismatch.
-	 * 		- Return the updated record containing only the _id, branches and modifiers.
+	 *  	- If the edge exists:
+	 * 			- Update the document in the database.
+	 * 			- Raise an exception if there is a revision mismatch.
+	 * 		- If the edge does not exist:
+	 * 			- Insert the edge.
+	 * 			- Copy insert metadata to record.
+	 * 		- Return record.
 	 *
 	 * The behaviour of theBranch, theModifier and doAdd is documented in the
 	 * SetBranch() and SetModifier() static methods. Note that SetModifier() may
@@ -594,8 +600,8 @@ class NewEdgeBranch extends NewEdge
 			//
 			// Init local storage.
 			//
+			let record;
 			let found = false;
-			const record = {};
 			const selectors = [
 				'_to',
 				'_from',
@@ -657,10 +663,11 @@ class NewEdgeBranch extends NewEdge
 				//
 				// Init local storage.
 				//
+				const matcher = {};
 				const missing = [];
 				
 				//
-				// Fill record.
+				// Fill matcher.
 				//
 				for( const selector of selectors )
 				{
@@ -668,7 +675,7 @@ class NewEdgeBranch extends NewEdge
 					// Add selector.
 					//
 					if( theReference.hasOwnProperty( selector ) )
-						record[ selector ] =
+						matcher[ selector ] =
 							theReference[ selector ];
 					
 					//
@@ -695,7 +702,7 @@ class NewEdgeBranch extends NewEdge
 				//
 				// Resolve edge.
 				//
-				const cursor = collection.byExample( record );
+				const cursor = collection.byExample( matcher );
 				
 				//
 				// Handle ambiguous edge.
@@ -705,8 +712,12 @@ class NewEdgeBranch extends NewEdge
 						new MyError(
 							'AmbiguousDocumentReference',		// Error name.
 							K.error.AmbiguousEdge,				// Message code.
-							this.request.application.language,	// Language.
-							[record._from, record._to, record[Dict.descriptor.kPredicate]],
+							theRequest.application.language,	// Language.
+							[
+								matcher._from,
+								matcher._to,
+								matcher[Dict.descriptor.kPredicate]
+							],
 							412									// HTTP error code.
 						)
 					);															// !@! ==>
@@ -717,39 +728,9 @@ class NewEdgeBranch extends NewEdge
 				if( cursor.count() === 1 )
 				{
 					//
-					// Set identifier and revision.
+					// Load edge.
 					//
-					record._id = temp._id;
-					record._rev = temp._rev;
-					
-					//
-					// Load branches.
-					//
-					const temp = cursor.toArray()[ 0 ];
-					if( temp.hasOwnProperty( Dict.descriptor.kBranches ) )
-						record[ Dict.descriptor.kBranches ] =
-							temp[ Dict.descriptor.kBranches ];
-					else
-						throw(
-							new MyError(
-								'ConstraintViolated',				// Error name.
-								K.error.NotBranchedEdge,			// Message code.
-								this._request.application.language,	// Language.
-								[
-									record._from,
-									record[ Dict.descriptor.kPredicate ],
-									record._to
-								],
-								412									// HTTP error code.
-							)
-						);														// !@! ==>
-					
-					//
-					// Load modifiers.
-					//
-					if( temp.hasOwnProperty( Dict.descriptor.kModifiers ) )
-						record[ Dict.descriptor.kModifiers ] =
-							temp[ Dict.descriptor.kModifiers ];
+					record = cursor.toArray()[ 0 ];
 					
 					//
 					// Set found flag.
@@ -758,10 +739,19 @@ class NewEdgeBranch extends NewEdge
 					
 				}	// Found edge.
 				
-			}	// Provided selector.
+				//
+				// Handle new edge.
+				//
+				else
+					record = theReference;
+				
+			}	// Provided object selector.
 			
 			//
 			// Resolve by reference.
+			// Note that unlike selecting by content,
+			// if the reference doesn't resolve,
+			// an exception will be raised.
 			//
 			else
 			{
@@ -772,51 +762,35 @@ class NewEdgeBranch extends NewEdge
 				const temp = collection.document( theReference );
 				
 				//
-				// Set identifier and revision.
+				// Clone immutable object.
 				//
-				record._id = temp._id;
-				record._rev = temp._rev;
-				
-				//
-				// Load selectors.
-				//
-				for( const selector of selectors )
-					record[ selector ] = temp[ selector ];
-				
-				//
-				// Load branches.
-				//
-				if( temp.hasOwnProperty( Dict.descriptor.kBranches ) )
-					record[ Dict.descriptor.kBranches ] =
-						temp[ Dict.descriptor.kBranches ];
-				else
-					throw(
-						new MyError(
-							'ConstraintViolated',				// Error name.
-							K.error.NotBranchedEdge,			// Message code.
-							this._request.application.language,	// Language.
-							[
-								record._from,
-								record[ Dict.descriptor.kPredicate ],
-								record._to
-							],
-							412									// HTTP error code.
-						)
-					);															// !@! ==>
-				
-				//
-				// Load modifiers.
-				//
-				if( temp.hasOwnProperty( Dict.descriptor.kModifiers ) )
-					record[ Dict.descriptor.kModifiers ] =
-						temp[ Dict.descriptor.kModifiers ];
+				record = JSON.parse(JSON.stringify(temp));
 				
 				//
 				// Set found flag.
 				//
 				found = true;
 			
-			}	// Provided reference.
+			}	// Provided reference selector.
+			
+			//
+			// Assert branched edge.
+			//
+			if( found
+			 && (! record.hasOwnProperty( Dict.descriptor.kBranches )) )
+				throw(
+					new MyError(
+						'ConstraintViolated',				// Error name.
+						K.error.NotBranchedEdge,			// Message code.
+						theRequest.application.language,	// Language.
+						[
+							record._from,
+							record[ Dict.descriptor.kPredicate ],
+							record._to
+						],
+						412									// HTTP error code.
+					)
+				);														// !@! ==>
 			
 			//
 			// Update branches.
@@ -889,6 +863,7 @@ class NewEdgeBranch extends NewEdge
 				// Update record.
 				//
 				record._id = meta._id;
+				record._key = meta._id;
 				record._rev = meta._rev;
 				
 			}	//  New edge.
