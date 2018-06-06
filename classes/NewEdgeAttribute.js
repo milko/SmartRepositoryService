@@ -49,7 +49,7 @@ class NewEdgeAttribute extends NewEdge
 	normaliseDocumentProperties( doAssert = true )
 	{
 		//
-		// Remove empty attributes.
+		// Handle attributes.
 		//
 		if( this._document.hasOwnProperty( Dict.descriptor.kAttributes )
 		 && (this._document[ Dict.descriptor.kAttributes ].length === 0) )
@@ -80,6 +80,48 @@ class NewEdgeAttribute extends NewEdge
 		return super.normaliseDocumentProperties( doAssert );						// ==>
 		
 	}	// normaliseDocumentProperties
+	
+	
+	/************************************************************************************
+	 * ASSERTIONS METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Match locked property
+	 *
+	 * We overload this method to match the contents of the attributes property: since
+	 * it is an array, even if the contents are the same, the identity match will
+	 * fail, so we match their stringified bersion.
+	 *
+	 * @param theProperty	{String}	Property name.
+	 * @param theExisting	{*}			Existing value.
+	 * @param theProvided	{*}			Provided value.
+	 * @returns {Boolean}				True if identical.
+	 */
+	matchPropertyValue( theProperty, theExisting, theProvided )
+	{
+		//
+		// Trap attributes.
+		//
+		if( theProperty === Dict.descriptor.kAttributes )
+		{
+			//
+			// Sort values.
+			//
+			if( Array.isArray( theExisting )
+				&& (theExisting.length > 0) )
+				theExisting.sort();
+			
+			if( Array.isArray( theProvided )
+				&& (theProvided.length > 0) )
+				theProvided.sort();
+			
+			return (JSON.stringify(theExisting) === JSON.stringify(theProvided));	// ==>
+		}
+		
+		return super.matchPropertyValue( theProperty, theExisting, theProvided );	// ==~
+		
+	}	// matchPropertyValue
 	
 	
 	/************************************************************************************
@@ -192,10 +234,8 @@ class NewEdgeAttribute extends NewEdge
 	 * This method will return the computed edge key value, or null, if any required
 	 * field is missing.
 	 *
-	 * Note that this is the only method that will sort the attribute elements property.
-	 *
-	 * This class expects the _from, _to, predicate and attribute properties to have been
-	 * set.
+	 * This class expects the _from, _to, predicate and attribute properties; it will
+	 * sort the attributes property before computing the key.
 	 *
 	 * @returns {String}|{null}	The edge _key, or null, if missing required fields.
 	 */
@@ -229,7 +269,7 @@ class NewEdgeAttribute extends NewEdge
 						this._document[ Dict.descriptor.kAttributes ]
 					).join( "\t" )
 				)
-			);																			// ==>
+			);																		// ==>
 			
 		}	// Has required key fields.
 		

@@ -449,7 +449,7 @@ class NewDocument
 		//
 		// Handle value modifications.
 		//
-		if( value_old !== theValue )
+		if( ! this.matchPropertyValue( theField, value_old, theValue ) )
 		{
 			//
 			// Handle locked field violation.
@@ -845,13 +845,18 @@ class NewDocument
 			//
 			// Intersect locked fields with existing and current objects.
 			//
-			const locked = this.lockedFields
-				.filter( field => {
+			const locked =
+				this.lockedFields
+					.filter( field => {
 						return ( existing.hasOwnProperty( field )
-							&& this._document.hasOwnProperty( field )
-							&& existing[ field ] !== this._document[ field ] );
-					}
-				);
+							  && this._document.hasOwnProperty( field )
+							  && (! this.matchPropertyValue(
+							  			field,
+										existing[ field ],
+										this._document[ field ]
+							))
+						);
+					});
 			
 			//
 			// Handle conflicts.
@@ -888,7 +893,7 @@ class NewDocument
 	 * Collections can either be of type document or edge: this method will check if
 	 * the provided collection is of the correct type, if that is the case, the method
 	 * will return true, if not, the method will return false, or raise an exception
-	 * if doAssert is true..
+	 * if doAssert is true.
 	 *
 	 * Call the Document.isEdgeCollection() or Document.isDocumentCollection() static
 	 * methods where appropriate.
@@ -904,6 +909,37 @@ class NewDocument
 		return true;																// ==>
 		
 	}	// validateCollectionType
+	
+	
+	/************************************************************************************
+	 * ASSERTIONS METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Match locked property
+	 *
+	 * This method is used to implement custom identity matching: if matching two
+	 * values requires more than just using "===", you can catch the property name and
+	 * the two values in this method/
+	 *
+	 * The method returns true if both values match, or false if not.
+	 *
+	 * The method is called in two places: in setDocumentProperty() when
+	 * explicitly updating the document contents, and in validateLockedProperties()
+	 * when validating the document before persisting.
+	 *
+	 * In this class we return A === B.
+	 *
+	 * @param theProperty	{String}	Property name.
+	 * @param theExisting	{*}			Existing value.
+	 * @param theProvided	{*}			Provided value.
+	 * @returns {Boolean}				True if identical.
+	 */
+	matchPropertyValue( theProperty, theExisting, theProvided )
+	{
+		return (theExisting === theProvided);										// ==>
+		
+	}	// matchPropertyValue
 	
 	
 	/************************************************************************************
@@ -983,7 +1019,7 @@ class NewDocument
 				// Handle unique constraint error.
 				//
 				if( error.isArangoError
-					&& (error.errorNum === ARANGO_DUPLICATE) )
+				 && (error.errorNum === ARANGO_DUPLICATE) )
 				{
 					//
 					// Set field references.

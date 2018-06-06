@@ -78,17 +78,22 @@ const NewEdge = require( './NewEdge' );
  * persistent, or if the object is persistent and has the branches property: this can
  * be used to check if a resolved edge is indeed a branched edge.
  *
- * When using this class, you will most often need to simply make changes in the
- * branches and modifier fields, leaving the rest of the object untouched, rather than
- * instantiating, resolving, modifying and replacing the object, this class provides
- * an additional static method that can be used to make these changes with one call:
+ * Since this kind of edge incorporates many relationships qualified by the properties
+ * contained in the edge, most interactions will involve adding or removing branches
+ * and modifiers: rather than instantiating, resolving, modifying and replacing the
+ * object, this class provides an additional static method that can be used to make
+ * these changes with one call:
  *
  * - BranchUpdate:	The method expects the same selector as the constructor, a
  * 					parameter that holds the branches to modify another parameter that
  * 					holds the modifiers to update and two boolean flags that indicate
  * 					whether we want to add or delete the corresponding entries.
  *
- * Since these two properties are reserved, when updating the object contents it will
+ * The above method will only update the branches and modifiers, the other properties
+ * of the edge apply for all relationships between the nodes using the predicate:
+ * these edge-level qualifiers should be set one and rarely changes.
+ *
+ * Since branches and modifiers are reserved, when updating the object contents it will
  * be forbidden to set the above properties: these will be loaded only when resolving
  * the object.
  *
