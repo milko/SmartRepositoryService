@@ -85,9 +85,13 @@ class NewEdge extends NewDocument
 			if( this.validateSignificantProperties( doAssert ) !== false )
 			{
 				//
-				// Get key.
+				// Compute key.
 				//
 				const key = this.key;
+				
+				//
+				// Check if computed.
+				//
 				if( key === null )
 					throw(
 						new MyError(
@@ -228,41 +232,6 @@ class NewEdge extends NewDocument
 	 ************************************************************************************/
 	
 	/**
-	 * Compute edge key.
-	 *
-	 * This method will return the computed edge key value, or null, if any required
-	 * field is missing.
-	 *
-	 * This class expects the _from, _to and predicate properties to have been set.
-	 *
-	 * @returns {String}|{null}	The edge _key, or null, if missing required fields.
-	 */
-	get key()
-	{
-		//
-		// Ensure required fields.
-		//
-		if( this._document.hasOwnProperty( '_to' )
-		 && this._document.hasOwnProperty( '_from' )
-		 && this._document.hasOwnProperty( Dict.descriptor.kPredicate ) )
-		{
-			//
-			// Collect hash fields.
-			//
-			const hash = [];
-			hash.push( this._document._from );
-			hash.push( this._document._to );
-			hash.push( this._document[ Dict.descriptor.kPredicate ] );
-			
-			return crypto.md5( hash.join( "\t" ) );									// ==>
-			
-		}	// Has required key fields.
-		
-		return null;																// ==>
-		
-	}	// key
-	
-	/**
 	 * Return list of significant fields
 	 *
 	 * In the Edge class family there must be only one combination of significant
@@ -317,6 +286,46 @@ class NewEdge extends NewDocument
 			]);																		// ==>
 		
 	}	// lockedFields
+	
+	
+	/************************************************************************************
+	 * GETTER COMPUTED METHODS															*
+	 ************************************************************************************/
+	
+	/**
+	 * Compute edge key.
+	 *
+	 * This method will return the computed edge key value, or null, if any required
+	 * field is missing.
+	 *
+	 * This class expects the _from, _to and predicate properties to have been set.
+	 *
+	 * @returns {String}|{null}	The edge _key, or null, if missing required fields.
+	 */
+	get key()
+	{
+		//
+		// Ensure required fields.
+		//
+		if( this._document.hasOwnProperty( '_to' )
+		 && this._document.hasOwnProperty( '_from' )
+		 && this._document.hasOwnProperty( Dict.descriptor.kPredicate ) )
+		{
+			//
+			// Collect hash fields.
+			//
+			const hash = [];
+			hash.push( this._document._from );
+			hash.push( this._document._to );
+			hash.push( this._document[ Dict.descriptor.kPredicate ] );
+			
+			return crypto.md5( hash.join( "\t" ) );									// ==>
+			
+		}	// Has required key fields.
+		
+		return null;																// ==>
+		
+	}	// key
 	
 }	// NewEdge.
 

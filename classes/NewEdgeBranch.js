@@ -97,65 +97,6 @@ const NewEdge = require( './NewEdge' );
 class NewEdgeBranch extends NewEdge
 {
 	/**
-	 * Constructor
-	 *
-	 * We overload the constructor to set the branched data member if resolved and to
-	 * assert that the current edge, if resolved, is indeed branched: in this last
-	 * case, the method will raise an exception.
-	 *
-	 * @param theRequest	{Object}					The current request.
-	 * @param theReference	{String}|{Object}|”null}	The document reference or object.
-	 * @param theCollection	{String}|{null}				The document collection.
-	 * @param isImmutable	{Boolean}					True, instantiate immutable document.
-	 */
-	constructor(
-		theRequest,
-		theReference = null,
-		theCollection = null,
-		isImmutable = false )
-	{
-		//
-		// Call parent method.
-		//
-		super( theRequest, theReference, theCollection, isImmutable );
-		
-		//
-		// Handle persistent object.
-		//
-		if( this._persistent )
-		{
-			//
-			// Check if branched.
-			//
-			if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
-				throw(
-					new MyError(
-						'ConstraintViolated',				// Error name.
-						K.error.NotBranchedEdge,			// Message code.
-						this._request.application.language,	// Language.
-						[
-							this._document._from,
-							this._document[ Dict.descriptor.kPredicate ],
-							this._document._to
-						],
-						412									// HTTP error code.
-					)
-				);																// !@! ==>
-				
-			//
-			// Set branched flag.
-			//
-			this._branched = true;
-		}
-		
-	}	// constructor
-	
-	
-	/************************************************************************************
-	 * MODIFICATION METHODS																*
-	 ************************************************************************************/
-	
-	/**
 	 * Set document property
 	 *
 	 * We overload this method to handle the branches and modifiers: these two
@@ -195,6 +136,52 @@ class NewEdgeBranch extends NewEdge
 		
 	}	// setDocumentProperty
 	
+	/**
+	 * Normalise document properties
+	 *
+	 * We overload this method to ensure the branches and modifiers are not empty, if
+	 * that is the case, we remove them: inserting and replacing will raise an
+	 * exception if branches are missing, while if modifiers are missing it is an
+	 * intended feature.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	normaliseDocumentProperties( doAssert = true )
+	{
+		//
+		// Check branches.
+		//
+		if( this._document.hasOwnProperty( Dict.descriptor.kBranches )
+		 && (this._document[ Dict.descriptor.kBranches ] === 0) )
+			delete this._document[ Dict.descriptor.kBranches ];
+		
+		//
+		// Assert attributes in persistent object.
+		//
+		if( this._persistent
+		 && (! this._document.hasOwnProperty( Dict.descriptor.kBranches )) )
+			throw(
+				new MyError(
+					'ConstraintViolated',				// Error name.
+					K.error.NotBranchedEdge,			// Message code.
+					this._request.application.language,	// Language.
+					[
+						this._document._from,
+						this._document[ Dict.descriptor.kPredicate ],
+						this._document._to
+					],
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+		//
+		// Call parent method.
+		//
+		return super.normaliseDocumentProperties( doAssert );						// ==>
+		
+	}	// normaliseDocumentProperties
+	
 	
 	/************************************************************************************
 	 * PERSISTENCE METHODS																*
@@ -203,8 +190,9 @@ class NewEdgeBranch extends NewEdge
 	/**
 	 * Resolve document
 	 *
-	 * We overload this method to set the branched flag data member and return false
-	 * or raise an exception if the resolved edge is not branched.
+	 * We overload this method to set the branched flag data member and raise an
+	 * exception if the resolved edge is not branched; note that in thist last case
+	 * the exception is forced, regardless of doAssert.
 	 *
 	 * @param doReplace	{Boolean}	Replace existing data (false is default).
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
@@ -217,44 +205,30 @@ class NewEdgeBranch extends NewEdge
 		// Parent returns the persistent status.
 		//
 		const result = super.resolveDocument( doReplace, doAssert );
-		if( result )
+		if( result === true )
 		{
 			//
 			// Check if branched.
 			//
 			if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
-			{
-				//
-				// Raise exception.
-				//
-				if( doAssert )
-					throw(
-						new MyError(
-							'ConstraintViolated',				// Error name.
-							K.error.NotBranchedEdge,			// Message code.
-							this._request.application.language,	// Language.
-							[
-								this._document._from,
-								this._document[ Dict.descriptor.kPredicate ],
-								this._document._to
-							],
-							412									// HTTP error code.
-						)
-					);															// !@! ==>
-				
-				//
-				// Set branched flag.
-				//
-				this._branched = false;
-				
-				return false;														// ==>
-			}
+				throw(
+					new MyError(
+						'ConstraintViolated',				// Error name.
+						K.error.NotBranchedEdge,			// Message code.
+						this._request.application.language,	// Language.
+						[
+							this._document._from,
+							this._document[ Dict.descriptor.kPredicate ],
+							this._document._to
+						],
+						412									// HTTP error code.
+					)
+				);																// !@! ==>
 			
 			//
 			// Set branched flag.
 			//
 			this._branched = true;
-			
 		}
 		
 		return result;																// ==>

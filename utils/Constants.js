@@ -363,7 +363,8 @@ module.exports = Object.freeze(
 			CannotManageBranches:  99,
 			NotBranchedEdge		: 100,
 			IsPersistent		: 101,
-			IsNotPersistent		: 102
+			IsNotPersistent		: 102,
+			NotAttributeEdge	: 103
 		},
 
 		//
