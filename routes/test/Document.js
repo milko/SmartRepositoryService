@@ -308,6 +308,7 @@ router.post
 		// Create test class.
 		//
 		const TestClass = require( '../../classes/Edge' );
+		response.send({ result : 'ok' });
 		
 		//
 		// Get parameters.
@@ -338,7 +339,7 @@ router.post
 			// Set data before resolving.
 			//
 			if( (dat !== null)
-				&& request.body.before )
+			 && request.body.before )
 				document.setDocumentProperties(
 					dat,
 					request.body.modify
