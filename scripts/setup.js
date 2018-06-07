@@ -9,7 +9,6 @@ const Application = require( '../utils/Application' );
 //
 // Init local storage.
 //
-let result = null;
 module.exports = {};
 
 //
