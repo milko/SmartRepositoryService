@@ -102,7 +102,7 @@ module.exports = {
 		//
 		// Check user.
 		//
-		if( ! user.resolve( false, false ) )
+		if( ! user.resolveDocument( false, false ) )
 			theResponse.throw(
 				404,
 				new MyError(
@@ -132,11 +132,7 @@ module.exports = {
 		//
 		// Check credentials.
 		//
-		const auth = createAuth();
-		const valid = auth.verify(
-			user.document[ Dict.descriptor.kAuthData ],
-			theRequest.body.password );
-		if( ! valid )
+		if( ! User.checkAuthentication( theRequest.body.password, user.document ) )
 			theResponse.throw(
 				403,
 				new MyError(
@@ -420,7 +416,7 @@ module.exports = {
 			//
 			// Get managed hierarchy.
 			//
-			result.result = user.manages(
+			result.result = user.managed(
 				theRequest.body.doTree,
 				theRequest.body.minDepth,
 				theRequest.body.maxDepth,

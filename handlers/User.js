@@ -136,7 +136,7 @@ module.exports = {
 			//
 			// Insert user.
 			//
-			user.insert( encode[ Dict.descriptor.kPassword ] );
+			user.insertDocument( encode[ Dict.descriptor.kPassword ] );
 			
 			//
 			// Return response.
@@ -218,14 +218,14 @@ module.exports = {
 			// Will raise an exception if not found.
 			//
 			const user = new User( theRequest, selector );
-			user.resolve( true, true );
+			user.resolveDocument( true, true );
 			
 			//
 			// Validate current user as manager.
 			//
 			if( theRequest.session.hasOwnProperty( 'uid' )
 			 && (theRequest.session.uid !== null)
-			 && (! user.isManagedBy( theRequest.session.uid )) )
+			 && (! user.managedBy( theRequest.session.uid )) )
 				theResponse.throw(
 					403,
 					new MyError(
@@ -260,7 +260,7 @@ module.exports = {
 			//
 			// Replace user.
 			//
-			user.replace( true, encode[ Dict.descriptor.kPassword ] );
+			user.replaceDocument( true, encode[ Dict.descriptor.kPassword ] );
 			
 			//
 			// Return response.
@@ -339,7 +339,7 @@ module.exports = {
 			// Will raise an exception if not found.
 			//
 			const user = new User( theRequest, selector );
-			user.resolve( true, true );
+			user.resolveDocument( true, true );
 			
 			//
 			// Validate current user as manager.
@@ -348,7 +348,7 @@ module.exports = {
 			// this means that a user cannot change its own code:
 			// this ensures the system administrator username will not change.
 			//
-			if( ! user.isManagedBy( theRequest.session.uid ) )
+			if( ! user.managedBy( theRequest.session.uid ) )
 				theResponse.throw(
 					403,
 					new MyError(
@@ -364,7 +364,7 @@ module.exports = {
 			//
 			selector[ Dict.descriptor.kUsername ] = theRequest.body.new;
 			const temp = new User( theRequest, selector );
-			if( temp.resolve( false, false ) )
+			if( temp.resolveDocument( false, false ) )
 				theResponse.throw(
 					403,
 					new MyError(
@@ -463,7 +463,7 @@ module.exports = {
 			//
 			// Check user.
 			//
-			if( ! user.resolve( false, false ) )
+			if( ! user.resolveDocument( false, false ) )
 				theResponse.throw(
 					404,
 					new MyError(
@@ -473,7 +473,6 @@ module.exports = {
 						decoded.username						// Error data.
 					)
 				);																// !@! ==>
-			
 			
 			//
 			// Check signup credentials.
@@ -588,7 +587,7 @@ module.exports = {
 			// Insert user.
 			//
 			const user = new User( theRequest, data );
-			user.insert( password );
+			user.insertDocument( password );
 			
 			//
 			// Login user.
@@ -615,7 +614,7 @@ module.exports = {
 			// Handle MyError exceptions.
 			//
 			if( (error.constructor.name === 'MyError')
-				&& error.hasOwnProperty( 'param_http' ) )
+			 && error.hasOwnProperty( 'param_http' ) )
 				http = error.param_http;
 			
 			theResponse.throw( http, error );									// !@! ==>
@@ -702,7 +701,7 @@ module.exports = {
 			//
 			// Check user.
 			//
-			if( ! user.resolve( false, false ) )
+			if( ! user.resolveDocument( false, false ) )
 				theResponse.throw(
 					403,
 					new MyError(
@@ -734,7 +733,7 @@ module.exports = {
 			//
 			// Replace user.
 			//
-			user.replace( true, password_user );
+			user.replaceDocument( true, password_user );
 			
 			//
 			// Login user.
@@ -761,7 +760,7 @@ module.exports = {
 			// Handle MyError exceptions.
 			//
 			if( (error.constructor.name === 'MyError')
-				&& error.hasOwnProperty( 'param_http' ) )
+			 && error.hasOwnProperty( 'param_http' ) )
 				http = error.param_http;
 			
 			theResponse.throw( http, error );									// !@! ==>

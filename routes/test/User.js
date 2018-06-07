@@ -133,7 +133,7 @@ router.post
 			//
 			let resolve = null;
 			if( request.body.resolve )
-				resolve = user.resolve(
+				resolve = user.resolveDocument(
 					request.body.modify,
 					request.body.raise
 				);

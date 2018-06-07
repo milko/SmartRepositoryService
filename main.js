@@ -18,9 +18,12 @@ module.context.use('/test/Form', require('./routes/test/Form'), 'testForm');
 module.context.use('/test/User', require('./routes/test/User'), 'testUser');
 module.context.use('/test/Schema', require('./routes/test/Schema'), 'testSchema');
 module.context.use('/test/Document', require('./routes/test/Document'), 'testDocument');
-module.context.use('/test/Descriptor', require('./routes/test/Descriptor'), 'testDescriptor');
-module.context.use('/test/Validation', require('./routes/test/Validation'), 'testValidation');
-module.context.use('/test/Application', require('./routes/test/Application'), 'testApplication');
+module.context.use('/test/Descriptor', require('./routes/test/Descriptor'),
+'testDescriptor');
+module.context.use('/test/Validation', require('./routes/test/Validation'),
+'testValidation');
+module.context.use('/test/Application', require('./routes/test/Application'),
+'testApplication');
 
 //
 // Frameworks.

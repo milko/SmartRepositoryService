@@ -715,13 +715,13 @@ class User extends Document
 			// Resolve group.
 			// Any error raises an exception regardless of doAssert.
 			//
-			this.resolveGroupEdge();
+			this.resolveGroup();
 			
 			//
 			// Resolve manager.
 			// Any error raises an exception regardless of doAssert.
 			//
-			this.resolveManagerEdge();
+			this.resolveManager();
 			
 		}	// Resolved user.
 		

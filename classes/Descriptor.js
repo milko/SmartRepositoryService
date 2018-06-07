@@ -22,11 +22,6 @@ const Dictionary = require( '../utils/Dictionary' );
 //
 const Document = require( './Document' );
 
-//
-// Classes.
-//
-const Edge = require( './Edge' );
-
 
 /**
  * Descriptor class

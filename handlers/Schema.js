@@ -774,7 +774,7 @@ module.exports = {
 			//
 			const user = new User( theRequest, theRequest.body.origin );
 			if( ! user.persistent )
-				user.resolve( true, true );
+				user.resolveDocument( true, true );
 			
 			//
 			// Traverse downwards.
@@ -886,7 +886,7 @@ module.exports = {
 			//
 			const user = new User( theRequest, theRequest.body.origin );
 			if( ! user.persistent )
-				user.resolve( true, true );
+				user.resolveDocument( true, true );
 			
 			//
 			// Traverse downwards.

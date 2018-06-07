@@ -10,62 +10,38 @@ const Application = require( '../utils/Application' );
 // Init local storage.
 //
 let result = null;
+module.exports = {};
 
 //
 // Initialise required directories.
 //
-result = Application.createDirectories();
-if( result.length )
-	console.debug(
-		`Created the following directories: ${result.toString()}.`
-	);
-else
-	console.debug(
-		`All required directories exist.`
-	);
+module.exports.createDirectories =
+	Application.createDirectories();
 
 //
 // Initialise authentication file.
 //
-result = Application.createAuthFile();
-if( result.length )
-	console.debug(
-		`Created the following directories: ${result.toString()}.`
-	);
-else
-	console.debug(
-		`All required directories exist.`
-	);
+module.exports.createAuthFile =
+	Application.createAuthFile();
 
 //
 // Initialise document collections.
 //
-result = Application.createDocumentCollections();
-if( result.length )
-	console.debug(
-		`Created the following document collections: ${result.toString()}.`
-	);
-else
-	console.debug(
-		`All required document collections exist.`
-	);
+module.exports.createDocumentCollections =
+	Application.createDocumentCollections();
 
 //
 // Initialise edge collections.
 //
-result = Application.createEdgeCollections();
-if( result.length )
-	console.debug(
-		`Created the following edge collections: ${result.toString()}.`
-	);
-else
-	console.debug(
-		`All required edge collections exist.`
-	);
+module.exports.createEdgeCollections =
+	Application.createEdgeCollections();
 
 //
 // Initialise data dictionary.
 //
+module.exports.createDataDictionary =
+	Application.createDataDictionary( false );
+/*
 result = Application.createDataDictionary( false );
 if( result === true )
 	console.debug(
@@ -79,3 +55,4 @@ else
 	console.debug(
 		`Unable to create data dictionary.`
 	);
+*/
