@@ -3,14 +3,7 @@
 //
 // Frameworks.
 //
-const db = require('@arangodb').db;
-const aql = require('@arangodb').aql;
 const crypto = require('@arangodb/crypto');
-const errors = require('@arangodb').errors;
-const traversal = require("@arangodb/graph/traversal");
-const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
-const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
-const ARANGO_CONFLICT = errors.ERROR_ARANGO_CONFLICT.code;
 
 //
 // Application.
@@ -20,102 +13,190 @@ const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
 
 //
-// Ancestor.
+// Parent.
 //
 const Edge = require( './Edge' );
 
 
 /**
- * Edge option class
+ * Attribute edge class
  *
- * This class implements an option edge object, it only manages significant fields, other
- * fields should be managed outside of the object.
+ * This class overloads the Edge class to implement an attribute edge: attribute edges
+ * behave like the parent class, except that they add an attribute property which
+ * contributes to the object key and its identification.
+ *
+ * The attribute property is an array of terms that once set cannot be modified.
+ * Before inserting the object, these attributes are sorted, so that reconstituting an
+ * existing attribute will always produce the same sequence of values.
+ *
+ * The edge key is computed by hashing the _from, _to and predicate and the flattened
+ * contents of the attributes property.
  *
  * The class expects all required collections to exist.
  */
 class EdgeAttribute extends Edge
 {
 	/**
-	 * Set class
+	 * Init document properties
 	 *
-	 * This method will set the document class, which is the _key reference of the
-	 * term defining the document class.
+	 * We overload this method to set the instance member.
 	 *
-	 * In this class there is no defined class, so the value will be null.
+	 * @param theRequest	{Object}			The current request.
+	 * @param theCollection	{String}|{null}		The document collection.
+	 * @param isImmutable	{Boolean}			True, instantiate immutable document.
 	 */
-	setClass()
+	initDocumentMembers( theRequest, theCollection, isImmutable )
 	{
-		this._class = 'EdgeAttribute';
+		//
+		// Call parent method.
+		//
+		super.initDocumentMembers( theRequest, theCollection, isImmutable );
 		
-	}	// setClass
+		//
+		// Set edge instance.
+		//
+		this._instance = 'EdgeAttribute';
+		
+	}	// initDocumentMembers
+	
+	
+	/************************************************************************************
+	 * MODIFICATION METHODS																*
+	 ************************************************************************************/
 	
 	/**
-	 * Load document property
+	 * Normalise document properties
 	 *
-	 * We overload this method to sort the provided attributes array before processing.
+	 * We overload this method to remove the attributes property if empty and assert
+	 * that if the edge is persistent it indeed has the attributes; in this last case
+	 * the method will raise an exception regardless of the value of doAssert.
 	 *
-	 * @param theField		{String}	The property name.
-	 * @param theValue		{*}			The property value.
-	 * @param theLocked		{Array}		List of locked properties.
-	 * @param isResolving	{Boolean}	True, called by resolve().
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
 	 */
-	setProperty( theField, theValue, theLocked, isResolving )
+	normaliseDocumentProperties( doAssert = true )
 	{
 		//
 		// Handle attributes.
 		//
-		if( theField === Dict.descriptor.kAttributes )
-			theValue.sort();
+		if( this._document.hasOwnProperty( Dict.descriptor.kAttributes )
+		 && (this._document[ Dict.descriptor.kAttributes ].length === 0) )
+			delete this._document[ Dict.descriptor.kAttributes ];
+		
+		//
+		// Assert attributes in persistent object.
+		//
+		if( this._persistent
+		 && (! this._document.hasOwnProperty( Dict.descriptor.kAttributes )) )
+			throw(
+				new MyError(
+					'ConstraintViolated',				// Error name.
+					K.error.NotAttributeEdge,			// Message code.
+					this._request.application.language,	// Language.
+					[
+						this._document._from,
+						this._document[ Dict.descriptor.kPredicate ],
+						this._document._to
+					],
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
 		
 		//
 		// Call parent method.
 		//
-		super.setProperty( theField, theValue, theLocked, isResolving );
+		return super.normaliseDocumentProperties( doAssert );						// ==>
 		
-	}	// setProperty
+	}	// normaliseDocumentProperties
+	
+	
+	/************************************************************************************
+	 * ASSERTIONS METHODS																*
+	 ************************************************************************************/
 	
 	/**
-	 * Compute edge key.
+	 * Match locked property
 	 *
-	 * We overload this method by hashing the _from, _to, predicate and the flattened
-	 * attributes list properties, separated by a tab character, the resulting MD5
-	 * hash will be returned by this method.
+	 * We overload this method to match the contents of the attributes property: since
+	 * it is an array, even if the contents are the same, the identity match will
+	 * fail, so we match their stringified bersion.
 	 *
-	 * @returns {String}	The edge _key.
+	 * @param theProperty	{String}	Property name.
+	 * @param theExisting	{*}			Existing value.
+	 * @param theProvided	{*}			Provided value.
+	 * @returns {Boolean}				True if identical.
 	 */
-	computeKey()
+	matchPropertyValue( theProperty, theExisting, theProvided )
 	{
 		//
-		// Collect hash fields.
+		// Trap attributes.
 		//
-		const hash = [];
-		hash.push( this._document._from );
-		hash.push( this._document._to );
-		hash.push( this._document[ Dict.descriptor.kPredicate ] );
+		if( theProperty === Dict.descriptor.kAttributes )
+		{
+			//
+			// Sort values.
+			//
+			if( Array.isArray( theExisting )
+				&& (theExisting.length > 0) )
+				theExisting.sort();
+			
+			if( Array.isArray( theProvided )
+				&& (theProvided.length > 0) )
+				theProvided.sort();
+			
+			return (JSON.stringify(theExisting) === JSON.stringify(theProvided));	// ==>
+		}
 		
-		return(
-			crypto.md5(
-				hash.concat(
-					this._document[ Dict.descriptor.kAttributes ]
-				).join( "\t" )
-			)
-		);																			// ==>
+		return super.matchPropertyValue( theProperty, theExisting, theProvided );	// ==~
 		
-	}	// computeKey
+	}	// matchPropertyValue
+	
+	
+	/************************************************************************************
+	 * PERSISTENCE METHODS																*
+	 ************************************************************************************/
 	
 	/**
-	 * Normalise object properties
+	 * Resolve document
 	 *
-	 * In this method we sort the attribute elements..
+	 * We overload this method to assert that the found edge has the attributes
+	 * property, if that is not the case we raise an exception, regardless of the
+	 * value of doAssert.
+	 *
+	 * @param doReplace	{Boolean}	Replace existing data (false is default).
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if resolved.
 	 */
-	normaliseProperties()
+	resolveDocument( doReplace = false, doAssert = true )
 	{
 		//
-		// Normalise attributes.
+		// Call parent method.
+		// Parent returns the persistent status.
 		//
-		if( this._document.hasOwnProperty( Dict.descriptor.kAttributes ) )
-			this._document[ Dict.descriptor.kAttributes ].sort();
-	}
+		const result = super.resolveDocument( doReplace, doAssert );
+		
+		//
+		// Assert attributes edge.
+		//
+		if( (result === true)
+		 && (! this._document.hasOwnProperty( Dict.descriptor.kAttributes )) )
+			throw(
+				new MyError(
+					'ConstraintViolated',				// Error name.
+					K.error.NotAttributeEdge,			// Message code.
+					this._request.application.language,	// Language.
+					[
+						this._document._from,
+						this._document[ Dict.descriptor.kPredicate ],
+						this._document._to
+					],
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+		return result;																// ==>
+		
+	}	// resolveDocument
 	
 	
 	/************************************************************************************
@@ -125,30 +206,23 @@ class EdgeAttribute extends Edge
 	/**
 	 * Return list of significant fields
 	 *
-	 * In the Edge class family there must be only one combination of significant
-	 * fields, in this class we call the parent method and add the attributes array.
+	 * We overload the parent method to add the attributes property.
+	 *
+	 * @returns {Array}	List of significant fields.
 	 */
 	get significantFields()
 	{
-		//
-		// Get default properties.
-		//
-		const selectors = super.significantFields;
-		
-		//
-		// Add attributes to first, and only, selector.
-		//
-		selectors[ 0 ].push( Dict.descriptor.kAttributes );
-		
-		return selectors;															// ==>
+		return super.significantFields
+			.concat([
+				Dict.descriptor.kAttributes	// The attributes list.
+			]);																		// ==>
 		
 	}	// significantFields
 	
 	/**
 	 * Return list of required fields
 	 *
-	 * In this class we return the node references, the predicate and the attributes
-	 * array.
+	 * We overload the parent method to add the attributes property.
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
@@ -156,7 +230,7 @@ class EdgeAttribute extends Edge
 	{
 		return super.requiredFields
 			.concat([
-				Dict.descriptor.kAttributes		// The edge attributes.
+				Dict.descriptor.kAttributes	// The attributes list.
 			]);																		// ==>
 		
 	}	// requiredFields
@@ -164,8 +238,7 @@ class EdgeAttribute extends Edge
 	/**
 	 * Return list of locked fields
 	 *
-	 * In this class we return the node references, the predicate and the attributes
-	 * array.
+	 * We overload the parent method to add the attributes property.
 	 *
 	 * @returns {Array}	List of locked fields.
 	 */
@@ -173,10 +246,64 @@ class EdgeAttribute extends Edge
 	{
 		return super.lockedFields
 			.concat([
-				Dict.descriptor.kAttributes		// The edge attributes.
+				Dict.descriptor.kAttributes	// The attributes list.
 			]);																		// ==>
 		
 	}	// lockedFields
+	
+	
+	/************************************************************************************
+	 * GETTER COMPUTED METHODS															*
+	 ************************************************************************************/
+	
+	/**
+	 * Compute edge key.
+	 *
+	 * This method will return the computed edge key value, or null, if any required
+	 * field is missing.
+	 *
+	 * This class expects the _from, _to, predicate and attribute properties; it will
+	 * sort the attributes property before computing the key.
+	 *
+	 * @returns {String}|{null}	The edge _key, or null, if missing required fields.
+	 */
+	get key()
+	{
+		//
+		// Ensure required fields.
+		//
+		if( this._document.hasOwnProperty( '_to' )
+		 && this._document.hasOwnProperty( '_from' )
+		 && this._document.hasOwnProperty( Dict.descriptor.kPredicate )
+		 && this._document.hasOwnProperty( Dict.descriptor.kAttributes )
+		 && (this._document[ Dict.descriptor.kAttributes ].length > 0) )
+		{
+			//
+			// Collect main fields.
+			//
+			const hash = [];
+			hash.push( this._document._from );
+			hash.push( this._document._to );
+			hash.push( this._document[ Dict.descriptor.kPredicate ] );
+			
+			//
+			// Sort attributes.
+			//
+			this._document[ Dict.descriptor.kAttributes ].sort();
+			
+			return(
+				crypto.md5(
+					hash.concat(
+						this._document[ Dict.descriptor.kAttributes ]
+					).join( "\t" )
+				)
+			);																		// ==>
+			
+		}	// Has required key fields.
+		
+		return null;																// ==>
+		
+	}	// key
 	
 }	// EdgeAttribute.
 

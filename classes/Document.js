@@ -12,29 +12,29 @@ const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
 // Application.
 //
 const K = require( '../utils/Constants' );
+const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
-const Validation = require( '../utils/Validation' );
 
 
 /**
  * Document virtual class
  *
- * This virtual class declares the methods that all document classes should support.
- * The class features the following properties:
+ * This virtual class declares the methods that all persistent document classes should
+ * support, the class features the following properties:
  *
- * 	- _request:			Holds the current service request.
- * 	- _class:			Holds the class reference (term _key), can be retrieved with
- * 						the classname() getter.
- * 	- _collection:		Holds the collection name, can be retrieved with the
- * 						colname() getter.
- * 	- _document:		Holds the document object, can be retrieved with the document()
- * 						getter.
+ * 	- _request:			Holds the current service request, it is set when the object
+ * 						is instanttiated.
+ * 	- _collection:		Holds the collection name, it is either explicitly provided in
+ * 						the constructor, or it is set to the default value in the
+ * 						constructor, or it is extracted when resolvinf the object.
+ * 	- _document:		Holds the document structure.
+ * 	- _instance:		Holds the document instance, or class, it defines the current
+ * 						instance class or instance use.
  * 	- _persistent:		A boolean flag indicating whether the document was retrieved or
- * 						stored in the collection, can be retrieved with the persistent()
- * 						getter.
- * 	- _revised:			A boolean flag indicating whether the revision has changed.
- * 						The value is set whenever the document is resilved in the
- * 						collection and the current document has the revision field.
+ * 						stored in the collection, if true, it means the object was
+ * 						retrieved from its collection.
+ * 	- _revised:			A boolean flag indicating whether the revision has changed in
+ * 						the event the object was loaded from its collection.
  * 						The value can be retrieved with the revised() getter.
  */
 class Document
@@ -45,15 +45,15 @@ class Document
 	 * The constructor instantiates a document from the following parameters:
 	 *
 	 * 	- theRequest:		The current request, it will be stored in the 'request'
-	 * 						property, it is used for parameter passing and to provide
-	 * 						environment variables.
-	 * 	- theReference:		The document contents provided either as a string, in which
-	 * 						case it should represent the object reference, or as an
-	 * 						object, in which case it represents the document contents.
-	 * 	- theCollection:	The name of the collection where the object is stored. In
-	 * 						classes that implement objects that are stored in a
-	 * 						specific collection, you can omit this parameter and
-	 * 						overload the defaultCollection() method.
+	 * 						property, it is used to access environment variables.
+	 * 	- theReference:		This parameter represents either the document reference or
+	 * 						its initial contents: if provided as a string, it is
+	 * 						expected to be the document _id or _key; if provided as an
+	 * 						object it is expected to be the document contents; if
+	 * 						omitted or null, the object will be an empty document and
+	 * 						the collection argument will be asserted.
+	 * 	- theCollection:	The name of the collection where the object is stored; if
+	 * 						omitted or null, it will be inferred.
 	 * 	- isImmutable:		This parameter is only relevant when instantiating the
 	 * 						object from a string reference: if true, the resulting
 	 * 						document will be immutable, that is, its properties cannot
@@ -67,44 +67,36 @@ class Document
 	 * 	  the collection is required and if omitted, the method will raise an illegal
 	 * 	  document handle exception.
 	 * 	- If you provide an object, it is assumed you want to create a new instance,
-	 * 	  or that you do not have either the _id or _key: in this case, if you want to
-	 * 	  load the corresponding object from the database, you will have to call the
+	 * 	  or that you do not have either the _id or _key. If you want to load the
+	 * 	  corresponding object from the database, you will have to explicitly call the
 	 * 	  resolve() method. In this case the collection parameter is required.
 	 *
-	 * All derived classes should support instantiating a document from the first two
-	 * parameter of the constructor, custom arguments can be provided after these two.
-	 * In particular:
+	 * All derived classes must support this constructor signature, eventual custom
+	 * arguments should be set using a local method interface, or provided in the
+	 * object selector as custom arguments that should be caught, resolved and removed
+	 * in the derived constructor; these arguments should start by '__' as a convention.
 	 *
-	 * 	- If the derived class has a single default collection, the collection
-	 * 	  argument should be omitted from the constructor.
-	 * 	- isImmutable should always be the last argument.
+	 * If the derived class has a single default collection, the collection argument
+	 * will be overwritten by the defaultCollection() getter, so, in this case,
+	 * clients should omit or set the collection parameter to null.
 	 *
 	 * Any error will raise an exception.
 	 *
-	 * @param theRequest	{Object}			The current request.
-	 * @param theReference	{String}|{Object}	The document reference or object.
-	 * @param theCollection	{String}|{null}		The document collection.
-	 * @param isImmutable	{Boolean}			True, instantiate immutable document.
+	 * @param theRequest	{Object}					The current request.
+	 * @param theReference	{String}|{Object}|”null}	The document reference or object.
+	 * @param theCollection	{String}|{null}				The document collection.
+	 * @param isImmutable	{Boolean}					True, instantiate immutable document.
 	 */
-	constructor( theRequest, theReference, theCollection = null, isImmutable = false )
+	constructor(
+		theRequest,
+		theReference = null,
+		theCollection = null,
+		isImmutable = false )
 	{
 		//
 		// Init properties.
 		//
-		this._request = theRequest;
-		this._immutable = isImmutable;
-		this._persistent = false;
-		this._revised = false;
-		
-		//
-		// Set class.
-		//
-		this.setClass();
-		
-		//
-		// Set collection.
-		//
-		this.setCollection( theCollection );
+		this.initProperties( theRequest, theCollection, isImmutable );
 		
 		//
 		// Handle document object.
@@ -119,446 +111,241 @@ class Document
 			//
 			// Load document.
 			//
-			this.modify( theReference, true, false );
-		}
+			this.setDocumentProperties(
+				theReference,			// Provided contents.
+				true,					// Replace values.
+				false					// Is resolving.
+			);
+		
+		}	// Provided document properties.
 		
 		//
 		// Handle document reference.
 		//
+		else if( theReference !== null )
+		{
+			//
+			// Resolve document.
+			//
+			this._document =
+				this.resolveDocumentByReference(
+					theReference,					// _id or _key.
+					true,							// Raise exception.
+					isImmutable						// Immutable flag.
+				);
+			
+			//
+			// Set persistence flag.
+			// We get here only if successful.
+			//
+			this._persistent = true;
+		
+		}	// Provided document reference.
+		
+		//
+		// Init document properties.
+		//
 		else
-			this.resolveReference( theReference );
+			this._document = {};
+		
+		//
+		// Assert collection.
+		//
+		if( ! this.hasOwnProperty( '_collection' ) )
+			throw(
+				new MyError(
+					'MissingRequiredParameter',			// Error name.
+					K.error.NoCollection,				// Message code.
+					this._request.application.language,	// Language.
+					theCollection,						// Error value.
+					400									// HTTP error code.
+				)
+			);																	// !@! ==>
 		
 		//
 		// Normalise properties.
+		// We force exceptions if the document is persistent.
 		//
-		this.normaliseProperties();
+		this.normaliseDocumentProperties( this._persistent );
 		
 	}	// constructor
 	
-
+	
 	/************************************************************************************
-	 * PUBLIC METHODS																	*
+	 * INITIALISATION METHODS															*
 	 ************************************************************************************/
-
+	
 	/**
-	 * Insert
+	 * Init properties
 	 *
-	 * This method will insert the document in the registered collection after validating
-	 * its contents.
+	 * This method is called at the beginning of the instantiation process, its duty
+	 * is to set the main object properties before resolving or finalising the
+	 * instantiation.
 	 *
-	 * Any validation error or insert error will raise an exception.
+	 * This method performs the following steps:
 	 *
-	 * @returns {Boolean}	True, document inserted.
+	 * 	- initDocumentMembers():		Set default document data members.
+	 * 	- initDocumentCollection():		Set collection properties.
+	 *
+	 * Any error in this phase should raise an exception.
+	 *
+	 * @param theRequest	{Object}			The current request.
+	 * @param theCollection	{String}|{null}		The document collection.
+	 * @param isImmutable	{Boolean}			True, instantiate immutable document.
 	 */
-	insert()
+	initProperties( theRequest, theCollection, isImmutable )
 	{
 		//
-		// Validate document.
+		// Initialise object data members.
 		//
-		if( this.validate( true ) )
+		this.initDocumentMembers( theRequest, isImmutable );
+		
+		//
+		// Initialise object environment.
+		//
+		this.initDocumentCollection( theRequest, theCollection );
+		
+	}	// initProperties
+	
+	/**
+	 * Init document properties
+	 *
+	 * This method is called by initProperties(), its duty is to initialise the main
+	 * object properties.
+	 *
+	 * The properties initialised in this method should be of a static or default
+	 * nature, by default hey concern:
+	 *
+	 * 	- _request:		The current service request record.
+	 * 	- _immutable:	The immutable status.
+	 * 	- _persistent:	The persistent status.
+	 * 	- _revised:		The revision status.
+	 * 	- _instance:	The document instance, if applicable.
+	 *
+	 * In this class we initialise all but the last member: this class does not
+	 * represeent any specific instance, so here it will be undefined..
+	 *
+	 * Any error in this phase should raise an exception.
+	 *
+	 * @param theRequest	{Object}			The current request.
+	 * @param theCollection	{String}|{null}		The document collection.
+	 * @param isImmutable	{Boolean}			True, instantiate immutable document.
+	 */
+	initDocumentMembers( theRequest, theCollection, isImmutable )
+	{
+		//
+		// Initialise object properties.
+		//
+		this._request = theRequest;
+		this._immutable = isImmutable;
+		this._persistent = false;
+		this._revised = false;
+		
+	}	// initDocumentMembers
+	
+	/**
+	 * Init document collection
+	 *
+	 * This method is called through the constructor by initProperties(), its duty is to
+	 * initialise the document collection environment.
+	 *
+	 * This method calls two methods that can be overloaded by derived classes:
+	 *
+	 * 	- defaultCollection():		Returns the default collection if documents of this
+	 * 								class are stored in a single specific collection.
+	 * 	- checkCollectionType():	Asserts that the collection is of the correct
+	 * 								type: document or edge.
+	 *
+	 * If defaultCollection() returns a valid collection name and the collection was
+	 * not provided in the constructor, this method will set the default collection
+	 * name; if the defaultCollection() method was not overloaded and no collection
+	 * provided, it will remain unassigned: it is assumed an _id reference was
+	 * provided and the collection name will be resolved from it.
+	 *
+	 * If the method resolves a collection, its type will be checked and the
+	 * collection will be stored in the object data member.
+	 *
+	 * Any error in this phase should raise an exception.
+	 *
+	 * @param theRequest	{Object}			The current request.
+	 * @param theCollection	{String}|{null}		The document collection.
+	 */
+	initDocumentCollection( theRequest, theCollection )
+	{
+		//
+		// Set collection.
+		//
+		if( theCollection === null )
+			theCollection = this.defaultCollection;
+		
+		//
+		// Check collection.
+		//
+		if( theCollection !== null )
 		{
 			//
 			// Check collection.
 			//
-			const collection = db._collection( this._collection );
-			if( ! collection )
+			if( ! db._collection( theCollection ) )
 				throw(
 					new MyError(
-						'InsertDocument',					// Error name.
-						K.error.NoCollection,				// Message code.
+						'BadCollection',					// Error name.
+						K.error.InvalidColName,				// Message code.
 						this._request.application.language,	// Language.
-						null,								// Arguments.
-						409									// HTTP error code.
+						theCollection,						// Error value.
+						412									// HTTP error code.
 					)
 				);																// !@! ==>
 			
 			//
-			// Try insertion.
+			// Check collection type.
+			// Will raise an exception if unsuccessful.
 			//
-			try
-			{
-				//
-				// Insert.
-				//
-				const meta = collection.insert( this._document );
-				
-				//
-				// Update metadata.
-				//
-				this._document._id = meta._id;
-				this._document._key = meta._key;
-				
-				//
-				// Handle revision.
-				//
-				if( this._document.hasOwnProperty( '_rev' )
-					&& (this._document._rev !== meta._rev) )
-					this._revised = true;
-				this._document._rev = meta._rev;
-				
-				//
-				// Set persistent flag.
-				//
-				this._persistent = true;
-			}
-			catch( error )
-			{
-				//
-				// Reset persistent flag.
-				//
-				this._persistent = false;
-				
-				//
-				// Handle unique constraint error.
-				//
-				if( error.isArangoError
-					&& (error.errorNum === ARANGO_DUPLICATE) )
-				{
-					//
-					// Set field references.
-					//
-					let field = null;
-					const reference = {};
-					for( field of this.uniqueFields )
-						reference[ field ] = ( this._document.hasOwnProperty( field ) )
-											 ? this._document[ field ]
-											 : null;
-					
-					//
-					// Set field arguments.
-					//
-					let args = [];
-					for( field in reference )
-					{
-						const value = ( Array.isArray( reference[ field ] ) )
-									  ? `[${reference[field].join(', ')}]`
-									  : reference[field];
-						args.push( `${field} = ${value}` );
-					}
-					
-					throw(
-						new MyError(
-							'InsertDocument',					// Error name.
-							K.error.DuplicateDocument,			// Message code.
-							this._request.application.language,	// Language.
-							[ this._collection, args.join( ', ' ) ],
-							409									// HTTP error code.
-						)
-					);															// !@! ==>
-				}
-				
-				throw( error );													// !@! ==>
-			}
+			this.validateCollectionType( theCollection, true );
 			
-			return this._persistent;												// ==~
-			
-		}	// Document is valid.
+			//
+			// Set collection.
+			//
+			this._collection = theCollection;
+		}
 		
-		return false;																// ==>
-		
-	}	// insert
+	}	// initDocumentCollection
+	
+	
+	/************************************************************************************
+	 * MODIFICATION METHODS																*
+	 ************************************************************************************/
 	
 	/**
-	 * Resolve
-	 *
-	 * This method will attempt to load the document corresponding to the significant
-	 * fields of the object, if the document was found, its properties will be set in
-	 * the current object according to the falue of doReplace:
-	 *
-	 * 	- true:		The resolved properties will overwrite the existing ones.
-	 * 	- false:	The existing properties will not be replaced.
-	 *
-	 * Note that the _id, _key and _rev properties will overwrite by default the
-	 * existing ones.
-	 *
-	 * The doAssert parameter is used to determine how errors are managed: if true,
-	 * errors will raise an exception, if false, the method will return true, if
-	 * successful, or false if not.
-	 *
-	 * The following assertions will be made:
-	 *
-	 * 	- Assert that the document has the significant fields to resolve the object.
-	 * 	- Assert that only one document matches the significant fields combination.
-	 * 	- Assert that the resolved document _id and _key fields match the eventual
-	 * 	  current ones.
-	 *
-	 * If the current object has the revision field, the method will update the
-	 * _revised flag accordingly. The _persistent flag will also be updated.
-	 *
-	 * @param doReplace	{Boolean}	Replace existing data (false is default).
-	 * @param doAssert	{Boolean}	If true, an exception will be raised if not found
-	 * 								(defaults to true).
-	 * @returns {Boolean}			True if found.
-	 */
-	resolve( doReplace = false, doAssert = true )
-	{
-		//
-		// Get significant fields combination.
-		//
-		const match = this.hasSignificantFields( doAssert );
-		
-		//
-		// Check if has significant fields.
-		//
-		if( match !== false )
-		{
-			//
-			// Load example query from significant fields.
-			// Note that the method assumes you have called hasSignificantFields().
-			//
-			const selector = {};
-			for( const field of match )
-				selector[ field ] = this._document[ field ];
-			
-			//
-			// Load document.
-			//
-			const cursor = db._collection( this._collection ).byExample( selector );
-			
-			//
-			// Check if found.
-			//
-			if( cursor.count() > 0 )
-			{
-				//
-				// Handle ambiguous query.
-				//
-				if( cursor.count() > 1 )
-					throw(
-						new MyError(
-							'AmbiguousDocumentReference',		// Error name.
-							K.error.AmbiguousDocument,			// Message code.
-							this.request.application.language,	// Language.
-							[ Object.keys( selector ), this._collection],
-							412									// HTTP error code.
-						)
-					);															// !@! ==>
-				
-				//
-				// Load found document.
-				//
-				this.modify( cursor.toArray()[ 0 ], doReplace, true );
-				
-				//
-				// Set flag.
-				//
-				this._persistent = true;
-				
-			}	// Found.
-			
-			//
-			// Handle not found.
-			//
-			else
-			{
-				//
-				// Assert not found.
-				//
-				if( doAssert )
-				{
-					//
-					// Build reference.
-					//
-					const reference = [];
-					for( const field in selector )
-						reference.push( `${field} = ${selector[field].toString()}`)
-					
-					//
-					// Raise exception.
-					//
-					throw(
-						new MyError(
-							'BadDocumentReference',						// Error name.
-							K.error.DocumentNotFound,					// Message code.
-							this._request.application.language,			// Language.
-							[reference.join( ', ' ), this._collection],	// Error value.
-							404											// HTTP error code.
-						)
-					);															// !@! ==>
-				}
-				
-				//
-				// Set flag.
-				//
-				this._persistent = false;
-			}
-			
-			return this._persistent;												// ==>
-			
-		}	// Found match combination.
-		
-		return false;																// ==>
-		
-	}	// resolve
-	
-	/**
-	 * Replace
-	 *
-	 * This method will replace the contents of the current document in the database, it
-	 * will first check if the current object is persistent, if that is the case, it
-	 * will validate the current document and replace its contents in the database and
-	 * return true.
-	 *
-	 * If the current object is not persistent, the method will do nothing and return
-	 * null.
-	 *
-	 * The method will raise an exception if any of the following conditions are met:
-	 *
-	 * 	- Any current property is invalid.
-	 * 	- Any current value replaces an existing locked value.
-	 * 	- The current object does not exist.
-	 * 	- doRevision is true and current and existing revisions do not match.
-	 *
-	 * If the current document revision is different than the existing document
-	 * revision, the method will raise an exception.
-	 *
-	 * @param doRevision	{Boolean}	If true, check revision (default).
-	 * @returns {Boolean}	True replaced, false not found, null not persistent.
-	 */
-	replace( doRevision = true )
-	{
-		//
-		// Only if persistent.
-		//
-		if( this._persistent )
-		{
-			//
-			// Validate contents.
-			//
-			this.validate( true );
-			
-			//
-			// Get existing document.
-			// Note that it will raise an exception if the document doesn't exist:
-			// this is wanted, since it would indicate that the document was deleted.
-			//
-			const existing = db._document( this._document._id );
-			
-			//
-			// Check locked fields.
-			//
-			this.checkLockedProperties( existing, true );
-			
-			//
-			// Replace document.
-			//
-			const meta =
-				db._replace(
-					existing,
-					this._document,
-					{ overwrite : (! doRevision) }
-				);
-			
-			//
-			// Set revision flag.
-			//
-			this._revised = ( meta._rev !== meta.oldRev );
-			
-			//
-			// Set revision.
-			//
-			this._document._rev = meta._rev;
-			
-			return true;															// ==>
-			
-		}	// Is persistent.
-		
-		return null;																// ==>
-		
-	}	// replace
-	
-	/**
-	 * Remove
-	 *
-	 * This method will remove the document from the database, it will first check if
-	 * the current object is persistent, if that is the case, it will proceed to
-	 * delete the document from the database and will return true.
-	 *
-	 * If the document does not exist, the method will return false.
-	 *
-	 * If the current object is not persistent, the method will do nothing and return
-	 * null.
-	 *
-	 * If the current document revision is different than the existing document
-	 * revision, the method will raise an exception.
-	 *
-	 * @returns {Boolean}	True removed, false not found, null not persistent.
-	 */
-	remove()
-	{
-		//
-		// Only if persistent.
-		//
-		if( this._persistent )
-		{
-			//
-			// Check if related.
-			//
-			this.hasConstraints( true );
-			
-			//
-			// Remove.
-			//
-			try
-			{
-				//
-				// Delete.
-				//
-				db._remove( this._document );
-				
-				//
-				// Update persistent flag.
-				//
-				this._persistent = false;
-				
-				return true;														// ==>
-			}
-			catch( error )
-			{
-				//
-				// Catch not found.
-				//
-				if( (! error.isArangoError)
-					|| (error.errorNum !== ARANGO_NOT_FOUND) )
-					throw( error );												// !@! ==>
-			}
-			
-			//
-			// Ensure persistent flag.
-			//
-			this._persistent = false;
-			
-			return false;															// ==>
-			
-		}	// Is persistent.
-		
-		return null;																// ==>
-		
-	}	// remove
-	
-	/**
-	 * Load document data
+	 * Set document properties
 	 *
 	 * This method will add the provided object properties to the current object's
 	 * data.
 	 *
 	 * The first parameter represents the data to be loaded, the second parameter is a
-	 * flag that determines whether the provided data should replace existing data,
-	 * the third parameter is a flag that indicates whether the method was called when
-	 * the object has been resolved.
+	 * flag that determines whether the provided data should replace existing properties,
+	 * the third parameter is a private flag that indicates whether the method was called
+	 * when resolving the object, clients should ignore it.
 	 *
-	 * Existing data elements will be replaced if:
+	 * This method will iterate all provided properties and call the
+	 * setDocumentProperty() for each field/value pair if the following conditions are
+	 * satisfied:
 	 *
-	 * 	- doReplace is true.
-	 * 	- Or the field is among the locked properties.
+	 * 	- doReplace is true, meaning that the client requires provided properties to
+	 * 	  replace existing ones.
+	 * 	- Or the field is among the document locked properties.
 	 * 	- Or the current document does not have the property.
 	 *
-	 * If the replacement conditions are satisfied, any provided property value of null
-	 * will remove the eventually existing property from the current document, if it
-	 * exists.
+	 * If all required conditions are satisfied, the provided value will replace the
+	 * existing one as follows:
 	 *
-	 * The method will raise an exception if you provide a value that is a locked
-	 * property and that is different from an existing value in the current document.
+	 * 	- If the property doesn't exist, it will be set.
+	 * 	- If the property exists, it will be replaced.
+	 * 	- If the provided value is null and the property exists, it will be removed.
+	 *
+	 * The called method will raise an exception if the property is locked, the
+	 * provided and existing values do not match and the object is persistent; a
+	 * locked property is one that can be inserted, but not modified.
 	 *
 	 * The last parameter determines the exception type, if true it means the data
 	 * comes from the database, if false, it means the data is coming from the client:
@@ -571,21 +358,25 @@ class Document
 	 * 	  empty. The method can also be called by clients to update the document's
 	 * 	  contents: in this case any conflicting locked value will raise an error.
 	 *
-	 * All exceptions will be raised by the called setProperty() method.
+	 * Once the client has finished updating properties it should call the
+	 * normaliseDocumentProperties(), which tajes care of finalising the contents of the
+	 * document, such as loading default values and computing dynamic properties.
+	 *
+	 * All exceptions will be raised by the called setDocumentProperty() method.
 	 *
 	 * @param theData		{Object}	The object properties to add.
 	 * @param doReplace		{Boolean}	True, overwrite existing properties.
 	 * @param isResolving	{Boolean}	True, called by resolve() (default false).
 	 */
-	modify( theData, doReplace = true, isResolving = false )
+	setDocumentProperties( theData, doReplace = true, isResolving = false )
 	{
 		//
-		// Load locked fields.
+		// Get locked fields.
 		//
 		const locked = this.lockedFields;
 		
 		//
-		// Iterate properties.
+		// Iterate provided properties.
 		//
 		for( const field in theData )
 		{
@@ -600,7 +391,7 @@ class Document
 			if( doReplace										// Want to replace,
 			 || isLocked										// or field is locked,
 			 || (! this._document.hasOwnProperty( field )) )	// or not in document.
-				this.setProperty(
+				this.setDocumentProperty(
 					field,										// Field name.
 					theData[ field ],							// Field value.
 					isLocked,									// Locked flag.
@@ -608,157 +399,64 @@ class Document
 				);
 		}
 		
-		//
-		// Normalise properties.
-		//
-		this.normaliseProperties();
-		
-	}	// modify
+	}	// setDocumentProperties
 	
 	/**
-	 * Validate document
+	 * Set document property
 	 *
-	 * This method will assert all required fields are present and valid,
-	 * if any of these tests fails, the method will raise an exception.
+	 * This method can be used to set a single document property, it expects the
+	 * following parameters:
 	 *
-	 * @param doAssert	{Boolean}	If true, an exception will be raised on errors
-	 * 								(defaults to true).
-	 * @returns {Boolean}			True if valid.
-	 */
-	validate( doAssert = true )
-	{
-		//
-		// Load computed fields.
-		//
-		if( ! this.setComputedProperties( doAssert ) )
-			return false;															// ==>
-		
-		//
-		// Validate required fields.
-		//
-		if( ! this.hasRequiredFields( doAssert ) )
-			return false;															// ==>
-		
-		//
-		// Validate properties.
-		//
-		if( ! this.checkProperties( doAssert ) )
-			return false;															// ==>
-		
-		return true;																// ==>
-		
-	}	// validate
-	
-	
-	/************************************************************************************
-	 * PROTECTED METHODS																*
-	 ************************************************************************************/
-	
-	/**
-	 * Set class
+	 * 	- theField:		The property field name: the descriptor _key.
+	 * 	- theValue:		The property value, if null, it means we want to remove the
+	 * 					existing one.
+	 * 	- isLocked:		Will be true if the property is locked.
+	 * 	- isResolving:	Will be true if the method was called while resolving the
+	 * 					document.
 	 *
-	 * This method will set the document class, which is the _key reference of the
-	 * term defining the document class.
-	 */
-	setClass()
-	{
-		this._class = 'Document';
-		
-	}	// setClass
-	
-	/**
-	 * Set collection
+	 * The method is protected and will be called if any of the following conditions
+	 * is satisfied:
 	 *
-	 * This method will set the document collection, if there are any errors, the
-	 * method will raise an exception.
+	 * 	- The client requested to replace an existing value,
+	 * 	- or the property is locked,
+	 * 	- or the document does not have that property.
 	 *
-	 * The method will first check if there is a default collection, if that is the
-	 * case, the collection name will be forced to that value.
+	 * The method will update values as follows: null means remove the property and
+	 * any other value means replace.
 	 *
-	 * @param theCollection	{String} The document collection name.
-	 */
-	setCollection( theCollection )
-	{
-		//
-		// Force default collection.
-		//
-		const collection = this.defaultCollection;
-		if( collection !== null )
-			theCollection = collection;
-		
-		//
-		// Check collection.
-		//
-		if( theCollection !== null )
-		{
-			//
-			// Set collection.
-			//
-			this._collection = theCollection;
-			if( ! db._collection( this._collection ) )
-				throw(
-					new MyError(
-						'BadCollection',					// Error name.
-						K.error.MissingReqCollection,		// Message code.
-						this._request.application.language,	// Language.
-						theCollection,						// Error value.
-						412									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Check collection type.
-			//
-			this.checkCollectionType();
-		}
-		
-	}	// setCollection
-	
-	/**
-	 * Load document property
-	 *
-	 * This method can be used to set the value of a property, it is called by
-	 * modify() in any of the following cases:
-	 *
-	 * 	- The client requested to replace existing values.
-	 * 	- The property is locked.
-	 * 	- The document does not have the property.
-	 *
-	 * The method takes care of modifying the existing document value with the
-	 * provided value and ensure data integrity.
-	 *
-	 * If the provided value is null it means that the value should be removed.
-	 *
-	 * The method will raise an exception if there is a mismatch between the existing
-	 * property and the provided one: if the property is locked and the object is
-	 * persistent, the method will raise an exception. This includes setting a new
-	 * value if there is not one, removing an existing value, or changing an existing
-	 * value.
+	 * The method will raise an exception if the provided and existing values do not
+	 * match, the current document is persistent and the property is locked.
 	 *
 	 * The last parameter determines the type of exception: true means we are
-	 * resolving the document, false means we are updating the document properties,
-	 * this means that in the first case there is a mismatch between reserved
-	 * properties in the current and persistent documents, while in the second case
-	 * there is an attempt to change a locked value.
+	 * resolving the document, which means that there is a mismatch between reserved
+	 * properties in the current and persistent documents; false means that we are
+	 * modifying a document, which means that there is an attempt to change a locked
+	 * value.
 	 *
 	 * @param theField		{String}	The property descriptor _key.
 	 * @param theValue		{*}			The property value.
 	 * @param isLocked		{Boolean}	True if locked properties.
 	 * @param isResolving	{Boolean}	True, called by resolve().
 	 */
-	setProperty( theField, theValue, isLocked, isResolving )
+	setDocumentProperty( theField, theValue, isLocked, isResolving )
 	{
 		//
-		// Init local storage.
+		// Save existing value.
 		//
 		const value_old = ( this._document.hasOwnProperty( theField ) )
-						  ? this._document[ theField ]
-						  : null;
+						? this._document[ theField ]
+						: null;
+		
+		//
+		// Normalise provided value.
+		//
+		if( theValue === undefined )
+			theValue = null;
 		
 		//
 		// Handle value modifications.
 		//
-		if( value_old !== theValue )
+		if( ! this.matchPropertyValue( theField, value_old, theValue ) )
 		{
 			//
 			// Handle locked field violation.
@@ -791,7 +489,7 @@ class Document
 						name,									// Error name.
 						type,									// Message code.
 						this._request.application.language,		// Language.
-						theField,							// Arguments.
+						theField,								// Arguments.
 						409										// HTTP error code.
 					)
 				);																// !@! ==>
@@ -799,96 +497,152 @@ class Document
 			}	// Property is locked and document is persistent.
 			
 			//
-			// Set new value.
+			// Set value.
 			//
 			if( theValue !== null )
 				this._document[ theField ] = theValue;
 			
 			//
-			// Delete old value.
+			// Delete value.
 			//
-			else if( value_old !== null )
+			else if( value_old !== null )			// Superflous?
 				delete this._document[ theField ];
 			
 		}	// Modify value.
 		
-	}	// setProperty
+	}	// setDocumentProperty
 	
 	/**
-	 * Load computed fields
+	 * Normalise document properties
 	 *
-	 * This method is called before validating the document properties, it should take
-	 * care of setting any property whose value is computed using other document
-	 * properties.
+	 * This method should finalise the contents of the document, such as setting
+	 * eventual missing default values or computing dynamic properties.
 	 *
-	 * The method should return a boolean indicating whether the operation was
-	 * successful, or return false if not; if doAssert is true, the method will raise
-	 * an exception if unsuccessful.
+	 * The method is called at the end of the constructor and before validating the
+	 * contents of the document.
 	 *
-	 * The method should fail if the value of a computed property conflicts with the
-	 * existing value and the property is locked.
+	 * The provided parameter is a flag that determines whether errors raise
+	 * exceptions or not, it is set to false by default.
 	 *
-	 * This class has no computed fields.
+	 * In this class we have no dynamic properties.
 	 *
-	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
-	 * 									(defaults to true).
-	 * @returns {Boolean}				True if valid.
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
 	 */
-	setComputedProperties( doAssert = true )
+	normaliseDocumentProperties( doAssert = true )
 	{
 		return true;																// ==>
 		
-	}	// setComputedProperties
+	}	// normaliseDocumentProperties
 	
 	/**
-	 * Normalise object properties
+	 * Normalise insert properties
 	 *
-	 * This method is called at the end of the constructor and after adding data to
-	 * the object, its duty is to eventually normalise object properties that require
-	 * processing.
+	 * This method should load any default properties set when inserting the object.
 	 *
-	 * Do not confuse this method with setComputedProperties(): the former is
-	 * requires the latter to have been called before it can safely compute properties.
+	 * In this class we do notning.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
 	 */
-	normaliseProperties()
+	normaliseInsertProperties( doAssert = true )
 	{
-		// Nothing here.
-	}
-	
-	/**
-	 * Check collection type
-	 *
-	 * This method will check if the collection is of the correct type, if that is not
-	 * the case, the method will raise an exception.
-	 *
-	 * In this class we assume any type of collection, which means that this method
-	 * MUST be implemented in derived classes.
-	 */
-	checkCollectionType()
-	{
-		// Do nothing.
+		return true;																// ==>
 		
-	}	// checkCollectionType
+	}	// normaliseInsertProperties
 	
 	/**
-	 * Validate document fields
+	 * Normalise replace properties
+	 *
+	 * This method should load any default properties set when replacing the object.
+	 *
+	 * In this class we do notning.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	normaliseReplaceProperties( doAssert = true )
+	{
+		return true;																// ==>
+		
+	}	// normaliseReplaceProperties
+	
+	
+	/************************************************************************************
+	 * VALIDATION METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Validate document
+	 *
+	 * This method will assert that the current document contents are valid and that
+	 * the object is ready to be stored in the database, it will perform the following
+	 * steps:
+	 *
+	 * 	- Normalise document: load any default or computed required property.
+	 * 	- Assert if all required properties are there.
+	 * 	- Validate all document properties.
+	 *
+	 * If the provided parameter is true, is any of these checks fails, the method
+	 * will raise an exception; if the parameter is false, the method will return a
+	 * boolean indicating whether the operation was successful, true, or not, false.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	validateDocument( doAssert = true )
+	{
+		//
+		// Load computed fields.
+		//
+		if( ! this.normaliseDocumentProperties( doAssert ) )
+			return false;															// ==>
+		
+		//
+		// Validate required fields.
+		//
+		if( ! this.validateRequiredProperties( doAssert ) )
+			return false;															// ==>
+		
+		//
+		// Validate properties.
+		//
+		if( ! this.validateDocumentProperties( doAssert ) )
+			return false;															// ==>
+		
+		return true;																// ==>
+		
+	}	// validateDocument
+	
+	/**
+	 * Validate document properties
 	 *
 	 * This method will check if all document fields are valid; if that is not the
 	 * case the method will raise an exception, if doAssert is true, or return false.
 	 *
-	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
-	 * 									(defaults to true).
-	 * @returns {Boolean}				True if valid.
+	 * The validation is performed by feeding the Validation.validateStructure() with
+	 * the current contents of the document.
+	 *
+	 * This method expects the current document to be complete, this means that
+	 * normaliseDocument() and validateRequiredProperties() must have been called before.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
 	 */
-	checkProperties( doAssert = true )
+	validateDocumentProperties( doAssert = true )
 	{
+		//
+		// Framework.
+		//
+		const Validation = require( '../utils/Validation' );
+		
 		//
 		// Validate document.
 		//
 		try
 		{
 			//
-			// Validate.
+			// Validate document structure.
 			//
 			this._document =
 				Validation.validateStructure(
@@ -909,23 +663,181 @@ class Document
 		
 		return false;																// ==>
 		
-	}	// checkProperties
+	}	// validateDocumentProperties
 	
 	/**
-	 * Validate locked document fields
+	 * Validate document constraints
 	 *
-	 * This method will check if the current document would change any existing locked
-	 * properties, it will raise an exception, if doAssert is true, or return true if
-	 * doAssert is false; if that is not the case, the method will return false.
+	 * This method is called before deleting a document, it should ensure the current
+	 * document has no constraints that would prevent it from being deleted.
 	 *
-	 * If the current object is not persistent, the method will only return null.
+	 * If the current document is not persistent, the method will return null; if
+	 * there are no constraints, the method will return true; if there are
+	 * constraints, the method will raise an exception if doAssert is true, or return
+	 * false.
 	 *
-	 * @param theExisting	{Object}	Existing document.
-	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
-	 * 									(defaults to true).
-	 * @returns {Boolean}|{null}		True/false for locked, or null if not persistent.
+	 * @param doAssert	{Boolean}	True raises an exception (default).
+	 * @returns {Boolean}			True/false if no constraints and null if not
+	 * 								persistent.
 	 */
-	checkLockedProperties( theExisting, doAssert = true )
+	validateDocumentConstraints( doAssert = true )
+	{
+		return ( this._persistent ) ? true											// ==>
+									: null;											// ==>
+		
+	}	// validateDocumentConstraints
+	
+	/**
+	 * Assert all required fields have been set
+	 *
+	 * This method can be used to check whether the current document has all of its
+	 * required properties, if this is the case, the method will return true; if that
+	 * is not the case, the method will return false, or raise an exception if
+	 * doAssert is true.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if all required fields are there.
+	 */
+	validateRequiredProperties( doAssert = true )
+	{
+		//
+		// Init local storage.
+		//
+		const missing = [];
+		const fields = this.requiredFields;
+		
+		//
+		// Check required fields.
+		//
+		for( const field of fields )
+		{
+			//
+			// Add missing field to list.
+			//
+			if( ! this._document.hasOwnProperty( field ) )
+				missing.push( field );
+		}
+		
+		//
+		// Handle missing.
+		//
+		if( missing.length > 0 )
+		{
+			//
+			// Raise exception.
+			//
+			if( doAssert )
+				throw(
+					new MyError(
+						'IncompleteObject',					// Error name.
+						K.error.MissingField,				// Message code.
+						this._request.application.language,	// Language.
+						missing.join( ', ' ),				// Arguments.
+						412									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			return false;															// ==>
+		}
+		
+		return true;																// ==>
+		
+	}	// validateRequiredProperties
+	
+	/**
+	 * Match significant fields combination
+	 *
+	 * This method will iterate through all significant field combinations,
+	 * significantFields(), and return the first match.
+	 *
+	 * Significant fields are a combination of one or more fields whose values will
+	 * uniquely identify the document. The method will iterate these combinations and
+	 * return the first one in which all properties can be found in the current document.
+	 *
+	 * If none of these combinations can be satisfied the method will return false, or
+	 * raise an exception if doAssert is true.
+	 *
+	 * This method is called by resolveDocument() if neither the _id or _key can be
+	 * located in the document.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Array}|{false}		True if all significant fields are there.
+	 */
+	validateSignificantProperties( doAssert = true )
+	{
+		//
+		// Init local storage.
+		//
+		const missing = [];
+		
+		//
+		// Iterate significant field selectors.
+		//
+		for( const selector of this.significantFields )
+		{
+			//
+			// Iterate selector.
+			//
+			let matched = true;
+			for( const field of selector )
+			{
+				//
+				// Collect missing significant fields.
+				//
+				if( ! this._document.hasOwnProperty( field ) )
+				{
+					missing.push( field );	// Note field.
+					matched = false;		// Signal missing.
+					break;													// =>
+				}
+				
+			}	// Iterating selector.
+			
+			//
+			// Handle match.
+			//
+			if( matched )
+				return selector;													// ==>
+			
+		}	// Iterating selectors.
+		
+		//
+		// Raise exception.
+		//
+		if( doAssert )
+			throw(
+				new MyError(
+					'IncompleteObject',					// Error name.
+					K.error.MissingToResolve,			// Message code.
+					this._request.application.language,	// Language.
+					missing.join( ', ' ),				// Arguments.
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+		return false;																// ==>
+		
+	}	// validateSignificantProperties
+	
+	/**
+	 * Validate locked properties
+	 *
+	 * This method is used to check if the current document would modify any existing
+	 * locked properties. The method will return null, if the current document is not
+	 * persistent, true if there are no locked properties conflicts and false if there
+	 * is a conflict or raise an exception if there is a conflict and doAssert is true.
+	 *
+	 * The method will load the copy of the current document residing in the database
+	 * and check if any locked property would be changed. This operation will raise an
+	 * exception, regardless of doAssert, if the document cannot be located in the
+	 * database. This also means that the method expects the current document to have
+	 * the _id property.
+	 *
+	 * @param doAssert	{Boolean}	If true, an exception will be raised on errors
+	 * 								(defaults to true).
+	 * @returns {Boolean}|{null}	True/false for locked, or null if not persistent.
+	 */
+	validateLockedProperties( doAssert = true )
 	{
 		//
 		// Check if persistent.
@@ -933,15 +845,25 @@ class Document
 		if( this._persistent )
 		{
 			//
+			// Locate document in database.
+			//
+			const existing = db._document( this._document._id );
+			
+			//
 			// Intersect locked fields with existing and current objects.
 			//
-			const locked = this.lockedFields
-				.filter( field => {
-						return ( theExisting.hasOwnProperty( field )
-							&& this._document.hasOwnProperty( field )
-							&& theExisting[ field ] !== this._document[ field ] );
-					}
-				);
+			const locked =
+				this.lockedFields
+					.filter( field => {
+						return ( existing.hasOwnProperty( field )
+							  && this._document.hasOwnProperty( field )
+							  && (! this.matchPropertyValue(
+							  			field,
+										existing[ field ],
+										this._document[ field ]
+							))
+						);
+					});
 			
 			//
 			// Handle conflicts.
@@ -970,120 +892,434 @@ class Document
 		
 		return null;																// ==>
 		
-	}	// checkLockedProperties
+	}	// validateLockedProperties
 	
 	/**
-	 * Load document reference
+	 * Validate collection type
 	 *
-	 * This method is called by the constructor when instantiating the document from a
-	 * string reference, in this case it is assumed we are instantiating an existing
-	 * document that should be resolved using the provided reference.
+	 * Collections can either be of type document or edge: this method will check if
+	 * the provided collection is of the correct type, if that is the case, the method
+	 * will return true, if not, the method will return false, or raise an exception
+	 * if doAssert is true.
 	 *
-	 * The method assumes that the reference is an _id, if the collection is missing
-	 * in the current document and will use the database method, if the collection was
-	 * provided in the constructor, the method will use the collection method.
+	 * Call the Document.isEdgeCollection() or Document.isDocumentCollection() static
+	 * methods where appropriate.
 	 *
-	 * In the first case, if the operation is successful, the method will set the
-	 * collection reference in the current document.
+	 * In this class they can be either.
 	 *
-	 * Any error will raise an exception.
-	 *
-	 * @param theReference	{String}	The document reference.
+	 * @param theCollection	{String}	The collection name.
+	 * @param doAssert		{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}				True if all required fields are there.
 	 */
-	resolveReference( theReference )
+	validateCollectionType( theCollection, doAssert = true )
+	{
+		return true;																// ==>
+		
+	}	// validateCollectionType
+	
+	
+	/************************************************************************************
+	 * ASSERTIONS METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Match locked property
+	 *
+	 * This method is used to implement custom identity matching: if matching two
+	 * values requires more than just using "===", you can catch the property name and
+	 * the two values in this method/
+	 *
+	 * The method returns true if both values match, or false if not.
+	 *
+	 * The method is called in two places: in setDocumentProperty() when
+	 * explicitly updating the document contents, and in validateLockedProperties()
+	 * when validating the document before persisting.
+	 *
+	 * In this class we return A === B.
+	 *
+	 * @param theProperty	{String}	Property name.
+	 * @param theExisting	{*}			Existing value.
+	 * @param theProvided	{*}			Provided value.
+	 * @returns {Boolean}				True if identical.
+	 */
+	matchPropertyValue( theProperty, theExisting, theProvided )
+	{
+		return (theExisting === theProvided);										// ==>
+		
+	}	// matchPropertyValue
+	
+	
+	/************************************************************************************
+	 * PERSISTENCE METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Insert document
+	 *
+	 * This method will insert the current document in the database, it will first
+	 * validate the document contents, if this succeeds, it will insert the document
+	 * in the registered collection.
+	 *
+	 * If the operation was successful, the persistent status of the current document
+	 * will be set to true, if not, it will be set to false.
+	 *
+	 * Before performing any action, this method will check if the current document is
+	 * persistent, if that is the case, it will raise an exception.
+	 *
+	 * Any error encountered in this method will raise an exception, including
+	 * validation errors.
+	 *
+	 * @returns {Boolean}	True if inserted.
+	 */
+	insertDocument()
 	{
 		//
-		// Resolve reference.
+		// Prevent inserting persistent objects.
+		// We check this here to catch eventual blunders.
 		//
-		try
+		if( ! this._persistent )
 		{
 			//
-			// Handle _id reference.
+			// Validate document contents.
+			// Will raise an exception on error.
 			//
-			if( ! this.hasOwnProperty( '_collection' ) )
+			this.validateDocument( true );
+			
+			//
+			// Try insertion.
+			//
+			try
 			{
 				//
-				// Load immutable document.
+				// Set insert information.
 				//
-				if( this._immutable )
-					this._document = db._document( theReference );
+				if( ! this.normaliseInsertProperties( true ) )
+					return false;													// ==>
 				
 				//
-				// Load modifiable document.
+				// Insert.
 				//
-				else
+				const meta =
+					db._collection( this._collection )
+						.insert( this._document );
+				
+				//
+				// Update metadata.
+				//
+				this._document._id = meta._id;
+				this._document._key = meta._key;
+				this._document._rev = meta._rev;
+				
+				//
+				// Set persistent flag.
+				//
+				this._persistent = true;
+			}
+			catch( error )
+			{
+				//
+				// Reset persistent flag.
+				//
+				this._persistent = false;
+				
+				//
+				// Handle unique constraint error.
+				//
+				if( error.isArangoError
+				 && (error.errorNum === ARANGO_DUPLICATE) )
 				{
 					//
-					// Load from database.
+					// Set field references.
 					//
-					const document = db._document( theReference );
+					let field;
+					const reference = {};
+					for( field of this.uniqueFields )
+					{
+						if( this._document.hasOwnProperty( field ) )
+							reference[ field ] = this._document[ field ];
+					}
 					
 					//
-					// Copy data.
-					// Note that db._document() returns an immutable object.
+					// Set field arguments.
 					//
-					this._document = JSON.parse(JSON.stringify(document));
-				}
-				
-				//
-				// Set collection.
-				//
-				this._collection = theReference.split( '/' )[ 0 ];
-			
-			}	// _id reference.
-			
-			//
-			// Handle _key reference.
-			//
-			else
-			{
-				//
-				// Check collection.
-				//
-				const collection = db._collection( this._collection );
-				if( ! collection )
+					let args = [];
+					for( field in reference )
+					{
+						//
+						// Format display value.
+						//
+						const value = ( Array.isArray( reference[ field ] ) )
+									  ? `[${reference[field].join(', ')}]`
+									  : reference[field];
+						
+						//
+						// Add error argument.
+						//
+						args.push( `${field} = ${value}` );
+					}
+					
 					throw(
 						new MyError(
-							'BadCollection',					// Error name.
-							K.error.InvalidColName,				// Message code.
+							'InsertDocument',					// Error name.
+							K.error.DuplicateDocument,			// Message code.
 							this._request.application.language,	// Language.
-							this._collection,					// Arguments.
-							400									// HTTP error code.
+							[ this._collection, args.join( ', ' ) ],
+							409									// HTTP error code.
 						)
 					);															// !@! ==>
-				
-				//
-				// Load immutable document.
-				//
-				if( this._immutable )
-					this._document = collection.document( theReference );
-				
-				//
-				// Load modifiable document.
-				//
-				else
-				{
-					//
-					// Load from database.
-					//
-					const document = collection.document( theReference );
-					
-					//
-					// Copy data.
-					// Note that db._document() returns an immutable object.
-					//
-					this._document = JSON.parse(JSON.stringify(document));
 				}
 				
-			}	// _key reference.
+				throw( error );													// !@! ==>
+			}
+			
+			return this._persistent;												// ==>
+			
+		}	// Document is not persistent
+		
+		throw(
+			new MyError(
+				'InsertDocument',					// Error name.
+				K.error.IsPersistent,				// Message code.
+				this._request.application.language,	// Language.
+				this._document._id,					// Arguments.
+				409									// HTTP error code.
+			)
+		);																		// !@! ==>
+		
+	}	// insertDocument
+	
+	/**
+	 * Resolve document
+	 *
+	 * This method will locate the document in the database using either the
+	 * document's _key field, or by using the first existing significant fields
+	 * matching combination.
+	 *
+	 * The method expects two parameters:
+	 *
+	 * 	- doReplace:	If true, properties found in the database will overwrite
+	 * 					eventual existing properties of the document.
+	 * 	- doAssert:		If this parameter is true, the method will raise an exception
+	 * 					on errors; if false, the method will return true if resolved,
+	 * 					or false.
+	 *
+	 * The method will first use the _key value, if there, or it will try to use the
+	 * significant fields of the document, if present.
+	 *
+	 * If the document was resolved, the persistent flag will be set to true; if not,
+	 * this flag will be forced to false.
+	 *
+	 * Note that this method will change the immutable status of the document to false.
+	 *
+	 * @param doReplace	{Boolean}	Replace existing data (false is default).
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if resolved.
+	 */
+	resolveDocument( doReplace = false, doAssert = true )
+	{
+		//
+		// Init local storage.
+		//
+		let document;
+		
+		//
+		// Resolve document by _id.
+		//
+		if( this._document.hasOwnProperty( '_id' ) )
+			document =
+				this.resolveDocumentByReference(
+					this._document._id,
+					doAssert,
+					this._immutable
+				);
+		
+		//
+		// Resolve document by _key.
+		//
+		else if( this._document.hasOwnProperty( '_key' ) )
+			document =
+				this.resolveDocumentByReference(
+					this._document._key,
+					doAssert,
+					this._immutable
+				);
+		
+		//
+		// Resolve document by content.
+		//
+		else
+			document = this.resolveDocumentByContent( doAssert );
+		
+		//
+		// Load found document.
+		//
+		if( document !== null )
+		{
+			//
+			// Update document properties.
+			//
+			this.setDocumentProperties(
+				document,					// The resolved document.
+				doReplace,					// Replace?
+				true						// We are resolving.
+			);
 			
 			//
 			// Set persistence flag.
 			//
 			this._persistent = true;
+			
+		}	// Resolved document.
+		
+		return this._persistent;													// ==>
+		
+	}	// resolveDocument
+	
+	/**
+	 * Resolve document by reference
+	 *
+	 * This method will attempt to locate the document in the database or current
+	 * collection identified by the provided reference and return its contents.
+	 *
+	 * This method is called by the constructor to initialise the document when an _id
+	 * or _key reference is provided: if the collection is missing from the current
+	 * object, the method assumes an _id was provided, the method will then set the
+	 * document collection.
+	 *
+	 * The method is also called when resolving the document, in that case the
+	 * collection is expected to exist.
+	 *
+	 * If the document was resolved, the method will return the document contents
+	 * object, if the document was not resolved, the method will raise an exception,
+	 * if doAssert is true, or return null.
+	 *
+	 * Note that this method will reset the persistent flag if unsuccessful, but the
+	 * caller is responsible for setting it if successful.
+	 *
+	 * @param theReference	{String}	The document reference.
+	 * @param doAssert		{Boolean}	True raises an exception on error (default).
+	 * @param isImmutable	{Boolean}	True, instantiate immutable document.
+	 * @returns {Object}|{null}			Resolved document or null.
+	 */
+	resolveDocumentByReference( theReference, doAssert = true, isImmutable = false )
+	{
+		//
+		// Init local storage.
+		//
+		let document;
+		
+		//
+		// Use collection.
+		//
+		if( this.hasOwnProperty( '_collection' ) )
+		{
+			//
+			// Check collection.
+			//
+			const collection = db._collection( this._collection );
+			if( ! collection )
+				throw(
+					new MyError(
+						'BadCollection',					// Error name.
+						K.error.InvalidColName,				// Message code.
+						this._request.application.language,	// Language.
+						this._collection,					// Arguments.
+						400									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			//
+			// Resolve reference.
+			//
+			try
+			{
+				//
+				// Resolve.
+				//
+				document = collection.document( theReference );
+				
+				return ( isImmutable ) ? document									// ==>
+					   				   : JSON.parse(JSON.stringify(document));		// ==>
+			}
+			catch( error )
+			{
+				//
+				// Set persistence flag.
+				//
+				this._persistent = false;
+				
+				//
+				// Raise exceptions other than not found.
+				//
+				if( (! error.isArangoError)
+				 || (error.errorNum !== ARANGO_NOT_FOUND) )
+					throw( error );												// !@! ==>
+				
+				//
+				// Handle not found.
+				//
+				if( doAssert )
+					throw(
+						new MyError(
+							'BadDocumentReference',				// Error name.
+							K.error.DocumentNotFound,			// Message code.
+							this._request.application.language,	// Language.
+							[theReference, this._collection],	// Error value.
+							404									// HTTP error code.
+						)
+					);															// !@! ==>
+			}
+			
+			return null;															// ==>
+			
+		}	// Document has collection.
+		
+		//
+		// Document doesn't have collection:
+		// assume _id and extract collection from it.
+		//
+		
+		//
+		// Expect _id reference.
+		//
+		try
+		{
+			//
+			// Resolve.
+			//
+			document = db._document( theReference );
+			
+			//
+			// Set collection.
+			//
+			if( ! this.hasOwnProperty( '_collection' ) )
+			{
+				//
+				// Extract collection name.
+				//
+				const collection = theReference.split( '/' )[ 0 ];
+				
+				//
+				// Validate collection type.
+				//
+				this.validateCollectionType( collection, doAssert );
+				
+				//
+				// Set collection member.
+				//
+				this._collection = collection;
+			}
+			
+			return ( isImmutable ) ? document										// ==>
+								   : JSON.parse(JSON.stringify(document));			// ==>
 		}
 		catch( error )
 		{
+			//
+			// Set persistence flag.
+			//
+			this._persistent = false;
+			
 			//
 			// Handle exceptions.
 			//
@@ -1094,179 +1330,288 @@ class Document
 			//
 			// Handle not found.
 			//
-			throw(
-				new MyError(
-					'BadDocumentReference',				// Error name.
-					K.error.DocumentNotFound,			// Message code.
-					this._request.application.language,	// Language.
-					[theReference, collection],			// Error value.
-					404									// HTTP error code.
-				)
-			);																	// !@! ==>
-		}
-		
-	}	// initDocumentFromReference
-	
-	/**
-	 * Match significant fields combination
-	 *
-	 * This method will iterate through all significant field combinations,
-	 * significantFields(), and return the first match.
-	 *
-	 * These combinations are an array of descriptor _key elements that represent
-	 * unique selectors for the document, this method will compare each combination to
-	 * the contents of the current document and return the first matching one.
-	 *
-	 * If no full match is possible, the method will return false, or raise an
-	 * exception if getMad is true.
-	 *
-	 * In this class there are no significant fields, so this method will fail: to
-	 * resolve the document you must provide a document reference.
-	 *
-	 * @param getMad	{Boolean}	True raises an exception (default).
-	 * @returns {Boolean}			True if all significant fields are there.
-	 */
-	hasSignificantFields( getMad = true )
-	{
-		//
-		// Init local storage.
-		//
-		const missing = [];
-		
-		//
-		// Iterate significant field selectors.
-		//
-		for( const selector of this.significantFields )
-		{
-			//
-			// Iterate selector.
-			//
-			let matched = true;
-			for( const field of selector )
-			{
-				if( ! this._document.hasOwnProperty( field ) )
-				{
-					missing.push( field );	// Note field.
-					matched = false;		// Signal missing.
-					break;														// =>
-				}
-			
-			}	// Iterating selector.
-			
-			//
-			// Handle match.
-			//
-			if( matched )
-				return selector;													// ==>
-		
-		}	// Iterating selectors.
-		
-		//
-		// Raise exception.
-		//
-		if( getMad )
-			throw(
-				new MyError(
-					'IncompleteObject',					// Error name.
-					K.error.MissingToResolve,			// Message code.
-					this._request.application.language,	// Language.
-					null,								// Arguments.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-		return false;																// ==>
-		
-	}	// hasSignificantFields
-	
-	/**
-	 * Assert all required fields have been set
-	 *
-	 * This method will check if any required field is missing, if you provide true in
-	 * getMad, the method will raise an exception, if false, the method will return a
-	 * boolean where true means all required fields are present.
-	 *
-	 * If the getMad parameter is true, if the object is missing reauired fields, the
-	 * method will raise an exception.
-	 *
-	 * @param getMad	{Boolean}	True raises an exception (default).
-	 * @returns {Boolean}			True if all required fields are there.
-	 */
-	hasRequiredFields( getMad = true )
-	{
-		//
-		// Init local storage.
-		//
-		const missing = [];
-		
-		//
-		// Get required fields.
-		//
-		const fields = this.requiredFields;
-		
-		//
-		// Check required fields.
-		//
-		for( const field of fields )
-		{
-			if( ! this._document.hasOwnProperty( field ) )
-				missing.push( field );
-		}
-		
-		//
-		// Handle missing.
-		//
-		if( missing.length > 0 )
-		{
-			//
-			// Raise exception.
-			//
-			if( getMad )
+			if( doAssert )
 				throw(
 					new MyError(
-						'IncompleteObject',					// Error name.
-						K.error.MissingField,				// Message code.
+						'BadDocumentReference',				// Error name.
+						K.error.DocumentNotFound,			// Message code.
 						this._request.application.language,	// Language.
-						missing.join( ', ' ),				// Arguments.
-						412									// HTTP error code.
+						[theReference, this._collection],	// Error value.
+						404									// HTTP error code.
 					)
 				);																// !@! ==>
-			
-			return false;															// ==>
 		}
-		
-		return true;																// ==>
-		
-	}	// hasRequiredFields
-	
-	/**
-	 * Assert if current object is constrained
-	 *
-	 * This method will check if the current object has constraints that should
-	 * prevent the object from being removed, the method will return true if there is
-	 * a constraint, or it will return false.
-	 *
-	 * If the getMad parameter is true and if the object is constrained, the method will
-	 * raise an exception.
-	 *
-	 * In this class we assume no constraints.
-	 *
-	 * This method is called before removing the current object.
-	 *
-	 * @param getMad	{Boolean}	True raises an exception (default).
-	 * @returns {Boolean}			True if object is related and null if not persistent.
-	 */
-	hasConstraints( getMad = true )
-	{
-		//
-		// Check if persistent.
-		//
-		if( this._persistent )
-			return false;															// ==>
 		
 		return null;																// ==>
 		
-	}	// hasConstraints
+	}	// resolveDocumentByReference
+	
+	/**
+	 * Resolve document by content
+	 *
+	 * This method will attempt to locate the document in the database or current
+	 * collection identified by the significant fields of the current document.
+	 *
+	 * This method is called when resolving a document that does not have either the
+	 * _id nor the _key. The method calls validateSignificantProperties(), if there is
+	 * a valid combination, it will attempt to locate it in the database.
+	 *
+	 * If the document was resolved, the method will return the document contents
+	 * object, if the document was not resolved, the method will raise an exception,
+	 * if doAssert is true, or return null.
+	 *
+	 * Note that if the combination resolves more than one document, this is
+	 * considered an error and will be raised as an exception by default.
+	 *
+	 * @param doAssert		{Boolean}	True raises an exception on error (default).
+	 * @returns {Object}|{null}			Resolved document or null.
+	 */
+	resolveDocumentByContent( doAssert = true )
+	{
+		//
+		// Get significant fields combination.
+		// Will raise an exception if doAssert is true.
+		//
+		const match = this.validateSignificantProperties( doAssert );
+		
+		//
+		// Check if has significant fields.
+		//
+		if( match !== false )
+		{
+			//
+			// Load example query from significant fields.
+			//
+			const selector = {};
+			for( const field of match )
+				selector[ field ] = this._document[ field ];
+			
+			//
+			// Load document.
+			//
+			const cursor = db._collection( this._collection ).byExample( selector );
+			
+			//
+			// Check if found.
+			//
+			if( cursor.count() > 0 )
+			{
+				//
+				// Handle ambiguous query.
+				//
+				if( cursor.count() > 1 )
+					throw(
+						new MyError(
+							'AmbiguousDocumentReference',		// Error name.
+							K.error.AmbiguousDocument,			// Message code.
+							this.request.application.language,	// Language.
+							[ Object.keys( selector ), this._collection],
+							412									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return cursor.toArray()[ 0 ];										// ==>
+				
+			}	// Found at least one.
+			
+			//
+			// Set flag.
+			//
+			this._persistent = false;
+			
+			//
+			// Assert not found.
+			//
+			if( doAssert )
+			{
+				//
+				// Build reference.
+				//
+				const reference = [];
+				for( const field in selector )
+					reference.push( `${field} = ${selector[field].toString()}`)
+				
+				//
+				// Raise exception.
+				//
+				throw(
+					new MyError(
+						'BadDocumentReference',						// Error name.
+						K.error.DocumentNotFound,					// Message code.
+						this._request.application.language,			// Language.
+						[reference.join( ', ' ), this._collection],	// Error value.
+						404											// HTTP error code.
+					)
+				);																// !@! ==>
+			}
+			
+		}	// Found match combination.
+		
+		return null;																// ==>
+		
+	}	// resolveDocumentByContent
+	
+	/**
+	 * replaceDocument
+	 *
+	 * This method will replace the contents of the current document in the database, it
+	 * will first check if the current object is persistent, if that is the case, it
+	 * will validate the current document and replace its contents in the database and
+	 * return true.
+	 *
+	 * If the current object is not persistent, the method will raise an exception.
+	 *
+	 * The method will raise an exception if any of the following conditions are met:
+	 *
+	 * 	- Any current property is invalid.
+	 * 	- Any current value replaces an existing locked value.
+	 * 	- The current object does not exist.
+	 * 	- doRevision is true and current and existing revisions do not match.
+	 *
+	 * If the current document revision is different than the existing document
+	 * revision, the method will raise an exception.
+	 *
+	 * @param doRevision	{Boolean}	If true, check revision (default).
+	 * @returns {Boolean}				True if replaced or null if not persistent.
+	 */
+	replaceDocument( doRevision = true )
+	{
+		//
+		// Prevent replacing non persistent objects.
+		// We check this here to catch eventual blunders.
+		//
+		if( this._persistent )
+		{
+			//
+			// Validate contents.
+			//
+			this.validateDocument( true );
+			
+			//
+			// Check locked fields.
+			// Will raise an exception if unsuccessful.
+			//
+			this.validateLockedProperties( true );
+			
+			//
+			// Set replace information.
+			//
+			if( ! this.normaliseReplaceProperties( true ) )
+				return false;														// ==>
+			
+			//
+			// Replace document.
+			//
+			const meta =
+				db._replace(
+					{ _id : this._document._id },	// Selector.
+					this._document,					// New data.
+					{ overwrite : (! doRevision) }	// Handle revision.
+				);
+			
+			//
+			// Set revision flag.
+			//
+			this._revised = ( meta._rev !== meta.oldRev );
+			
+			//
+			// Set revision.
+			//
+			this._document._rev = meta._rev;
+			
+			return true;															// ==>
+			
+		}	// Is persistent.
+		
+		throw(
+			new MyError(
+				'ReplaceDocument',					// Error name.
+				K.error.IsNotPersistent,			// Message code.
+				this._request.application.language,	// Language.
+				null,								// Arguments.
+				409									// HTTP error code.
+			)
+		);																		// !@! ==>
+		
+	}	// replaceDocument
+	
+	/**
+	 * Remove document
+	 *
+	 * This method will remove the document from the database, it will first check if
+	 * the current object is persistent, if that is the case, it will proceed to
+	 * delete the document from the database and will return true.
+	 *
+	 * If the document is not persistent, the method will raise an exception.
+	 *
+	 * If the current object is not persistent, the method will raise an exception.
+	 *
+	 * If the current document revision is different than the existing document
+	 * revision, the method will raise an exception.
+	 *
+	 * @returns {Boolean}	True removed, false not found, null not persistent.
+	 */
+	removeDocument()
+	{
+		//
+		// Prevent replacing non persistent objects.
+		// We check this here to catch eventual blunders.
+		//
+		if( this._persistent )
+		{
+			//
+			// Clear from constraints.
+			// Errors will raise an exception.
+			//
+			this.validateDocumentConstraints( true );
+			
+			//
+			// Remove.
+			//
+			try
+			{
+				//
+				// Delete.
+				//
+				db._remove( this._document );
+				
+				//
+				// Update persistent flag.
+				//
+				this._persistent = false;
+				
+				return true;														// ==>
+			}
+			catch( error )
+			{
+				//
+				// Ignore not found.
+				//
+				if( (! error.isArangoError)
+				 || (error.errorNum !== ARANGO_NOT_FOUND) )
+					throw( error );												// !@! ==>
+				
+				//
+				// Update persistent flag.
+				//
+				this._persistent = false;
+				
+				return false;														// ==>
+			}
+			
+		}	// Is persistent.
+		
+		throw(
+			new MyError(
+				'RemoveDocument',					// Error name.
+				K.error.IsNotPersistent,			// Message code.
+				this._request.application.language,	// Language.
+				null,								// Arguments.
+				409									// HTTP error code.
+			)
+		);																		// !@! ==>
+		
+	}	// removeDocument
 	
 	
 	/************************************************************************************
@@ -1274,24 +1619,11 @@ class Document
 	 ************************************************************************************/
 	
 	/**
-	 * Retrieve class name
-	 *
-	 * This method will return the class name.
-	 *
-	 * @returns {String}	The class name.
-	 */
-	get classname()
-	{
-		return this._class;															// ==>
-		
-	}	// classname
-	
-	/**
 	 * Retrieve collection name
 	 *
-	 * This method will return the collection name.
+	 * This method will return the current document collection name.
 	 *
-	 * @returns {Object}	The collection name.
+	 * @returns {String}	The document collection name.
 	 */
 	get collection()
 	{
@@ -1300,17 +1632,19 @@ class Document
 	}	// collection
 	
 	/**
-	 * Retrieve document object
+	 * Retrieve instance name
 	 *
-	 * This method will return the document object.
+	 * This method will return the current document instance name.
+	 * 
+	 * This class does not implement a specific instance, so it will return undefined.
 	 *
-	 * @returns {Object}	The document object.
+	 * @returns {String}|{undefined}	The document instance name.
 	 */
-	get document()
+	get instance()
 	{
-		return this._document;														// ==>
+		return this._instance;															// ==>
 		
-	}	// document
+	}	// instance
 	
 	/**
 	 * Retrieve persistent flag
@@ -1337,6 +1671,19 @@ class Document
 		return this._revised;														// ==>
 		
 	}	// revised
+	
+	/**
+	 * Retrieve document object
+	 *
+	 * This method will return the document object.
+	 *
+	 * @returns {Object}	The document object.
+	 */
+	get document()
+	{
+		return this._document;														// ==>
+		
+	}	// document
 	
 	/**
 	 * Return list of significant fields
@@ -1417,10 +1764,13 @@ class Document
 	/**
 	 * Return default collection name
 	 *
-	 * This method should return the default collection name, if the method returns a
-	 * string, the document collection will be forced to that value in the
-	 * constructor; if the returned value is null, the collection is expected to be
-	 * provided in the constructor.
+	 * This method should return the default collection name: if documents of this
+	 * class belong to a specific collection, this method should return its name; if
+	 * documents of this class may be stored in different collectons, this method
+	 * should return null.
+	 *
+	 * This method determines whether the collection must be provided or not in the
+	 * constructor.
 	 *
 	 * In this class collections must be provided.
 	 *
@@ -1431,6 +1781,83 @@ class Document
 		return null;																// ==>
 		
 	}	// defaultCollection
+	
+	
+	/************************************************************************************
+	 * STATIC ASSERTION METHODS															*
+	 ************************************************************************************/
+	
+	/**
+	 * Is edge collection
+	 *
+	 * This method will check if the provided collection type is edge, if that is not
+	 * the case, the method will raise an exception.
+	 *
+	 * The raised exception has the HTTP status of 412.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theCollection	{String}	The collection name.
+	 * @param doAssert		{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}				True if of the correct type.
+	 */
+	static isEdgeCollection( theRequest, theCollection, doAssert = true )
+	{
+		//
+		// Check collection type.
+		//
+		if( db._collection( theCollection ).type() === 3 )
+			return true;															// ==>
+		
+		if( doAssert )
+			throw(
+				new MyError(
+					'BadCollection',					// Error name.
+					K.error.ExpectingEdgeColl,			// Message code.
+					theRequest.application.language,	// Language.
+					theCollection,						// Error value.
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+		return false;																// ==>
+		
+	}	// isEdgeCollection
+	
+	/**
+	 * Is document collection
+	 *
+	 * This method will check if the provided collection type is document, if that is not
+	 * the case, the method will raise an exception.
+	 *
+	 * The raised exception has the HTTP status of 412.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theCollection	{String}	The collection name.
+	 * @param doAssert		{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}				True if of the correct type.
+	 */
+	static isDocumentCollection( theRequest, theCollection, doAssert = true )
+	{
+		//
+		// Check collection type.
+		//
+		if( db._collection( theCollection ).type() === 2 )
+			return true;															// ==>
+		
+		if( doAssert )
+			throw(
+				new MyError(
+					'BadCollection',					// Error name.
+					K.error.ExpectingDocColl,			// Message code.
+					theRequest.application.language,	// Language.
+					theCollection,						// Error value.
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
+		
+		return false;																// ==>
+		
+	}	// isDocumentCollection
 	
 }	// Document.
 

@@ -3,8 +3,6 @@
 //
 // Frameworks.
 //
-const db = require('@arangodb').db;
-const aql = require('@arangodb').aql;
 const crypto = require('@arangodb/crypto');
 
 //
@@ -30,133 +28,240 @@ const Document = require( './Document' );
 class Edge extends Document
 {
 	/**
-	 * Set class
+	 * Init document properties
 	 *
-	 * This method will set the document class, which is the _key reference of the
-	 * term defining the document class.
+	 * We overload this method to set the instance member.
 	 *
-	 * In this class there is no defined class, so the value will be null.
+	 * @param theRequest	{Object}			The current request.
+	 * @param theCollection	{String}|{null}		The document collection.
+	 * @param isImmutable	{Boolean}			True, instantiate immutable document.
 	 */
-	setClass()
+	initDocumentMembers( theRequest, theCollection, isImmutable )
 	{
-		this._class = 'Edge';
+		//
+		// Call parent method.
+		//
+		super.initDocumentMembers( theRequest, theCollection, isImmutable );
 		
-	}	// setClass
+		//
+		// Set edge instance.
+		//
+		this._instance = 'Edge';
+		
+	}	// initDocumentMembers
+	
+	
+	/************************************************************************************
+	 * MODIFICATION METHODS																*
+	 ************************************************************************************/
 	
 	/**
-	 * Load computed fields
+	 * Normalise document properties
 	 *
-	 * Here we set the _key property and raise an exception if the existing and
-	 * computed _key don't match.
+	 * We overload this method to compute the edge _key and assert that, if the current
+	 * object has the _key, it is not different.
 	 *
-	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
-	 * 									(defaults to true).
-	 * @returns {Boolean}				True if valid.
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
 	 */
-	setComputedProperties( doAssert = true )
+	normaliseDocumentProperties( doAssert = true )
 	{
 		//
-		// Check if significant fields are there.
-		// Note that with the Edge class family there should only be one combination
-		// of significant fields.
+		// Check parent method.
 		//
-		if( this.hasSignificantFields( doAssert ) !== false )
+		if( super.normaliseDocumentProperties( doAssert ) )
 		{
 			//
-			// Get key.
+			// Check if significant fields are there.
+			// This should fail if any of the fields
+			// required to compute the key
+			// are missing.
 			//
-			const key = this.computeKey();
-			
-			//
-			// Assert key conflict.
-			//
-			if( this._document.hasOwnProperty( '_key' )
-				&& (key !== this._document._key) )
+			if( this.validateSignificantProperties( doAssert ) !== false )
 			{
-				if( doAssert )
+				//
+				// Compute key.
+				//
+				const key = this.key;
+				
+				//
+				// Check if computed.
+				//
+				if( key === null )
 					throw(
 						new MyError(
-							'AmbiguousDocumentReference',			// Error name.
-							K.error.KeyMismatch,					// Message code.
+							'Bug',									// Error name.
+							K.error.BugEdgeKeyMissFld,				// Message code.
 							this._request.application.language,		// Language.
-							[ this._document._key, key ],			// Arguments.
-							409										// HTTP error code.
+							this.instance,							// Arguments.
+							500										// HTTP error code.
 						)
 					);															// !@! ==>
 				
-				return false;														// ==>
-			}
+				//
+				// Check existing key.
+				//
+				if( this._document.hasOwnProperty( '_key' ) )
+				{
+					//
+					// Assert they are equal.
+					//
+					if( key !== this._document._key )
+					{
+						if( doAssert )
+							throw(
+								new MyError(
+									'AmbiguousDocumentReference',			// Error name.
+									K.error.KeyMismatch,					// Message code.
+									this._request.application.language,		// Language.
+									[ this._document._key, key ],			// Arguments.
+									409										// HTTP error code.
+								)
+							);													// !@! ==>
+						
+						return false;												// ==>
+					
+					}	// Key mismatch.
+					
+				}	// Edge has key.
+				
+				//
+				// Set key.
+				//
+				this._document._key = key;
+				
+				return true;														// ==>
+				
+			}	// Has significant fields.
 			
-			//
-			// Set key.
-			//
-			this._document._key = key;
-			
-			return true;															// ==>
-			
-		}	// Has significant fields.
+		}	// Parent method passed.
 		
 		return false;																// ==>
 		
-	}	// setComputedProperties
+	}	// normaliseDocumentProperties
 	
 	/**
-	 * Check collection type
+	 * Normalise insert properties
 	 *
-	 * This method will check if the collection is of the correct type, if that is not
-	 * the case, the method will raise an exception.
+	 * This method should load any default properties set when inserting the object.
 	 *
-	 * In this class we expect an edge collection.
+	 * In this class we set the creation time stamp.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
 	 */
-	checkCollectionType()
+	normaliseInsertProperties( doAssert = true )
 	{
 		//
-		// Check collection type.
+		// Call parent method.
 		//
-		if( db._collection( this._collection ).type() !== 3 )
-			throw(
-				new MyError(
-					'BadCollection',					// Error name.
-					K.error.ExpectingEdgeColl,			// Message code.
-					this._request.application.language,	// Language.
-					this._collection,					// Error value.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
+		if( super.normaliseInsertProperties( doAssert ) )
+		{
+			//
+			// Set creation time stamp.
+			//
+			this._document[ Dict.descriptor.kCStamp ] = Date.now();
+			
+			return true;															// ==>
+		}
 		
-	}	// checkCollectionType
+		return false;																// ==>
+		
+	}	// normaliseInsertProperties
 	
 	/**
-	 * Compute edge key.
+	 * Normalise replace properties
 	 *
-	 * This method is called by setComputedProperties() and implements the hashing
-	 * algorythm, derived classes should overload this method rather than
-	 * setComputedProperties().
+	 * This method should load any default properties set when replacing the object.
 	 *
-	 * The method expects the document to have all the required properties to compute
-	 * the key, hasSignificantFields() must have been called by the caller.
+	 * In this class we set the modification time stamp.
 	 *
-	 * The edge key is computed by hashing the _from, _to and predicate fields
-	 * separated by a tab character, the resulting MD5 hash will be returned by this
-	 * method.
-	 *
-	 * @returns {String}	The edge _key.
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
 	 */
-	computeKey()
+	normaliseReplaceProperties( doAssert = true )
 	{
 		//
-		// Collect hash fields.
+		// Call parent method.
 		//
-		const hash = [];
-		hash.push( this._document._from );
-		hash.push( this._document._to );
-		hash.push( this._document[ Dict.descriptor.kPredicate ] );
+		if( super.normaliseReplaceProperties( doAssert ) )
+		{
+			//
+			// Set creation time stamp.
+			//
+			this._document[ Dict.descriptor.kMStamp ] = Date.now();
+			
+			return true;															// ==>
+		}
+		
+		return false;																// ==>
+		
+	}	// normaliseReplaceProperties
+	
+	
+	/************************************************************************************
+	 * VALIDATION METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Validate collection type
+	 *
+	 * In this class we assert the collection to be of type edge.
+	 *
+	 * @param theCollection	{String}	The collection name.
+	 * @param doAssert		{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}				True if all required fields are there.
+	 */
+	validateCollectionType( theCollection, doAssert = true )
+	{
+		return Document.isEdgeCollection(
+								this._request,
+								theCollection,
+								doAssert
+							);														// ==>
+		
+	}	// validateCollectionType
+	
+	
+	/************************************************************************************
+	 * PERSISTENCE METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Resolve document by content
+	 *
+	 * Edges must contain only one set of significant fields which are then used to
+	 * compute the document key, for this reason we overload this method to use the
+	 * computed reference for resolving the document.
+	 *
+	 * This method is only called when explicitly resolving the document, if you
+	 * provide an object as the constructor reference, the document will not be
+	 * resolved by default.
+	 *
+	 * @param doAssert		{Boolean}	True raises an exception on error (default).
+	 * @returns {Object}|{null}			Resolved document or null.
+	 */
+	resolveDocumentByContent( doAssert = true )
+	{
+		//
+		// Get significant fields combination.
+		// Check if has significant fields and resolve.
+		// We have already checked that all necessary fields are there.
+		// Persistent flag is managed by method.
+		// If not found method returns null or raises an exception.
+		//
+		if( this.validateSignificantProperties( doAssert ) !== false )
+			return this.resolveDocumentByReference(
+				this.key,							// Computed key.
+				doAssert,							// Provided assert flag.
+				false								// Get a mutable object.
+			);																		// ==>
+		
+		return null;																// ==>
+		
+	}	// resolveDocumentByContent
 
-		return crypto.md5( hash.join( "\t" ) );										// ==>
-	
-	}	// computeKey
-	
-	
+
 	/************************************************************************************
 	 * GETTER METHODS																	*
 	 ************************************************************************************/
@@ -172,9 +277,9 @@ class Edge extends Document
 	{
 		return [
 			[
-				'_from',
-				'_to',
-				Dict.descriptor.kPredicate
+				'_to',						// Relationship destination.
+				'_from',					// Relationship source.
+				Dict.descriptor.kPredicate	// Relationship predicate.
 			]
 		];																			// ==>
 		
@@ -183,7 +288,7 @@ class Edge extends Document
 	/**
 	 * Return list of required fields
 	 *
-	 * In this class we add the node references and the predicate.
+	 * We overload this mathod to add the key and the significant fields.
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
@@ -191,7 +296,7 @@ class Edge extends Document
 	{
 		return super.requiredFields
 			.concat([
-				'_key',						// The edge hash.
+				'_key',						// The edge key.
 				'_from',					// The source node reference.
 				'_to',						// The destination node reference.
 				Dict.descriptor.kPredicate	// The predicate reference.
@@ -202,7 +307,7 @@ class Edge extends Document
 	/**
 	 * Return list of locked fields
 	 *
-	 * In this class we add the node references and the predicate.
+	 * We overload this mathod to add the significant fields.
 	 *
 	 * @returns {Array}	List of locked fields.
 	 */
@@ -210,13 +315,52 @@ class Edge extends Document
 	{
 		return super.lockedFields
 			.concat([
-				'_key',						// The edge hash.
-				'_from',					// The source node reference.
-				'_to',						// The destination node reference.
-				Dict.descriptor.kPredicate	// The predicate reference.
+				'_to',						// Relationship destination.
+				'_from',					// Relationship source.
+				Dict.descriptor.kPredicate	// Relationship predicate.
 			]);																		// ==>
 		
 	}	// lockedFields
+	
+	
+	/************************************************************************************
+	 * GETTER COMPUTED METHODS															*
+	 ************************************************************************************/
+	
+	/**
+	 * Compute edge key.
+	 *
+	 * This method will return the computed edge key value, or null, if any required
+	 * field is missing.
+	 *
+	 * This class expects the _from, _to and predicate properties to have been set.
+	 *
+	 * @returns {String}|{null}	The edge _key, or null, if missing required fields.
+	 */
+	get key()
+	{
+		//
+		// Ensure required fields.
+		//
+		if( this._document.hasOwnProperty( '_to' )
+		 && this._document.hasOwnProperty( '_from' )
+		 && this._document.hasOwnProperty( Dict.descriptor.kPredicate ) )
+		{
+			//
+			// Collect hash fields.
+			//
+			const hash = [];
+			hash.push( this._document._from );
+			hash.push( this._document._to );
+			hash.push( this._document[ Dict.descriptor.kPredicate ] );
+			
+			return crypto.md5( hash.join( "\t" ) );									// ==>
+			
+		}	// Has required key fields.
+		
+		return null;																// ==>
+		
+	}	// key
 	
 }	// Edge.
 
