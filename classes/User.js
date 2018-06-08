@@ -66,30 +66,25 @@ const Edge = require( './Edge' );
  * current user hierarchical level is allowed to manage that user.
  *
  * Users can also be part of a group, this membership relationship is also implemented
- * using graph edges. The group can be any Document derived instance.
+ * using graph edges. The group can be any Document derived instance and, unlike with
+ * managers, a user may be a member of more than one group.
  *
- * This class adds a series of members which can be used to manage the above-mentioned
- * hierarchies:
+ * This class adds a series of members which can be used to handle manager hierarchies:
  *
- * - _group:			This is a non persistent data member of the object which records
- * 						the eventual group _id, it can be accessed with the 'group'
- * 						getter.
  * - _manager:			This is a non persistent data member of the object which records
  * 						the manager _id, it can be accessed with the 'manager' getter.
  * - _manages:			This member holds the number of directly managed users, it is
  * 						set if the object is persistent and is used to prevent having to
  * 						repeatedly probe the database.
  *
- * Both the group and manager are reserved members, these are only set by providing
- * them in the constructor object selector or by resolving the object, through the
- * respective resolveGroup() and resolveManager() methods. To change a group or
- * manager there are two dedicated methods which only operate on resolved users:
+ * Both the group and manager are reserved members, the manager can only be set by
+ * providing it in the constructor, or by using the manager() setter while the object
+ * is not persistent; the group can only be set once the user has been saved by the
+ * dedicated setGroup() method. The current manager can only be changed with the
+ * setManager() method, that will assert the current user belongs the the target
+ * user's manager hierarchy.
  *
- * 	- setGroup():		Used to change or remove the group membership.
- * 	- setManager():		Used to change the user manager, should only be available to a
- * 						user in the user's manager hierarchy.
- *
- * Another set of utility methods are available:
+ * Manager hierarchies can be managed by the following methods:
  *
  * 	- manages():		Returns the count of users directly managed by the current user.
  * 	- managed():		Returns the list or hierarchy of managed users, it is possible
@@ -100,65 +95,52 @@ const Edge = require( './Edge' );
  * 						reference is among the current user's managers hierarchy.
  *
  * When a user is deleted, all its managed users will be transferred under the current
- * user's manager, if the current user is the system administrator, the operation will
- * not be permitted.
+ * user's manager, if the current user does not have a manager, which is relevant only
+ * for the system administrator, the operation will not be permitted. Once the manager
+ * was handled, the method will remove all the user log entries. At the end, the
+ * method will call removeDocumentReferences() to remove any edge pointing to the user.
  */
 class User extends Document
 {
 	/**
 	 * Constructor
 	 *
-	 * We overload the constructor to intercept the group and manager from the
-	 * provided object reference, if provided, these properties must resolve, or by
-	 * resolving them if the object was resolved.
+	 * We overload the constructor to intercept the manager from the provided object
+	 * reference, the manager must be provided in the custom '__manager' property and
+	 * can take the same signatutes as the theReference parameter to this constructor.
 	 *
-	 * The class features two custom data members:
-	 *
-	 * 	- _group:	The user group _id reference.
-	 * 	- _manager:	The user manager User _id reference.
-	 *
-	 * These two members can be retirieved by the respective group and manager
-	 * getters, they, however, can only be set from an object reference provided in
-	 * the constructor, or modified using a custom interface; the group is optional,
-	 * the manager is required for all users, except the system administrator.
-	 *
-	 * When providing these members to the constructor using an object reference, you
-	 * should use the following custom property names:
-	 *
-	 * 	__group:	For the group.
-	 * 	__manager:	For the manager.
-	 *
-	 * Note that if the document was resolved, both the resolved group and manager
-	 * will be used:
+	 * The manager is stored in the '_manager' data member of this object. All users
+	 * MUST have a manager, except the system administrator.
 	 *
 	 * The user has two unique fields: the _key and the username.
-	 *
-	 * In this class we follow these steps:
-	 *
-	 * 	- Extract and remove group and manager references from the provided object
-	 * 	  selector.
-	 * 	- Call the parent constructor.
-	 * 	- Resolve the group and manager.
-	 * 	- If the object is persistent:
-	 * 		- Assert that the resolved group and manager match the eventual provided ones.
-	 * 		- Assert that the user has a manager, or that it is the system administrator.
-	 *
-	 * Note that both the group and manager MUST be provided either as an object
-	 * selector or as their _id reference.
 	 *
 	 * The constructor adds an extra private parameter to prevent an instantiation
 	 * cascading: when resolving managers, for instance, we instantiate the manager
 	 * user, this means that if it has a manager the process will go on: if you
-	 * provide false in the last parameter, the group and manager will not be
-	 * reserved, since you are only interested in the _id of the group or manager.
+	 * provide false in the last parameter, the manager will not be resolved. This
+	 * signature is used internally: the resulting user object will not be valid,
+	 * since it will lack the manager, so clients MUST ALWAYS OMIT THIS PARAMETER when
+	 * calling the constructor.
+	 *
+	 * In this class we follow these steps:
+	 *
+	 * 	- Extract and remove the manager reference from the provided object selector.
+	 * 	- Call the parent constructor.
+	 * 	- If doRelated is true:
+	 * 		- If the object is persistent:
+	 * 			- We initialise the manager with the eventual one found in the
+	 * 			  database.
+	 * 		- If the manager was provided, we set it; this covers the case in which
+	 * 		  the object is not persistent, or if the manager was not explicitly provided.
 	 *
 	 * This class implements the defaultCollection() method, which returns the users
-	 * collection name, users reside by default in that collection and the database
-	 * expects users to be found in it. However, there may be cases in which you might
-	 * want to instantiate a user that is not a human client, rather a batch
-	 * controller or some other entity which doesn't belong in a collection of users:
-	 * in this case you can provide explicitly the collection in which it resides, in
-	 * all other cases you should omit the collection from the constructor.
+	 * collection name. Users reside by default in that collection and the database
+	 * expects users to be found in it.
+	 *
+	 * There may be cases in which we want to grant access to an entity other than a
+	 * human user, such as a procedure or external service, in that case you can
+	 * provide the collection explicitly which will override the default one. Note
+	 * that only elements of the users collection can be managers.
 	 *
 	 * @param theRequest	{Object}					The current request.
 	 * @param theReference	{String}|{Object}|{null}	The document reference or object.
@@ -176,23 +158,13 @@ class User extends Document
 		//
 		// Init local storage.
 		//
-		let group = null;
 		let manager = null;
 		
 		//
-		// Handle object reference.
+		// Extract and remove the manager from the selector.
 		//
 		if( K.function.isObject( theReference ) )
 		{
-			//
-			// Extract group.
-			//
-			if( theReference.hasOwnProperty( '__group' ) )
-			{
-				group = theReference.__group;
-				delete theReference.__group;
-			}
-			
 			//
 			// Extract manager.
 			//
@@ -210,17 +182,35 @@ class User extends Document
 		super( theRequest, theReference, theCollection, isImmutable );
 		
 		//
-		// Handle group and manager.
+		// Resolve manager manager.
 		//
 		if( doRelated )
 		{
 			//
-			// Resolve provided group and manager.
+			// If the object is persistent,
+			// set the manager by resolving the edge.
 			//
-			this.resolveGroup( group );
-			this.resolveManager( manager );
+			if( this._persistent )
+			{
+				//
+				// We set the manager data member directly
+				// if there is a manager relationship in the database.
+				//
+				const reference = this.resolveManager();
+				if( reference !== null )
+					this.manager = reference;
+			}
 			
-		}	// Resolve group and manager.
+			//
+			// Set _manager data member if manager was provided.
+			// Here we raise an exception if the provided manager
+			// does not match the one in the database,
+			// if not, the setter will not need to replace the value.
+			//
+			if( manager !== null )
+				this.manager = manager;
+		
+		}	// Handle related objects.
 		
 	}	// constructor
 	
@@ -417,7 +407,7 @@ class User extends Document
 				//
 				// Raise exception.
 				//
-				if( getMad )
+				if( doAssert )
 					throw(
 						new MyError(
 							'ConstraintViolated',						// Error name.
@@ -465,21 +455,27 @@ class User extends Document
 	 * Insert document
 	 *
 	 * We overload this method to create the authentication record  and to add the
-	 * group and manager edges.
+	 * manager edge.
 	 *
 	 * The method will proceed as follows:
 	 *
 	 * 	- It will first insert the user document.
-	 * 	- It will then insert the group edge, if provided.
-	 * 	- It will finally insert the manager edge.
-	 * 	- If any of these operations fail, the method will take care of removing the
-	 * 	  user document, the group and manager edges, and will raise an exception.
+	 * 	- It will then insert the manager edge.
+	 * 	- If last operation fails, the method will will remove the user document,  and
+	 * 	  will raise an exception.
 	 *
 	 * We also overload the method signature to require the user password, which is
 	 * needed to create the authentication record.
 	 *
-	 * Note that when inserting the group or the manager edges and there is any error,
-	 * only the newly inserted edges will be deleted.
+	 * Note that if the method fails to insert the manager edge, the method will raise
+	 * an exception.
+	 *
+	 * ToDo: When inserting the manager relationship, duplicate error is not raised.
+	 * This case should be handled in the future, currently, the methods of this class
+	 * ensure the integrity of the database is protected, not asserted.
+	 *
+	 * Note: all persistence methods should first handle the user: the parent class
+	 * will raise an exception if the method was called in the wrong context.
 	 *
 	 * @param thePassword	{String} The user password.
 	 * @returns {Boolean}	True if inserted.
@@ -493,15 +489,6 @@ class User extends Document
 		
 		//
 		// Insert user.
-		// If there is an error, an exception will be raised
-		// before we have a chance of adding group and manager:
-		// this means that any error after this point should trigger
-		// the removal of the user and the eventual group and manager edges.
-		//
-		// This also means that in the removeDocument() method the persistent flag
-		// will determine if the user has to be removed: on errors the persistent flag
-		// will be reset, which means that the parent remove() method will not
-		// proceed; if the user was inserted, the persistent flag will be set.
 		//
 		const persistent = super.insertDocument();
 		
@@ -511,41 +498,38 @@ class User extends Document
 		if( persistent )
 		{
 			//
-			// Init local storage.
-			//
-			let group_edge_id = null;
-			let manager_edge_id = null;
-			
-			//
-			// Try to insert group and manager.
+			// Try to insert the manager.
 			//
 			try
 			{
-				//
-				// Insert group relationhip.
-				//
-				group_edge_id = this.insertGroup();
-				
-				//
-				// Insert manager relationhip.
-				//
-				manager_edge_id = this.insertManager();
+				this.insertManager();
 			}
 			catch( error )
 			{
 				//
-				// Remove inserted group.
-				// Must not raise exceptions.
+				// Remove inserted user.
+				// Should not raise exceptions:
+				// should only guarantee that the user doesn't exist.
+				// No need to remove other references, since the user was just inserted.
 				//
-				if( group_edge_id !== null )
-					this.removeGroup();
-				
-				//
-				// Remove inserted manager.
-				// Must not raise exceptions.
-				//
-				if( manager_edge_id !== null )
-					this.removeManager();
+				try
+				{
+					db._remove( this._document._id );
+				}
+				catch( error )
+				{
+					//
+					// Raise exceptions other than not found.
+					//
+					// ToDo
+					// Errors other than not found will corrupt the database,
+					// since we can assume the user was inserted:
+					// we need to handle this case.
+					//
+					// if( (! error.isArangoError)
+					//  || (error.errorNum !== ARANGO_NOT_FOUND) )
+					// 	throw( error );											// !@! ==>
+				}
 				
 				//
 				// Reset eventual _manages member.
@@ -566,67 +550,6 @@ class User extends Document
 	}	// insertDocument
 	
 	/**
-	 * Insert group relationship
-	 *
-	 * If the current user has a group, this method will insert the edge relating the
-	 * user with the group and return the edge's _id; if the current user has no
-	 * group, the method will return null.
-	 *
-	 * This method is called by insertDocument() only if the document was correctly
-	 * inserted, so in this method we have the guarantee that the current object is
-	 * persistent.
-	 *
-	 * Any error will raise an exception, in particular, if the edge already exists,
-	 * the edge insert will raise an exception, since the edge is not supposed to exist.
-	 *
-	 * Note: you must NOT call this method, consider it private, since, if used
-	 * incorrectly, it will corrupt the database.
-	 *
-	 * @returns {String}|{null}	The edge _id or null if no group.
-	 */
-	insertGroup()
-	{
-		//
-		// Check group and _id.
-		// We assume _id is there, since the object is persistent.
-		//
-		if( this.hasOwnProperty( '_group' )
-		 && this._document.hasOwnProperty( '_id' ) )
-		{
-			//
-			// Build selector.
-			//
-			const selector = {};
-			selector._from = this._document._id;
-			selector._to   = this._group;
-			selector[ Dict.descriptor.kPredicate ] =
-				`terms/${Dict.term.kPredicateGroupedBy}`;
-			
-			//
-			// Instantiate.
-			//
-			const edge =
-				new Edge(
-					this._request,	// Current request.
-					selector,		// Selector.
-					'schemas',		// Collection.
-					false			// Return mutable.
-				);
-			
-			//
-			// Insert edge.
-			//
-			edge.insertDocument();
-			
-			return edge.document._id;												// ==>
-			
-		}	// Has group.
-		
-		return false;																// ==>
-		
-	}	// insertGroup
-	
-	/**
 	 * Insert manager relationship
 	 *
 	 * If the current user has a manager, this method will insert the edge relating the
@@ -635,10 +558,23 @@ class User extends Document
 	 *
 	 * This method is called by insertDocument() only if the document was correctly
 	 * inserted, so in this method we have the guarantee that the current object is
-	 * persistent.
+	 * persistent and that its _id is available.
 	 *
-	 * Any error will raise an exception, in particular, if the edge already exists,
-	 * the edge insert will raise an exception, since the edge is not supposed to exist.
+	 * The goal of this method is to ensure there is a relationship between the
+	 * current user and its manager, it will not flag eventual existing integrity
+	 * errors, in particular, if the edge already exists, the method will not raise an
+	 * exception.
+	 *
+	 * It will raise an exception only if the insert fails.
+	 *
+	 * Returning the edge _id serves the purpose of asserting the transaction: if for
+	 * any reason the user object becomes invalid after the manager edge has been
+	 * added, by saving the edge _id it guarantees you will only delete the newly
+	 * inserted edge.
+	 *
+	 * ToDo: If the edge exists, duplicate error is not raised.
+	 * This case should be handled in the future, currently, the methods of this class
+	 * ensure the integrity of the database is protected, not asserted.
 	 *
 	 * Note: you must NOT call this method, consider it private, since, if used
 	 * incorrectly, it will corrupt the database.
@@ -651,8 +587,7 @@ class User extends Document
 		// Check manager and _id.
 		// We assume _id is there, since the object is persistent.
 		//
-		if( this.hasOwnProperty( '_manager' )
-		 && this._document.hasOwnProperty( '_id' ) )
+		if( this.hasOwnProperty( '_manager' ) )
 		{
 			//
 			// Build selector.
@@ -665,6 +600,7 @@ class User extends Document
 			
 			//
 			// Instantiate.
+			// We use the Edge class to add timestamps and other panaphrelia.
 			//
 			const edge =
 				new Edge(
@@ -675,25 +611,30 @@ class User extends Document
 				);
 			
 			//
-			// Insert edge.
+			// Resolve or insert edge.
 			//
-			edge.insertDocument();
+			// ToDo
+			// Here we simply skip the insert if the edge exists,
+			// normally an integrity error should be raised.
+			//
+			if( ! edge.resolveDocument( false, false ) )
+				edge.insertDocument();
 			
 			return edge.document._id;												// ==>
 			
-		}	// Has group.
+		}	// Has manager.
 		
-		return false;																// ==>
+		return null;																// ==>
 		
 	}	// insertManager
 	
 	/**
 	 * Resolve document
 	 *
-	 * We overload this method to resolve the user group and manager.
+	 * We overload this method to resolve the manager.
 	 *
-	 * Regardless of the doAssert value, if the group or manager cannot be resolved,
-	 * the method will raise an exception: these two references are expected to be valid.
+	 * Regardless of the doAssert value, if the manager cannot be resolved, the method
+	 * will raise an exception: the reference is expected to be valid.
 	 *
 	 * @param doReplace	{Boolean}	Replace existing data (false is default).
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
@@ -712,16 +653,15 @@ class User extends Document
 		if( persistent === true )
 		{
 			//
-			// Resolve group.
-			// Any error raises an exception regardless of doAssert.
-			//
-			this.resolveGroup();
-			
-			//
 			// Resolve manager.
 			// Any error raises an exception regardless of doAssert.
+			// Note that we set the manager data member with the setter,
+			// this will ensure that the database and current managers are the same,
+			// particularly if resolveManager() returns null, the _manager member
+			// should not be there and if it returns a value, this must match the
+			// existing one.
 			//
-			this.resolveManager();
+			this.manager = this.resolveManager();
 			
 		}	// Resolved user.
 		
@@ -730,339 +670,35 @@ class User extends Document
 	}	// resolveDocument
 	
 	/**
-	 * Resolve user group
-	 *
-	 * This method will resolve the current user's group and return its _id. The
-	 * method requires a parameter that can take the following types:
-	 *
-	 * 	- null:		In this case, either the user has no group, or, if the object is
-	 * 				persistent, we want to resolve the group. If the user is
-	 * 				persistent, the method will return the resolved document _id, or
-	 * 				null if not found; if the user is not persistent, the method will
-	 * 				return null.
-	 * 	- string:	A string is expected to be the group document _id, the method will
-	 * 				assert that the document exists and return its _id; if the
-	 * 				document does not exist, the method will raise an exception.
-	 * 	- object:	The parameter is expected to be the group selector object, the
-	 * 				method will	resolve it and return its _id, or raise an exception
-	 * 				if not found.
-	 *
-	 * This method is called by the constructor after the user has been instantiated,
-	 * in that case the user may be persistent or not: if persistent, the method
-	 * will be used to set the eventual group in the object, if not persistent, the
-	 * method will be used to resolve the group and set the relative data member.
-	 *
-	 * The method is also called when resolving the object, in that case it will be
-	 * called after the user was resolved successfully. In that case the group will be
-	 * matched with the eventual existing data member: if the member does not exist,
-	 * or is null, the method will set it; if it exists, and the values do not match,
-	 * the method will raise an ambiguous document exception.
-	 *
-	 * In this class we only handle _id references and null: user groups must be
-	 * implemented still.
-	 *
-	 * @param theReference	{Object}|{String}|{null}	Manager reference or null.
-	 * @returns {String}|{null}							Resolved document _id or null.
-	 */
-	resolveGroup( theReference = null )
-	{
-		//
-		// Init local storage.
-		//
-		let found = null;
-		
-		//
-		// Handle object selector.
-		//
-		if( K.function.isObject( theReference ) )
-		{
-			//
-			// Instantiate group.
-			//
-			const group =
-				new Document(
-					this._request,		// Current request.
-					theReference,		// Manager reference.
-					null,				// Use default collection.
-					false				// Return mutable.
-				);
-			
-			//
-			// Resolve document.
-			//
-			if( ! group.persistent )
-				group.resolveDocument( true, true );
-			
-			found = group.document._id;
-			
-		}	// Provided selector.
-		
-		//
-		// Handle _id reference.
-		//
-		else if( theReference !== null )
-		{
-			//
-			// Check if it exists.
-			//
-			if( db._exists( theReference ) === false )
-				throw(
-					new MyError(
-						'BadDocumentReference',				// Error name.
-						K.error.DocumentNotFound,			// Message code.
-						this._request.application.language,	// Language.
-						// [theReference, this._collection],	// Error value.
-						[theReference, null],				// Error value.
-						404									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Set match.
-			//
-			found = meta._id;
-			
-		}	// Provided group _id.
-			
-			//
-			// theReference is null.
-			//
-		
-		//
-		// Handle persistent object.
-		//
-		else if( this._persistent )
-		{
-			//
-			// Look in schema edges.
-			//
-			const selector = {};
-			selector._from = this._document._id;
-			selector[ Dict.descriptor.kPredicate ] =
-				`terms/${Dict.term.kPredicateGroupedBy}`;
-			const cursor =
-				db._collection( 'schemas' )
-					.byExample( selector );
-			
-			//
-			// Intercept duplicate edge.
-			//
-			if( cursor.count() > 1 )
-			{
-				//
-				// Compute signature.
-				//
-				const signature = [];
-				for( const field in selector )
-					signature.push( `${field} = ${selector[field].toString()}` );
-				
-				throw(
-					new MyError(
-						'DatabaseCorrupt',						// Error name.
-						K.error.DuplicateEdge,					// Message code.
-						this._request.application.language,		// Language.
-						signature.join( ', ' ),					// Arguments.
-						500										// HTTP error code.
-					)
-				);																// !@! ==>
-				
-			}	// Duplicate edge.
-			
-			//
-			// Set match.
-			//
-			if( cursor.count() === 1 )
-				found = cursor.toArray()[ 0 ]._to;
-			
-		}	// Object is persistent.
-		
-		//
-		// Handle found group.
-		//
-		if( found !== null )
-		{
-			//
-			// Handle new user.
-			//
-			if( ! this._persistent )
-				this._group = found;
-			
-			//
-			// Handle existing user.
-			//
-			else
-			{
-				//
-				// Set if missing or null.
-				// Note that here we do not strictly enforce mismatches
-				// since we don't know whether a group was provided or not:
-				// as a rule, you set the group in the constructor to insert,
-				// and you omit it when replacing.
-				//
-				if( (! this.hasOwnProperty( '_group' ))
-				 || (this._group === null) )
-					this._group = found;
-				
-				//
-				// Handle mismatch.
-				//
-				else if( this._group !== found )
-					throw(
-						new MyError(
-							'UserGroupConflict',				// Error name.
-							K.error.UserGroupConflict,			// Message code.
-							this._request.application.language,	// Language.
-							[ this._group, found ],				// Arguments.
-							409									// HTTP error code.
-						)
-					);															// !@! ==>
-				
-				//
-				// No need to set it here:
-				// either null or missing was set,
-				// or existing matches found.
-				//
-				
-			}	// User exists.
-			
-		}	// Found group.
-		
-		//
-		// Handle group not provided or found.
-		//
-		else
-		{
-			//
-			// Handle mismatch.
-			// The group was set but the user doesn't have it.
-			//
-			if( this.hasOwnProperty( '_group' )			// Group is set
-			 && (this._group !== null) )				// and not empty.
-				throw(
-					new MyError(
-						'UserGroupConflict',				// Error name.
-						K.error.UserGroupConflict,			// Message code.
-						this._request.application.language,	// Language.
-						[ this._group, found ],				// Arguments.
-						409									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Set group.
-			//
-			if( ! this.hasOwnProperty( '_group' ) )
-				this._group = null;
-			
-		}	// Group not provided or found.
-		
-		return this._group;															// ==>
-		
-	}	// resolveGroup
-	
-	/**
 	 * Resolve user manager
 	 *
-	 * This method will resolve the current user's manager and return its _id. The
-	 * method requires a parameter that can take the following types:
+	 * This method will attempt to locate the edge relating the current user to its
+	 * manager, for this reason it should only be called on persistent objects.
 	 *
-	 * 	- null:		In this case, either the user has no group, or, if the object is
-	 * 				persistent, we want to resolve the group. If the user is
-	 * 				persistent, the method will return the resolved document _id, or
-	 * 				null if not found; if the user is not persistent, the method will
-	 * 				return null.
-	 * 	- string:	A string is expected to be the manager document _id, the method will
-	 * 				assert that the document exists and return its _id; if the
-	 * 				document does not exist, the method will raise an exception.
-	 * 	- object:	The parameter is expected to be the manager selector object, the
-	 * 				method will	resolve it and return its _id, or raise an exception
-	 * 				if not found.
+	 * The method is called by the constructor to resolve the manager existing in the
+	 * database if the object is persistent, it is also called when resolving the
+	 * object to set the manager, or assert that the eventual existing manager matches
+	 * the found one.
 	 *
-	 * This method is called by the constructor after the user has been instantiated,
-	 * in that case the user may be persistent or not: if persistent, the method
-	 * will be used to set the eventual manager in the object, if not persistent, the
-	 * method will be used to resolve the group and set the relative data member.
+	 * The method will return the _to property of the found edge, or null, if the
+	 * object is not persistent or if the edge was not found.
 	 *
-	 * The method is also called when resolving the object, in that case it will be
-	 * called after the user was resolved successfully. In that case the manager will be
-	 * matched with the eventual existing data member: if the member does not exist,
-	 * or is null, the method will set it; if it exists, and the values do not match,
-	 * the method will raise an ambiguous document exception.
+	 * The method will raise an exception if there is more than one edge with the
+	 * current user in _from and the managed-by predicate in the predicate: this
+	 * combination must be unique in the database.
 	 *
-	 * @param theReference	{Object}|{String}|{null}	Manager reference or null.
-	 * @returns {String}|{null}							Resolved document _id or null.
+	 * @returns {String}|{null}		Resolved edge _to property, or null.
 	 */
-	resolveManager( theReference = null )
+	resolveManager()
 	{
 		//
-		// Init local storage.
+		// Only if persistent.
 		//
-		let found = null;
-		
-		//
-		// Handle object selector.
-		//
-		if( K.function.isObject( theReference ) )
-		{
-			//
-			// Instantiate manager.
-			//
-			const manager =
-				new User(
-					this._request,		// Current request.
-					theReference,		// Manager reference.
-					null,				// Use default collection.
-					false,				// Return mutable.
-					false				// Don't resolve related.
-				);
-			
-			//
-			// Resolve document.
-			//
-			if( ! manager.persistent )
-				manager.resolveDocument( true, true );
-			
-			found = manager.document._id;
-			
-		}	// Provided selector.
-		
-		//
-		// Handle _id reference.
-		//
-		else if( theReference !== null )
-		{
-			//
-			// Check if it exists.
-			//
-			if( db._exists( theReference ) === false )
-				throw(
-					new MyError(
-						'BadDocumentReference',				// Error name.
-						K.error.DocumentNotFound,			// Message code.
-						this._request.application.language,	// Language.
-						[theReference, this._collection],	// Error value.
-						404									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Set match.
-			//
-			found = meta._id;
-			
-		}	// Provided manager _id.
-		
-		//
-		// theReference is null.
-		//
-		
-		//
-		// Handle persistent object.
-		//
-		else if( this._persistent )
+		if( this._persistent )
 		{
 			//
 			// Look in schema edges.
+			// The combination must be unique.
 			//
 			const selector = {};
 			selector._from = this._document._id;
@@ -1074,6 +710,7 @@ class User extends Document
 			
 			//
 			// Intercept duplicate edge.
+			// This means database integrity violation.
 			//
 			if( cursor.count() > 1 )
 			{
@@ -1100,166 +737,131 @@ class User extends Document
 			// Set match.
 			//
 			if( cursor.count() === 1 )
-				found = cursor.toArray()[ 0 ]._to;
-			
-			//
-			// Assert it is the SysAdm.
-			// We must have the username and name.
-			//
-			else if( this._document[ Dict.descriptor.kUsername ]
-				!== module.context.configuration.adminCode )
-				throw(
-					new MyError(
-						'DatabaseCorrupt',						// Error name.
-						K.error.NoManager,						// Message code.
-						this._request.application.language,		// Language.
-						this._document[ Dict.descriptor.kName ],
-						500										// HTTP error code.
-					)
-				);																// !@! ==>
+				return cursor.toArray()[ 0 ]._to;									// ==>
 			
 		}	// Object is persistent.
 		
-		//
-		// Set object data member.
-		//
-		
-		//
-		// Handle found manager.
-		//
-		if( found !== null )
-		{
-			//
-			// Handle new user.
-			//
-			if( ! this._persistent )
-				this._manager = found;
-			
-			//
-			// Handle existing user.
-			//
-			else
-			{
-				//
-				// Set if missing or null.
-				// Note that here we do not strictly enforce mismatches
-				// since we don't know whether a manager was provided or not:
-				// as a rule, you set the group in the constructor to insert,
-				// and you omit it when replacing.
-				//
-				if( (! this.hasOwnProperty( '_manager' ))
-				 || (this._manager === null) )
-					this._manager = found;
-				
-				//
-				// Handle mismatch.
-				//
-				else if( this._manager !== found )
-					throw(
-						new MyError(
-							'UserManagerConflict',				// Error name.
-							K.error.UserManagerConflict,		// Message code.
-							this._request.application.language,	// Language.
-							[ this._manager, found ],			// Arguments.
-							409									// HTTP error code.
-						)
-					);															// !@! ==>
-				
-				//
-				// No need to set it here:
-				// either null or missing was set,
-				// or existing matches found.
-				//
-				
-			}	// User exists.
-			
-		}	// Found manager.
-		
-		//
-		// Handle manager not provided or found.
-		//
-		else
-		{
-			//
-			// Handle mismatch.
-			// The manager was set but the user doesn't have it.
-			//
-			if( this.hasOwnProperty( '_manager' )			// Manager is set
-			 && (this._manager !== null) )					// and not empty.
-				throw(
-					new MyError(
-						'UserGroupConflict',				// Error name.
-						K.error.UserGroupConflict,			// Message code.
-						this._request.application.language,	// Language.
-						[ this._manager, found ],			// Arguments.
-						409									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Set manager.
-			//
-			if( ! this.hasOwnProperty( '_manager' ) )
-				this._manager = null;
-			
-		}	// Manager not provided or found.
-		
-		return this._manager;														// ==>
+		return null;																// ==>
 		
 	}	// resolveManager
 	
 	/**
-	 * replaceDocument
+	 * Replace document
 	 *
-	 * We overload this method's signatire by appending the password parameter, it is
+	 * We overload this method's signature by appending the password parameter, it is
 	 * used to update the authentication record in the event of a password change: if
 	 * provided, the authentication record will be replaced; if not, the
 	 * authentication record will not be changed.
 	 *
+	 * Er don't handle references here, because this method is only concerned with the
+	 * user document.
+	 *
+	 * Note: all persistence methods should first handle the user: the parent class
+	 * will raise an exception if the method was called in the wrong context.
+	 *
 	 * @param doRevision	{Boolean}		If true, check revision (default).
 	 * @param thePassword	{String}|{null}	If provided, update authentication data.
-	 * @returns {Boolean}					True if replaced or null if not persistent.
+	 * @returns {Boolean}					True if replaced or false if not valid.
 	 */
 	replaceDocument( doRevision = true, thePassword = null )
 	{
 		//
-		// If persistent and provided password,
-		// update authentication record.
+		// Handle no new password.
 		//
-		if( this._persistent
-		 && (thePassword !== null) )
-			User.setAuthentication( thePassword, this );
+		if( thePassword === null )
+			return super.replaceDocument( doRevision );								// ==>
 		
-		return super.replaceDocument( doRevision );									// ==>
+		//
+		// If persistent and provided password, update authentication record.
+		// Note that we copy the structure of the parent method: we need to do it
+		// because we have to set the authentication record.
+		//
+		if( this._persistent )
+		{
+			//
+			// Save authentication record.
+			// We will reset it if replace fails.
+			// Note that we assume it is there: all users must have it.
+			//
+			const auth = this._document[ Dict.descriptor.kAuthData ];
+			
+			//
+			// Remove.
+			//
+			try
+			{
+				//
+				// Set authentication record.
+				//
+				User.setAuthentication( thePassword, this );
+				
+				//
+				// Call parent method.
+				//
+				if( ! super.replaceDocument( doRevision ) )
+				{
+					//
+					// Reset to old authentication.
+					//
+					this._document[ Dict.descriptor.kAuthData ] = auth;
+					
+					return false;													// ==>
+				}
+				
+				return true;														// ==>
+			}
+			catch( error )
+			{
+				//
+				// Reset authentication.
+				//
+				this._document[ Dict.descriptor.kAuthData ] = auth;
+				
+				throw( error );													// !@! ==>
+			}
+			
+		}	// Object is persistent.
 		
+		throw(
+			new MyError(
+				'ReplaceDocument',					// Error name.
+				K.error.IsNotPersistent,			// Message code.
+				this._request.application.language,	// Language.
+				null,								// Arguments.
+				409									// HTTP error code.
+			)
+		);																		// !@! ==>
 		
 	}	// replaceDocument
 	
 	/**
 	 * Remove document
 	 *
-	 * We overload this method to remove the current user from the database, it will
-	 * first remove the user, then the eventual group relationship and finally the manager
-	 * relationship and will return true, if the user exists, or false if it doesn't.
+	 * We overload this method to handle group and manager relationships. The method
+	 * will perform the following steps:
+	 *
+	 * 	- Remove the user.
+	 * 	- If successful:
+	 * 		- Transfer managed users under the current user's manager.
+	 * 		- Remove the relationship with the manager.
+	 * 		- Remove all log entries concerning the user.
+	 * 		- Remove all edge references to the current user.
 	 *
 	 * If the current document revision is different than the existing document
 	 * revision, the method will raise an exception.
 	 *
 	 * If the current user manages other users, but has no manager, the method will
-	 * raise an exception; the managed users will be transferred under the current
-	 * user's manager.
+	 * raise an exception: this is caught in validateDocumentConstraints().
 	 *
-	 * The method overrides its signature by adding two parameters, these two flags
-	 * indicate whether the group or manager edges were inserted: these are necessary
-	 * in cases where the insert procedure finds an existing edge, removing it might
-	 * corrupt the database structure. The method can be called as with its ancestor,
-	 * since these two parameters default values
+	 * ToDo: No integrity check is performed on the current database state.
+	 * When removing relationships to mangers will not raise exceptions: in
+	 * particular, if the object has a manager, but this was not found, we do not
+	 * raise an exception. This guarantees that at exit the database will be clean,
+	 * but it will not flag eventual prior inconsistencies.
 	 *
-	 * @param doGroup	{Boolean}	If true, remove group (default).
-	 * @param doManager	{Boolean}	If true, remove manager (default)
 	 * @returns {Boolean}	True removed, false not found, null not persistent.
 	 */
-	removeDocument( doGroup = true, doManager = true )
+	removeDocument()
 	{
 		//
 		// Call parent method.
@@ -1267,7 +869,7 @@ class User extends Document
 		// if this method was called by insert(), it will proceed only if
 		// the user was actually inserted or if it exists.
 		//
-		const result = super.remove();
+		const result = super.removeDocument();
 		
 		//
 		// Remove group and manager.
@@ -1276,24 +878,23 @@ class User extends Document
 		if( result === true )
 		{
 			//
-			// Remove group relationship.
-			// Should not fail.
+			// Remove manager relationship.
+			// Must not fail.
 			// When called by insert(), the doGroup flag indicates whether
 			// the group edge was inserted, if that is not the case, the
 			// group edge might already exist and should not be removed.
 			//
-			if( doGroup )
-				this.removeGroup();
+			this.removeManager();
 			
 			//
-			// Remove group relationship.
-			// Should not fail.
-			// When called by insert(), the doGroup flag indicates whether
-			// the group edge was inserted, if that is not the case, the
-			// group edge might already exist and should not be removed.
+			// Remove log entries.
 			//
-			if( doManager )
-				this.removeManager();
+			this.removeLogEntries();
+			
+			//
+			// Remove user other references.
+			//
+			this.removeDocumentReferences();
 			
 		}	// Removed current document.
 		
@@ -1302,71 +903,40 @@ class User extends Document
 	}	// removeDocument
 	
 	/**
-	 * Remove group relationship
-	 *
-	 * This method will remove the current user group relationship, if it is set in
-	 * the object, it will return true if the edge was removed, or false if not.
-	 *
-	 * If the edge was not found, the method will not raise an exception.
-	 *
-	 * This method is called both when inserting a new user, in the event the user
-	 * insert failed, and when removing the user, after the current user was removed,
-	 * so it is guaranteed that the object information
-	 *
-	 * Note: you must NOT call this method, consider it private, since, if used
-	 * incorrectly, it will corrupt the database.
-	 *
-	 * @returns {Boolean}|{null}	True, deleted; false, not there; null not set.
-	 */
-	removeGroup()
-	{
-		//
-		// Check group.
-		//
-		if( this.hasOwnProperty( 'group' )
-		 && this._document.hasOwnProperty( '_id' ) )
-		{
-			//
-			// Build selector.
-			//
-			const selector = {};
-			selector._from = this._document._id;
-			selector._to   = this.group;
-			selector[ Dict.descriptor.kPredicate ] =
-				`terms/${Dict.term.kPredicateGroupedBy}`;
-			
-			//
-			// Instantiate edge.
-			//
-			const edge = new Edge( this._request, selector, 'schemas' );
-			
-			//
-			// Resolve edge.
-			// We resolve the edge without raising exceptions,
-			// if the edge exists we remove it and return the status,
-			// if not, we return false.
-			//
-			if( edge.resolve( false, false ) === true )
-				return edge.remove();												// ==>
-			
-			return false;															// ==>
-		}
-		
-		return null;																// ==>
-		
-	}	// removeGroup
-	
-	/**
 	 * Remove manager relationship
 	 *
-	 * This method will remove the current user manager relationship, if it is set in
-	 * the object, it will return true if the user has a manager, or false if not.
+	 * This method will remove the relationship between the curren user and its
+	 * manager and will transfer the eventual managed users under the current user's
+	 * manager.
 	 *
-	 * If the edge was not found, the method will not raise an exception.
+	 * This method is called after validateDocumentConstraints(), which asserts that
+	 * if the current user has mnaged users it does have a manager, which means that
+	 * the method should guarantee that no users are left without a manager.
 	 *
-	 * If the current user manages other users, these will be transferred under the
-	 * current user's manager, note that if we get here it is guaranteed that the user
-	 * has a manager.
+	 * The method can also be called by the constructor, in the event of an error: in
+	 * that case the method parameter is expected to be the edge _id, in this case it
+	 * will only remove the referenced edge.
+	 *
+	 * The method will perform the following steps:
+	 *
+	 * 	- If the reference is provided:
+	 * 		- Remove that edge.
+	 *  - If the reference was not provided, or null:
+	 * 		- Collect all edges relating managed users to the current user, if found,
+	 * 		  perform the following with each edge:
+	 * 			- Remove the edge.
+	 * 			- Delete local fields from the edge.
+	 * 			- Set the edge _to to the current user's manager.
+	 * 			- Insert the edge.
+	 * 		- Select the edge relating the current user with its manager.
+	 * 		- Remove the edge.
+	 *
+	 * The method will return true if the manager edge was removed.
+	 *
+	 * ToDo: The database structure is not asserted before the method completes.
+	 * 		 The mothod only guarantees that once run, no manager relationship will
+	 * 		 exist involving the current user: a structure integrity check should be
+	 * 		 run before the method operates and logged for post handling.
 	 *
 	 * Note: this method will be called only if the user is persistent, therefore it
 	 * is guaranteed that the user _id exists.
@@ -1374,111 +944,143 @@ class User extends Document
 	 * Note: you must NOT call this method, consider it private, since, if used
 	 * incorrectly, it will corrupt the database.
 	 *
-	 * @returns {Boolean}|{null}	True, deleted; false, not there; null not set.
+	 * @param theReference	{String}|{null}	The edge to remove, or null.
+	 * @returns {Boolean}					True, deleted.
 	 */
-	removeManager()
+	removeManager( theReference = null )
 	{
 		//
-		// Check manager.
+		// Handle edge reference.
 		//
-		if( this.hasOwnProperty( 'manager' ) )
+		if( theReference !== null )
 		{
 			//
-			// Prepare managed users selector.
+			// Remove edge.
 			//
-			const selector = {};
-			selector._to = this._document._id;
-			selector[ Dict.descriptor.kPredicate ] =
-				`terms/${Dict.term.kPredicateManagedBy}`;
-			
-			//
-			// Select managed.
-			//
-			const managed = db._collection( 'schemas' ).byExample( selector ).toArray();
-			
-			//
-			// Transfer managed to current object's manager,
-			// and remove managed relationships to current user.
-			//
-			for( const edge of managed )
+			try
+			{
+				db._remove( theReference );
+			}
+			catch( error )
 			{
 				//
 				// ToDo
-				// When removing the edges, a revision mismatch will trigger an exception,
-				// this will corrupt the database.
-				// A solution should be devised to prevent this from happening.
+				// We ignore any error, this is because here we only ensure that once
+				// run, the edge does not exist; if the edge is not there in the first
+				// place, it is an error and it should be handled.
 				//
-				
-				//
-				// Remove relationship to current user.
-				//
-				db._remove( edge );
-				
-				//
-				// Remove identifiers and revision.
-				//
-				delete edge._id;
-				delete edge._key;
-				delete edge._rev;
-				
-				//
-				// Set relationship to manager.
-				//
-				edge._to = this.manager;
-				
-				//
-				// Instantiate edge.
-				//
-				const new_edge = new Edge( this._request, edge, 'schemas' );
-				
-				//
-				// ToDo
-				// If the edge already exists, we do not attempt to insert it,
-				// this case obviously indicates a database structure corruption.
-				// A solution should be devised to prevent this from happening.
-				//
-				
-				//
-				// Resolve edge.
-				// We resolve the edge without raising exceptions,
-				// if the edge doesn't exist we insert it,
-				// if it does, we do nothing.
-				//
-				if( new_edge.resolve( false, false ) !== true )
-					new_edge.insert();
+				return false;														// ==>
+			}
+			
+			return true;															// ==>
+			
+		}	// Provided edge reference.
+		
+		//
+		// Select all edges where the current user is manager.
+		//
+		const sel_managed = {};
+		sel_managed._to = this._document._id;				// Current user.
+		sel_managed[ Dict.descriptor.kPredicate ] =		// Manager predicate.
+			`terms/${Dict.term.kPredicateManagedBy}`;
+		const managed =
+			db._collection( 'schemas' )
+				.byExample( sel_managed ).toArray();
+		
+		//
+		// Swap current user with current user's manager
+		// and remove the original edge.
+		//
+		for( const edge of managed )
+		{
+			//
+			// Remove relationship to current user.
+			//
+			const sel_current = {};
+			sel_current._to = edge._to;
+			sel_current._from = edge._from;
+			sel_current[ Dict.descriptor.kPredicate ] =
+				edge[ Dict.descriptor.kPredicate ];
+			db._collection( 'schemas' )
+				.removeByExample( sel_current );
+			
+			//
+			// Remove identifiers, revision and timestamps.
+			//
+			for( const field of this.localFields )
+			{
+				if( edge.hasOwnProperty( field ) )
+					delete edge[ field ]
 			}
 			
 			//
-			// Prepare managed users selector.
+			// Swap manager from current user to current user's manager.
 			//
-			selector._from = this._document._id;
-			selector._to   = this.manager;
+			edge._to = this.manager;
 			
 			//
 			// Instantiate edge.
 			//
-			const old_edge = new Edge( this._request, selector, 'schemas' );
+			const new_edge = new Edge( this._request, edge, 'schemas' );
 			
+			//
+			// Resolve edge.
+			// We resolve the edge without raising exceptions,
+			// if the edge doesn't exist we insert it,
+			// if it does, we do nothing.
 			//
 			// ToDo
-			// If the manager doesn't exist it either means the user is the
-			// administrator, or it means that the database is corrupt.
-			// A solution should be devised to clarify this case.
+			// If the edge already exists, we do not attempt to insert it,
+			// this case obviously indicates a database structure corruption.
+			// A solution should be devised to prevent this from happening,
+			// like implementing an exception que.
 			//
+			if( new_edge.resolve( false, false ) !== true )
+				new_edge.insert();
 			
-			//
-			// Remove manager relationship if it exists.
-			//
-			if( old_edge.resolve( false, false ) === true )
-				return old_edge.remove();											// ==>
-			
-			return false;															// ==>
-			
-		}	// Has manager.
+		}	// Transferring managed users under current manager.
 		
-		return null;																// ==>
+		//
+		// Remove relationship to current manager.
+		// Note that we are guaranteed the current user has a manager.
+		// We reuse the original selector, since it has the correct predicate.
+		//
+		sel_managed._from = this._document._id;
+		sel_managed._to	  = this._manager;
+		return (
+			db._collection( 'schemas' )
+				.removeByExample( selector )
+				.count() > 0
+		);																			// ==>
 		
 	}	// removeManager
+	
+	/**
+	 * Remove user log entries
+	 *
+	 * This method will remove all log entries featuring the current user.
+	 *
+	 * The method will return the result of the operation.
+	 *
+	 * ToDo: The method should not raise an exception on error.
+	 * 		 The method expects the delete operation not to fail, a transaction
+	 * 		 management procedure should be implemented.
+	 *
+	 * @returns {*}	The results of the operation.
+	 */
+	removeLogEntries()
+	{
+		//
+		// Remove entries.
+		//
+		const collection = db._collection( 'logs' );
+		return db._query( aql`
+				FOR doc IN ${collection}
+					FILTER doc.user == ${this._document._id}
+					REMOVE doc IN ${collection}
+		`);																			// ==>
+	
+	}	// removeLogEntries
 	
 	
 	/************************************************************************************
@@ -1761,6 +1363,115 @@ class User extends Document
 	 ************************************************************************************/
 	
 	/**
+	 * Set current manager reference
+	 *
+	 * The method will set the _manager data member with the document _id of the
+	 * provided user reference.
+	 *
+	 * This method is used both to set the data member and to assert that the provided
+	 * reference and the existing references match in the event that the object is
+	 * persistent. To change the manager, you must use the dedicated setManager() method.
+	 *
+	 * The provided reference can either be the user _id or _key as a string
+	 * reference, or an object containing the key fields, in this case the username.
+	 * If you provide null, it means that the current user doesn't have a manager, in
+	 * this case the data member will deleted; if the object is persistent, any
+	 * attempt to set a different value for the manager will result in an exception.
+	 *
+	 * The method fails and raises an exception in the following cases:
+	 *
+	 * 	- If the manager cannot be resolved.
+	 * 	- If resolving the manager reference results in more than one document.
+	 * 	- If the resolved _id doesn't math the existing _manager data member and the
+	 * 	  object is persistent.
+	 *
+	 * @param theReference	{String}|{Object}{null}	The manager reference.
+	 */
+	set manager( theReference )
+	{
+		//
+		// Init local storage.
+		//
+		let id = null;
+		
+		//
+		// Handle provided reference.
+		//
+		if( theReference !== null )
+		{
+			//
+			// Instantiate manager.
+			// Will raise an exception if not found.
+			//
+			const manager =
+				new User(
+					this._request,		// Current request.
+					theReference,		// Manager reference.
+					null,				// Force users collection.
+					false,				// Return mutable.
+					false				// Don't resolve related.
+				);
+			
+			//
+			// Resolve document.
+			//
+			if( ! manager.persistent )
+				manager.resolveDocument( true, true );
+			
+			//
+			// Set reference.
+			//
+			id = manager.document._id;
+			
+		}	// Provided a reference.
+		
+		//
+		// Catch manager mismatch in persistent object.
+		//
+		if( this._persistent )
+		{
+			//
+			// Assert provided reference matches the current one.
+			//
+			if( id !== this._manager )
+				throw(
+					new MyError(
+						'UserManagerConflict',				// Error name.
+						K.error.UserManagerConflict,		// Message code.
+						this._request.application.language,	// Language.
+						[ this._manager, id ],				// Arguments.
+						409									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+		}	// Object is persistent.
+		
+		//
+		// Handle non persistent object.
+		// Note that if persistent they must match, so no need to set.
+		//
+		else
+			this._manager = id;
+		
+	}	// manager
+	
+	/**
+	 * Return current manager reference
+	 *
+	 * The method returns the contents of the _manager data member, or null, if it is
+	 * not set.
+	 *
+	 * @returns {String}|{null}	The current user manager reference.
+	 */
+	get manager()
+	{
+		return ( this.hasOwnProperty( '_manager' ) )
+			   ? this._manager														// ==>
+			   : null;																// ==>
+		
+	}	// manager
+	
+	/**
 	 * Return list of significant fields
 	 *
 	 * We override the parent method to return the user code.
@@ -1855,6 +1566,325 @@ class User extends Document
 		return 'users';																// ==>
 		
 	}	// defaultCollection
+	
+	/**
+	 * Return local fields list
+	 *
+	 * We overload this method to add the time stamps.
+	 *
+	 * @returns {String}|{null}	The default collection name.
+	 */
+	get localFields()
+	{
+		return super.localFields
+			.concat([
+				Dict.descriptor.kCStamp,	// Creation time stamp.
+				Dict.descriptor.kMStamp		// Modivifation time stamp.
+			]);																		// ==>
+		
+	}	// localFields
+	
+	
+	/************************************************************************************
+	 * REFERENCES INTERFACE																*
+	 ************************************************************************************/
+	
+	/**
+	 * Set or remove group relationship
+	 *
+	 * This method can be used to manage the group of a persistent user, the method
+	 * expects the following parameters:
+	 *
+	 * 	- theGroup:			The group reference as would be provided to the Document
+	 * 						constructor.
+	 * 	- doAdd:			A boolean flag that if true means add the relation to the
+	 * 						provided group, if false, remove it, if it exists.
+	 * 	- theCollection:	The group's collection name, if the provided reference is
+	 * 						not an _id.
+	 *
+	 * The method will return the results of the operation, or raise an exception on
+	 * errors.
+	 *
+	 * The method will also raise an exception if the object is not persistent.
+	 *
+	 * @returns {Boolean}	True, succeeded; false not.
+	 */
+	setGroup( theGroup, doAdd, theCollection = null )
+	{
+		//
+		// Assert persistent object.
+		//
+		if( this._persistent )
+		{
+			//
+			// Resolve group.
+			// Will raise an exception if not found.
+			//
+			const group =
+				new Document(
+					this._request,	// The current request.
+					theGroup,		// The document selector.
+					theCollection,	// The eventual group collection.
+					true			// Return immutable.
+				);
+			
+			//
+			// Compile edge.
+			//
+			const document = {};
+			document._to = group.document._to;
+			document._from = group.document._from;
+			document[ Dict.descriptor.kPredicate ] =
+				`terms/${Dict.term.kPredicateGroupedBy}`;
+			
+			//
+			// Create edge.
+			//
+			const edge = new Edge(
+				this._request,		// The current request.
+				document,			// The edge contents.
+				'schemas',			// The schemas collection.
+				false				// Return mutable.
+			);
+			
+			//
+			// Insert edge.
+			//
+			if( doAdd )
+				return edge.insertDocument();										// ==>
+			
+			//
+			// Resolve edge.
+			//
+			if( edge.resolveDocument( false, false ) )
+				return edge.removeDocument();										// ==>
+			
+			return false;															// ==>
+			
+		}	// Persistent.
+		
+		throw(
+			new MyError(
+				'SetGroup',							// Error name.
+				K.error.IsNotPersistent,			// Message code.
+				this._request.application.language,	// Language.
+				null,								// Arguments.
+				409									// HTTP error code.
+			)
+		);																		// !@! ==>
+		
+	}	// setGroup
+	
+	/**
+	 * Switch manager
+	 *
+	 * This method can be used to change the manager of the current user, the method
+	 * expects a single parameter as the reference provided to the User constructor.
+	 *
+	 * The method will perform the following operations:
+	 *
+	 * 	- Resolve the provided manager.
+	 * 	- Assert it can manage users.
+	 * 	- Transfer all users managed by the current user under the provided manager.
+	 * 	- Remove the relationship with the current manager.
+	 * 	- Set the relationship with the current manager.
+	 * 	- Update the current user object data member.
+	 *
+	 * The method will raise an exception on any eror and also in the following cases:
+	 *
+	 * 	- If the current object is not persistent.
+	 * 	- If the provided manager user does not have the required role.
+	 *
+	 * If you try to set a manager to the system administrator, the method will simply
+	 * return false.
+	 *
+	 * @returns {Boolean}	True, succeeded; false not.
+	 */
+	setManager( theGroup, doAdd, theCollection = null )
+	{
+		//
+		// Assert persistent object.
+		//
+		if( this._persistent )
+		{
+			//
+			// Assert has manager.
+			//
+			if( this._document[ Dict.descriptor.kUsername ]
+				=== module.context.configuration.adminCode )
+				return false;														// ==>
+			
+			//
+			// Resolve manager.
+			// Will raise an exception if not found.
+			//
+			const manager =
+				new User(
+					this._request,	// The current request.
+					theGroup,		// The document selector.
+					theCollection,	// The eventual group collection.
+					true,			// Return immutable.
+					false			// Don't resolve related.
+				);
+			
+			//
+			// Save IDs.
+			//
+			const id_user = this._document._id;
+			const id_manager = manager._document._id;
+			
+			//
+			// Assert it can manage users.
+			//
+			if( ! manager._document[ Dict.descriptor.kRole ].includes( Dict.term.kRoleUser ) )
+				throw(
+					new MyError(
+						'SetManager',						// Error name.
+						K.error.CannotManageUsers,			// Message code.
+						this._request.application.language,	// Language.
+						null,								// Arguments.
+						409									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			//
+			// Init local storage.
+			//
+			const predicate = `terms/${Dict.term.kPredicateManagedBy}`;
+			const predicate_field = Dict.descriptor.kPredicate;
+			
+			//
+			// Get current manager edge.
+			//
+			const selector = {};
+			selector._to = this.manager;
+			selector._from = id_user;
+			selector[ predicate_field ] = predicate;
+			let edge =
+				new Edge(
+					this._request,	// The current request.
+					selector,		// The document selector.
+					'schemas',		// The schemas collection.
+					false			// Return mutable.
+				);
+			
+			//
+			// Select all edges where the current user is manager.
+			//
+			selector._to = id_user;	// Points to current user.
+			delete selector._from;	// Any source node.
+			const managed =
+				db._collection( 'schemas' )
+					.byExample( sel_managed )
+					.toArray();
+			
+			//
+			// Swap current user with current user's manager
+			// and remove the original edge.
+			//
+			for( const item of managed )
+			{
+				//
+				// Remove relationship to current user.
+				//
+				selector._from = item._from;	// Set the source node.
+				db._collection( 'schemas' )
+					.removeByExample( sel_current );
+				
+				//
+				// Remove identifiers, revision and timestamps.
+				//
+				for( const field of this.localFields )
+				{
+					if( item.hasOwnProperty( field ) )
+						delete item[ field ]
+				}
+				
+				//
+				// Swap manager from current user to current user's manager.
+				//
+				item._to = id_manager;
+				
+				//
+				// Instantiate edge.
+				//
+				const new_edge = new Edge( this._request, item, 'schemas' );
+				
+				//
+				// Resolve edge.
+				// We resolve the edge without raising exceptions,
+				// if the edge doesn't exist we insert it,
+				// if it does, we do nothing.
+				//
+				// ToDo
+				// If the edge already exists, we do not attempt to insert it,
+				// this case obviously indicates a database structure corruption.
+				// A solution should be devised to prevent this from happening,
+				// like implementing an exception que.
+				//
+				if( new_edge.resolve( false, false ) !== true )
+					new_edge.insert();
+				
+			}	// Transferring managed users under current manager.
+			
+			//
+			// Remove relationship to current manager.
+			//
+			edge.removeDocument();
+			
+			//
+			// Update directly the current user manager.
+			//
+			this._manager = id_manager;
+			
+			//
+			// Remove identifiers, revision and timestamps.
+			//
+			const data = JSON.parse(JSON.stringify(edge._document));
+			for( const field of this.localFields )
+			{
+				if( data.hasOwnProperty( field ) )
+					delete data[ field ]
+			}
+			
+			//
+			// Set new manager.
+			//
+			data._to = id_manager;
+			
+			//
+			// Create new edge.
+			//
+			edge =
+				new Edge(
+					this._request,	// The current request.
+					data,			// The edge contents.
+					'schemas',		// The schemas collection.
+					false			// Return mutable.
+				);
+			
+			//
+			// Insert updated edge.
+			//
+			// ToDo: If insertion fails, it should only be because of a duplicate.
+			// If that is not the case, the database is corrupt: need to implement
+			// safeguards.
+			//
+			edge.insertDocument();
+			
+		}	// Persistent.
+		
+		throw(
+			new MyError(
+				'SetGroup',							// Error name.
+				K.error.IsNotPersistent,			// Message code.
+				this._request.application.language,	// Language.
+				null,								// Arguments.
+				409									// HTTP error code.
+			)
+		);																		// !@! ==>
+		
+	}	// setManager
 	
 	
 	/************************************************************************************

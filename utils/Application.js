@@ -153,17 +153,18 @@ class Application
 	/**
 	 * Erase document collections
 	 *
-	 * This method will drop all required document collections,
-	 * the method will return the list of dropped collections.
+	 * This method will drop all required document collections, the method will return
+	 * the list of dropped collections with their old record count as
+	 * { collection : count }.
 	 *
-	 * @returns {Array}	The list of dropped collections.
+	 * @returns {Object}	The list of dropped collections and their count.
 	 */
 	static dropDocumentCollections()
 	{
 		//
 		// Init local storage.
 		//
-		const dropped = [];
+		const dropped = {};
 		const collections = K.defaultDocumentCollections;
 
 		//
@@ -178,6 +179,11 @@ class Application
 			if( collection )
 			{
 				//
+				// Save count.
+				//
+				const count = collection.count();
+				
+				//
 				// Drop collection.
 				//
 				collection.drop();
@@ -185,7 +191,7 @@ class Application
 				//
 				// Add to list.
 				//
-				dropped.push( name );
+				dropped[ name ] = count;
 			}
 		}
 
@@ -196,17 +202,18 @@ class Application
 	/**
 	 * Erase edge collections
 	 *
-	 * This method will drop all required edge collections,
-	 * the method will return the list of dropped collections.
+	 * This method will drop all required edge collections, the method will return
+	 * the list of dropped collections with their old record count as
+	 * { collection : count }.
 	 *
-	 * @returns {Array}	The list of dropped collections.
+	 * @returns {Object}	The list of dropped collections and their count.
 	 */
 	static dropEdgeCollections()
 	{
 		//
 		// Init local storage.
 		//
-		const dropped = [];
+		const dropped = {};
 		const collections = K.defaultEdgeCollections;
 
 		//
@@ -221,6 +228,11 @@ class Application
 			if( collection )
 			{
 				//
+				// Save count.
+				//
+				const count = collection.count();
+				
+				//
 				// Drop collection.
 				//
 				collection.drop();
@@ -228,7 +240,7 @@ class Application
 				//
 				// Add to list.
 				//
-				dropped.push( name );
+				dropped[ name ] = count;
 			}
 		}
 

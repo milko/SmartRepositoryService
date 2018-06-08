@@ -66,6 +66,18 @@
     }
   },
   {
+    "_key" : "SetGroup",
+    "label" : {
+      "ISO:639:3:eng" : "Unable to set or remove user group: "
+    }
+  },
+  {
+    "_key" : "SetManager",
+    "label" : {
+      "ISO:639:3:eng" : "Unable to set user manager: "
+    }
+  },
+  {
     "_key" : "HasUsers",
     "label" : {
       "ISO:639:3:eng" : "The users collection is not empty: "

@@ -4,6 +4,7 @@
 // Frameworks.
 //
 const db = require('@arangodb').db;
+const aql = require('@arangodb').aql;
 const errors = require('@arangodb').errors;
 const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
@@ -81,6 +82,44 @@ class Document
 	 * clients should omit or set the collection parameter to null.
 	 *
 	 * Any error will raise an exception.
+	 *
+	 * This is the instantiation strategy for documents:
+	 *
+	 * 	- If you want to create a new document:
+	 *
+	 * 		- If you know it doesn't already exist, or if the key is database-assigned:
+	 * 			- Provide the full contents in theReference.
+	 * 			- Provide the collection.
+	 * 			- Instantiate the object.
+	 * 			- Call insertDocument().
+	 *
+	 * 		- If you don't know if the object exists:
+	 * 			- Provide the significant fields in theReference.
+	 * 			- Provide the collection.
+	 * 			- Instantiate the object.
+	 * 			- Call resolveDocument():
+	 * 				- If it succeeds, you cannot insert.
+	 * 				- if it doesn't succeed:
+	 * 					- Add the rest of the contents with setDocumentProperties().
+	 * 					- Call insertDocument().
+	 * 			- Or call insertDocument() which will raise an exception if duplicate.
+	 *
+	 * 	- If you want to get an existing document:
+	 *
+	 * 		- If you have the _id:
+	 * 			- Provide the _id in theReference.
+	 * 			- Instantiate the object.
+	 *
+	 * 		- If you have the _key:
+	 * 			- Provide the _key in theReference.
+	 * 			- Provide the collection.
+	 * 			- Instantiate the object.
+	 *
+	 *		- You have the significant fields:
+	 *			- Provide the significant fields in theReference.
+	 *			- Provide the collection.
+	 *			- Instantiate the object.
+	 *			- Call resolveDocument().
 	 *
 	 * @param theRequest	{Object}					The current request.
 	 * @param theReference	{String}|{Object}|”null}	The document reference or object.
@@ -757,6 +796,12 @@ class Document
 	 * If none of these combinations can be satisfied the method will return false, or
 	 * raise an exception if doAssert is true.
 	 *
+	 * If the document has no default significant fields, the method will use the
+	 * current document contents, strip local fields using the localFields() getter
+	 * and return the normalised contents as the selection; note that in this case it
+	 * is likely that resolving the document will result in more than one match, which
+	 * by default will raise an exception.
+	 *
 	 * This method is called by resolveDocument() if neither the _id or _key can be
 	 * located in the document.
 	 *
@@ -766,6 +811,25 @@ class Document
 	validateSignificantProperties( doAssert = true )
 	{
 		//
+		// Handle no significant fields.
+		//
+		const fields = this.significantFields;
+		if( fields.length === 0 )
+		{
+			//
+			// Clone document contents and strip local fields.
+			//
+			const data = JSON.parse(JSON.stringify(this._document));
+			for( const field of this.localFields )
+			{
+				if( data.hasOwnProperty( field ) )
+					delete data[ field ];
+			}
+			
+			return data;															// ==>
+		}
+		
+		//
 		// Init local storage.
 		//
 		const missing = [];
@@ -773,7 +837,7 @@ class Document
 		//
 		// Iterate significant field selectors.
 		//
-		for( const selector of this.significantFields )
+		for( const selector of fields )
 		{
 			//
 			// Iterate selector.
@@ -1353,8 +1417,15 @@ class Document
 	 * collection identified by the significant fields of the current document.
 	 *
 	 * This method is called when resolving a document that does not have either the
-	 * _id nor the _key. The method calls validateSignificantProperties(), if there is
-	 * a valid combination, it will attempt to locate it in the database.
+	 * _id nor the _key. The method calls validateSignificantProperties() which
+	 * returns either a valid combination array of descriptor _key references, null,
+	 * if there are no default combinations and false if there are default
+	 * combinations, but none are completely matched in the current document. If
+	 * doAssert is true, a false result of that method will trigger an exception, or
+	 * make this method return null. If that method returns null, this method will
+	 * clone the contents of the current document, strip the local fields with the
+	 * localFields() getter and use that structure as the selector, this means that
+	 * when resolving the object by contents you should only set relevant fields
 	 *
 	 * If the document was resolved, the method will return the document contents
 	 * object, if the document was not resolved, the method will raise an exception,
@@ -1456,23 +1527,20 @@ class Document
 	 *
 	 * This method will replace the contents of the current document in the database, it
 	 * will first check if the current object is persistent, if that is the case, it
-	 * will validate the current document and replace its contents in the database and
-	 * return true.
+	 * will validate the current document and replace its contents in the database.
 	 *
-	 * If the current object is not persistent, the method will raise an exception.
-	 *
-	 * The method will raise an exception if any of the following conditions are met:
+	 * The method will return true if the document was replaced or false if the
+	 * document is not valid. The method will raise an exception if any of the
+	 * following conditions are met:
 	 *
 	 * 	- Any current property is invalid.
 	 * 	- Any current value replaces an existing locked value.
 	 * 	- The current object does not exist.
 	 * 	- doRevision is true and current and existing revisions do not match.
-	 *
-	 * If the current document revision is different than the existing document
-	 * revision, the method will raise an exception.
+	 * 	- The current object is not persistent.
 	 *
 	 * @param doRevision	{Boolean}	If true, check revision (default).
-	 * @returns {Boolean}				True if replaced or null if not persistent.
+	 * @returns {Boolean}				True if replaced or false if not valid.
 	 */
 	replaceDocument( doRevision = true )
 	{
@@ -1612,6 +1680,70 @@ class Document
 		);																		// !@! ==>
 		
 	}	// removeDocument
+	
+	/**
+	 * Remove document references
+	 *
+	 * This method will iterate all edge collections and remove any edge that
+	 * references the current object both as _to and _from. This means that before
+	 * calling this method you MUST handle references that need to be updated if the
+	 * current document ceases to exist.
+	 *
+	 * Since this method is called by removeDocument() we assume the document _id exists.
+	 *
+	 * The method will return an object containing as property the collection name and
+	 * as value the result of the operation.
+	 *
+	 * This method is not called in this class, derived classes should call it if
+	 * approperiate.
+	 *
+	 * ToDo: The method should not raise an exception on error.
+	 * 		 The method expects the delete operation not to fail, a transaction
+	 * 		 management procedure should be implemented.
+	 *
+	 * @returns {Object}	The results indexed by collection name.
+	 */
+	removeDocumentReferences()
+	{
+		//
+		// Init local storage.
+		//
+		const result = {};
+		const collections =
+			db._collections().filter( item => {
+				return (
+					(item._type === 3) &&
+					(! item._name.startsWith( '_' ))
+				);
+			});
+		
+		//
+		// Iterate all collections.
+		//
+		for( const item of collections )
+		{
+			//
+			// Remove relationships.
+			//
+			const collection = db._collection( item._name );
+			const op =
+				db._query( aql`
+					FOR doc IN ${collection}
+						FILTER doc._to == ${this._document._id}
+							OR doc._from == ${this._document._id}
+					REMOVE doc IN ${collection}
+				`);
+			
+			//
+			// Log to results.
+			//
+			result[ item ] = op;
+			
+		}	// Iterating all collections.
+		
+		return result;																// ==>
+		
+	}	// removeDocumentReferences
 	
 	
 	/************************************************************************************
@@ -1781,6 +1913,23 @@ class Document
 		return null;																// ==>
 		
 	}	// defaultCollection
+	
+	/**
+	 * Return local fields list
+	 *
+	 * This method should return an array containing all fields that should be
+	 * stripped from the document when resolving its contents with
+	 * resolveDocumentByContent().
+	 *
+	 * In this class we remove _id, _key and _rev.
+	 *
+	 * @returns {String}|{null}	The default collection name.
+	 */
+	get localFields()
+	{
+		return [ '_id', '_key', '_rev' ];											// ==>
+		
+	}	// localFields
 	
 	
 	/************************************************************************************

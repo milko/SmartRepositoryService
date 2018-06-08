@@ -324,6 +324,28 @@ class Edge extends Document
 	
 	
 	/************************************************************************************
+	 * DEFAULT GLOBALS																	*
+	 ************************************************************************************/
+	
+	/**
+	 * Return local fields list
+	 *
+	 * We overload this method to add the time stamps.
+	 *
+	 * @returns {String}|{null}	The default collection name.
+	 */
+	get localFields()
+	{
+		return super.localFields
+			.concat([
+				Dict.descriptor.kCStamp,	// Creation time stamp.
+				Dict.descriptor.kMStamp		// Modivifation time stamp.
+			]);																		// ==>
+		
+	}	// localFields
+	
+	
+	/************************************************************************************
 	 * GETTER COMPUTED METHODS															*
 	 ************************************************************************************/
 	
