@@ -1431,15 +1431,22 @@ class User extends Document
 		if( this._persistent )
 		{
 			//
+			// Init local storage.
+			//
+			const this_id = ( this.hasOwnProperty( '_manager' ) )
+						  ? this._manager
+						  : null;
+			
+			//
 			// Assert provided reference matches the current one.
 			//
-			if( id !== this._manager )
+			if( id !== this_id )
 				throw(
 					new MyError(
 						'UserManagerConflict',				// Error name.
 						K.error.UserManagerConflict,		// Message code.
 						this._request.application.language,	// Language.
-						[ this._manager, id ],				// Arguments.
+						[ this_id, id ],					// Arguments.
 						409									// HTTP error code.
 					)
 				);																// !@! ==>
