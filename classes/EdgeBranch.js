@@ -166,10 +166,24 @@ class EdgeBranch extends Edge
 	/**
 	 * Normalise document properties
 	 *
-	 * We overload this method to ensure the branches and modifiers are not empty, if
-	 * that is the case, we remove them: inserting and replacing will raise an
-	 * exception if branches are missing, while if modifiers are missing it is an
-	 * intended feature.
+	 * The method is called at the end of the constructor and before validating the
+	 * contents of the document.
+	 *
+	 * In the first case, if the document is persistent and the branches are
+	 * missing, this means that the instantiated document is not of the branched edge
+	 * type and an exception will be raised accordingly.
+	 *
+	 * In the second case, the current edge cannot be stored, since it lacks the required
+	 * branches property: in that case we do nothing and we let the other validation
+	 * methods intercept the missing required branches field.
+	 *
+	 * Before making this check we ensure the branches array is not empty, if that
+	 * is the case, we delete the property. We do the same with the modifiers object:
+	 * if it is empty, we remove the property.
+	 *
+	 * After making this check we then call the parent method that will compute the
+	 * edge key. Note that the order of these operations is not important, because the
+	 * branches property does not concur in computing the key.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
@@ -184,7 +198,14 @@ class EdgeBranch extends Edge
 			delete this._document[ Dict.descriptor.kBranches ];
 		
 		//
-		// Assert attributes in persistent object.
+		// Check modifiers.
+		//
+		if( this._document.hasOwnProperty( Dict.descriptor.kModifiers )
+		 && (Object.keys( this._document[ Dict.descriptor.kModifiers ] ).length === 0) )
+			delete this._document[ Dict.descriptor.kModifiers ];
+		
+		//
+		// Assert branches in persistent object.
 		//
 		if( this._persistent
 		 && (! this._document.hasOwnProperty( Dict.descriptor.kBranches )) )
@@ -213,54 +234,6 @@ class EdgeBranch extends Edge
 	/************************************************************************************
 	 * PERSISTENCE METHODS																*
 	 ************************************************************************************/
-	
-	/**
-	 * Resolve document
-	 *
-	 * We overload this method to set the branched flag data member and raise an
-	 * exception if the resolved edge is not branched; note that in thist last case
-	 * the exception is forced, regardless of doAssert.
-	 *
-	 * @param doReplace	{Boolean}	Replace existing data (false is default).
-	 * @param doAssert	{Boolean}	True raises an exception on error (default).
-	 * @returns {Boolean}			True if resolved.
-	 */
-	resolveDocument( doReplace = false, doAssert = true )
-	{
-		//
-		// Call parent method.
-		// Parent returns the persistent status.
-		//
-		const result = super.resolveDocument( doReplace, doAssert );
-		if( result === true )
-		{
-			//
-			// Check if branched.
-			//
-			if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
-				throw(
-					new MyError(
-						'ConstraintViolated',				// Error name.
-						K.error.NotBranchedEdge,			// Message code.
-						this._request.application.language,	// Language.
-						[
-							this._document._from,
-							this._document[ Dict.descriptor.kPredicate ],
-							this._document._to
-						],
-						412									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-			//
-			// Set branched flag.
-			//
-			this._branched = true;
-		}
-		
-		return result;																// ==>
-		
-	}	// resolveDocument
 	
 	/**
 	 * replaceDocument

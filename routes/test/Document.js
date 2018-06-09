@@ -1449,3 +1449,89 @@ router.post
 	.description(dd`
   Test the User class.
 `);
+
+
+/**
+ * Test test
+ *
+ * The service will test the Document class, the parameters should be provided in the
+ * POST body and they determine which actions the service will perform.
+ *
+ * @path		/User
+ * @verb		get
+ * @response	{Object}	The operation result.
+ */
+router.get
+(
+	'/Transac',
+	(request, response) =>
+	{
+		//
+		// Declare transaction.
+		//
+		const transaction = () => {
+			//
+			// Create test class.
+			//
+			const TestClass = require( '../../classes/Document' );
+			
+			//
+			// Add three documents to test collection.
+			//
+			let doc;
+			doc = new TestClass( request, {_key: "baba4"}, "test" );
+			doc.insertDocument();
+			doc = new TestClass( request, {_key: "baba5"}, "test" );
+			doc.insertDocument();
+			doc = new TestClass( request, {_key: "baba3"}, "test" );
+			doc.insertDocument();
+			
+			return true;
+		};
+		
+		//
+		// Test instantiation.
+		//
+		try
+		{
+			const result = db._executeTransaction({
+				collections: {
+					write: [ "test" ],
+					read: [ "test" ]
+				},
+				action: transaction
+			});
+			
+			response.send({ result : result});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			response.throw( http, error );										// !@! ==>
+		}
+	},
+	'Transac'
+)
+	.response(
+		200,
+		Joi.object(),
+		"The result will return the provided parameters, the flags indicating which" +
+		" operations were performed, the object contents and the object statistics."
+	)
+	.summary(
+		"Instantiate a user."
+	)
+	.description(dd`
+  Test the User class.
+`);

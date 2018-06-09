@@ -72,32 +72,15 @@ class Edge extends Document
 		if( super.normaliseDocumentProperties( doAssert ) )
 		{
 			//
-			// Check if significant fields are there.
-			// This should fail if any of the fields
-			// required to compute the key
-			// are missing.
+			// Compute key.
 			//
-			if( this.validateSignificantProperties( doAssert ) !== false )
+			const key = this.key;
+			
+			//
+			// Check if not computed.
+			//
+			if( key !== null )
 			{
-				//
-				// Compute key.
-				//
-				const key = this.key;
-				
-				//
-				// Check if computed.
-				//
-				if( key === null )
-					throw(
-						new MyError(
-							'Bug',									// Error name.
-							K.error.BugEdgeKeyMissFld,				// Message code.
-							this._request.application.language,		// Language.
-							this.instance,							// Arguments.
-							500										// HTTP error code.
-						)
-					);															// !@! ==>
-				
 				//
 				// Check existing key.
 				//
@@ -120,7 +103,7 @@ class Edge extends Document
 							);													// !@! ==>
 						
 						return false;												// ==>
-					
+						
 					}	// Key mismatch.
 					
 				}	// Edge has key.
@@ -131,8 +114,22 @@ class Edge extends Document
 				this._document._key = key;
 				
 				return true;														// ==>
-				
-			}	// Has significant fields.
+
+			}	// Computed key.
+			
+			//
+			// Raise exception if asserting.
+			//
+			if( doAssert )
+				throw(
+					new MyError(
+						'Bug',									// Error name.
+						K.error.BugEdgeKeyMissFld,				// Message code.
+						this._request.application.language,		// Language.
+						this.instance,							// Arguments.
+						500										// HTTP error code.
+					)
+				);																// !@! ==>
 			
 		}	// Parent method passed.
 		
@@ -230,13 +227,14 @@ class Edge extends Document
 	/**
 	 * Resolve document by content
 	 *
-	 * Edges must contain only one set of significant fields which are then used to
-	 * compute the document key, for this reason we overload this method to use the
-	 * computed reference for resolving the document.
+	 * We overload this method to force resolving edges by key, this is because the
+	 * key requires the correct properties and if these are not there it cannot be
+	 * computed. Using the document contents might resolve the wrong type of edge, and
+	 * is the replace flag is not set when setting the document properties, you might
+	 * end up with an edge that looks like the right type, but it isn't.
 	 *
-	 * This method is only called when explicitly resolving the document, if you
-	 * provide an object as the constructor reference, the document will not be
-	 * resolved by default.
+	 * Here we compute the key, if that fails, it means the object is missing the
+	 * required properties to resolve the edge, so in that case this method must fail.
 	 *
 	 * @param doAssert		{Boolean}	True raises an exception on error (default).
 	 * @returns {Object}|{null}			Resolved document or null.
@@ -244,24 +242,49 @@ class Edge extends Document
 	resolveDocumentByContent( doAssert = true )
 	{
 		//
-		// Get significant fields combination.
-		// Check if has significant fields and resolve.
-		// We have already checked that all necessary fields are there.
-		// Persistent flag is managed by method.
-		// If not found method returns null or raises an exception.
+		// Ensure significant fields are there.
+		// If required properties are missing and doAssert is true,
+		// the method will raise an exception.
 		//
-		if( this.validateSignificantProperties( doAssert ) !== false )
-			return this.resolveDocumentByReference(
-				this.key,							// Computed key.
-				doAssert,							// Provided assert flag.
-				false								// Get a mutable object.
-			);																		// ==>
+		if( Array.isArray( validateSignificantProperties( doAssert ) ) )
+		{
+			//
+			// Compute key.
+			//
+			const key = this.key;
+			if( key !== null )
+				return resolveDocumentByReference( key, doAssert, false );			// ==>
+			
+			//
+			// Prepare exception arguments.
+			//
+			const missing = [];
+			for( const field of this.significantFields )
+			{
+				if( ! this._document.hasOwnProperty( field ) )
+					missing.push( field );
+			}
+			
+			//
+			// Force exception, since it is a bug.
+			//
+			throw(
+				new MyError(
+					'IncompleteObject',					// Error name.
+					K.error.MissingToResolve,			// Message code.
+					this._request.application.language,	// Language.
+					missing.join( ', ' ),				// Arguments.
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
+			
+		}	// Has field to compute key.
 		
 		return null;																// ==>
 		
 	}	// resolveDocumentByContent
-
-
+	
+	
 	/************************************************************************************
 	 * GETTER METHODS																	*
 	 ************************************************************************************/

@@ -121,8 +121,16 @@ class Document
 	 *			- Instantiate the object.
 	 *			- Call resolveDocument().
 	 *
+	 * This class family may not be able to repair eventual integrity corruptions in
+	 * the database, in particular, when making changes to the referential structure
+	 * of the database, it might not be possible to programmatically roll back executed
+	 * changes: this means that whenever you need to execute a transaction create a
+	 * function in which you instantiate the object and perform the operations, then
+	 * pass it to the db._executeTransaction({}) function while ensuring any error
+	 * raises an exception.
+	 *
 	 * @param theRequest	{Object}					The current request.
-	 * @param theReference	{String}|{Object}|”null}	The document reference or object.
+	 * @param theReference	{String}|{Object}|{null}	The document reference or object.
 	 * @param theCollection	{String}|{null}				The document collection.
 	 * @param isImmutable	{Boolean}					True, instantiate immutable document.
 	 */
@@ -151,9 +159,9 @@ class Document
 			// Load document.
 			//
 			this.setDocumentProperties(
-				theReference,			// Provided contents.
-				true,					// Replace values.
-				false					// Is resolving.
+				theReference,						// Provided contents.
+				true,								// Replace values.
+				false								// Is resolving.
 			);
 		
 		}	// Provided document properties.
@@ -410,9 +418,10 @@ class Document
 	setDocumentProperties( theData, doReplace = true, isResolving = false )
 	{
 		//
-		// Get locked fields.
+		// Get locked and restricted fields.
 		//
 		const locked = this.lockedFields;
+		const restricted = this.restrictedFields;
 		
 		//
 		// Iterate provided properties.
@@ -426,13 +435,16 @@ class Document
 			
 			//
 			// Determine if the value should be set.
+			// Errors will raise an exception.
 			//
 			if( doReplace										// Want to replace,
 			 || isLocked										// or field is locked,
 			 || (! this._document.hasOwnProperty( field )) )	// or not in document.
 				this.setDocumentProperty(
 					field,										// Field name.
-					theData[ field ],							// Field value.
+					( restricted.includes( field ) )			// If restricted
+					? null										// remove property,
+					: theData[ field ],							// if not use value.
 					isLocked,									// Locked flag.
 					isResolving									// Is resolving flag.
 				);
@@ -474,7 +486,7 @@ class Document
 	 *
 	 * @param theField		{String}	The property descriptor _key.
 	 * @param theValue		{*}			The property value.
-	 * @param isLocked		{Boolean}	True if locked properties.
+	 * @param isLocked		{Boolean}	True if locked property.
 	 * @param isResolving	{Boolean}	True, called by resolve().
 	 */
 	setDocumentProperty( theField, theValue, isLocked, isResolving )
@@ -544,7 +556,7 @@ class Document
 			//
 			// Delete value.
 			//
-			else if( value_old !== null )			// Superflous?
+			else if( value_old !== null )						// Superflous?
 				delete this._document[ theField ];
 			
 		}	// Modify value.
@@ -557,11 +569,16 @@ class Document
 	 * This method should finalise the contents of the document, such as setting
 	 * eventual missing default values or computing dynamic properties.
 	 *
-	 * The method is called at the end of the constructor and before validating the
-	 * contents of the document.
-	 *
 	 * The provided parameter is a flag that determines whether errors raise
-	 * exceptions or not, it is set to false by default.
+	 * exceptions or not, it is set to true by default.
+	 *
+	 * The method is called at the end of the constructor and before validating the
+	 * contents of the document: in the first case the doAssert flag is set to the
+	 * value of the persistent flag, which means that if this method fails, an
+	 * exception will be raised if the object is persistent, while if the object is
+	 * not persistent it may still not have all of its fields; in the second case, the
+	 * method should raise an exception according to the value of doAssert passed to
+	 * the caller method.
 	 *
 	 * In this class we have no dynamic properties.
 	 *
@@ -786,100 +803,84 @@ class Document
 	/**
 	 * Match significant fields combination
 	 *
-	 * This method will iterate through all significant field combinations,
-	 * significantFields(), and return the first match.
-	 *
 	 * Significant fields are a combination of one or more fields whose values will
 	 * uniquely identify the document. The method will iterate these combinations and
 	 * return the first one in which all properties can be found in the current document.
 	 *
-	 * If none of these combinations can be satisfied the method will return false, or
-	 * raise an exception if doAssert is true.
+	 * If the class has no significant fields, the method will return null, if the
+	 * class has at least one element, and  none of these combinations can be
+	 * satisfied,  the method will return false, or raise an exception if doAssert is
+	 * true.
 	 *
-	 * If the document has no default significant fields, the method will use the
-	 * current document contents, strip local fields using the localFields() getter
-	 * and return the normalised contents as the selection; note that in this case it
-	 * is likely that resolving the document will result in more than one match, which
-	 * by default will raise an exception.
+	 * This method is called by resolveDocumentByContent() if neither the _id or _key
+	 * can be located in the document.
 	 *
-	 * This method is called by resolveDocument() if neither the _id or _key can be
-	 * located in the document.
-	 *
-	 * @param doAssert	{Boolean}	True raises an exception on error (default).
-	 * @returns {Array}|{false}		True if all significant fields are there.
+	 * @param doAssert	{Boolean}		True raises an exception on error (default).
+	 * @returns {Array}|{false}|{null}	Array if there is a match.
 	 */
 	validateSignificantProperties( doAssert = true )
 	{
 		//
-		// Handle no significant fields.
+		// Get significant fields.
 		//
 		const fields = this.significantFields;
-		if( fields.length === 0 )
+		if( fields.length > 0 )
 		{
 			//
-			// Clone document contents and strip local fields.
+			// Init local storage.
 			//
-			const data = JSON.parse(JSON.stringify(this._document));
-			for( const field of this.localFields )
-			{
-				if( data.hasOwnProperty( field ) )
-					delete data[ field ];
-			}
+			const missing = [];
 			
-			return data;															// ==>
-		}
-		
-		//
-		// Init local storage.
-		//
-		const missing = [];
-		
-		//
-		// Iterate significant field selectors.
-		//
-		for( const selector of fields )
-		{
 			//
-			// Iterate selector.
+			// Iterate significant field selectors.
 			//
-			let matched = true;
-			for( const field of selector )
+			for( const selector of fields )
 			{
 				//
-				// Collect missing significant fields.
+				// Iterate selector.
 				//
-				if( ! this._document.hasOwnProperty( field ) )
+				let matched = true;
+				for( const field of selector )
 				{
-					missing.push( field );	// Note field.
-					matched = false;		// Signal missing.
-					break;													// =>
-				}
+					//
+					// Collect missing significant fields.
+					//
+					if( ! this._document.hasOwnProperty( field ) )
+					{
+						missing.push( field );	// Note field.
+						matched = false;		// Signal missing.
+						break;												// =>
+					}
+					
+				}	// Iterating selector.
 				
-			}	// Iterating selector.
+				//
+				// Handle match.
+				//
+				if( matched )
+					return selector;												// ==>
+				
+			}	// Iterating selectors.
 			
 			//
-			// Handle match.
+			// Raise exception.
 			//
-			if( matched )
-				return selector;													// ==>
+			if( doAssert )
+				throw(
+					new MyError(
+						'IncompleteObject',					// Error name.
+						K.error.MissingToResolve,			// Message code.
+						this._request.application.language,	// Language.
+						missing.join( ', ' ),				// Arguments.
+						412									// HTTP error code.
+					)
+				);																// !@! ==>
 			
-		}	// Iterating selectors.
+			return false;															// ==>
+			
+		}	// Supports significant fields.
 		
-		//
-		// Raise exception.
-		//
-		if( doAssert )
-			throw(
-				new MyError(
-					'IncompleteObject',					// Error name.
-					K.error.MissingToResolve,			// Message code.
-					this._request.application.language,	// Language.
-					missing.join( ', ' ),				// Arguments.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-		return false;																// ==>
+		return null;																// ==>
 		
 	}	// validateSignificantProperties
 	
@@ -987,11 +988,11 @@ class Document
 	 ************************************************************************************/
 	
 	/**
-	 * Match locked property
+	 * Match property values
 	 *
 	 * This method is used to implement custom identity matching: if matching two
 	 * values requires more than just using "===", you can catch the property name and
-	 * the two values in this method/
+	 * the two values in this method.
 	 *
 	 * The method returns true if both values match, or false if not.
 	 *
@@ -1418,21 +1419,25 @@ class Document
 	 *
 	 * This method is called when resolving a document that does not have either the
 	 * _id nor the _key. The method calls validateSignificantProperties() which
-	 * returns either a valid combination array of descriptor _key references, null,
-	 * if there are no default combinations and false if there are default
-	 * combinations, but none are completely matched in the current document. If
-	 * doAssert is true, a false result of that method will trigger an exception, or
-	 * make this method return null. If that method returns null, this method will
-	 * clone the contents of the current document, strip the local fields with the
-	 * localFields() getter and use that structure as the selector, this means that
-	 * when resolving the object by contents you should only set relevant fields
+	 * returns either a valid combination array of descriptor _key references, false
+	 * or raises an exception if none of the existing combinations are found among the
+	 * document properties, or null if the class doesn't have any significant fields.
 	 *
-	 * If the document was resolved, the method will return the document contents
-	 * object, if the document was not resolved, the method will raise an exception,
-	 * if doAssert is true, or return null.
+	 * This method will act according to the returned value of the above method:
 	 *
-	 * Note that if the combination resolves more than one document, this is
-	 * considered an error and will be raised as an exception by default.
+	 * 	- array:	Will use that combination of fields to locate the document.
+	 * 	- false:	Will fail and return null, or raise an exception if doAssert is true.
+	 * 	- null:		Will clone the contents of the current document, strip the local
+	 * 				fields with the localFields() getter and use that structure as the
+	 * 				selector.
+	 *
+	 * When the method attempts to locate the document:
+	 *
+	 * 	- If it matches a single document, this will be returned.
+	 * 	- If it matches more than one document an exception will be raised, regardless
+	 * 	  of the value of doAssert.
+	 * 	- If it matches no document, the method will return null, or raise an
+	 * 	  exception if doAssert is true.
 	 *
 	 * @param doAssert		{Boolean}	True raises an exception on error (default).
 	 * @returns {Object}|{null}			Resolved document or null.
@@ -1446,16 +1451,45 @@ class Document
 		const match = this.validateSignificantProperties( doAssert );
 		
 		//
-		// Check if has significant fields.
+		// Proceed if bo significant fields, or found a match.
 		//
 		if( match !== false )
 		{
 			//
+			// Init local storage.
+			//
+			let selector;
+			
+			//
+			// Handle no significant fields.
+			//
+			if( match === null )
+			{
+				//
+				// Clone document contents and strip local fields.
+				//
+				selector = JSON.parse(JSON.stringify(this._document));
+				for( const field of this.localFields )
+				{
+					if( selector.hasOwnProperty( field ) )
+						delete selector[ field ];
+				}
+			
+			}	// No significant fields.
+			
+			//
 			// Load example query from significant fields.
 			//
-			const selector = {};
-			for( const field of match )
-				selector[ field ] = this._document[ field ];
+			else
+			{
+				//
+				// Copy matched fields to selector.
+				//
+				selector = {};
+				for( const field of match )
+					selector[ field ] = this._document[ field ];
+				
+			}	// Found significant match.
 			
 			//
 			// Load document.
@@ -1697,10 +1731,6 @@ class Document
 	 * This method is not called in this class, derived classes should call it if
 	 * approperiate.
 	 *
-	 * ToDo: The method should not raise an exception on error.
-	 * 		 The method expects the delete operation not to fail, a transaction
-	 * 		 management procedure should be implemented.
-	 *
 	 * @returns {Object}	The results indexed by collection name.
 	 */
 	removeDocumentReferences()
@@ -1726,18 +1756,13 @@ class Document
 			// Remove relationships.
 			//
 			const collection = db._collection( item._name );
-			const op =
+			result[ item ] =
 				db._query( aql`
 					FOR doc IN ${collection}
 						FILTER doc._to == ${this._document._id}
 							OR doc._from == ${this._document._id}
 					REMOVE doc IN ${collection}
 				`);
-			
-			//
-			// Log to results.
-			//
-			result[ item ] = op;
 			
 		}	// Iterating all collections.
 		
@@ -1923,13 +1948,30 @@ class Document
 	 *
 	 * In this class we remove _id, _key and _rev.
 	 *
-	 * @returns {String}|{null}	The default collection name.
+	 * @returns {Array}	The list of local fields.
 	 */
 	get localFields()
 	{
 		return [ '_id', '_key', '_rev' ];											// ==>
 		
 	}	// localFields
+	
+	/**
+	 * Return restricted fields list
+	 *
+	 * This method should return an array containing all fields that should not exist
+	 * in the current document, these fields, if present, should be deleted from the
+	 * document.
+	 *
+	 * In this class we have no restrivted fields.
+	 *
+	 * @returns {Array}	The list of restricted fields.
+	 */
+	get restrictedFields()
+	{
+		return [];																	// ==>
+		
+	}	// restrictedFields
 	
 	
 	/************************************************************************************

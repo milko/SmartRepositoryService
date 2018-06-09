@@ -67,9 +67,22 @@ class EdgeAttribute extends Edge
 	/**
 	 * Normalise document properties
 	 *
-	 * We overload this method to remove the attributes property if empty and assert
-	 * that if the edge is persistent it indeed has the attributes; in this last case
-	 * the method will raise an exception regardless of the value of doAssert.
+	 * The method is called at the end of the constructor and before validating the
+	 * contents of the document.
+	 *
+	 * In the first case, if the document is persistent and the attributes are
+	 * missing, this means that the instantiated document is not of the attribute edge
+	 * type and an exception will be raised accordingly.
+	 *
+	 * In the second case, the current edge cannot be stored, since it lacks the required
+	 * attributes property: in that case we do nothing and we let the parent method
+	 * fail since it is unable to compute the key.
+	 *
+	 * Before making this check we ensure the attributes array is not empty, if that
+	 * is the case, we delete the property.
+	 *
+	 * Only after making this check we then call the parent method that will compute
+	 * the edge key.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
@@ -77,7 +90,7 @@ class EdgeAttribute extends Edge
 	normaliseDocumentProperties( doAssert = true )
 	{
 		//
-		// Handle attributes.
+		// Remove attributes if empty.
 		//
 		if( this._document.hasOwnProperty( Dict.descriptor.kAttributes )
 		 && (this._document[ Dict.descriptor.kAttributes ].length === 0) )
@@ -85,6 +98,7 @@ class EdgeAttribute extends Edge
 		
 		//
 		// Assert attributes in persistent object.
+		// This will catch instantiating an edge of the wrong type.
 		//
 		if( this._persistent
 		 && (! this._document.hasOwnProperty( Dict.descriptor.kAttributes )) )
@@ -150,53 +164,6 @@ class EdgeAttribute extends Edge
 		return super.matchPropertyValue( theProperty, theExisting, theProvided );	// ==~
 		
 	}	// matchPropertyValue
-	
-	
-	/************************************************************************************
-	 * PERSISTENCE METHODS																*
-	 ************************************************************************************/
-	
-	/**
-	 * Resolve document
-	 *
-	 * We overload this method to assert that the found edge has the attributes
-	 * property, if that is not the case we raise an exception, regardless of the
-	 * value of doAssert.
-	 *
-	 * @param doReplace	{Boolean}	Replace existing data (false is default).
-	 * @param doAssert	{Boolean}	True raises an exception on error (default).
-	 * @returns {Boolean}			True if resolved.
-	 */
-	resolveDocument( doReplace = false, doAssert = true )
-	{
-		//
-		// Call parent method.
-		// Parent returns the persistent status.
-		//
-		const result = super.resolveDocument( doReplace, doAssert );
-		
-		//
-		// Assert attributes edge.
-		//
-		if( (result === true)
-		 && (! this._document.hasOwnProperty( Dict.descriptor.kAttributes )) )
-			throw(
-				new MyError(
-					'ConstraintViolated',				// Error name.
-					K.error.NotAttributeEdge,			// Message code.
-					this._request.application.language,	// Language.
-					[
-						this._document._from,
-						this._document[ Dict.descriptor.kPredicate ],
-						this._document._to
-					],
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-		return result;																// ==>
-		
-	}	// resolveDocument
 	
 	
 	/************************************************************************************

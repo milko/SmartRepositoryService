@@ -454,25 +454,13 @@ class User extends Document
 	/**
 	 * Insert document
 	 *
-	 * We overload this method to create the authentication record  and to add the
-	 * manager edge.
+	 * We overload this method's dignature to provide the user password. The method
+	 * will first create the authentication record, set it in the document, insert the
+	 * document and finally insert the manager edge.
 	 *
-	 * The method will proceed as follows:
-	 *
-	 * 	- It will first insert the user document.
-	 * 	- It will then insert the manager edge.
-	 * 	- If last operation fails, the method will will remove the user document,  and
-	 * 	  will raise an exception.
-	 *
-	 * We also overload the method signature to require the user password, which is
-	 * needed to create the authentication record.
-	 *
-	 * Note that if the method fails to insert the manager edge, the method will raise
-	 * an exception.
-	 *
-	 * ToDo: When inserting the manager relationship, duplicate error is not raised.
-	 * This case should be handled in the future, currently, the methods of this class
-	 * ensure the integrity of the database is protected, not asserted.
+	 * The method performs these operations sequentially without programmatically
+	 * rolling back if the transaction, for this reason it is the responsibility of
+	 * the caller to enclose the business logic in a transaction.
 	 *
 	 * Note: all persistence methods should first handle the user: the parent class
 	 * will raise an exception if the method was called in the wrong context.
@@ -488,62 +476,11 @@ class User extends Document
 		User.setAuthentication( thePassword, this );
 		
 		//
-		// Insert user.
+		// Insert user and manager.
 		//
 		const persistent = super.insertDocument();
-		
-		//
-		// Insert group and manager relationships.
-		//
 		if( persistent )
-		{
-			//
-			// Try to insert the manager.
-			//
-			try
-			{
-				this.insertManager();
-			}
-			catch( error )
-			{
-				//
-				// Remove inserted user.
-				// Should not raise exceptions:
-				// should only guarantee that the user doesn't exist.
-				// No need to remove other references, since the user was just inserted.
-				//
-				try
-				{
-					db._remove( this._document._id );
-				}
-				catch( error )
-				{
-					//
-					// Raise exceptions other than not found.
-					//
-					// ToDo
-					// Errors other than not found will corrupt the database,
-					// since we can assume the user was inserted:
-					// we need to handle this case.
-					//
-					// if( (! error.isArangoError)
-					//  || (error.errorNum !== ARANGO_NOT_FOUND) )
-					// 	throw( error );											// !@! ==>
-				}
-				
-				//
-				// Reset eventual _manages member.
-				//
-				if( this.hasOwnProperty( '_manages' ) )
-					delete this._manages;
-				
-				//
-				// Forward exception.
-				//
-				throw( error );													// !@! ==>
-			}
-			
-		}	// User was inserted.
+			this.insertManager();
 		
 		return persistent;															// ==>
 		
@@ -561,16 +498,9 @@ class User extends Document
 	 * persistent and that its _id is available.
 	 *
 	 * The goal of this method is to ensure there is a relationship between the
-	 * current user and its manager, it will not flag eventual existing integrity
-	 * errors, in particular, if the edge already exists, the method will not raise an
-	 * exception.
-	 *
-	 * It will raise an exception only if the insert fails.
-	 *
-	 * Returning the edge _id serves the purpose of asserting the transaction: if for
-	 * any reason the user object becomes invalid after the manager edge has been
-	 * added, by saving the edge _id it guarantees you will only delete the newly
-	 * inserted edge.
+	 * current user and its manager, if the edge already exists, the method will
+	 * intentionally not raise an exception. This is wanted, because this way eventual
+	 * integrity errors might be fixed.
 	 *
 	 * ToDo: If the edge exists, duplicate error is not raised.
 	 * This case should be handled in the future, currently, the methods of this class
@@ -753,9 +683,6 @@ class User extends Document
 	 * provided, the authentication record will be replaced; if not, the
 	 * authentication record will not be changed.
 	 *
-	 * Er don't handle references here, because this method is only concerned with the
-	 * user document.
-	 *
 	 * Note: all persistence methods should first handle the user: the parent class
 	 * will raise an exception if the method was called in the wrong context.
 	 *
@@ -854,10 +781,9 @@ class User extends Document
 	 * raise an exception: this is caught in validateDocumentConstraints().
 	 *
 	 * ToDo: No integrity check is performed on the current database state.
-	 * When removing relationships to mangers will not raise exceptions: in
-	 * particular, if the object has a manager, but this was not found, we do not
-	 * raise an exception. This guarantees that at exit the database will be clean,
-	 * but it will not flag eventual prior inconsistencies.
+	 * When removing the manager, no exception is raised if the manager to be deleted
+	 * doesn't exist: this is intentional, currently, the methods of this class
+	 * ensure the integrity of the database is protected, not asserted.
 	 *
 	 * @returns {Boolean}	True removed, false not found, null not persistent.
 	 */
@@ -1061,10 +987,6 @@ class User extends Document
 	 * This method will remove all log entries featuring the current user.
 	 *
 	 * The method will return the result of the operation.
-	 *
-	 * ToDo: The method should not raise an exception on error.
-	 * 		 The method expects the delete operation not to fail, a transaction
-	 * 		 management procedure should be implemented.
 	 *
 	 * @returns {*}	The results of the operation.
 	 */
@@ -1590,6 +1512,22 @@ class User extends Document
 			]);																		// ==>
 		
 	}	// localFields
+	
+	/**
+	 * Return restricted fields list
+	 *
+	 * We overload this nethod to add the password.
+	 *
+	 * @returns {Array}	The list of restricted fields.
+	 */
+	get restrictedFields()
+	{
+		return super.restrictedFields
+			.concat(
+				Dict.descriptor.kPassword	// Prevent password from being stored.
+			);																		// ==>
+		
+	}	// restrictedFields
 	
 	
 	/************************************************************************************
