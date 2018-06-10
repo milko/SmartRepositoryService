@@ -146,54 +146,75 @@ class Document
 		this.initProperties( theRequest, theCollection, isImmutable );
 		
 		//
-		// Handle document object.
+		// Init empty document.
 		//
-		if( K.function.isObject( theReference ) )
-		{
-			//
-			// Init document.
-			//
+		if( theReference === null )
 			this._document = {};
-			
-			//
-			// Load document.
-			//
-			this.setDocumentProperties(
-				theReference,						// Provided contents.
-				true,								// Replace values.
-				false								// Is resolving.
-			);
-		
-		}	// Provided document properties.
 		
 		//
-		// Handle document reference.
-		//
-		else if( theReference !== null )
-		{
-			//
-			// Resolve document.
-			//
-			this._document =
-				this.resolveDocumentByReference(
-					theReference,					// _id or _key.
-					true,							// Raise exception.
-					isImmutable						// Immutable flag.
-				);
-			
-			//
-			// Set persistence flag.
-			// We get here only if successful.
-			//
-			this._persistent = true;
-		
-		}	// Provided document reference.
-		
-		//
-		// Init document properties.
+		// Load document contents.
 		//
 		else
-			this._document = {};
+		{
+			//
+			// Handle document object.
+			//
+			if( K.function.isObject( theReference ) )
+			{
+				//
+				// Init document.
+				//
+				this._document = {};
+				
+				//
+				// Load document.
+				//
+				this.setDocumentProperties(
+					theReference,						// Provided contents.
+					true,								// Replace values.
+					false								// Is resolving.
+				);
+				
+			}	// Provided document properties.
+			
+			//
+			// Handle document reference.
+			//
+			else
+			{
+				//
+				// Assert it is not an array.
+				//
+				if( Array.isArray( theReference ) )
+					throw(
+						new MyError(
+							'BadDocumentReferenceFormat',		// Error name.
+							K.error.ExpectingDocRef,			// Message code.
+							this._request.application.language,	// Language.
+							null,								// Arguments.
+							400									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				//
+				// Resolve document.
+				//
+				this._document =
+					this.resolveDocumentByReference(
+						theReference,					// _id or _key.
+						true,							// Raise exception.
+						isImmutable						// Immutable flag.
+					);
+				
+				//
+				// Set persistence flag.
+				// We get here only if successful.
+				//
+				this._persistent = true;
+				
+			}	// Provided document reference.
+	
+		}	// Provided content or selector.
 		
 		//
 		// Assert collection.

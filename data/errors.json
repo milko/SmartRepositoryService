@@ -156,6 +156,12 @@
     }
   },
   {
+    "_key" : "BadDocumentReferenceFormat",
+    "label" : {
+      "ISO:639:3:eng" : "Incorrect document format: "
+    }
+  },
+  {
     "_key" : "BadCollection",
     "label" : {
       "ISO:639:3:eng" : "Invalid collection: "

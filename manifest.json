@@ -44,5 +44,5 @@
             "default": 819200
         }
     },
-    "tests": "test/**/*.js"
+    "tests": "test/**/test_*.js"
 }

@@ -510,7 +510,10 @@ class User extends Document
 			//
 			// Remove user.
 			//
-			db._remove( this._document );
+			if( persistent )
+				db._remove( this._document );
+			
+			throw( error );															// ==>
 		}
 		
 		return persistent;															// ==>
