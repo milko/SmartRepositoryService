@@ -365,7 +365,8 @@ module.exports = Object.freeze(
 			IsPersistent		: 101,
 			IsNotPersistent		: 102,
 			NotAttributeEdge	: 103,
-			ExpectingDocRef		: 104
+			ExpectingDocRef		: 104,
+			ExpectingButGot		: 105
 		},
 
 		//

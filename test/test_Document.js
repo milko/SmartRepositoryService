@@ -65,6 +65,21 @@ describe( "Document class tests::", function ()
 		});
 		
 		//
+		// Test omit collection.
+		//
+		it( "Instantiate without collection:", function ()
+		{
+			expect(function () {
+				return new TestClass(
+					param.request,				// Request.
+					null,						// Contents or selector.
+					null,						// Collection.
+					true						// Immutable object
+				);
+			}).to.throw(MyError, /missing collection reference/ );
+		});
+		
+		//
 		// Test provide null in reference.
 		//
 		it( "Instantiate with null reference:", function ()
@@ -353,7 +368,7 @@ describe( "Document class tests::", function ()
 	//
 	class TestClassPersist extends TestClass
 	{
-		get significantFields()	{	return [ [Dict.descriptor.kVariable] ]; }
+		// get significantFields()	{	return [ [Dict.descriptor.kVariable] ]; }
 		get requiredFields()	{	return [ Dict.descriptor.kVariable ]; }
 		get uniqueFields()		{	return [ Dict.descriptor.kVariable ]; }
 		get lockedFields()		{	return [ Dict.descriptor.kVariable ]; }
@@ -361,16 +376,227 @@ describe( "Document class tests::", function ()
 	}
 	
 	//
+	// Truncate collection.
+	//
+	db._collection(param.collection).truncate();
+	
+	//
 	// Insert document.
 	//
 	describe( "Persistence:", function () {
 		
 		//
-		// Modify data.
+		// Create instantiation function.
+		//
+		const instantiate = function () {
+			return new TestClassPersist(
+				param.request,				// Request.
+				param.content_01,			// Contents or selector.
+				null,						// Collection.
+				true						// Immutable object
+			);
+		};
+		
+		//
+		// Instantiate document.
+		//
+		it( "Instantiate", function () {
+			
+			//
+			// Constructor test.
+			//
+			expect( instantiate, "Instantiate object without collection" )
+				.not.to.throw();
+			
+		});	// Instantiate.
+		
+		//
+		// Instantiate class.
+		//
+		const test1 =
+			new TestClassPersist(
+				param.request,				// Request.
+				param.content_01,			// Contents or selector.
+				null,						// Collection.
+				true						// Immutable object
+			);
+		const test2 =
+			new TestClassPersist(
+				param.request,				// Request.
+				param.content_02,			// Contents or selector.
+				null,						// Collection.
+				true						// Immutable object
+			);
+		
+		//
+		// Insert results.
+		//
+		let insert1 = null;
+		let insert2 = null;
+		
+		//
+		// Insert functions.
+		//
+		const ins1 = function () {
+			insert1 = test1.insertDocument();
+		};
+		const ins2 = function () {
+			insert2 = test2.insertDocument();
+		};
+		
+		//
+		// Current revision.
+		//
+		let revision;
+		
+		//
+		// Instantiate document.
 		//
 		it( "Insert", function () {
-		
+			
+			//
+			// Insert test.
+			//
+			let tmpx = test1.document[Dict.descriptor.kVariable];
+			delete test1.document[Dict.descriptor.kVariable];
+			expect( ins1, "Insert document 1 - insert with missing field" )
+				.to.throw(MyError, /missing required field/);
+			test1.document[Dict.descriptor.kVariable] = tmpx;
+			
+			//
+			// Insert test.
+			//
+			expect( ins1, "Insert document 1 - insert complete object" )
+				.not.to.throw();
+			expect( insert1, "Insert document 1 - result" )
+				.to.equal( true );
+			
+			//
+			// Test immutable.
+			//
+			expect(test1.document, "Insert document 1 - Is mutable")
+				.not.to.be.sealed;
+			
+			//
+			// Test collection() getter.
+			//
+			expect(test1.collection, "Insert document 1 - collection type")
+				.to.be.a('string' );
+			expect(test1.collection, "Insert document 1 - collection name")
+				.to.equal(param.collection, "Collection name changed" );
+			
+			//
+			// Test persistent() getter.
+			//
+			expect(test1.persistent, "Insert document 1 - persistent() type")
+				.to.be.a('boolean' );
+			expect(test1.persistent, "Insert document 1 - persistent() content")
+				.to.equal(true, "Should be persistent" );
+			
+			//
+			// Test revised() getter.
+			//
+			expect(test1.revised, "Insert document 1 - revised() type")
+				.to.be.a('boolean' );
+			expect(test1.revised, "Insert document 1 - revised() content")
+				.to.equal(false, "Should not have a revision change" );
+			
+			//
+			// Test document() getter.
+			//
+			expect(test1.document, "Insert document 1 - document() type")
+				.to.be.an('object' );
+			expect(test1.document, "Insert document 1 - document() content")
+				.not.to.be.empty;
+			expect(test1.document,
+				"Insert document 1 - has _id")
+				.to.have.property('_id');
+			expect(test1.document,
+				"Insert document 1 - has _key")
+				.to.have.property('_key');
+			expect(test1.document,
+				"Insert document 1 - has _rev")
+				.to.have.property('_rev');
+			
+			//
+			// Test exists.
+			//
+			expect(db._collection(param.collection).exists(test1.document),
+				"Insert document 1 - exists")
+				.not.to.be.false;
+			
+			//
+			// Instantiate copy.
+			//
+			const tmp =
+				new TestClassPersist(
+					param.request,				// Request.
+					param.content_01,			// Contents or selector.
+					null,						// Collection.
+					true						// Immutable object
+				);
+			const insTmp = function () {
+				tmp.insertDocument();
+			};
+			
+			//
+			// Test duplicate.
+			//
+			tmp.document._key = test1.document._key;
+			expect(insTmp, "Insert document 1 - test duplicate")
+				.to.throw(MyError, /duplicate document/);
+			
+			//
+			// Set revision.
+			//
+			revision = test1.document._rev;
+			
 		});	// Insert.
+		
+		//
+		// Instantiate document.
+		//
+		it( "Replace", function () {
+			
+			//
+			// Init local storage.
+			//
+			let func;
+			let modif;
+			let result;
+			
+			//
+			// Test persistent document modifications.
+			//
+			modif = {};
+			modif[ Dict.descriptor.kVariable ] = "BADVAR";
+			func = function () {
+				test1.setDocumentProperties(modif);
+			};
+			expect( func, "Replace document 1 - Setting locked property" )
+				.to.throw(MyError, /Property is locked/);
+			modif = {};
+			modif[ Dict.descriptor.kOrder ] = 0;
+			func = function () {
+				test1.setDocumentProperties(modif);
+			};
+			expect( func, "Replace document 1 - Setting unlocked property" )
+				.not.to.throw();
+			
+			//
+			// Test replace.
+			//
+			func = function () {
+				result = test1.replaceDocument();
+			}
+			expect( func, "Replace document 1 - Replace" )
+				.not.to.throw();
+			expect( result, "Replace document 1 - result" )
+				.to.equal( true );
+			expect( revision, "Replace document 1 - revision" )
+				.not.to.equal( test1.document._rev );
+			
+		});	// Replace.
 		
 	});	// Persistence.
 	

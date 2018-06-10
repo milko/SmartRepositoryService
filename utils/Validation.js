@@ -872,6 +872,37 @@ class Validation
 	 */
 	static castString( theRequest, theValue, thePath )
 	{
+		//
+		// Check if null or undefined.
+		//
+		if( (theValue === null)
+		 || (theValue === undefined) )
+		{
+			//
+			// Compile type.
+			//
+			const type = ( theValue === null ) ? 'null' : 'undefined';
+			
+			//
+			// Compile error.
+			//
+			const error =
+				new MyError(
+					'BadValue',							// Error name.
+					K.error.ExpectingButGot,			// Message code.
+					theRequest.application.language,	// Language.
+					['string', type, thePath],			// Error value.
+					400									// HTTP error code.
+				);
+			
+			//
+			// Add path.
+			//
+			error.path = thePath;
+			
+			throw( error );														// !@! ==>
+		}
+		
 		return theValue.toString();													// ==>
 
 	}	// castString

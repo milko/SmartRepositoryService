@@ -24,7 +24,20 @@ module.exports = {
 	},
 	
 	content_02 : {
+		var: 'VAR2',
 		name: "Document 1",
+		attributes: [
+			':type:unit:length:km',
+			':type:unit:area:km',
+			':type:unit:time:h'
+		]
+	},
+	
+	content_03 : {
+		name: "Document 1"
+	},
+	
+	content_04 : {
 		attributes: [
 			':type:unit:length:km',
 			':type:unit:area:km',
