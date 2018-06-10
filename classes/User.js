@@ -478,9 +478,40 @@ class User extends Document
 		//
 		// Insert user and manager.
 		//
-		const persistent = super.insertDocument();
-		if( persistent )
-			this.insertManager();
+		let persistent = false;
+		try
+		{
+			//
+			// Insert user.
+			//
+			persistent = super.insertDocument();
+			
+			//
+			// Insert manager.
+			//
+			if( persistent )
+				this.insertManager();
+		}
+		catch( error )
+		{
+			//
+			// Delete authentication record.
+			//
+			if( this._document.hasOwnProperty( Dict.descriptor.kAuthData ) )
+				delete this._document[ Dict.descriptor.kAuthData ];
+			
+			//
+			// Remove revision.
+			// We wan t the user to be deleted.
+			//
+			if( this._document.hasOwnProperty( '_rev' ) )
+				delete this._document._rev;
+			
+			//
+			// Remove user.
+			//
+			db._remove( this._document );
+		}
 		
 		return persistent;															// ==>
 		
@@ -805,6 +836,9 @@ class User extends Document
 		{
 			//
 			// Remove manager relationship.
+			//
+			// ToDo
+			// Musat implement transactions...
 			// Must not fail.
 			// When called by insert(), the doGroup flag indicates whether
 			// the group edge was inserted, if that is not the case, the
