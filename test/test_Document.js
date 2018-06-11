@@ -119,6 +119,8 @@ describe( "Document class tests:", function ()
 		//
 		// Instantiate with only request.
 		//
+		// Should raise Missing required parameter.
+		//
 		it( "Instantiate with only request:", function ()
 		{
 			expect( () => {
@@ -131,6 +133,8 @@ describe( "Document class tests:", function ()
 		
 		//
 		// Instantiate with null selector and no collection.
+		//
+		// Should raise Missing required parameter.
 		//
 		it( "Instantiate with null selector and no collection:", function ()
 		{
@@ -145,6 +149,8 @@ describe( "Document class tests:", function ()
 		//
 		// Instantiate with null selector and non existant collection.
 		//
+		// Should raise unknown or invalid collection name.
+		//
 		it( "Instantiate with null selector and non existant collection:", function ()
 		{
 			expect( () => {
@@ -154,6 +160,8 @@ describe( "Document class tests:", function ()
 		
 		//
 		// Instantiate with null selector and existing edge collection.
+		//
+		// Should not raise: the Document class accepts any collection type.
 		//
 		it( "Instantiate with null selector and existing edge collection:", function ()
 		{
@@ -165,6 +173,8 @@ describe( "Document class tests:", function ()
 		//
 		// Instantiate with null selector and existing document collection.
 		//
+		// Should not raise: the Document class accepts any collection type.
+		//
 		it( "Instantiate with null selector and existing document collection:", function ()
 		{
 			expect( () => {
@@ -174,6 +184,8 @@ describe( "Document class tests:", function ()
 		
 		//
 		// Instantiate with null selector and default collection.
+		//
+		// Should not raise: the Document class accepts any collection type.
 		//
 		it( "Instantiate with null selector and default collection:", function ()
 		{
@@ -193,6 +205,8 @@ describe( "Document class tests:", function ()
 		//
 		// Instantiate without selector and wrong collection.
 		//
+		// Should raise Invalid collection.
+		//
 		it( "Instantiate without selector and wrong collection:", function ()
 		{
 			expect( () => {
@@ -207,6 +221,8 @@ describe( "Document class tests:", function ()
 		
 		//
 		// Instantiate mutable/immutable document.
+		//
+		// Should return immutable only when instantiating from found reference.
 		//
 		it( "Instantiate mutable/immutable document:", function ()
 		{
@@ -259,6 +275,8 @@ describe( "Document class tests:", function ()
 		//
 		// Instantiate with cross-collection reference.
 		//
+		// Should raise cross-collection reference.
+		//
 		it( "Instantiate with cross-collection reference:", function ()
 		{
 			expect( () => {
@@ -273,6 +291,8 @@ describe( "Document class tests:", function ()
 		
 		//
 		// Instantiate with not found reference.
+		//
+		// Should raise not found in collection.
 		//
 		it( "Instantiate with not found reference:", function ()
 		{
@@ -289,6 +309,8 @@ describe( "Document class tests:", function ()
 		//
 		// Instantiate with found reference and no collection.
 		//
+		// Should resolve collection from _id, or raise illegal document handle.
+		//
 		it( "Instantiate with found reference and no collection:", function ()
 		{
 			let doc;
@@ -298,6 +320,15 @@ describe( "Document class tests:", function ()
 				doc = new Document( param.request, 'descriptors/order' );
 			};
 			expect( func, "Instantiation" ).not.to.throw();
+			expect( doc.document, "Should be mutable" ).not.to.be.sealed;
+			expect( doc.persistent, "Persistent flag").to.equal(true);
+			expect( doc.modified, "Modified flag").to.equal(false);
+			
+			func = () => {
+				doc = new Document( param.request, 'order' );
+			};
+			expect( func, "Instantiation" )
+				.to.throw( MyError, /invalid object reference handle/ );
 			expect( doc.document, "Should be mutable" ).not.to.be.sealed;
 			expect( doc.persistent, "Persistent flag").to.equal(true);
 			expect( doc.modified, "Modified flag").to.equal(false);
@@ -726,51 +757,59 @@ describe( "Document class tests:", function ()
 	describe( "Resolve:", function ()
 	{
 		//
-		// Resolve empty object.
+		// Resolve null reference.
 		//
-		it( "Resolve empty object:", function ()
+		it( "Resolve null reference:", function ()
 		{
-			const func_instantiate = () => {
-				return new Document(
-					param.request, null, default_collection
-				);
-			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
+			let doc;
+			let func;
 			let result;
-			const func_resolve = () => {
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, null, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			
+			func = () => {
 				result = doc.resolveDocument(true, true);
 			};
-			expect( func_resolve, "Resolve" )
+			expect( func, "Resolve" )
 				.to.throw( MyError, /cannot locate document without selection data/ );
-			expect(doc.document, "Should be empty").to.be.empty;
+			expect( doc.document, "Should be empty").to.be.empty;
 			expect( result, "Resolve result" ).to.equal( undefined );
-			expect(doc.persistent, "Persistent flag").to.equal(false);
-			expect(doc.modified, "Modified flag").to.equal(false);
+			expect( doc.persistent, "Persistent flag").to.equal(false);
+			expect( doc.modified, "Modified flag").to.equal(false);
 		});
 		
 		//
-		// Resolve without significant field.
+		// Resolve selector without significant field.
 		//
-		it( "Resolve without significant field:", function ()
+		it( "Resolve selector without significant field:", function ()
 		{
-			const func_instantiate = () => {
-				return new TestClassPersistNoRequired(
-					param.request, {name: "pippo"}, default_collection
-				);
-			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
+			let doc;
+			let func;
 			let result;
-			const func_resolve = () => {
+			
+			func = () => {
+				doc =
+					new TestClassPersistNoRequired(
+						param.request, {name: "pippo"}, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			
+			func = () => {
 				result = doc.resolveDocument(true, true);
 			};
-			expect( func_resolve, "Resolve" )
+			expect( func, "Resolve" )
 				.to.throw( MyError, /missing required fields to resolve object/ );
-			expect(doc.document, "Should be empty").not.to.be.empty;
+			expect( doc.document, "Should be empty").not.to.be.empty;
 			expect( result, "Resolve result" ).to.equal( undefined );
-			expect(doc.persistent, "Persistent flag").to.equal(false);
-			expect(doc.modified, "Modified flag").to.equal(false);
+			expect( doc.persistent, "Persistent flag").to.equal(false);
+			expect( doc.modified, "Modified flag").to.equal(false);
 		});
 		
 		//
@@ -778,36 +817,36 @@ describe( "Document class tests:", function ()
 		//
 		it( "Resolve with not found selector:", function ()
 		{
-			const func_instantiate = () => {
-				return new Document(
-					param.request,
-					{_id: 'test_Document/UNKNOWN'},
-					default_collection
-				);
-			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
+			let doc;
+			let func;
 			let result;
-			const func_resolve = () => {
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, {_id: 'test_Document/UNKNOWN'}, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			
+			func = () => {
 				result = doc.resolveDocument(true, true);
 			};
-			expect( func_resolve, "Resolve and raise" )
+			expect( func, "Resolve and raise" )
 				.to.throw( MyError, /not found in collection/ );
-			expect(doc.document, "Should be empty").not.to.be.empty;
+			expect( doc.document, "Should be empty").not.to.be.empty;
 			expect( result, "Resolve result" ).to.equal( undefined );
-			expect(doc.persistent, "Persistent flag").to.equal(false);
-			expect(doc.modified, "Modified flag").to.equal(false);
-			expect( func_resolve, "Resolve" )
-				.to.throw( MyError, /not found in collection/ );
-			const func_resolve_no_exception = () => {
+			expect( doc.persistent, "Persistent flag").to.equal(false);
+			expect( doc.modified, "Modified flag").to.equal(false);
+			
+			func = () => {
 				result = doc.resolveDocument(true, false);
 			};
-			expect( func_resolve_no_exception, "Resolve and not raise" )
-				.not.to.throw();
-			expect(doc.document, "Should be empty").not.to.be.empty;
+			expect( func, "Resolve and not raise" ).not.to.throw();
+			expect( doc.document, "Should be empty").not.to.be.empty;
 			expect( result, "Resolve result" ).to.equal( false );
-			expect(doc.persistent, "Persistent flag").to.equal(false);
-			expect(doc.modified, "Modified flag").to.equal(false);
+			expect( doc.persistent, "Persistent flag").to.equal(false);
+			expect( doc.modified, "Modified flag").to.equal(false);
 		});
 		
 		//

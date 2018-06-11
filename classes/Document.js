@@ -9,6 +9,7 @@ const errors = require('@arangodb').errors;
 const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
 const ARANGO_CROSS_COLLECTION = errors.ERROR_ARANGO_CROSS_COLLECTION_REQUEST.code;
+const ARANGO_ILLEGAL_DOCUMENT_HANDLE = errors.ERROR_ARANGO_DOCUMENT_HANDLE_BAD.code;
 
 //
 // Application.
@@ -1432,6 +1433,21 @@ class Document
 					);															// !@! ==>
 				
 				//
+				// Handle illegal document handle error.
+				//
+				if( error.isArangoError
+				 && (error.errorNum === ARANGO_ILLEGAL_DOCUMENT_HANDLE) )
+					throw(
+						new MyError(
+							'BadDocumentReference',				// Error name.
+							K.error.BadDocumentHandle,			// Message code.
+							this._request.application.language,	// Language.
+							theReference,						// Error value.
+							400									// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				//
 				// Raise exceptions other than not found.
 				//
 				if( (! error.isArangoError)
@@ -1502,6 +1518,21 @@ class Document
 			// Set persistence flag.
 			//
 			this._persistent = false;
+			
+			//
+			// Handle illegal document handle error.
+			//
+			if( error.isArangoError
+			 && (error.errorNum === ARANGO_ILLEGAL_DOCUMENT_HANDLE) )
+				throw(
+					new MyError(
+						'BadDocumentReference',				// Error name.
+						K.error.BadDocumentHandle,			// Message code.
+						this._request.application.language,	// Language.
+						theReference,						// Error value.
+						400									// HTTP error code.
+					)
+				);															// !@! ==>
 			
 			//
 			// Handle exceptions.
