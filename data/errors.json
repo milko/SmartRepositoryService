@@ -36,6 +36,12 @@
     }
   },
   {
+    "_key" : "ResolveDocument",
+    "label" : {
+      "ISO:639:3:eng" : "Unable to resolve document: "
+    }
+  },
+  {
     "_key" : "ReplaceDocument",
     "label" : {
       "ISO:639:3:eng" : "Unable to replace document: "

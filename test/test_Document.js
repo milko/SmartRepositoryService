@@ -21,7 +21,7 @@ const should = require('chai').should();
 const expect = require('chai').expect;
 
 //
-// Support.
+// Test parameters.
 //
 const param = require( './paramDocument' );
 
@@ -33,16 +33,67 @@ const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
 
 //
-// Test class.
+// Base Document class.
 //
-const TestClass = require( '../classes/Document' );
+const Document = require( '../classes/Document' );
+
+//
+// Base Document class with default collection.
+//
+class TestClassCollection extends Document
+{
+	get defaultCollection()	{	return param.collection_document; }
+	validateCollectionType( theCollection, doAssert = true )
+	{
+		return Document.isDocumentCollection(
+			this._request,
+			theCollection,
+			doAssert
+		);
+	}
+}
+
+//
+// Base persistent class without significant fields.
+//
+class TestClassPersistNoSignificant extends TestClassCollection
+{
+	get requiredFields()	{	return [ Dict.descriptor.kVariable ]; }
+	get uniqueFields()		{	return [ Dict.descriptor.kVariable ]; }
+	get lockedFields()		{	return [ Dict.descriptor.kVariable ]; }
+}
+
+//
+// Base persistent class With significant fields and no required.
+//
+class TestClassPersistNoRequired extends TestClassCollection
+{
+	get significantFields()	{	return [ [Dict.descriptor.kVariable] ]; }
+	get uniqueFields()		{	return [ Dict.descriptor.kVariable ]; }
+	get lockedFields()		{	return [ Dict.descriptor.kVariable ]; }
+}
+
+//
+// Base persistent class with significant and restricted fields.
+//
+class TestClassPersistSignificant extends TestClassPersistNoSignificant
+{
+	get significantFields()	{	return [ [Dict.descriptor.kVariable] ]; }
+	get restrictedFields()	{	return [ Dict.descriptor.kOrder ] }
+}
+
+//
+// Clear collections.
+//
+db._collection(param.collection_edge).truncate();
+db._collection(param.collection_document).truncate();
 
 /**
  * Document class tests
  *
  * We test the Document class.
  */
-describe( "Document class tests::", function ()
+describe( "Document class tests:", function ()
 {
 	//
 	// Instantiation tests.
@@ -50,554 +101,963 @@ describe( "Document class tests::", function ()
 	describe( "Instantiation:", function ()
 	{
 		//
-		// Test provide invalid reference.
+		// Instantiate without selector and collection.
 		//
-		it( "Instantiate with invalid reference:", function ()
+		it( "Instantiate without selector and collection:", function ()
 		{
-			expect(function () {
-				return new TestClass(
-					param.request,				// Request.
-					[],							// Contents or selector.
-					param.collection,			// Collection.
-					true						// Immutable object
-				);
-			}).to.throw(MyError, /expecting document contents, selector or reference/ );
+			expect( () => {
+				const tmp = new Document( param.request );
+			}).to.throw(
+				MyError,
+				/Missing required parameter/
+			);
 		});
 		
 		//
-		// Test omit collection.
+		// Instantiate with null selector and no collection.
 		//
-		it( "Instantiate without collection:", function ()
+		it( "Instantiate with null selector and no collection:", function ()
 		{
-			expect(function () {
-				return new TestClass(
-					param.request,				// Request.
-					null,						// Contents or selector.
-					null,						// Collection.
-					true						// Immutable object
-				);
-			}).to.throw(MyError, /missing collection reference/ );
+			expect( () => {
+				const tmp = new Document( param.request, null );
+			}).to.throw(
+				MyError,
+				/Missing required parameter/
+			);
 		});
 		
 		//
-		// Test provide null in reference.
+		// Instantiate without selector with edge collection.
 		//
-		it( "Instantiate with null reference:", function ()
+		it( "Instantiate without selector with edge collection:", function ()
 		{
-			//
-			// Create instantiation function.
-			//
-			const instantiate = function () {
-				return new TestClass(
-					param.request,				// Request.
-					null,						// Contents or selector.
-					param.collection,			// Collection.
-					true						// Immutable object
-				);
-			};
-			
-			//
-			// Constructor test.
-			//
-			expect(instantiate, "Instantiate object")
-				.not.to.throw();
-			
-			//
-			// Instantiate class.
-			//
-			const test = instantiate();
-			
-			//
-			// Test immutable.
-			//
-			expect(test.document, "Is mutable")
-				.not.to.be.sealed;
-			
-			//
-			// Test collection() getter.
-			//
-			expect(test.collection, "Getter collection() type")
-				.to.be.a('string' );
-			expect(test.collection, "Getter collection() content")
-				.to.equal(param.collection, "Collection name changed" );
-			
-			//
-			// Test instance() getter.
-			//
-			expect(test.instance, "Getter instance() type")
-				.to.be.undefined;
-			
-			//
-			// Test persistent() getter.
-			//
-			expect(test.persistent, "Getter persistent() type")
-				.to.be.a('boolean' );
-			expect(test.persistent, "Getter persistent() content")
-				.to.equal(false, "Should not be persistent" );
-			
-			//
-			// Test revised() getter.
-			//
-			expect(test.revised, "Getter revised() type")
-				.to.be.a('boolean' );
-			expect(test.revised, "Getter revised() content")
-				.to.equal(false, "Should not have a revision change" );
-			
-			//
-			// Test document() getter.
-			//
-			expect(test.document, "Getter document() type")
-				.to.be.an('object' );
-			expect(test.document, "Getter document() content")
-				.to.be.empty;
-			
-		});	// Provide null in reference.
+			expect( () => {
+				const tmp = new Document( param.request, null, param.collection_edge );
+			}).not.to.throw();
+		});
 		
 		//
-		// Test provide object in reference.
+		// Instantiate without selector with document collection.
 		//
-		it( "Provide object in reference", function () {
-			
-			//
-			// Create instantiation function.
-			//
-			const content = param.content_01;
-			const instantiate = function () {
-				return new TestClass(
-					param.request,				// Request.
-					content,					// Contents or selector.
-					param.collection,			// Collection.
-					true						// Immutable object
+		it( "Instantiate without selector with document collection:", function ()
+		{
+			expect( () => {
+				const tmp = new Document( param.request, null, param.collection_document );
+			}).not.to.throw();
+		});
+		
+		//
+		// Instantiate without selector with non existant collection.
+		//
+		it( "Instantiate without selector with non existant collection:", function ()
+		{
+			expect( () => {
+				const tmp = new Document( param.request, null, 'test' );
+			}).not.to.throw();
+		});
+		
+		//
+		// Instantiate default collection with null selector and no collection.
+		//
+		it( "Instantiate default collection with null selector and no collection:",
+			function ()
+		{
+			expect( () => {
+				const tmp = new TestClassCollection( param.request, null );
+			}).not.to.throw();
+		});
+		
+		//
+		// Instantiate without selector and wrong collection.
+		//
+		it( "Instantiate without selector and wrong collection:", function ()
+		{
+			expect( () => {
+				const tmp =
+					new TestClassCollection(
+						param.request, null, param.collection_edge );
+			}).to.throw(
+				MyError,
+				/Invalid collection/
+			);
+		});
+		
+		//
+		// Instantiate immutable document.
+		//
+		it( "Instantiate immutable document:", function ()
+		{
+			const func = () => {
+				return new Document(
+					param.request, null, param.collection_document, true
+				);
+			}
+			expect( func, "Instantiation" )
+				.not.to.throw();
+			const tmp =
+				new Document(
+					param.request, null, param.collection_document, true
+				);
+			expect( tmp.document, "Should be mutable" )
+				.not.to.be.sealed;
+			expect(tmp.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Instantiate with cross-collection reference.
+		//
+		it( "Instantiate with cross-collection reference:", function ()
+		{
+			expect( () => {
+				const tmp =
+					new Document(
+						param.request, 'descriptors/order', param.collection_document );
+			}).to.throw(
+				MyError,
+				/cross-collection reference/
+			);
+		});
+		
+		//
+		// Instantiate with not found reference.
+		//
+		it( "Instantiate with not found reference:", function ()
+		{
+			expect( () => {
+				const tmp =
+					new Document(
+						param.request, 'test_Document/MISSING', param.collection_document );
+			}).to.throw(
+				MyError,
+				/not found in collection/
+			);
+		});
+		
+		//
+		// Instantiate with found reference and no collection.
+		//
+		it( "Instantiate with found reference and no collection:", function ()
+		{
+			const func = () => {
+				return new Document(
+					param.request, 'descriptors/order'
+				);
+			}
+			expect( func, "Instantiation" )
+				.not.to.throw();
+			const tmp = func();
+			expect( tmp.document, "Should be mutable" )
+				.not.to.be.sealed;
+			expect(tmp.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Instantiate with found selector.
+		//
+		it( "Instantiate with found selector:", function ()
+		{
+			const func = () => {
+				return new Document(
+					param.request, {var: 'kOrder'}, 'descriptors' );
+			};
+			expect(func).not.to.throw();
+			const tmp = func();
+			expect(tmp.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Instantiate with content.
+		//
+		it( "Instantiate with content:", function ()
+		{
+			const func = function () {
+				return new Document(
+					param.request, param.content, param.collection_document );
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			const doc = func();
+			for( const field in param.content )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Property mismatch [${field}]` )
+						.to.equal( param.content[ field ] );
+			}
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Instantiate with restricted content.
+		//
+		it( "Instantiate with restricted content:", function ()
+		{
+			const func = () => {
+				return new TestClassPersistSignificant(
+					param.request, param.content, param.collection_document
 				);
 			};
-			
-			//
-			// Constructor test.
-			//
-			expect( instantiate, "Instantiate object" )
-				.not.to.throw();
-			
-			//
-			// Instantiate class.
-			//
-			const test = instantiate();
-			
-			//
-			// Test immutable.
-			//
-			expect(test.document, "Is mutable")
-				.not.to.be.sealed;
-			
-			//
-			// Test collection() getter.
-			//
-			expect(test.collection, "Getter collection() type")
-				.to.be.a('string' );
-			expect(test.collection, "Getter collection() content")
-				.to.equal(param.collection, "Collection name changed" );
-			
-			//
-			// Test instance() getter.
-			//
-			expect(test.instance, "Getter instance() type")
-				.to.be.undefined;
-			
-			//
-			// Test persistent() getter.
-			//
-			expect(test.persistent, "Getter persistent() type")
-				.to.be.a('boolean' );
-			expect(test.persistent, "Getter persistent() content")
-				.to.equal(false, "Should not be persistent" );
-			
-			//
-			// Test revised() getter.
-			//
-			expect(test.revised, "Getter revised() type")
-				.to.be.a('boolean' );
-			expect(test.revised, "Getter revised() content")
-				.to.equal(false, "Should not have a revision change" );
-			
-			//
-			// Test document() getter.
-			//
-			expect(test.document, "Getter document() type")
-				.to.be.an('object' );
-			expect(test.document, "Getter document() content")
-				.not.to.be.empty;
-			expect(test.document, "Getter document() keys")
-				.to.have.all.keys(content);
-			
-		});	// Provide object in reference.
-	
+			expect( func, "Instantiation" ).not.to.throw();
+			const doc = func();
+			const restricted = doc.restrictedFields[ 0 ];
+			expect(doc.document, `Restricted field`)
+				.not.to.have.property(restricted);
+			for( const field in param.content )
+			{
+				if( field !== restricted )
+				{
+					expect( doc.document, `Missing property` ).to.have.property(field);
+					if( doc.document.hasOwnProperty( field ) )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.content[ field ] );
+				}
+			}
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
+		
 	});	// Instantiation.
 	
 	//
-	// Modification tests.
+	// Content tests.
 	//
-	describe( "Modify contents:", function () {
-		
-		//
-		// Modify data.
-		//
-		const add_data = {};
-		add_data[ Dict.descriptor.kUnit ] = Dict.term.kTypeUnitLengthKm;
-		add_data[ Dict.descriptor.kVariable ] = 'VarName';
-		const mod_data = {};
-		mod_data[ Dict.descriptor.kUnit ] = Dict.term.kTypeUnitLengthM;
-		mod_data[ Dict.descriptor.kVariable ] = 'VarNameMod';
-		mod_data[ Dict.descriptor.kOrder ] = 1;
-		const rep_data = {};
-		rep_data[ Dict.descriptor.kUnit ] = Dict.term.kTypeUnitLengthCm;
-		rep_data[ Dict.descriptor.kVariable ] = 'VarNameRep';
-		const del_data = {};
-		del_data[ Dict.descriptor.kUnit ] = null;
-		del_data[ Dict.descriptor.kVariable ] = null;
-		
-		//
-		// Set function.
-		//
-		const add = function () {
-			test.setDocumentProperties( add_data, false );
-		};
-		const mod = function () {
-			test.setDocumentProperties( mod_data, false );
-		};
-		const rep = function () {
-			test.setDocumentProperties( rep_data, true );
-		};
-		const del = function () {
-			test.setDocumentProperties( del_data, true );
-		};
-		
-		//
-		// Instantiate class.
-		//
-		const content = param.content_01;
-		const test =
-			new TestClass(
-				param.request,				// Request.
-				content,					// Contents or selector.
-				param.collection,			// Collection.
-				true						// Immutable object
-			);
-		
-		//
-		// Add data.
-		//
-		it( "Set data", function () {
-			
-			//
-			// Add data.
-			//
-			expect( add, "setDocumentProperties() append" )
-				.not.to.throw();
-			expect( test.document,
-				"setDocumentProperties() append - has unit" )
-				.to.have.property( Dict.descriptor.kUnit )
-				.equal( add_data[ Dict.descriptor.kUnit ] );
-			expect( test.document,
-				"setDocumentProperties() append - has variable" )
-				.to.have.property( Dict.descriptor.kVariable )
-				.equal( param.content_01[ Dict.descriptor.kVariable ] );
-		
-		});	// Set data.
-		
-		//
-		// Modify data.
-		//
-		it( "Modify data", function () {
-			
-			//
-			// Modify without replacing.
-			//
-			expect(mod, "setDocumentProperties() modify" )
-				.not.to.throw();
-			expect(test.document,
-				"setDocumentProperties() modify - has unit")
-				.to.have.property(Dict.descriptor.kUnit)
-				.equal(add_data[ Dict.descriptor.kUnit ]);
-			expect(test.document,
-				"setDocumentProperties() modify - has variable")
-				.to.have.property(Dict.descriptor.kVariable)
-				.equal(param.content_01[ Dict.descriptor.kVariable ]);
-			expect(test.document,
-				"setDocumentProperties() modify - has order")
-				.to.have.property(Dict.descriptor.kOrder)
-				.equal(mod_data[ Dict.descriptor.kOrder ]);
-			
-			//
-			// Replace data.
-			//
-			expect(rep, "setDocumentProperties() replace" )
-				.not.to.throw();
-			expect(test.document,
-				"setDocumentProperties() replace - has unit")
-				.to.have.property(Dict.descriptor.kUnit)
-				.equal(rep_data[ Dict.descriptor.kUnit ]);
-			expect(test.document,
-				"setDocumentProperties() replace - has variable")
-				.to.have.property(Dict.descriptor.kVariable)
-				.equal(rep_data[ Dict.descriptor.kVariable ]);
-			
-		});	// Modify data.
-		
-		//
-		// Remove data.
-		//
-		it( "Remove data", function () {
-			
-			//
-			// Remove data.
-			//
-			expect(del, "setDocumentProperties() remove" )
-				.not.to.throw();
-			expect(test.document,
-				"setDocumentProperties() remove - deleted unit")
-				.not.to.have.property(Dict.descriptor.kUnit);
-			expect(test.document,
-				"setDocumentProperties() remove - deleted variable")
-				.not.to.have.property(Dict.descriptor.kVariable);
-		
-		});	// Remove data.
-	
-	});	// Modify contents.
-	
-	//
-	// Add persistent constraints.
-	//
-	class TestClassPersist extends TestClass
+	describe( "Content:", function ()
 	{
-		// get significantFields()	{	return [ [Dict.descriptor.kVariable] ]; }
-		get requiredFields()	{	return [ Dict.descriptor.kVariable ]; }
-		get uniqueFields()		{	return [ Dict.descriptor.kVariable ]; }
-		get lockedFields()		{	return [ Dict.descriptor.kVariable ]; }
-		get defaultCollection()	{	return param.collection; }
-	}
-	
-	//
-	// Truncate collection.
-	//
-	db._collection(param.collection).truncate();
-	
-	//
-	// Insert document.
-	//
-	describe( "Persistence:", function () {
-		
 		//
-		// Create instantiation function.
+		// Load empty object.
 		//
-		const instantiate = function () {
-			return new TestClassPersist(
-				param.request,				// Request.
-				param.content_01,			// Contents or selector.
-				null,						// Collection.
-				true						// Immutable object
-			);
-		};
-		
-		//
-		// Instantiate document.
-		//
-		it( "Instantiate", function () {
-			
-			//
-			// Constructor test.
-			//
-			expect( instantiate, "Instantiate object without collection" )
-				.not.to.throw();
-			
-		});	// Instantiate.
-		
-		//
-		// Instantiate class.
-		//
-		const test1 =
-			new TestClassPersist(
-				param.request,				// Request.
-				param.content_01,			// Contents or selector.
-				null,						// Collection.
-				true						// Immutable object
-			);
-		const test2 =
-			new TestClassPersist(
-				param.request,				// Request.
-				param.content_02,			// Contents or selector.
-				null,						// Collection.
-				true						// Immutable object
-			);
-		
-		//
-		// Insert results.
-		//
-		let insert1 = null;
-		let insert2 = null;
-		
-		//
-		// Insert functions.
-		//
-		const ins1 = function () {
-			insert1 = test1.insertDocument();
-		};
-		const ins2 = function () {
-			insert2 = test2.insertDocument();
-		};
-		
-		//
-		// Current revision.
-		//
-		let revision;
-		
-		//
-		// Instantiate document.
-		//
-		it( "Insert", function () {
-			
-			//
-			// Insert test.
-			//
-			let tmpx = test1.document[Dict.descriptor.kVariable];
-			delete test1.document[Dict.descriptor.kVariable];
-			expect( ins1, "Insert document 1 - insert with missing field" )
-				.to.throw(MyError, /missing required field/);
-			test1.document[Dict.descriptor.kVariable] = tmpx;
-			
-			//
-			// Insert test.
-			//
-			expect( ins1, "Insert document 1 - insert complete object" )
-				.not.to.throw();
-			expect( insert1, "Insert document 1 - result" )
-				.to.equal( true );
-			
-			//
-			// Test immutable.
-			//
-			expect(test1.document, "Insert document 1 - Is mutable")
-				.not.to.be.sealed;
-			
-			//
-			// Test collection() getter.
-			//
-			expect(test1.collection, "Insert document 1 - collection type")
-				.to.be.a('string' );
-			expect(test1.collection, "Insert document 1 - collection name")
-				.to.equal(param.collection, "Collection name changed" );
-			
-			//
-			// Test persistent() getter.
-			//
-			expect(test1.persistent, "Insert document 1 - persistent() type")
-				.to.be.a('boolean' );
-			expect(test1.persistent, "Insert document 1 - persistent() content")
-				.to.equal(true, "Should be persistent" );
-			
-			//
-			// Test revised() getter.
-			//
-			expect(test1.revised, "Insert document 1 - revised() type")
-				.to.be.a('boolean' );
-			expect(test1.revised, "Insert document 1 - revised() content")
-				.to.equal(false, "Should not have a revision change" );
-			
-			//
-			// Test document() getter.
-			//
-			expect(test1.document, "Insert document 1 - document() type")
-				.to.be.an('object' );
-			expect(test1.document, "Insert document 1 - document() content")
-				.not.to.be.empty;
-			expect(test1.document,
-				"Insert document 1 - has _id")
-				.to.have.property('_id');
-			expect(test1.document,
-				"Insert document 1 - has _key")
-				.to.have.property('_key');
-			expect(test1.document,
-				"Insert document 1 - has _rev")
-				.to.have.property('_rev');
-			
-			//
-			// Test exists.
-			//
-			expect(db._collection(param.collection).exists(test1.document),
-				"Insert document 1 - exists")
-				.not.to.be.false;
-			
-			//
-			// Instantiate copy.
-			//
-			const tmp =
-				new TestClassPersist(
-					param.request,				// Request.
-					param.content_01,			// Contents or selector.
-					null,						// Collection.
-					true						// Immutable object
+		it( "Load empty object:", function ()
+		{
+			const func_instantiate = () => {
+				return new Document(
+					param.request, null, param.collection_document
 				);
-			const insTmp = function () {
-				tmp.insertDocument();
 			};
-			
-			//
-			// Test duplicate.
-			//
-			tmp.document._key = test1.document._key;
-			expect(insTmp, "Insert document 1 - test duplicate")
-				.to.throw(MyError, /duplicate document/);
-			
-			//
-			// Set revision.
-			//
-			revision = test1.document._rev;
-			
-		});	// Insert.
-		
-		//
-		// Instantiate document.
-		//
-		it( "Replace", function () {
-			
-			//
-			// Init local storage.
-			//
-			let func;
-			let modif;
-			let result;
-			
-			//
-			// Test persistent document modifications.
-			//
-			modif = {};
-			modif[ Dict.descriptor.kVariable ] = "BADVAR";
-			func = function () {
-				test1.setDocumentProperties(modif);
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			expect(doc.document, "Should be empty").to.be.empty;
+			const func_load = () => {
+				doc.setDocumentProperties( param.content, false )
 			};
-			expect( func, "Replace document 1 - Setting locked property" )
-				.to.throw(MyError, /Property is locked/);
-			modif = {};
-			modif[ Dict.descriptor.kOrder ] = 0;
-			func = function () {
-				test1.setDocumentProperties(modif);
-			};
-			expect( func, "Replace document 1 - Setting unlocked property" )
-				.not.to.throw();
-			
-			//
-			// Test replace.
-			//
-			func = function () {
-				result = test1.replaceDocument();
+			expect( func_load, "Load" ).not.to.throw();
+			for( const field in param.content )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Property mismatch [${field}]` )
+						.to.equal( param.content[ field ] );
 			}
-			expect( func, "Replace document 1 - Replace" )
-				.not.to.throw();
-			expect( result, "Replace document 1 - result" )
-				.to.equal( true );
-			expect( revision, "Replace document 1 - revision" )
-				.not.to.equal( test1.document._rev );
-			
-		});	// Replace.
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
 		
-	});	// Persistence.
+		//
+		// Load non empty object without replace.
+		//
+		it( "Load non empty object without replace:", function ()
+		{
+			const func_instantiate = () => {
+				return new Document(
+					param.request, param.content, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			const func_load = () => {
+				doc.setDocumentProperties( param.replace, false )
+			};
+			expect( func_load, "Load" ).not.to.throw();
+			for( const field in param.content )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Property mismatch [${field}]` )
+						.to.equal( param.content[ field ] );
+			}
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Load non empty object with replace.
+		//
+		it( "Load non empty object with replace:", function ()
+		{
+			const func_instantiate = () => {
+				return new Document(
+					param.request, param.content, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			const func_load = () => {
+				doc.setDocumentProperties( param.replace, true )
+			};
+			expect( func_load, "Load" ).not.to.throw();
+			for( const field in param.replace )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Property mismatch [${field}]` )
+						.to.equal( param.replace[ field ] );
+			}
+			expect(doc.modified, "Modified flag").to.equal(true);
+		});
+		
+		//
+		// Replace non persistent object locked field.
+		//
+		it( "Replace non persistent object locked field:", function ()
+		{
+			const func_instantiate = () => {
+				return new TestClassPersistNoSignificant(
+					param.request, param.content, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			const func_load = () => {
+				doc.setDocumentProperties( param.replace, true )
+			};
+			expect( func_load, "Load" ).not.to.throw();
+			for( const field in param.replace )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Property mismatch [${field}]` )
+						.to.equal( param.replace[ field ] );
+			}
+			expect(doc.modified, "Modified flag").to.equal(true);
+		});
+		
+		//
+		// Replace persistent object locked field.
+		//
+		it( "Replace persistent object locked field:", function ()
+		{
+			const func_instantiate = () => {
+				return new TestClassPersistNoSignificant(
+					param.request, 'descriptors/name', 'descriptors'
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			const func_load = () => {
+				doc.setDocumentProperties( param.replace, true )
+			};
+			expect( func_load, "Load" ).to.throw( MyError, /Property is locked/ );
+			for( const field in param.replace )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+				{
+					if( field === doc.lockedFields[ 0 ] )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.not.to.equal( param.replace[ field ] );
+					else
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.replace[ field ] );
+				}
+			}
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
+		
+	});	// Contents.
+	
+	//
+	// Persistence globals.
+	//
+	let key_insert_empty;
+	let key_insert_filled;
+	let key_insert_same;
+	
+	//
+	// Insert tests.
+	//
+	describe( "Insert:", function ()
+	{
+		//
+		// Insert empty object.
+		//
+		it( "Insert empty object:", function ()
+		{
+			const func_instantiate = () => {
+				return new Document(
+					param.request, null, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_insert = function () {
+				result = doc.insertDocument();
+			};
+			expect( func_insert, "Insert" ).not.to.throw();
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			expect( doc.document, "Has _id" ).to.have.property( '_id' );
+			expect( doc.document, "Has _key" ).to.have.property( '_key' );
+			expect( doc.document, "Has _rev" ).to.have.property( '_rev' );
+			expect( result, "Insert result" ).to.equal( true );
+			expect(doc.persistent, "Persistent flag").to.equal(true);
+			expect(doc.modified, "Modified flag").to.equal(false);
+			key_insert_empty = doc.document._key;
+		});
+		
+		//
+		// Insert duplicate object.
+		//
+		it( "Insert duplicate object:", function ()
+		{
+			const func_instantiate = () => {
+				return new Document(
+					param.request, {_key: key_insert_empty}, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_insert = function () {
+				result = doc.insertDocument();
+			};
+			expect( func_insert, "Insert" )
+				.to.throw( MyError, /duplicate document in collection/ );
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			expect( doc.document, "Has _id" ).not.to.have.property( '_id' );
+			expect( doc.document, "Has _key" ).to.have.property( '_key' );
+			expect( doc.document, "Has _rev" ).not.to.have.property( '_rev' );
+			expect( result, "Insert result" ).to.equal( undefined );
+			expect(doc.persistent, "Persistent flag").to.equal(false);
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Insert object without required field.
+		//
+		it( "Insert object without required field:", function ()
+		{
+			const func_instantiate = () => {
+				return new TestClassPersistNoSignificant(
+					param.request, null, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_insert = function () {
+				result = doc.insertDocument();
+			};
+			expect( func_insert, "Insert" )
+				.to.throw( MyError, /missing required field/ );
+			expect(doc.document, "Should be empty").to.be.empty;
+			expect( result, "Insert result" ).to.equal( undefined );
+			expect(doc.persistent, "Persistent flag").to.equal(false);
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Insert object without significant field.
+		//
+		it( "Insert object without significant field:", function ()
+		{
+			const func_instantiate = () => {
+				return new TestClassPersistNoRequired(
+					param.request, null, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_insert = function () {
+				result = doc.insertDocument();
+			};
+			expect( func_insert, "Insert" ).not.to.throw();
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			expect( result, "Insert result" ).to.equal( true );
+			expect(doc.persistent, "Persistent flag").to.equal(true);
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Insert object with content.
+		//
+		it( "Insert object with content:", function ()
+		{
+			const func_instantiate = () => {
+				return new TestClassPersistNoSignificant(
+					param.request, param.content, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_insert = function () {
+				result = doc.insertDocument();
+			};
+			expect( func_insert, "Insert" ).not.to.throw();
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			expect( doc.document, "Has _id" ).to.have.property( '_id' );
+			expect( doc.document, "Has _key" ).to.have.property( '_key' );
+			expect( doc.document, "Has _rev" ).to.have.property( '_rev' );
+			expect( result, "Insert result" ).to.equal( true );
+			expect(doc.persistent, "Persistent flag").to.equal(true);
+			expect(doc.modified, "Modified flag").to.equal(false);
+			key_insert_filled = doc.document._key;
+		});
+		
+		//
+		// Insert object with same content.
+		//
+		it( "Insert object with same content:", function ()
+		{
+			const func_instantiate = () => {
+				return new TestClassPersistNoSignificant(
+					param.request, param.content, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_insert = function () {
+				result = doc.insertDocument();
+			};
+			expect( func_insert, "Insert" ).not.to.throw();
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			expect( doc.document, "Has _id" ).to.have.property( '_id' );
+			expect( doc.document, "Has _key" ).to.have.property( '_key' );
+			expect( doc.document, "Has _rev" ).to.have.property( '_rev' );
+			expect( result, "Insert result" ).to.equal( true );
+			expect(doc.persistent, "Persistent flag").to.equal(true);
+			expect(doc.modified, "Modified flag").to.equal(false);
+			key_insert_same = doc.document._key;
+		});
+		
+	});	// Insert.
+	
+	//
+	// Resolve tests.
+	//
+	describe( "Resolve:", function ()
+	{
+		//
+		// Resolve empty object.
+		//
+		it( "Resolve empty object:", function ()
+		{
+			const func_instantiate = () => {
+				return new Document(
+					param.request, null, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_resolve = () => {
+				result = doc.resolveDocument(true, true);
+			};
+			expect( func_resolve, "Resolve" )
+				.to.throw( MyError, /cannot locate document without selection data/ );
+			expect(doc.document, "Should be empty").to.be.empty;
+			expect( result, "Resolve result" ).to.equal( undefined );
+			expect(doc.persistent, "Persistent flag").to.equal(false);
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Resolve without significant field.
+		//
+		it( "Resolve without significant field:", function ()
+		{
+			const func_instantiate = () => {
+				return new TestClassPersistNoRequired(
+					param.request, {name: "pippo"}, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_resolve = () => {
+				result = doc.resolveDocument(true, true);
+			};
+			expect( func_resolve, "Resolve" )
+				.to.throw( MyError, /missing required fields to resolve object/ );
+			expect(doc.document, "Should be empty").not.to.be.empty;
+			expect( result, "Resolve result" ).to.equal( undefined );
+			expect(doc.persistent, "Persistent flag").to.equal(false);
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Resolve with not found selector.
+		//
+		it( "Resolve with not found selector:", function ()
+		{
+			const func_instantiate = () => {
+				return new Document(
+					param.request,
+					{_id: 'test_Document/UNKNOWN'},
+					param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_resolve = () => {
+				result = doc.resolveDocument(true, true);
+			};
+			expect( func_resolve, "Resolve and raise" )
+				.to.throw( MyError, /not found in collection/ );
+			expect(doc.document, "Should be empty").not.to.be.empty;
+			expect( result, "Resolve result" ).to.equal( undefined );
+			expect(doc.persistent, "Persistent flag").to.equal(false);
+			expect(doc.modified, "Modified flag").to.equal(false);
+			expect( func_resolve, "Resolve" )
+				.to.throw( MyError, /not found in collection/ );
+			const func_resolve_no_exception = () => {
+				result = doc.resolveDocument(true, false);
+			};
+			expect( func_resolve_no_exception, "Resolve and not raise" )
+				.not.to.throw();
+			expect(doc.document, "Should be empty").not.to.be.empty;
+			expect( result, "Resolve result" ).to.equal( false );
+			expect(doc.persistent, "Persistent flag").to.equal(false);
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Resolve with replace.
+		//
+		it( "Resolve with replace:", function ()
+		{
+			const selector = JSON.parse(JSON.stringify(param.replace));
+			selector._key = key_insert_filled;
+			const func_instantiate = () => {
+				return new Document(
+					param.request,
+					selector,
+					param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_resolve = () => {
+				result = doc.resolveDocument(true, true);
+			};
+			expect( func_resolve, "Resolve and raise" ).not.to.throw();
+			for( const field in param.replace )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+				{
+					expect( doc.document[ field ], `Property mismatch [${field}]` )
+						.not.to.equal( param.replace[ field ] );
+				}
+			}
+			expect(doc.modified, "Modified flag").to.equal(true);
+		});
+		
+		//
+		// Resolve without replace.
+		//
+		it( "Resolve without replace:", function ()
+		{
+			const selector = JSON.parse(JSON.stringify(param.replace));
+			selector._key = key_insert_filled;
+			const func_instantiate = () => {
+				return new Document(
+					param.request,
+					selector,
+					param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_resolve = () => {
+				result = doc.resolveDocument(false, true);
+			};
+			expect( func_resolve, "Resolve and raise" ).not.to.throw();
+			for( const field in param.replace )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+				{
+					expect( doc.document[ field ], `Property mismatch [${field}]` )
+						.to.equal( param.replace[ field ] );
+				}
+			}
+			expect(doc.modified, "Modified flag").to.equal(false);
+		});
+		
+		//
+		// Resolve without replace but locked.
+		//
+		it( "Resolve without replace but locked:", function ()
+		{
+			const selector = JSON.parse(JSON.stringify(param.replace));
+			selector._key = key_insert_filled;
+			const func_instantiate = () => {
+				return new TestClassPersistNoSignificant(
+					param.request,
+					selector,
+					param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_resolve = () => {
+				result = doc.resolveDocument(false, true);
+			};
+			expect( func_resolve, "Resolve and raise" ).not.to.throw();
+			for( const field in param.replace )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+				{
+					if( field === doc.lockedFields[ 0 ] )
+						expect( doc.document[ field ], `Locked property mismatch [${field}]` )
+							.to.equal( param.content[ field ] );
+					else
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.replace[ field ] );
+				}
+			}
+			expect(doc.modified, "Modified flag").to.equal(true);
+		});
+		
+		//
+		// Change locked field.
+		//
+		it( "Change locked field:", function ()
+		{
+			const func_instantiate = () => {
+				return new TestClassPersistNoSignificant(
+					param.request,
+					key_insert_filled,
+					param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			const func_load = () => {
+				doc.setDocumentProperties( {var:"PIPPO"}, true )
+			};
+			expect( func_load, "Load with modify" )
+				.to.throw( MyError, /Property is locked/ );
+			const func_load_bis = () => {
+				doc.setDocumentProperties( {var:"PIPPO"}, false )
+			};
+			expect( func_load, "Load without modify" )
+				.to.throw( MyError, /Property is locked/ );
+		});
+		
+		//
+		// Resolve multiple documents.
+		//
+		it( "Resolve multiple documents:", function ()
+		{
+			const selector = { var: 'VAR'};
+			const func_instantiate = () => {
+				return new TestClassPersistSignificant(
+					param.request,
+					selector,
+					param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_resolve = () => {
+				result = doc.resolveDocument(false, true);
+			};
+			expect( func_resolve, "Resolve and raise explicit" )
+				.to.throw( MyError, /combination of fields is not unique/ );
+			const func_resolve_bis = () => {
+				result = doc.resolveDocument(false, false);
+			};
+			expect( func_resolve, "Resolve and raise not explicit" )
+				.to.throw( MyError, /combination of fields is not unique/ );
+			expect( result, "Resolve result" ).to.equal( undefined );
+		});
+		
+	});	// Resolve.
+	
+	//
+	// Replace tests.
+	//
+	describe( "Replace:", function ()
+	{
+		//
+		// Resolve and replace by reference.
+		//
+		it( "Resolve and replace by reference:", function ()
+		{
+			const func_instantiate = () => {
+				return new Document(
+					param.request, key_insert_filled, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_resolve = () => {
+				result = doc.resolveDocument(false, true);
+			};
+			expect( func_resolve, "Resolve" ).not.to.throw();
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			expect( result, "Resolve result" ).to.equal( true );
+			expect(doc.persistent, "Persistent flag").to.equal(true);
+			expect(doc.modified, "Modified flag").to.equal(false);
+			for( const field in param.content )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Property mismatch [${field}]` )
+						.to.equal( param.content[ field ] );
+			}
+			doc.document.var = "NEW_VAR";
+			const func_replace = () => {
+				result = doc.replaceDocument();
+			};
+			expect( func_replace, "Replace" ).not.to.throw();
+			expect( result, "Resolve result" ).to.equal( true );
+			expect( doc.document.var, "Replaced property" ).to.equal("NEW_VAR");
+		});
+		
+		//
+		// Resolve and replace by selector.
+		//
+		it( "Resolve and replace by selector:", function ()
+		{
+			const selector = {var: "NEW_VAR"};
+			const func_instantiate = () => {
+				return new Document(
+					param.request, selector, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_resolve = () => {
+				result = doc.resolveDocument(false, true);
+			};
+			expect( func_resolve, "Resolve" ).not.to.throw();
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			expect( result, "Resolve result" ).to.equal( true );
+			expect(doc.persistent, "Persistent flag").to.equal(true);
+			expect(doc.modified, "Modified flag").to.equal(false);
+			for( const field in param.content )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+				{
+					if( field === 'var' )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal(selector.var);
+					else
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.content[ field ] );
+				}
+			}
+			doc.document.var = "REPLACED_VAR";
+			const func_replace = () => {
+				result = doc.replaceDocument();
+			};
+			expect( func_replace, "Replace" ).not.to.throw();
+			expect( result, "Resolve result" ).to.equal( true );
+			expect( doc.document.var, "Replaced property" ).to.equal("REPLACED_VAR");
+		});
+		
+		//
+		// Replace non existing document.
+		//
+		it( "Replace non existing document:", function ()
+		{
+			const selector = {var: "VAR"};
+			const func_instantiate = () => {
+				return new Document(
+					param.request, selector, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_resolve = () => {
+				result = doc.resolveDocument(false, true);
+			};
+			expect( func_resolve, "Resolve" ).not.to.throw();
+			expect(doc.document, "Should not be empty").not.to.be.empty;
+			expect( result, "Resolve result" ).to.equal( true );
+			expect(doc.persistent, "Persistent flag").to.equal(true);
+			expect(doc.modified, "Modified flag").to.equal(false);
+			for( const field in param.content )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Property mismatch [${field}]` )
+						.to.equal( param.content[ field ] );
+			}
+			db._remove(doc.document._id);
+			doc.document.var = "NEW_VAR";
+			const func_replace = () => {
+				result = doc.replaceDocument();
+			};
+			expect( func_replace, "Replace" )
+				.to.throw( MyError, /not found in collection/ );
+		});
+		
+		//
+		// Replace non persistent document.
+		//
+		it( "Replace non persistent document:", function ()
+		{
+			const func_instantiate = () => {
+				return new Document(
+					param.request, null, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			let result;
+			const func_replace = () => {
+				result = doc.replaceDocument();
+			};
+			expect( func_replace, "Replace" )
+				.to.throw( MyError, /document is not persistent/ );
+		});
+		
+		//
+		// Replace locked field.
+		//
+		it( "Replace locked field:", function ()
+		{
+			const func_instantiate = () => {
+				return new TestClassPersistSignificant(
+					param.request, key_insert_filled, param.collection_document
+				);
+			};
+			expect( func_instantiate, "Instantiation" ).not.to.throw();
+			const doc = func_instantiate();
+			const func_resolve = () => {
+				doc.resolveDocument(false, true);
+			};
+			expect( func_resolve, "Resolve" ).not.to.throw();
+			db._collection(param.collection_document).update(
+				key_insert_filled,
+				{var: "WAS_CHANGED"},
+				{waitForSync: true}
+			);
+			let result;
+			const func_replace = () => {
+				result = doc.replaceDocument();
+			};
+			expect( func_replace, "Replace" )
+				.to.throw( MyError, /Constraint violation/ );
+			expect( result, "Resolve result" ).to.equal( undefined );
+			expect( doc.document.var, "Replaced property" ).to.equal("REPLACED_VAR");
+		});
+	
+	});	// Replace.
 	
 });

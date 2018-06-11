@@ -8,6 +8,7 @@ const aql = require('@arangodb').aql;
 const errors = require('@arangodb').errors;
 const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
+const ARANGO_CROSS_COLLECTION = errors.ERROR_ARANGO_CROSS_COLLECTION_REQUEST.code;
 
 //
 // Application.
@@ -34,6 +35,10 @@ const MyError = require( '../utils/MyError' );
  * 	- _persistent:		A boolean flag indicating whether the document was retrieved or
  * 						stored in the collection, if true, it means the object was
  * 						retrieved from its collection.
+ * 	- _modified:		A boolean flag indicating whether the existing contents of the
+ * 						object have been modified by the setDocumentProperties() method,
+ * 						the flag is set if an existing property has been modified.
+ * 						The value can be retrieved with the revised() getter.
  * 	- _revised:			A boolean flag indicating whether the revision has changed in
  * 						the event the object was loaded from its collection.
  * 						The value can be retrieved with the revised() getter.
@@ -120,6 +125,10 @@ class Document
 	 *			- Provide the collection.
 	 *			- Instantiate the object.
 	 *			- Call resolveDocument().
+	 *		NOTE: If you instantiate a document with all its contents, existing locked
+	 *		fields will be replaced end existing restricted fields will be deleted
+	 *		without raising an exception, in that case check the modified() getter
+	 *		flag.
 	 *
 	 * This class family may not be able to repair eventual integrity corruptions in
 	 * the database, in particular, when making changes to the referential structure
@@ -308,6 +317,7 @@ class Document
 		this._immutable = isImmutable;
 		this._persistent = false;
 		this._revised = false;
+		this._modified = false;
 		
 	}	// initDocumentMembers
 	
@@ -430,6 +440,16 @@ class Document
 	 * normaliseDocumentProperties(), which tajes care of finalising the contents of the
 	 * document, such as loading default values and computing dynamic properties.
 	 *
+	 * IMPORTANT:
+	 * Be aware that when resolving a non persistent object, eventual locked
+	 * properties existing in the object will be overwritten by the matched object,
+	 * this is intended, to allow freedom in selecting documents, but enforcing the
+	 * locked property rule: if the document is not persistent, locked fields can be
+	 * changed, if the object is persistent, they cannot.. To check if an existing
+	 * value has been modified use the modified() flag getter. This flag will be set
+	 * if an existing value is changed, it will not be set if the provided value is
+	 * not in the document, or if the provided value is restricted.
+	 *
 	 * All exceptions will be raised by the called setDocumentProperty() method.
 	 *
 	 * @param theData		{Object}	The object properties to add.
@@ -439,8 +459,9 @@ class Document
 	setDocumentProperties( theData, doReplace = true, isResolving = false )
 	{
 		//
-		// Get locked and restricted fields.
+		// Init local storage.
 		//
+		this._modified = false;
 		const locked = this.lockedFields;
 		const restricted = this.restrictedFields;
 		
@@ -459,8 +480,8 @@ class Document
 			// Errors will raise an exception.
 			//
 			if( doReplace										// Want to replace,
-			 || isLocked										// or field is locked,
-			 || (! this._document.hasOwnProperty( field )) )	// or not in document.
+				|| isLocked										// or field is locked,
+				|| (! this._document.hasOwnProperty( field )) )	// or not in document.
 				this.setDocumentProperty(
 					field,										// Field name.
 					( restricted.includes( field ) )			// If restricted
@@ -572,13 +593,20 @@ class Document
 			// Set value.
 			//
 			if( theValue !== null )
+			{
 				this._document[ theField ] = theValue;
+				if( value_old !== null )
+					this._modified = true;
+			}
 			
 			//
 			// Delete value.
 			//
-			else if( value_old !== null )						// Superflous?
+			else if( value_old !== null )
+			{
 				delete this._document[ theField ];
+				this._modified = true;
+			}
 			
 		}	// Modify value.
 		
@@ -933,7 +961,35 @@ class Document
 			//
 			// Locate document in database.
 			//
-			const existing = db._document( this._document._id );
+			let existing;
+			try
+			{
+				existing = db._document( this._document._id );
+			}
+			catch( error )
+			{
+				//
+				// Ignore not found.
+				//
+				if( (! error.isArangoError)
+				 || (error.errorNum !== ARANGO_NOT_FOUND) )
+					throw( error );												// !@! ==>
+				
+				//
+				// Reset persistent flag.
+				//
+				this._persistent = false;
+				
+				throw(
+					new MyError(
+						'ReplaceDocument',					// Error name.
+						K.error.DocumentNotFound,			// Message code.
+						this._request.application.language,	// Language.
+						[this._document._key, this._collection],
+						404									// HTTP error code.
+					)
+				);																// !@! ==>
+			}
 			
 			//
 			// Intersect locked fields with existing and current objects.
@@ -1206,7 +1262,7 @@ class Document
 		//
 		// Init local storage.
 		//
-		let document;
+		let document = null;
 		
 		//
 		// Resolve document by _id.
@@ -1233,8 +1289,22 @@ class Document
 		//
 		// Resolve document by content.
 		//
-		else
+		else if( Object.keys( this._document ).length > 0 )
 			document = this.resolveDocumentByContent( doAssert );
+		
+		//
+		// Handle missing selector.
+		//
+		else
+			throw(
+				new MyError(
+					'ResolveDocument',					// Error name.
+					K.error.NoSelectionData,			// Message code.
+					this._request.application.language,	// Language.
+					null,								// Arguments.
+					400									// HTTP error code.
+				)
+			);																// !@! ==>
 		
 		//
 		// Load found document.
@@ -1324,8 +1394,16 @@ class Document
 				//
 				document = collection.document( theReference );
 				
-				return ( isImmutable ) ? document									// ==>
-					   				   : JSON.parse(JSON.stringify(document));		// ==>
+				//
+				// Handle mutable state.
+				//
+				if( isImmutable
+				 && (! Object.isSealed( document )) )
+					Object.seal( document );
+				else if( Object.isSealed( document ) )
+					document = JSON.parse(JSON.stringify(document));
+				
+				return document;													// ==>
 			}
 			catch( error )
 			{
@@ -1333,6 +1411,21 @@ class Document
 				// Set persistence flag.
 				//
 				this._persistent = false;
+				
+				//
+				// Handle cross-collection error.
+				//
+				if( error.isArangoError
+				 && (error.errorNum === ARANGO_CROSS_COLLECTION) )
+					throw(
+						new MyError(
+							'BadDocumentReference',				// Error name.
+							K.error.CrossCollectionRef,			// Message code.
+							this._request.application.language,	// Language.
+							[theReference, this._collection],	// Error value.
+							400									// HTTP error code.
+						)
+					);															// !@! ==>
 				
 				//
 				// Raise exceptions other than not found.
@@ -1530,7 +1623,7 @@ class Document
 						new MyError(
 							'AmbiguousDocumentReference',		// Error name.
 							K.error.AmbiguousDocument,			// Message code.
-							this.request.application.language,	// Language.
+							this._request.application.language,	// Language.
 							[ Object.keys( selector ), this._collection],
 							412									// HTTP error code.
 						)
@@ -1623,26 +1716,56 @@ class Document
 				return false;														// ==>
 			
 			//
-			// Replace document.
+			// Replace.
 			//
-			const meta =
-				db._replace(
-					{ _id : this._document._id },	// Selector.
-					this._document,					// New data.
-					{ overwrite : (! doRevision) }	// Handle revision.
-				);
-			
-			//
-			// Set revision flag.
-			//
-			this._revised = ( meta._rev !== meta.oldRev );
-			
-			//
-			// Set revision.
-			//
-			this._document._rev = meta._rev;
-			
-			return true;															// ==>
+			try
+			{
+				//
+				// Replace document.
+				//
+				const meta =
+					db._replace(
+						{ _id : this._document._id },	// Selector.
+						this._document,					// New data.
+						{ overwrite : (! doRevision) }	// Handle revision.
+					);
+				
+				//
+				// Set revision flag.
+				//
+				this._revised = ( meta._rev !== meta.oldRev );
+				
+				//
+				// Set revision.
+				//
+				this._document._rev = meta._rev;
+				
+				return true;														// ==>
+			}
+			catch( error )
+			{
+				//
+				// Ignore not found.
+				//
+				if( (! error.isArangoError)
+				 || (error.errorNum !== ARANGO_NOT_FOUND) )
+					throw( error );												// !@! ==>
+				
+				//
+				// Reset persistent flag.
+				//
+				this._persistent = false;
+				
+				throw(
+					new MyError(
+						'ReplaceDocument',					// Error name.
+						K.error.DocumentNotFound,			// Message code.
+						this._request.application.language,	// Language.
+						[this._document._key, this._collection],
+						404									// HTTP error code.
+					)
+				);																// !@! ==>
+			}
 			
 		}	// Is persistent.
 		
@@ -1836,6 +1959,19 @@ class Document
 		return this._persistent;													// ==>
 		
 	}	// persistent
+	
+	/**
+	 * Retrieve modified flag
+	 *
+	 * This method will return the modification status.
+	 *
+	 * @returns {Boolean}	True if document eas modified.
+	 */
+	get modified()
+	{
+		return this._modified;														// ==>
+		
+	}	// modified
 	
 	/**
 	 * Retrieve revised flag

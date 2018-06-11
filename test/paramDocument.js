@@ -2,47 +2,41 @@
 
 /**
  * Document test parameters.
+ *
+ * The object implements the default parameters to the unit tests, it provides:
+ *
+ * 	- The request (request).
+ * 	- The edge collection (collection_edge).
+ * 	- The document collection (collection_document).
+ * 	- The test document (content):
+ * 		- var:		[VAR] significant, locked and unique.
+ * 		- name:		[NAME] can be duplicate.
+ * 		- order:	[0] restricted.
  */
 module.exports = {
 	
 	//
 	// Test collection.
 	//
-	collection: 'test_Document',
+	collection_edge		: 'test_Edge',
+	collection_document	: 'test_Document',
 	
 	//
 	// Document contents.
 	//
-	content_01 : {
-		var: 'VAR1',
-		name: "Document 1",
-		attributes: [
-			':type:unit:length:km',
-			':type:unit:area:km',
-			':type:unit:time:h'
-		]
+	content : {
+		var: 'VAR',
+		name: "NAME",
+		order: 0
 	},
 	
-	content_02 : {
-		var: 'VAR2',
-		name: "Document 1",
-		attributes: [
-			':type:unit:length:km',
-			':type:unit:area:km',
-			':type:unit:time:h'
-		]
-	},
-	
-	content_03 : {
-		name: "Document 1"
-	},
-	
-	content_04 : {
-		attributes: [
-			':type:unit:length:km',
-			':type:unit:area:km',
-			':type:unit:time:h'
-		]
+	//
+	// Replace contents.
+	//
+	replace : {
+		name: "NAME_REPLACED",
+		order: 10,
+		var: 'VAR_REPLACED'
 	},
 	
 	//
