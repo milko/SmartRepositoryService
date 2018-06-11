@@ -1523,7 +1523,7 @@ class User extends Document
 	/**
 	 * Return default collection name
 	 *
-	 * we override this method to return the users collection name.
+	 * We override this method to return the users collection name.
 	 *
 	 * @returns {String}|{null}	The default collection name.
 	 */
@@ -1532,6 +1532,20 @@ class User extends Document
 		return 'users';																// ==>
 		
 	}	// defaultCollection
+	
+	/**
+	 * Return default edge collection name
+	 *
+	 * We implement this method to return the edge collection name used for user
+	 * relationskips.
+	 *
+	 * @returns {String}|{null}	The default edge collection name.
+	 */
+	get defaultEdgeCollection()
+	{
+		return 'hierarchy';															// ==>
+		
+	}	// defaultEdgeCollection
 	
 	/**
 	 * Return local fields list
@@ -1623,10 +1637,10 @@ class User extends Document
 			// Create edge.
 			//
 			const edge = new Edge(
-				this._request,		// The current request.
-				document,			// The edge contents.
-				'schemas',			// The schemas collection.
-				false				// Return mutable.
+				this._request,				// The current request.
+				document,					// The edge contents.
+				this.defaultEdgeCollection,	// The schemas collection.
+				false						// Return mutable.
 			);
 			
 			//
@@ -1744,10 +1758,10 @@ class User extends Document
 			selector[ predicate_field ] = predicate;
 			let edge =
 				new Edge(
-					this._request,	// The current request.
-					selector,		// The document selector.
-					'schemas',		// The schemas collection.
-					false			// Return mutable.
+					this._request,				// The current request.
+					selector,					// The document selector.
+					this.defaultEdgeCollection,	// The schemas collection.
+					false						// Return mutable.
 				);
 			
 			//
@@ -1756,7 +1770,7 @@ class User extends Document
 			selector._to = id_user;	// Points to current user.
 			delete selector._from;	// Any source node.
 			const managed =
-				db._collection( 'schemas' )
+				db._collection( this.defaultEdgeCollection )
 					.byExample( sel_managed )
 					.toArray();
 			
@@ -1770,7 +1784,7 @@ class User extends Document
 				// Remove relationship to current user.
 				//
 				selector._from = item._from;	// Set the source node.
-				db._collection( 'schemas' )
+				db._collection( this.defaultEdgeCollection )
 					.removeByExample( sel_current );
 				
 				//
@@ -1790,7 +1804,12 @@ class User extends Document
 				//
 				// Instantiate edge.
 				//
-				const new_edge = new Edge( this._request, item, 'schemas' );
+				const new_edge =
+					new Edge(
+						this._request,
+						item,
+						this.defaultEdgeCollection
+					);
 				
 				//
 				// Resolve edge.
@@ -1839,10 +1858,10 @@ class User extends Document
 			//
 			edge =
 				new Edge(
-					this._request,	// The current request.
-					data,			// The edge contents.
-					'schemas',		// The schemas collection.
-					false			// Return mutable.
+					this._request,				// The current request.
+					data,						// The edge contents.
+					this.defaultEdgeCollection,	// The schemas collection.
+					false						// Return mutable.
 				);
 			
 			//

@@ -1111,6 +1111,10 @@ class Document
 	 * Any error encountered in this method will raise an exception, including
 	 * validation errors.
 	 *
+	 * NOTE: This method will not call validateLockedProperties(), because the
+	 * document is not persistent: this means that you must set collection indexes so
+	 * that unique field conflicts are caught.
+	 *
 	 * @returns {Boolean}	True if inserted.
 	 */
 	insertDocument()
