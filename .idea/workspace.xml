@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/test/test_Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_Document.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/paramEdgeAttribute.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/test_EdgeAttribute.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/test_Edge.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_Edge.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -25,8 +26,8 @@
           <file leaf-file-name="Document.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/classes/Document.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="157">
-                  <caret line="2171" column="4" lean-forward="true" selection-start-line="2171" selection-start-column="4" selection-end-line="2171" selection-end-column="4" />
+                <state relative-caret-position="757">
+                  <caret line="2211" column="7" lean-forward="true" selection-start-line="2211" selection-start-column="7" selection-end-line="2211" selection-end-column="7" />
                 </state>
               </provider>
             </entry>
@@ -80,11 +81,38 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="test_Edge.js" pinned="false" current-in-tab="true">
+          <file leaf-file-name="test_Edge.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/test/test_Edge.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="396">
-                  <caret line="96" column="13" selection-start-line="96" selection-start-column="13" selection-end-line="96" selection-end-column="13" />
+                <state relative-caret-position="410">
+                  <caret line="112" selection-start-line="100" selection-end-line="112" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="test_EdgeAttribute.js" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/test/test_EdgeAttribute.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="900">
+                  <caret line="81" lean-forward="true" selection-start-line="81" selection-end-line="81" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="paramEdgeAttribute.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/test/paramEdgeAttribute.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="541">
+                  <caret line="74" column="9" selection-start-line="74" selection-start-column="9" selection-end-line="74" selection-end-column="9" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="paramEdge.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/test/paramEdge.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="480">
+                  <caret line="32" column="24" lean-forward="true" selection-start-line="32" selection-start-column="24" selection-end-line="32" selection-end-column="24" />
                 </state>
               </provider>
             </entry>
@@ -168,8 +196,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/models/session/hierarchy.js" />
-        <option value="$PROJECT_DIR$/models/session/managed.js" />
         <option value="$PROJECT_DIR$/routes/session.js" />
         <option value="$PROJECT_DIR$/routes/test/Form.js" />
         <option value="$PROJECT_DIR$/classes/Descriptor.old.js" />
@@ -218,7 +244,9 @@
         <option value="$PROJECT_DIR$/main.js" />
         <option value="$PROJECT_DIR$/routes/test/TestDocument.js" />
         <option value="$PROJECT_DIR$/test/test_Document.js" />
+        <option value="$PROJECT_DIR$/test/paramEdgeAttribute.js" />
         <option value="$PROJECT_DIR$/test/test_Edge.js" />
+        <option value="$PROJECT_DIR$/test/test_EdgeAttribute.js" />
       </list>
     </option>
   </component>
@@ -426,12 +454,12 @@
       <workItem from="1528802280303" duration="560000" />
       <workItem from="1528802878203" duration="15587000" />
       <workItem from="1528825274160" duration="2698000" />
-      <workItem from="1528839144819" duration="772000" />
+      <workItem from="1528839144819" duration="1714000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="471429000" />
+    <option name="totallyTimeSpent" value="472371000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="639" y="23" width="1919" height="1417" extended-state="0" />
@@ -468,21 +496,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/test/test_Document.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="24990">
-          <caret line="1666" selection-start-line="1666" selection-end-line="1666" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Descriptor.old.js" />
-    <entry file="file://$PROJECT_DIR$/routes/session.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="823">
-          <caret line="302" selection-start-line="302" selection-end-line="302" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/session/login.js" />
     <entry file="file://$PROJECT_DIR$/models/user/signUp.js" />
     <entry file="file://$PROJECT_DIR$/middleware/user.js">
@@ -722,13 +735,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Document.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="157">
-          <caret line="2171" column="4" lean-forward="true" selection-start-line="2171" selection-start-column="4" selection-end-line="2171" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/test_Document.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="490">
@@ -736,10 +742,38 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/test/paramEdge.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="480">
+          <caret line="32" column="24" lean-forward="true" selection-start-line="32" selection-start-column="24" selection-end-line="32" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/paramEdgeAttribute.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="541">
+          <caret line="74" column="9" selection-start-line="74" selection-start-column="9" selection-end-line="74" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Document.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="757">
+          <caret line="2211" column="7" lean-forward="true" selection-start-line="2211" selection-start-column="7" selection-end-line="2211" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/test/test_Edge.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="96" column="13" selection-start-line="96" selection-start-column="13" selection-end-line="96" selection-end-column="13" />
+        <state relative-caret-position="410">
+          <caret line="112" selection-start-line="100" selection-end-line="112" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/test_EdgeAttribute.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="900">
+          <caret line="81" lean-forward="true" selection-start-line="81" selection-end-line="81" />
         </state>
       </provider>
     </entry>
