@@ -1419,7 +1419,7 @@ describe( "Document class tests:", function ()
 			expect( func, "Instantiation" ).not.to.throw();
 			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
 			
-			const data = {var: "NEW_VAR"};
+			const data = {name: "New name"};
 			func = () => {
 				doc.setDocumentProperties(data, true);
 			};
@@ -1490,11 +1490,11 @@ describe( "Document class tests:", function ()
 		});
 		
 		//
-		// Replace missing field.
+		// Replace with missing required field.
 		//
 		// Should fail.
 		//
-		it( "Replace missing field:", function ()
+		it( "Replace with missing required field:", function ()
 		{
 			let doc;
 			let func;

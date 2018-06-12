@@ -49,6 +49,14 @@ class TestClass extends Edge
 				Dict.descriptor.kVariable
 			]);
 	}
+	
+	get requiredFields()
+	{
+		return super.requiredFields
+			.concat([
+				Dict.descriptor.kVariable
+			]);
+	}
 }
 
 //
@@ -780,6 +788,7 @@ describe( "Edge class tests:", function ()
 			selector._from = param.content._from;
 			selector._to = param.content._to;
 			selector.predicate = param.content.predicate;
+			selector.var = "EDGE";
 			
 			func = () => {
 				doc =
@@ -1417,7 +1426,6 @@ describe( "Edge class tests:", function ()
 	//
 	describe( "Replace:", function ()
 	{
-/*
 		//
 		// Replace non persistent document.
 		//
@@ -1474,6 +1482,7 @@ describe( "Edge class tests:", function ()
 			expect( func_replace, "Replace" )
 				.to.throw( MyError, /not found in collection/ );
 			expect(doc.persistent, "Replace persistent flag").to.equal(false);
+			
 			const meta = db._collection(default_collection).insert( copy, {waitForSync: true} );
 			key_insert_filled = meta._key;
 		});
@@ -1498,7 +1507,7 @@ describe( "Edge class tests:", function ()
 			expect( func, "Instantiation" ).not.to.throw();
 			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
 			
-			const data = {var: "NEW_VAR"};
+			const data = {name: "New name"};
 			func = () => {
 				doc.setDocumentProperties(data, true);
 			};
@@ -1543,7 +1552,7 @@ describe( "Edge class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistSignificant(
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
@@ -1569,11 +1578,11 @@ describe( "Edge class tests:", function ()
 		});
 		
 		//
-		// Replace missing field.
+		// Replace with missing required field.
 		//
 		// Should fail.
 		//
-		it( "Replace missing field:", function ()
+		it( "Replace with missing required field:", function ()
 		{
 			let doc;
 			let func;
@@ -1581,7 +1590,7 @@ describe( "Edge class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistSignificant(
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
@@ -1597,7 +1606,6 @@ describe( "Edge class tests:", function ()
 			expect(doc.persistent, "Replace persistent flag").to.equal(true);
 			expect( result, "Replace result" ).to.equal( undefined );
 		});
-*/
 	
 	});	// Replace.
 	
