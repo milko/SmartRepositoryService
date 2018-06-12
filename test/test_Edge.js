@@ -89,17 +89,14 @@ const example_collection = 'schemas';
 //
 // Clear collections.
 //
-let collection;
-collection = db._collection( param.collection_edge );
-if( ! collection )
+if( ! db._collection( param.collection_edge  ) )
 	db._createEdgeCollection( param.collection_edge, { waitForSync : true } );
 else
-	collection.truncate();
-collection = db._collection( param.collection_document );
-if( ! collection )
+	db._collection( param.collection_edge ).truncate();
+if( ! db._collection( param.collection_document ) )
 	db._createDocumentCollection( param.collection_document, { waitForSync : true } );
 else
-	collection.truncate();
+	db._collection( param.collection_document ).truncate();
 
 //
 // Set environment.
