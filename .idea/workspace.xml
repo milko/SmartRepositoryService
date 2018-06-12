@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Document.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/test_Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_Document.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -25,8 +23,8 @@
       <file leaf-file-name="Document.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/classes/Document.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="332">
-              <caret line="1509" column="13" lean-forward="true" selection-start-line="1509" selection-start-column="13" selection-end-line="1509" selection-end-column="13" />
+            <state relative-caret-position="22635">
+              <caret line="1544" column="13" selection-start-line="1544" selection-start-column="13" selection-end-line="1544" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -34,16 +32,23 @@
       <file leaf-file-name="test_Document.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test/test_Document.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="571">
-              <caret line="316" column="21" lean-forward="true" selection-start-line="316" selection-start-column="21" selection-end-line="316" selection-end-column="21" />
+            <state relative-caret-position="367">
+              <caret line="1447" column="14" lean-forward="true" selection-start-line="1447" selection-start-column="14" selection-end-line="1447" selection-end-column="14" />
             </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="paramDocument.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/paramDocument.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-181" />
           </provider>
         </entry>
       </file>
       <file leaf-file-name="Constants.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils/Constants.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="212">
+            <state relative-caret-position="4440">
               <caret line="296" column="29" selection-start-line="296" selection-start-column="12" selection-end-line="296" selection-end-column="29" />
             </state>
           </provider>
@@ -52,7 +57,7 @@
       <file leaf-file-name="messages.json" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/data/messages.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="406">
+            <state relative-caret-position="2940">
               <caret line="196" column="56" selection-start-line="196" selection-start-column="50" selection-end-line="196" selection-end-column="56" />
             </state>
           </provider>
@@ -69,7 +74,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>_rev</find>
       <find>doAssert</find>
       <find>normaliseInsertProperties</find>
       <find>_revised</find>
@@ -99,6 +103,7 @@
       <find>param.collection_edge</find>
       <find>BadDocumentHandle</find>
       <find>handle</find>
+      <find>key_insert_filled</find>
     </findStrings>
     <replaceStrings>
       <replace>Descriptor.</replace>
@@ -206,16 +211,17 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="639" />
+    <option name="x" value="1280" />
     <option name="y" value="23" />
     <option name="width" value="1192" />
-    <option name="height" value="1417" />
+    <option name="height" value="1001" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -302,7 +308,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -388,24 +393,24 @@
       <workItem from="1528701988440" duration="30210000" />
       <workItem from="1528740451385" duration="9444000" />
       <workItem from="1528756545368" duration="1867000" />
+      <workItem from="1528787326253" duration="8054000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="437963000" />
+    <option name="totallyTimeSpent" value="446017000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="639" y="23" width="1192" height="1417" extended-state="0" />
+    <frame x="1280" y="23" width="1192" height="1001" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4772552" visible="true" weight="0.26046115" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.47559592" visible="true" weight="0.26046115" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.49489218" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" order="9" />
-      <window_info id="Structure" order="1" sideWeight="0.5227448" side_tool="true" visible="true" weight="0.26046115" />
+      <window_info id="Structure" order="1" sideWeight="0.5244041" side_tool="true" visible="true" weight="0.26046115" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -415,6 +420,7 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.49489218" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -653,7 +659,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/paramDocument.js" />
     <entry file="file://$PROJECT_DIR$/classes/User.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="415">
@@ -670,29 +675,34 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/Constants.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="212">
+        <state relative-caret-position="4440">
           <caret line="296" column="29" selection-start-line="296" selection-start-column="12" selection-end-line="296" selection-end-column="29" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/data/messages.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="406">
+        <state relative-caret-position="2940">
           <caret line="196" column="56" selection-start-line="196" selection-start-column="50" selection-end-line="196" selection-end-column="56" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="332">
-          <caret line="1509" column="13" lean-forward="true" selection-start-line="1509" selection-start-column="13" selection-end-line="1509" selection-end-column="13" />
+        <state relative-caret-position="22635">
+          <caret line="1544" column="13" selection-start-line="1544" selection-start-column="13" selection-end-line="1544" selection-end-column="13" />
         </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/paramDocument.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-181" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/test_Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="571">
-          <caret line="316" column="21" lean-forward="true" selection-start-line="316" selection-start-column="21" selection-end-line="316" selection-end-column="21" />
+        <state relative-caret-position="367">
+          <caret line="1447" column="14" lean-forward="true" selection-start-line="1447" selection-start-column="14" selection-end-line="1447" selection-end-column="14" />
         </state>
       </provider>
     </entry>

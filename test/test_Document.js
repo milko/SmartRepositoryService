@@ -153,6 +153,10 @@ describe( "Document class tests:", function ()
 		//
 		it( "Instantiate with null selector and non existant collection:", function ()
 		{
+			const collection = db._collection( 'test' );
+			if( collection )
+				db._drop( 'test' );
+			
 			expect( () => {
 				const tmp = new Document( param.request, null, 'test' );
 			}).to.throw( MyError, /unknown or invalid collection name/ );
@@ -337,6 +341,8 @@ describe( "Document class tests:", function ()
 		//
 		// Instantiate with content.
 		//
+		// The document should contain all the provided data.
+		//
 		it( "Instantiate with content:", function ()
 		{
 			let doc;
@@ -359,6 +365,8 @@ describe( "Document class tests:", function ()
 		
 		//
 		// Instantiate with restricted content.
+		//
+		// The document should contain all the provided data except restricted fields.
 		//
 		it( "Instantiate with restricted content:", function ()
 		{
@@ -429,6 +437,8 @@ describe( "Document class tests:", function ()
 		//
 		// Load non empty object without replace.
 		//
+		// Should not replace any existing field.
+		//
 		it( "Load non empty object without replace:", function ()
 		{
 			let doc;
@@ -443,8 +453,10 @@ describe( "Document class tests:", function ()
 			expect( func, "Instantiation" ).not.to.throw();
 			expect( doc.document, "Should not be empty").not.to.be.empty;
 			
+			const data = JSON.parse(JSON.stringify(param.replace));
+			data[ Dict.descriptor.kUsername ] = "USERNAME";
 			func = () => {
-				doc.setDocumentProperties( param.replace, false );
+				doc.setDocumentProperties( data, false );
 			};
 			expect( func, "Load" ).not.to.throw();
 			for( const field in param.content )
@@ -454,11 +466,15 @@ describe( "Document class tests:", function ()
 					expect( doc.document[ field ], `Property mismatch [${field}]` )
 						.to.equal( param.content[ field ] );
 			}
+			expect( doc.document[ Dict.descriptor.kUsername ], "Added property" )
+				.to.equal(data[ Dict.descriptor.kUsername ]);
 			expect(doc.modified, "Modified flag").to.equal(false);
 		});
 		
 		//
 		// Load non empty object with replace.
+		//
+		// Provided data should replace all data.
 		//
 		it( "Load non empty object with replace:", function ()
 		{
@@ -474,13 +490,18 @@ describe( "Document class tests:", function ()
 			expect( func, "Instantiation" ).not.to.throw();
 			expect( doc.document, "Should not be empty").not.to.be.empty;
 			
+			const data = JSON.parse(JSON.stringify(param.replace));
+			data.order = null;
 			func = () => {
-				doc.setDocumentProperties( param.replace, true );
+				doc.setDocumentProperties( data, true );
 			};
 			expect( func, "Load" ).not.to.throw();
 			for( const field in param.content )
 			{
-				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( field === 'order' )
+					expect( doc.document, `Missing property` ).not.to.have.property(field);
+				else
+					expect( doc.document, `Missing property` ).to.have.property(field);
 				if( doc.document.hasOwnProperty( field ) )
 					expect( doc.document[ field ], `Property mismatch [${field}]` )
 						.to.equal( param.replace[ field ] );
@@ -490,6 +511,8 @@ describe( "Document class tests:", function ()
 		
 		//
 		// Replace non persistent object locked field.
+		//
+		// Should not care if it is locked.
 		//
 		it( "Replace non persistent object locked field:", function ()
 		{
@@ -522,6 +545,8 @@ describe( "Document class tests:", function ()
 		//
 		// Replace persistent object locked field.
 		//
+		// Should raise an exception regardless of replace flag.
+		//
 		it( "Replace persistent object locked field:", function ()
 		{
 			let doc;
@@ -538,6 +563,34 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc.setDocumentProperties( param.replace, true );
+			};
+			expect( func, "Load" ).to.throw( MyError, /Property is locked/ );
+			for( const field in param.replace )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+				{
+					if( field === doc.lockedFields[ 0 ] )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.not.to.equal( param.replace[ field ] );
+					else
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.replace[ field ] );
+				}
+			}
+			expect(doc.modified, "Modified flag").to.equal(false);
+			
+			func = () => {
+				doc =
+					new TestClassPersistNoSignificant(
+						param.request, 'descriptors/name', 'descriptors'
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect( doc.document, "Should not be empty").not.to.be.empty;
+			
+			func = () => {
+				doc.setDocumentProperties( param.replace, false );
 			};
 			expect( func, "Load" ).to.throw( MyError, /Property is locked/ );
 			for( const field in param.replace )
@@ -573,6 +626,8 @@ describe( "Document class tests:", function ()
 		//
 		// Insert empty object.
 		//
+		// Should not fail.
+		//
 		it( "Insert empty object:", function ()
 		{
 			let doc;
@@ -603,6 +658,8 @@ describe( "Document class tests:", function ()
 		
 		//
 		// Insert duplicate object.
+		//
+		// Should fail.
 		//
 		it( "Insert duplicate object:", function ()
 		{
@@ -635,6 +692,8 @@ describe( "Document class tests:", function ()
 		//
 		// Insert object without required field.
 		//
+		// Should fail.
+		//
 		it( "Insert object without required field:", function ()
 		{
 			let doc;
@@ -663,6 +722,8 @@ describe( "Document class tests:", function ()
 		//
 		// Insert object without significant field.
 		//
+		// Should not fail.
+		//
 		it( "Insert object without significant field:", function ()
 		{
 			let doc;
@@ -689,6 +750,8 @@ describe( "Document class tests:", function ()
 		
 		//
 		// Insert object with content.
+		//
+		// Should not fail.
 		//
 		it( "Insert object with content:", function ()
 		{
@@ -721,6 +784,8 @@ describe( "Document class tests:", function ()
 		//
 		// Insert object with same content.
 		//
+		// Should not fail: _key is unique, other unique fields will fail.
+		//
 		it( "Insert object with same content:", function ()
 		{
 			let doc;
@@ -749,6 +814,40 @@ describe( "Document class tests:", function ()
 			key_insert_same = doc.document._key;
 		});
 		
+		//
+		// Insert persistent object.
+		//
+		// Should fail.
+		//
+		it( "Insert persistent object:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new TestClassPersistSignificant(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			
+			func = () => {
+				result = doc.insertDocument();
+			};
+			expect( func, "Insert" )
+				.to.throw( MyError, /document is persistent/ );
+			expect( doc.document, "Should not be empty").not.to.be.empty;
+			expect( doc.document, "Has _id" ).to.have.property( '_id' );
+			expect( doc.document, "Has _key" ).to.have.property( '_key' );
+			expect( doc.document, "Has _rev" ).to.have.property( '_rev' );
+			expect( result, "Insert result" ).to.equal( undefined );
+			expect( doc.persistent, "Persistent flag").to.equal(true);
+			expect( doc.modified, "Modified flag").to.equal(false);
+			key_insert_same = doc.document._key;
+		});
+		
 	});	// Insert.
 	
 	//
@@ -757,7 +856,66 @@ describe( "Document class tests:", function ()
 	describe( "Resolve:", function ()
 	{
 		//
+		// Resolve persistent document.
+		//
+		// Should not fail.
+		//
+		it( "Resolve persistent document:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			const copy = JSON.parse(JSON.stringify(doc.document));
+			
+			func = () => {
+				result = doc.resolveDocument(true, true);
+			};
+			expect( func, "Resolve and replace" ).not.to.throw();
+			expect( result, "Resolve and replace result" ).to.equal( true );
+			expect( doc.modified, "Resolve and replace modified flag").to.equal(false);
+			for( const field in copy )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Locked property mismatch [${field}]` )
+						.to.equal( copy[ field ] );
+			}
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			
+			func = () => {
+				result = doc.resolveDocument(false, true);
+			};
+			expect( func, "Resolve and no replace" ).not.to.throw();
+			expect( result, "Resolve and no replace result" ).to.equal( true );
+			expect( doc.modified, "Resolve and no replace modified flag").to.equal(false);
+			for( const field in copy )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Locked property mismatch [${field}]` )
+						.to.equal( copy[ field ] );
+			}
+		});
+		
+		//
 		// Resolve null reference.
+		//
+		// Should fail.
 		//
 		it( "Resolve null reference:", function ()
 		{
@@ -787,6 +945,8 @@ describe( "Document class tests:", function ()
 		//
 		// Resolve selector without significant field.
 		//
+		// Should fail.
+		//
 		it( "Resolve selector without significant field:", function ()
 		{
 			let doc;
@@ -814,6 +974,8 @@ describe( "Document class tests:", function ()
 		
 		//
 		// Resolve with not found selector.
+		//
+		// Should fail, or return false.
 		//
 		it( "Resolve with not found selector:", function ()
 		{
@@ -852,90 +1014,129 @@ describe( "Document class tests:", function ()
 		//
 		// Resolve with replace.
 		//
+		// Existing contents should be overwritten by persistent contents;
+		// added contents should not be deleted.
+		//
 		it( "Resolve with replace:", function ()
 		{
+			let doc;
+			let func;
+			let result;
+			
 			const selector = JSON.parse(JSON.stringify(param.replace));
 			selector._key = key_insert_filled;
-			const func_instantiate = () => {
-				return new Document(
-					param.request,
-					selector,
-					default_collection
-				);
+			selector.username = "USERNAME";
+			func = () => {
+				doc =
+					new Document(
+							param.request,
+							selector,
+							default_collection
+						);
 			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
-			let result;
-			const func_resolve = () => {
+			expect( func, "Instantiation" ).not.to.throw();
+
+			func = () => {
 				result = doc.resolveDocument(true, true);
 			};
-			expect( func_resolve, "Resolve and raise" ).not.to.throw();
-			for( const field in param.replace )
+			expect( func, "Resolve and raise" ).not.to.throw();
+			for( const field in selector )
 			{
 				expect( doc.document, `Missing property` ).to.have.property(field);
 				if( doc.document.hasOwnProperty( field ) )
 				{
-					expect( doc.document[ field ], `Property mismatch [${field}]` )
-						.not.to.equal( param.replace[ field ] );
+					if( field === '_key' )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( selector[ field ] );
+					else if( field === 'username' )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( "USERNAME" );
+					else
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.content[ field ] );
 				}
 			}
+			expect( doc.document, `Missing added property` ).to.have.property('username');
 			expect(doc.modified, "Modified flag").to.equal(true);
 		});
 		
 		//
 		// Resolve without replace.
 		//
+		// Existing fields should not be replaced by persistent fields;
+		// including added properties
+		//
 		it( "Resolve without replace:", function ()
 		{
+			let doc;
+			let func;
+			let result;
+			
 			const selector = JSON.parse(JSON.stringify(param.replace));
 			selector._key = key_insert_filled;
-			const func_instantiate = () => {
-				return new Document(
-					param.request,
-					selector,
-					default_collection
-				);
+			selector.username = "USERNAME";
+			func = () => {
+				doc =
+					new Document(
+						param.request,
+						selector,
+						default_collection
+					);
 			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
-			let result;
-			const func_resolve = () => {
+			expect( func, "Instantiation" ).not.to.throw();
+			
+			func = () => {
 				result = doc.resolveDocument(false, true);
 			};
-			expect( func_resolve, "Resolve and raise" ).not.to.throw();
-			for( const field in param.replace )
+			expect( func, "Resolve and raise" ).not.to.throw();
+			for( const field in selector )
 			{
 				expect( doc.document, `Missing property` ).to.have.property(field);
 				if( doc.document.hasOwnProperty( field ) )
 				{
-					expect( doc.document[ field ], `Property mismatch [${field}]` )
-						.to.equal( param.replace[ field ] );
+					if( field === '_key' )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( selector[ field ] );
+					else if( field === 'username' )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( "USERNAME" );
+					else
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.replace[ field ] );
 				}
 			}
+			expect( doc.document, `Missing added property` ).to.have.property('username');
 			expect(doc.modified, "Modified flag").to.equal(false);
 		});
 		
 		//
-		// Resolve without replace but locked.
+		// Resolve with locked field.
 		//
-		it( "Resolve without replace but locked:", function ()
+		// With replace to off, only the locked field is replaced;
+		// with replace to on, all fields are replaced.
+		//
+		it( "Resolve with locked field:", function ()
 		{
+			let doc;
+			let func;
+			let result;
+			
 			const selector = JSON.parse(JSON.stringify(param.replace));
 			selector._key = key_insert_filled;
-			const func_instantiate = () => {
-				return new TestClassPersistNoSignificant(
-					param.request,
-					selector,
-					default_collection
-				);
+			func = () => {
+				doc =
+					new TestClassPersistNoSignificant(
+						param.request,
+						selector,
+						default_collection
+					);
 			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
-			let result;
-			const func_resolve = () => {
+			expect( func, "Instantiation" ).not.to.throw();
+			
+			func = () => {
 				result = doc.resolveDocument(false, true);
 			};
-			expect( func_resolve, "Resolve and raise" ).not.to.throw();
+			expect( func, "Resolve and raise" ).not.to.throw();
 			for( const field in param.replace )
 			{
 				expect( doc.document, `Missing property` ).to.have.property(field);
@@ -950,63 +1151,174 @@ describe( "Document class tests:", function ()
 				}
 			}
 			expect(doc.modified, "Modified flag").to.equal(true);
+			
+			func = () => {
+				doc =
+					new TestClassPersistNoSignificant(
+						param.request,
+						selector,
+						default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			
+			func = () => {
+				result = doc.resolveDocument(true, true);
+			};
+			expect( func, "Resolve and raise" ).not.to.throw();
+			for( const field in param.replace )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Locked property mismatch [${field}]` )
+						.to.equal( param.content[ field ] );
+			}
+			expect(doc.modified, "Modified flag").to.equal(true);
 		});
 		
 		//
-		// Change locked field.
+		// Resolve with changed locked field.
 		//
-		it( "Change locked field:", function ()
+		// Regardless of the doReplace flag, it must raise an exception.
+		//
+		it( "Resolve with changed locked field:", function ()
 		{
-			const func_instantiate = () => {
-				return new TestClassPersistNoSignificant(
-					param.request,
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new TestClassPersistNoSignificant(
+						param.request,
+						key_insert_filled,
+						default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Persistent flag").to.equal(true);
+			
+			db._collection(default_collection)
+				.update(
 					key_insert_filled,
-					default_collection
+					{var: "VAR_CHANGED"},
+					{waitForSync: true}
 				);
+			
+			func = () => {
+				result = doc.resolveDocument(false, true);
 			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
-			const func_load = () => {
-				doc.setDocumentProperties( {var:"PIPPO"}, true )
+			expect( func, "Resolve and raise" )
+				.to.throw( MyError, /Ambiguous document reference/ );
+			expect(doc.persistent, "Persistent flag").to.equal(true);
+			for( const field in param.content )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Locked property mismatch [${field}]` )
+						.to.equal( param.content[ field ] );
+			}
+			expect(doc.modified, "Modified flag").to.equal(false);
+			
+			func = () => {
+				doc =
+					new TestClassPersistNoSignificant(
+						param.request,
+						key_insert_filled,
+						default_collection
+					);
 			};
-			expect( func_load, "Load with modify" )
-				.to.throw( MyError, /Property is locked/ );
-			const func_load_bis = () => {
-				doc.setDocumentProperties( {var:"PIPPO"}, false )
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Persistent flag").to.equal(true);
+			
+			db._collection(default_collection)
+				.update(
+					key_insert_filled,
+					{var: "VAR_CHANGED_AGAIN"},
+					{waitForSync: true}
+				);
+			
+			func = () => {
+				result = doc.resolveDocument(true, true);
 			};
-			expect( func_load, "Load without modify" )
-				.to.throw( MyError, /Property is locked/ );
+			expect( func, "Resolve and raise" )
+				.to.throw( MyError, /Ambiguous document reference/ );
+			expect(doc.persistent, "Persistent flag").to.equal(true);
+			for( const field in param.content )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+				{
+					if( field === 'var' )
+						expect( doc.document[ field ], `Locked property mismatch [${field}]` )
+							.to.equal( "VAR_CHANGED" );
+					else
+						expect( doc.document[ field ], `Locked property mismatch [${field}]` )
+							.to.equal( param.content[ field ] );
+				}
+			}
+			expect(doc.modified, "Modified flag").to.equal(true);
+			
+			db._remove( doc.document._id, {waitForSync: true} );
+			const tmp = new Document(param.request, param.content, default_collection);
+			tmp.insertDocument();
+			key_insert_filled = tmp.document._key;
 		});
 		
 		//
 		// Resolve multiple documents.
 		//
+		// Should always raise an exception.
+		//
 		it( "Resolve multiple documents:", function ()
 		{
-			const selector = { var: 'VAR'};
-			const func_instantiate = () => {
-				return new TestClassPersistSignificant(
-					param.request,
-					selector,
-					default_collection
-				);
-			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
+			let doc;
+			let func;
 			let result;
-			const func_resolve = () => {
+			
+			const selector = { var: 'VAR'};
+			func = () => {
+				doc =
+					new TestClassPersistSignificant(
+						param.request,
+						selector,
+						default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Persistent flag").to.equal(false);
+			
+			func = () => {
 				result = doc.resolveDocument(false, true);
 			};
-			expect( func_resolve, "Resolve and raise explicit" )
+			expect( func, "Resolve no replace do raise" )
 				.to.throw( MyError, /combination of fields is not unique/ );
-			const func_resolve_bis = () => {
+			expect( result, "Resolve no replace do raise result" ).to.equal( undefined );
+			expect(doc.persistent, "Resolve no replace do raise persistent flag").to.equal(false);
+			func = () => {
 				result = doc.resolveDocument(false, false);
 			};
-			expect( func_resolve, "Resolve and raise not explicit" )
+			expect( func, "Resolve no replace no raise" )
 				.to.throw( MyError, /combination of fields is not unique/ );
-			expect( result, "Resolve result" ).to.equal( undefined );
+			expect( result, "Resolve no replace no raise result" ).to.equal( undefined );
+			expect(doc.persistent, "Resolve no replace no raise persistent flag").to.equal(false);
+			
+			func = () => {
+				result = doc.resolveDocument(true, true);
+			};
+			expect( func, "Resolve do replace do raise" )
+				.to.throw( MyError, /combination of fields is not unique/ );
+			expect( result, "Resolve do replace do raise result" ).to.equal( undefined );
+			expect(doc.persistent, "Resolve do replace do raise persistent flag").to.equal(false);
+			func = () => {
+				result = doc.resolveDocument(true, false);
+			};
+			expect( func, "Resolve do replace no raise" )
+				.to.throw( MyError, /combination of fields is not unique/ );
+			expect( result, "Resolve do replace no raise result" ).to.equal( undefined );
+			expect(doc.persistent, "Resolve do replace no raise persistent flag").to.equal(false);
 		});
-		
+	
 	});	// Resolve.
 	
 	//
@@ -1015,173 +1327,142 @@ describe( "Document class tests:", function ()
 	describe( "Replace:", function ()
 	{
 		//
-		// Resolve and replace by reference.
+		// Replace non persistent document.
 		//
-		it( "Resolve and replace by reference:", function ()
+		// Should fail.
+		//
+		it( "Replace non persistent document:", function ()
 		{
-			const func_instantiate = () => {
-				return new Document(
-					param.request, key_insert_filled, default_collection
-				);
-			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
+			let doc;
+			let func;
 			let result;
-			const func_resolve = () => {
-				result = doc.resolveDocument(false, true);
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, null, default_collection
+					);
 			};
-			expect( func_resolve, "Resolve" ).not.to.throw();
-			expect(doc.document, "Should not be empty").not.to.be.empty;
-			expect( result, "Resolve result" ).to.equal( true );
-			expect(doc.persistent, "Persistent flag").to.equal(true);
-			expect(doc.modified, "Modified flag").to.equal(false);
-			for( const field in param.content )
-			{
-				expect( doc.document, `Missing property` ).to.have.property(field);
-				if( doc.document.hasOwnProperty( field ) )
-					expect( doc.document[ field ], `Property mismatch [${field}]` )
-						.to.equal( param.content[ field ] );
-			}
-			doc.document.var = "NEW_VAR";
-			const func_replace = () => {
+			expect( func, "Instantiation" ).not.to.throw();
+
+			func = () => {
 				result = doc.replaceDocument();
 			};
-			expect( func_replace, "Replace" ).not.to.throw();
-			expect( result, "Resolve result" ).to.equal( true );
-			expect( doc.document.var, "Replaced property" ).to.equal("NEW_VAR");
-		});
-		
-		//
-		// Resolve and replace by selector.
-		//
-		it( "Resolve and replace by selector:", function ()
-		{
-			const selector = {var: "NEW_VAR"};
-			const func_instantiate = () => {
-				return new Document(
-					param.request, selector, default_collection
-				);
-			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
-			let result;
-			const func_resolve = () => {
-				result = doc.resolveDocument(false, true);
-			};
-			expect( func_resolve, "Resolve" ).not.to.throw();
-			expect(doc.document, "Should not be empty").not.to.be.empty;
-			expect( result, "Resolve result" ).to.equal( true );
-			expect(doc.persistent, "Persistent flag").to.equal(true);
-			expect(doc.modified, "Modified flag").to.equal(false);
-			for( const field in param.content )
-			{
-				expect( doc.document, `Missing property` ).to.have.property(field);
-				if( doc.document.hasOwnProperty( field ) )
-				{
-					if( field === 'var' )
-						expect( doc.document[ field ], `Property mismatch [${field}]` )
-							.to.equal(selector.var);
-					else
-						expect( doc.document[ field ], `Property mismatch [${field}]` )
-							.to.equal( param.content[ field ] );
-				}
-			}
-			doc.document.var = "REPLACED_VAR";
-			const func_replace = () => {
-				result = doc.replaceDocument();
-			};
-			expect( func_replace, "Replace" ).not.to.throw();
-			expect( result, "Resolve result" ).to.equal( true );
-			expect( doc.document.var, "Replaced property" ).to.equal("REPLACED_VAR");
+			expect( func, "Replace" )
+				.to.throw( MyError, /document is not persistent/ );
 		});
 		
 		//
 		// Replace non existing document.
 		//
+		// Should fail.
+		//
 		it( "Replace non existing document:", function ()
 		{
-			const selector = {var: "VAR"};
-			const func_instantiate = () => {
-				return new Document(
-					param.request, selector, default_collection
-				);
-			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
+			let doc;
+			let func;
 			let result;
-			const func_resolve = () => {
-				result = doc.resolveDocument(false, true);
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, key_insert_filled, default_collection
+					);
 			};
-			expect( func_resolve, "Resolve" ).not.to.throw();
-			expect(doc.document, "Should not be empty").not.to.be.empty;
-			expect( result, "Resolve result" ).to.equal( true );
-			expect(doc.persistent, "Persistent flag").to.equal(true);
-			expect(doc.modified, "Modified flag").to.equal(false);
-			for( const field in param.content )
-			{
-				expect( doc.document, `Missing property` ).to.have.property(field);
-				if( doc.document.hasOwnProperty( field ) )
-					expect( doc.document[ field ], `Property mismatch [${field}]` )
-						.to.equal( param.content[ field ] );
-			}
+			expect( func, "Instantiation" ).not.to.throw();
+			const copy = doc.document;
+			
 			db._remove(doc.document._id);
-			doc.document.var = "NEW_VAR";
 			const func_replace = () => {
 				result = doc.replaceDocument();
 			};
 			expect( func_replace, "Replace" )
 				.to.throw( MyError, /not found in collection/ );
+			const meta = db._collection(default_collection).insert( copy, {waitForSync: true} );
+			key_insert_filled = meta._key;
 		});
 		
 		//
-		// Replace non persistent document.
+		// Replace value.
 		//
-		it( "Replace non persistent document:", function ()
+		// Should not fail.
+		//
+		it( "Replace value:", function ()
 		{
-			const func_instantiate = () => {
-				return new Document(
-					param.request, null, default_collection
-				);
-			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
+			let doc;
+			let func;
 			let result;
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			
+			const data = {var: "NEW_VAR"};
+			func = () => {
+				doc.setDocumentProperties(data, true);
+			};
+			expect( func, "Setting data" ).not.to.throw();
 			const func_replace = () => {
 				result = doc.replaceDocument();
 			};
-			expect( func_replace, "Replace" )
-				.to.throw( MyError, /document is not persistent/ );
+			expect( func_replace, "Replace" ).not.to.throw();
+			expect(result, "Replace result").to.equal(true);
+			const copy = doc.document;
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "re-instantiation" ).not.to.throw();
+			for( const field in copy )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Locked property mismatch [${field}]` )
+						.to.equal( copy[ field ] );
+			}
 		});
 		
 		//
 		// Replace locked field.
 		//
+		// Should fail.
+		//
 		it( "Replace locked field:", function ()
 		{
-			const func_instantiate = () => {
-				return new TestClassPersistSignificant(
-					param.request, key_insert_filled, default_collection
-				);
-			};
-			expect( func_instantiate, "Instantiation" ).not.to.throw();
-			const doc = func_instantiate();
-			const func_resolve = () => {
-				doc.resolveDocument(false, true);
-			};
-			expect( func_resolve, "Resolve" ).not.to.throw();
-			db._collection(default_collection).update(
-				key_insert_filled,
-				{var: "WAS_CHANGED"},
-				{waitForSync: true}
-			);
+			let doc;
+			let func;
 			let result;
-			const func_replace = () => {
+			
+			func = () => {
+				doc =
+					new TestClassPersistSignificant(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			const old_value = doc.document.var;
+
+			db._collection(default_collection)
+				.update(
+					key_insert_filled,
+					{var: "WAS_CHANGED"},
+					{waitForSync: true}
+				);
+			
+			func = () => {
 				result = doc.replaceDocument();
 			};
-			expect( func_replace, "Replace" )
+			expect( func, "Replace" )
 				.to.throw( MyError, /Constraint violation/ );
 			expect( result, "Resolve result" ).to.equal( undefined );
-			expect( doc.document.var, "Replaced property" ).to.equal("REPLACED_VAR");
+			expect( doc.document.var, "Replaced property" ).to.equal(old_value);
 		});
 	
 	});	// Replace.
