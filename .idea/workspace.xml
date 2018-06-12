@@ -2,12 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/classes/Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Document.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/EdgeBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/EdgeBranch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/User.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/User.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/messages.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/messages.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/test_Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_Document.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/Constants.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/Constants.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -36,8 +32,8 @@
       <file leaf-file-name="test_Document.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test/test_Document.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="384">
-              <caret line="679" column="21" lean-forward="true" selection-start-line="679" selection-start-column="21" selection-end-line="679" selection-end-column="21" />
+            <state relative-caret-position="582">
+              <caret line="58" column="63" lean-forward="true" selection-start-line="58" selection-start-column="63" selection-end-line="58" selection-end-column="63" />
             </state>
           </provider>
         </entry>
@@ -78,7 +74,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>Dict.descriptor.kModifiers</find>
       <find>setDocumentProperty</find>
       <find>expecting</find>
       <find>function ()</find>
@@ -108,6 +103,7 @@
       <find>key_insert_filled</find>
       <find>constraint</find>
       <find>_rev</find>
+      <find>Document</find>
     </findStrings>
     <replaceStrings>
       <replace>Descriptor.</replace>
@@ -132,6 +128,7 @@
       <replace>this.defaultEdgeCollection</replace>
       <replace>default_collection</replace>
       <replace>wrong_collection</replace>
+      <replace>TestClass</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -394,12 +391,12 @@
       <workItem from="1528701988440" duration="30210000" />
       <workItem from="1528740451385" duration="9444000" />
       <workItem from="1528756545368" duration="1867000" />
-      <workItem from="1528787326253" duration="13655000" />
+      <workItem from="1528787326253" duration="13849000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="451618000" />
+    <option name="totallyTimeSpent" value="451812000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1192" height="1001" extended-state="0" />
@@ -702,8 +699,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test/test_Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="384">
-          <caret line="679" column="21" lean-forward="true" selection-start-line="679" selection-start-column="21" selection-end-line="679" selection-end-column="21" />
+        <state relative-caret-position="582">
+          <caret line="58" column="63" lean-forward="true" selection-start-line="58" selection-start-column="63" selection-end-line="58" selection-end-column="63" />
         </state>
       </provider>
     </entry>

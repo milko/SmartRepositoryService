@@ -35,17 +35,17 @@ const MyError = require( '../utils/MyError' );
 //
 // Base Document class.
 //
-const Document = require( '../classes/Document' );
+const TestClass = require( '../classes/Document' );
 
 //
 // Base Document class with default collection.
 //
-class TestClassCollection extends Document
+class TestClassCollection extends TestClass
 {
 	get defaultCollection()	{	return param.collection_document; }
 	validateCollectionType( theCollection, doAssert = true )
 	{
-		return Document.isDocumentCollection(
+		return TestClass.isDocumentCollection(
 			this._request,
 			theCollection,
 			doAssert
@@ -138,7 +138,7 @@ describe( "Document class tests:", function ()
 		it( "Instantiate with only request:", function ()
 		{
 			expect( () => {
-				const tmp = new Document( param.request );
+				const tmp = new TestClass( param.request );
 			}).to.throw(
 				MyError,
 				/Missing required parameter/
@@ -153,7 +153,7 @@ describe( "Document class tests:", function ()
 		it( "Instantiate with null selector and no collection:", function ()
 		{
 			expect( () => {
-				const tmp = new Document( param.request, null );
+				const tmp = new TestClass( param.request, null );
 			}).to.throw(
 				MyError,
 				/Missing required parameter/
@@ -172,7 +172,7 @@ describe( "Document class tests:", function ()
 				db._drop( 'test' );
 			
 			expect( () => {
-				const tmp = new Document( param.request, null, 'test' );
+				const tmp = new TestClass( param.request, null, 'test' );
 			}).to.throw( MyError, /unknown or invalid collection name/ );
 		});
 		
@@ -184,7 +184,7 @@ describe( "Document class tests:", function ()
 		it( "Instantiate with null selector and existing edge collection:", function ()
 		{
 			expect( () => {
-				const tmp = new Document( param.request, null, wrong_collection );
+				const tmp = new TestClass( param.request, null, wrong_collection );
 			}).not.to.throw();
 		});
 		
@@ -196,7 +196,7 @@ describe( "Document class tests:", function ()
 		it( "Instantiate with null selector and existing document collection:", function ()
 		{
 			expect( () => {
-				const tmp = new Document( param.request, null, default_collection );
+				const tmp = new TestClass( param.request, null, default_collection );
 			}).not.to.throw();
 		});
 		
@@ -299,7 +299,7 @@ describe( "Document class tests:", function ()
 		{
 			expect( () => {
 				const tmp =
-					new Document(
+					new TestClass(
 						param.request, 'descriptors/order', default_collection );
 			}).to.throw(
 				MyError,
@@ -316,7 +316,7 @@ describe( "Document class tests:", function ()
 		{
 			expect( () => {
 				const tmp =
-					new Document(
+					new TestClass(
 						param.request, 'test_Document/MISSING', default_collection );
 			}).to.throw(
 				MyError,
@@ -335,7 +335,7 @@ describe( "Document class tests:", function ()
 			let func;
 			
 			func = () => {
-				doc = new Document( param.request, 'descriptors/order' );
+				doc = new TestClass( param.request, 'descriptors/order' );
 			};
 			expect( func, "Instantiation" ).not.to.throw();
 			expect( doc.document, "Should be mutable" ).not.to.be.sealed;
@@ -343,7 +343,7 @@ describe( "Document class tests:", function ()
 			expect( doc.modified, "Modified flag").to.equal(false);
 			
 			func = () => {
-				doc = new Document( param.request, 'order' );
+				doc = new TestClass( param.request, 'order' );
 			};
 			expect( func, "Instantiation" )
 				.to.throw( MyError, /invalid object reference handle/ );
@@ -363,7 +363,7 @@ describe( "Document class tests:", function ()
 			let func;
 			
 			func = () => {
-				doc = new Document( param.request, param.content, default_collection );
+				doc = new TestClass( param.request, param.content, default_collection );
 			};
 			expect( func, "Instantiation" ).not.to.throw();
 			for( const field in param.content )
@@ -427,7 +427,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, null, default_collection
 					);
 			};
@@ -460,7 +460,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, param.content, default_collection
 					);
 			};
@@ -497,7 +497,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, param.content, default_collection
 					);
 			};
@@ -650,7 +650,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, null, default_collection
 					);
 			};
@@ -682,7 +682,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, {_key: key_insert_empty}, default_collection
 					);
 			};
@@ -880,7 +880,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
@@ -903,7 +903,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
@@ -937,7 +937,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, null, default_collection
 					);
 			};
@@ -997,7 +997,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, {_id: 'test_Document/UNKNOWN'}, default_collection
 					);
 			};
@@ -1040,7 +1040,7 @@ describe( "Document class tests:", function ()
 			selector.username = "USERNAME";
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 							param.request,
 							selector,
 							default_collection
@@ -1089,7 +1089,7 @@ describe( "Document class tests:", function ()
 			selector.username = "USERNAME";
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request,
 						selector,
 						default_collection
@@ -1272,7 +1272,7 @@ describe( "Document class tests:", function ()
 			expect(doc.modified, "Modified flag").to.equal(true);
 			
 			db._remove( doc.document._id, {waitForSync: true} );
-			const tmp = new Document(param.request, param.content, default_collection);
+			const tmp = new TestClass(param.request, param.content, default_collection);
 			tmp.insertDocument();
 			key_insert_filled = tmp.document._key;
 		});
@@ -1351,7 +1351,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, null, default_collection
 					);
 			};
@@ -1379,7 +1379,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
@@ -1411,7 +1411,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
@@ -1435,7 +1435,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
@@ -1538,7 +1538,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, null, default_collection
 					);
 			};
@@ -1575,7 +1575,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
@@ -1595,7 +1595,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
@@ -1656,7 +1656,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new Document(
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
