@@ -83,6 +83,20 @@ class TestClassPersistSignificant extends TestClassPersistNoSignificant
 }
 
 //
+// Base persistent class with significant, restricted fields and constraints.
+//
+class TestClassConstrained extends TestClassPersistSignificant
+{
+	validateDocumentConstraints( doAssert = true )
+	{
+		const result = super.validateDocumentConstraints(doAssert);
+		if( result === true )
+			return false;
+		return result;
+	}
+}
+
+//
 // Clear collections.
 //
 let collection;
@@ -647,9 +661,8 @@ describe( "Document class tests:", function ()
 			};
 			expect( func, "Insert" ).not.to.throw();
 			expect( doc.document, "Should not be empty").not.to.be.empty;
-			expect( doc.document, "Has _id" ).to.have.property( '_id' );
-			expect( doc.document, "Has _key" ).to.have.property( '_key' );
-			expect( doc.document, "Has _rev" ).to.have.property( '_rev' );
+			for( const field of doc.localFields )
+				expect(doc.document, "Has local fields").to.have.property(field);
 			expect( result, "Insert result" ).to.equal( true );
 			expect( doc.persistent, "Persistent flag").to.equal(true);
 			expect( doc.modified, "Modified flag").to.equal(false);
@@ -681,9 +694,11 @@ describe( "Document class tests:", function ()
 			expect( func, "Insert" )
 				.to.throw( MyError, /duplicate document in collection/ );
 			expect( doc.document, "Should not be empty").not.to.be.empty;
-			expect( doc.document, "Has _id" ).not.to.have.property( '_id' );
-			expect( doc.document, "Has _key" ).to.have.property( '_key' );
-			expect( doc.document, "Has _rev" ).not.to.have.property( '_rev' );
+			for( const field of doc.localFields )
+			{
+				if( field !== '_key' )
+					expect(doc.document, "Has local fields").not.to.have.property(field);
+			}
 			expect( result, "Insert result" ).to.equal( undefined );
 			expect( doc.persistent, "Persistent flag").to.equal(false);
 			expect( doc.modified, "Modified flag").to.equal(false);
@@ -772,9 +787,8 @@ describe( "Document class tests:", function ()
 			};
 			expect( func, "Insert" ).not.to.throw();
 			expect( doc.document, "Should not be empty").not.to.be.empty;
-			expect( doc.document, "Has _id" ).to.have.property( '_id' );
-			expect( doc.document, "Has _key" ).to.have.property( '_key' );
-			expect( doc.document, "Has _rev" ).to.have.property( '_rev' );
+			for( const field of doc.localFields )
+				expect(doc.document, "Has local fields").to.have.property(field);
 			expect( result, "Insert result" ).to.equal( true );
 			expect( doc.persistent, "Persistent flag").to.equal(true);
 			expect( doc.modified, "Modified flag").to.equal(false);
@@ -805,9 +819,8 @@ describe( "Document class tests:", function ()
 			};
 			expect( func, "Insert" ).not.to.throw();
 			expect( doc.document, "Should not be empty").not.to.be.empty;
-			expect( doc.document, "Has _id" ).to.have.property( '_id' );
-			expect( doc.document, "Has _key" ).to.have.property( '_key' );
-			expect( doc.document, "Has _rev" ).to.have.property( '_rev' );
+			for( const field of doc.localFields )
+				expect(doc.document, "Has local fields").to.have.property(field);
 			expect( result, "Insert result" ).to.equal( true );
 			expect( doc.persistent, "Persistent flag").to.equal(true);
 			expect( doc.modified, "Modified flag").to.equal(false);
@@ -839,9 +852,8 @@ describe( "Document class tests:", function ()
 			expect( func, "Insert" )
 				.to.throw( MyError, /document is persistent/ );
 			expect( doc.document, "Should not be empty").not.to.be.empty;
-			expect( doc.document, "Has _id" ).to.have.property( '_id' );
-			expect( doc.document, "Has _key" ).to.have.property( '_key' );
-			expect( doc.document, "Has _rev" ).to.have.property( '_rev' );
+			for( const field of doc.localFields )
+				expect(doc.document, "Has local fields").to.have.property(field);
 			expect( result, "Insert result" ).to.equal( undefined );
 			expect( doc.persistent, "Persistent flag").to.equal(true);
 			expect( doc.modified, "Modified flag").to.equal(false);
@@ -1344,12 +1356,14 @@ describe( "Document class tests:", function ()
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(false);
 
 			func = () => {
 				result = doc.replaceDocument();
 			};
 			expect( func, "Replace" )
 				.to.throw( MyError, /document is not persistent/ );
+			expect(doc.persistent, "Replace persistent flag").to.equal(false);
 		});
 		
 		//
@@ -1370,6 +1384,7 @@ describe( "Document class tests:", function ()
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
 			const copy = doc.document;
 			
 			db._remove(doc.document._id);
@@ -1378,6 +1393,7 @@ describe( "Document class tests:", function ()
 			};
 			expect( func_replace, "Replace" )
 				.to.throw( MyError, /not found in collection/ );
+			expect(doc.persistent, "Replace persistent flag").to.equal(false);
 			const meta = db._collection(default_collection).insert( copy, {waitForSync: true} );
 			key_insert_filled = meta._key;
 		});
@@ -1400,17 +1416,21 @@ describe( "Document class tests:", function ()
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
 			
 			const data = {var: "NEW_VAR"};
 			func = () => {
 				doc.setDocumentProperties(data, true);
 			};
 			expect( func, "Setting data" ).not.to.throw();
-			const func_replace = () => {
+			expect(doc.persistent, "Setting data persistent flag").to.equal(true);
+
+			func = () => {
 				result = doc.replaceDocument();
 			};
-			expect( func_replace, "Replace" ).not.to.throw();
+			expect( func, "Replace" ).not.to.throw();
 			expect(result, "Replace result").to.equal(true);
+			expect(doc.persistent, "Replace persistent flag").to.equal(true);
 			const copy = doc.document;
 			
 			func = () => {
@@ -1419,7 +1439,8 @@ describe( "Document class tests:", function ()
 						param.request, key_insert_filled, default_collection
 					);
 			};
-			expect( func, "re-instantiation" ).not.to.throw();
+			expect( func, "Re-instantiation" ).not.to.throw();
+			expect(doc.persistent, "Re-instantiation persistent flag").to.equal(true);
 			for( const field in copy )
 			{
 				expect( doc.document, `Missing property` ).to.have.property(field);
@@ -1447,8 +1468,9 @@ describe( "Document class tests:", function ()
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
 			const old_value = doc.document.var;
-
+			
 			db._collection(default_collection)
 				.update(
 					key_insert_filled,
@@ -1461,10 +1483,195 @@ describe( "Document class tests:", function ()
 			};
 			expect( func, "Replace" )
 				.to.throw( MyError, /Constraint violation/ );
-			expect( result, "Resolve result" ).to.equal( undefined );
+			expect( result, "Replace result" ).to.equal( undefined );
+			expect(doc.persistent, "Resolve persistent flag").to.equal(true);
 			expect( doc.document.var, "Replaced property" ).to.equal(old_value);
+		});
+		
+		//
+		// Replace missing field.
+		//
+		// Should fail.
+		//
+		it( "Replace missing field:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new TestClassPersistSignificant(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			
+			delete doc.document.var;
+			func = () => {
+				result = doc.replaceDocument();
+			};
+			expect( func, "Replace" )
+				.to.throw( MyError, /missing required field/ );
+			expect(doc.persistent, "Replace persistent flag").to.equal(true);
+			expect( result, "Replace result" ).to.equal( undefined );
 		});
 	
 	});	// Replace.
+	
+	//
+	// Remove tests.
+	//
+	describe( "Remove:", function ()
+	{
+		//
+		// Remove non persistent document.
+		//
+		// Should fail.
+		//
+		it( "Remove non persistent document:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, null, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(false);
+			
+			func = () => {
+				result = doc.removeDocument( true );
+			};
+			expect( func, "Remove" )
+				.to.throw( MyError, /document is not persistent/ );
+			expect(doc.persistent, "Remove persistent flag").to.equal(false);
+			
+			func = () => {
+				result = doc.removeDocument( false );
+			};
+			expect( func, "Remove" )
+				.to.throw( MyError, /document is not persistent/ );
+			expect(doc.persistent, "Remove persistent flag").to.equal(false);
+		});
+		
+		//
+		// Remove non existing document.
+		//
+		// Should fail according to doFail flag.
+		//
+		it( "Remove non existing document:", function ()
+		{
+			let doc;
+			let func;
+			let result1;
+			let result2;
+			let meta;
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			const copy = doc.document;
+			
+			db._remove(doc.document._id);
+			func = () => {
+				result1 = doc.removeDocument( false );
+			};
+			expect( func, "Remove" ).not.to.throw();
+			expect(result1, "Remove result").to.equal(false);
+			expect(doc.persistent, "Remove persistent flag").to.equal(false);
+			meta = db._collection(default_collection).insert( copy, {waitForSync: true} );
+			key_insert_filled = meta._key;
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			
+			db._collection(default_collection).remove(doc.document._id);
+			func = () => {
+				result2 = doc.removeDocument( true );
+			};
+			expect( func, "Remove" )
+				.to.throw( MyError, /not found in collection/ );
+			expect(result2, "Remove result").to.equal(undefined);
+			expect(doc.persistent, "Remove persistent flag").to.equal(false);
+			meta = db._collection(default_collection).insert( copy, {waitForSync: true} );
+			key_insert_filled = meta._key;
+		});
+		
+		//
+		// Remove constrained document.
+		//
+		// Should fail.
+		//
+		it( "Remove constrained document:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new TestClassConstrained(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			
+			func = () => {
+				result = doc.removeDocument( false );
+			};
+			expect( func, "Remove" )
+				.to.throw( MyError, /has constraints that prevent it from being removed/ );
+			expect(result, "Remove result").to.equal(undefined);
+			expect(doc.persistent, "Remove persistent flag").to.equal(true);
+		});
+		
+		//
+		// Remove document.
+		//
+		// Should not fail.
+		//
+		it( "Remove document:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new Document(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			const id = doc.document._id;
+			
+			func = () => {
+				doc.removeDocument( true );
+			};
+			expect( func, "Remove" ).not.to.throw();
+			expect(doc.persistent, "Remove persistent flag").to.equal(false);
+			expect(db._exists(id), "Still exists").to.equal(false);
+		});
+	
+	});	// Remove.
 	
 });

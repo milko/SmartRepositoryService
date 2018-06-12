@@ -288,9 +288,10 @@ class EdgeBranch extends Edge
 	 *
 	 * We overload this method to reset the branched flag data member.
 	 *
-	 * @returns {Boolean}|{null}	True removed, false not found, null not persistent.
+	 * @param doFail	{Boolean}	If false, don't fail on document not found (default).
+	 * @returns {Boolean}	True removed, false not found, null not persistent.
 	 */
-	removeDocument()
+	removeDocument( doFail = false )
 	{
 		//
 		// Prevent replacing non persistent objects.
@@ -302,7 +303,7 @@ class EdgeBranch extends Edge
 			// Call parent method.
 			// Parent returns the persistent status.
 			//
-			const result = super.removeDocument();
+			const result = super.removeDocument( doFail );
 			if( result === true )
 				delete this._branched;
 			

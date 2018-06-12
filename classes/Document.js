@@ -782,6 +782,9 @@ class Document
 	 * constraints, the method will raise an exception if doAssert is true, or return
 	 * false.
 	 *
+	 * Note. Don't get confused: returning true means there are no constraints, false
+	 * there are constraints and null means constraints are irrelevant.
+	 *
 	 * @param doAssert	{Boolean}	True raises an exception (default).
 	 * @returns {Boolean}			True/false if no constraints and null if not
 	 * 								persistent.
@@ -1825,14 +1828,22 @@ class Document
 	 *
 	 * If the document is not persistent, the method will raise an exception.
 	 *
-	 * If the current object is not persistent, the method will raise an exception.
-	 *
 	 * If the current document revision is different than the existing document
 	 * revision, the method will raise an exception.
 	 *
+	 * If the document was not found, the method will raise an exception, if the
+	 * doFail flag is true; or return false. The flag can be used when you want to
+	 * guarantee the document is deleted, or when you want to ensure the document you
+	 * want to delete exists.
+	 *
+	 * The method calls validateDocumentConstraints() by providing true to doAssert by
+	 * default, this means that if that method fails without raising an exception, by
+	 * returning false, the exception will be raised in this method.
+	 *
+	 * @param doFail	{Boolean}	If false, don't fail on document not found (default).
 	 * @returns {Boolean}	True removed, false not found, null not persistent.
 	 */
-	removeDocument()
+	removeDocument( doFail = false )
 	{
 		//
 		// Prevent replacing non persistent objects.
@@ -1842,9 +1853,19 @@ class Document
 		{
 			//
 			// Clear from constraints.
-			// Errors will raise an exception.
+			// Errors should raise an exception.
 			//
-			this.validateDocumentConstraints( true );
+			const free = this.validateDocumentConstraints( true );
+			if( free === false )
+				throw(
+					new MyError(
+						'ConstraintViolated',					// Error name.
+						K.error.HasConstraints,					// Message code.
+						this._request.application.language,		// Language.
+						this._document._id,						// Error value.
+						409										// HTTP error code.
+					)
+				);																// !@! ==>
 			
 			//
 			// Remove.
@@ -1866,7 +1887,7 @@ class Document
 			catch( error )
 			{
 				//
-				// Ignore not found.
+				// Raise all except not found.
 				//
 				if( (! error.isArangoError)
 				 || (error.errorNum !== ARANGO_NOT_FOUND) )
@@ -1877,7 +1898,21 @@ class Document
 				//
 				this._persistent = false;
 				
-				return false;														// ==>
+				//
+				// Ignore not found error.
+				//
+				if( ! doFail )
+					return false;													// ==>
+				
+				throw(
+					new MyError(
+						'RemoveDocument',					// Error name.
+						K.error.DocumentNotFound,			// Message code.
+						this._request.application.language,	// Language.
+						[this._document._key, this._collection],
+						404									// HTTP error code.
+					)
+				);																// !@! ==>
 			}
 			
 		}	// Is persistent.

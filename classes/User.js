@@ -418,7 +418,7 @@ class User extends Document
 						)
 					);															// !@! ==>
 				
-				return true;														// ==>
+				return false;														// ==>
 			}
 			
 		}	// Parent has no constraints.
@@ -819,9 +819,10 @@ class User extends Document
 	 * doesn't exist: this is intentional, currently, the methods of this class
 	 * ensure the integrity of the database is protected, not asserted.
 	 *
+	 * @param doFail	{Boolean}	If false, don't fail on document not found (default).
 	 * @returns {Boolean}	True removed, false not found, null not persistent.
 	 */
-	removeDocument()
+	removeDocument( doFail = false )
 	{
 		//
 		// Call parent method.
@@ -829,7 +830,7 @@ class User extends Document
 		// if this method was called by insert(), it will proceed only if
 		// the user was actually inserted or if it exists.
 		//
-		const result = super.removeDocument();
+		const result = super.removeDocument( doFail );
 		
 		//
 		// Remove group and manager.
