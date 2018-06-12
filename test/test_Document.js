@@ -98,6 +98,19 @@ class TestClassConstrained extends TestClassPersistSignificant
 }
 
 //
+// Set default collection names.
+//
+const wrong_collection   = param.collection_edge;
+const default_collection = param.collection_document;
+const compatible_collection = 'toponyms';
+
+//
+// Globals.
+//
+const example_id = 'descriptors/name';
+const example_collection = 'descriptors';
+
+//
 // Clear collections.
 //
 let collection;
@@ -112,18 +125,6 @@ if( ! collection )
 else
 	collection.truncate();
 
-//
-// Set default collection names.
-//
-const wrong_collection   = param.collection_edge;
-const default_collection = param.collection_document;
-const compatible_collection = 'toponyms';
-
-//
-// Globals.
-//
-const example_id = 'descriptors/name';
-const example_collection = 'descriptors';
 
 /**
  * Document class tests

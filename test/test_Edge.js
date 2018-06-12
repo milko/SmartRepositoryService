@@ -74,6 +74,19 @@ class TestClass extends Edge
 const NodeClass = require( '../classes/Document' );
 
 //
+// Set default collection names.
+//
+const wrong_collection   = param.collection_document;
+const default_collection = param.collection_edge;
+const compatible_collection = 'edges';
+
+//
+// Globals.
+//
+const example_id = 'schemas/3e3d5e71d9654933b0454fb23fa14cb3';
+const example_collection = 'schemas';
+
+//
 // Clear collections.
 //
 let collection;
@@ -87,15 +100,6 @@ if( ! collection )
 	db._createDocumentCollection( param.collection_document, { waitForSync : true } );
 else
 	collection.truncate();
-
-//
-// Set default collection names.
-//
-const wrong_collection   = param.collection_document;
-const default_collection = param.collection_edge;
-const compatible_collection = 'edges';
-
-const nodes = [];
 
 //
 // Set environment.
@@ -118,36 +122,10 @@ describe( "Setting environment:", function () {
 				result = doc.insertDocument();
 			}
 			expect(func, "Inserting node").not.to.throw();
-			nodes.push(doc._id);
 		});
 	}
 });
 
-
-//
-// Write nodes.
-//
-for( const node of param.nodes )
-{
-}
-
-//
-// Check nodes.
-//
-describe( "Check environment:", function () {
-	for( const node of nodes )
-	{
-		it( `Checking node [${node}]`, function () {
-			expect(db._exists(node), `Missing node [${node}]`).not.to.be.false;
-		});
-	}
-});
-
-//
-// Globals.
-//
-const example_id = 'schemas/3e3d5e71d9654933b0454fb23fa14cb3';
-const example_collection = 'schemas';
 
 /**
  * Edge class tests
