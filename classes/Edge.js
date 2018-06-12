@@ -246,7 +246,7 @@ class Edge extends Document
 		// If required properties are missing and doAssert is true,
 		// the method will raise an exception.
 		//
-		if( Array.isArray( validateSignificantProperties( doAssert ) ) )
+		if( Array.isArray( this.validateSignificantProperties( doAssert ) ) )
 		{
 			//
 			// Compute key.

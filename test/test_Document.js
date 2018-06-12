@@ -1082,10 +1082,11 @@ describe( "Document class tests:", function ()
 			
 			const selector = JSON.parse(JSON.stringify(param.replace));
 			selector._key = key_insert_filled;
+			selector.var = "SHOULD_CHANGE";
 			selector.username = "USERNAME";
 			func = () => {
 				doc =
-					new TestClass(
+					new TestClassPersistNoSignificant(
 						param.request,
 						selector,
 						default_collection
@@ -1105,16 +1106,19 @@ describe( "Document class tests:", function ()
 					if( field === '_key' )
 						expect( doc.document[ field ], `Property mismatch [${field}]` )
 							.to.equal( selector[ field ] );
+					else if( doc.lockedFields.includes( field ) )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.content[ field ] );
 					else if( field === 'username' )
 						expect( doc.document[ field ], `Property mismatch [${field}]` )
-							.to.equal( "USERNAME" );
+							.to.equal( selector[ field ] );
 					else
 						expect( doc.document[ field ], `Property mismatch [${field}]` )
 							.to.equal( param.replace[ field ] );
 				}
 			}
 			expect( doc.document, `Missing added property` ).to.have.property('username');
-			expect(doc.modified, "Modified flag").to.equal(false);
+			expect(doc.modified, "Modified flag").to.equal(true);
 		});
 		
 		//
@@ -1150,7 +1154,7 @@ describe( "Document class tests:", function ()
 				expect( doc.document, `Missing property` ).to.have.property(field);
 				if( doc.document.hasOwnProperty( field ) )
 				{
-					if( field === doc.lockedFields[ 0 ] )
+					if( doc.lockedFields.includes( field ) )
 						expect( doc.document[ field ], `Locked property mismatch [${field}]` )
 							.to.equal( param.content[ field ] );
 					else
@@ -1204,7 +1208,8 @@ describe( "Document class tests:", function ()
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
-			expect(doc.persistent, "Persistent flag").to.equal(true);
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			expect(doc.modified, "Instantiation modified flag").to.equal(false);
 			
 			db._collection(default_collection)
 				.update(
@@ -1237,7 +1242,8 @@ describe( "Document class tests:", function ()
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
-			expect(doc.persistent, "Persistent flag").to.equal(true);
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			expect(doc.modified, "Instantiation modified flag").to.equal(false);
 			
 			db._collection(default_collection)
 				.update(
@@ -1265,7 +1271,6 @@ describe( "Document class tests:", function ()
 							.to.equal( param.content[ field ] );
 				}
 			}
-			expect(doc.modified, "Modified flag").to.equal(true);
 			
 			db._remove( doc.document._id, {waitForSync: true} );
 			const tmp = new TestClass(param.request, param.content, default_collection);

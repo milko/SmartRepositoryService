@@ -59,10 +59,10 @@ module.exports = {
 	},
 	
 	replace: {
+		var: "OTHER_EDGE",
 		_from: 'test_Document/NODE1',
 		_to: 'test_Document/NODE2',
-		predicate: `terms/${Dict.term.kPredicateManagedBy}`,
-		var: "OTHER_EDGE"
+		predicate: `terms/${Dict.term.kPredicateManagedBy}`
 	},
 	
 	//

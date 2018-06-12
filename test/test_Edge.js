@@ -35,7 +35,21 @@ const MyError = require( '../utils/MyError' );
 //
 // Base Document class.
 //
-const TestClass = require( '../classes/Edge' );
+const Edge = require( '../classes/Edge' );
+
+//
+// Test class.
+//
+class TestClass extends Edge
+{
+	get lockedFields()
+	{
+		return super.localFields
+			.concat([
+				Dict.descriptor.kVariable
+			]);
+	}
+}
 
 //
 // Node class.
@@ -913,7 +927,6 @@ describe( "Edge class tests:", function ()
 	//
 	describe( "Resolve:", function ()
 	{
-/*
 		//
 		// Resolve persistent document.
 		//
@@ -1011,11 +1024,14 @@ describe( "Edge class tests:", function ()
 			let doc;
 			let func;
 			let result;
+			const selector = {};
+			selector._from = param.content._from;
+			selector._to = param.content._to;
 			
 			func = () => {
 				doc =
-					new TestClassPersistNoRequired(
-						param.request, {name: "pippo"}, default_collection
+					new TestClass(
+						param.request, selector, default_collection
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
@@ -1041,11 +1057,15 @@ describe( "Edge class tests:", function ()
 			let doc;
 			let func;
 			let result;
+			const selector = {};
+			selector._from = param.content._from;
+			selector._to = param.content._to;
+			selector.predicate = 'terms/:predicate:managed-by';
 			
 			func = () => {
 				doc =
 					new TestClass(
-						param.request, {_id: 'test_Document/UNKNOWN'}, default_collection
+						param.request, selector, default_collection
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
@@ -1148,6 +1168,8 @@ describe( "Edge class tests:", function ()
 				result = doc.resolveDocument(false, true);
 			};
 			expect( func, "Resolve and raise" ).not.to.throw();
+			expect( doc.document, "Should have key" ).to.have.property('_key');
+			expect( doc.document._key, "Selector and document keys should match" ).to.equal(selector._key);
 			for( const field in selector )
 			{
 				expect( doc.document, `Missing property` ).to.have.property(field);
@@ -1156,16 +1178,19 @@ describe( "Edge class tests:", function ()
 					if( field === '_key' )
 						expect( doc.document[ field ], `Property mismatch [${field}]` )
 							.to.equal( selector[ field ] );
+					else if( doc.lockedFields.includes( field ) )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.content[ field ] );
 					else if( field === 'username' )
 						expect( doc.document[ field ], `Property mismatch [${field}]` )
-							.to.equal( "USERNAME" );
+							.to.equal( selector[ field ] );
 					else
 						expect( doc.document[ field ], `Property mismatch [${field}]` )
 							.to.equal( param.replace[ field ] );
 				}
 			}
 			expect( doc.document, `Missing added property` ).to.have.property('username');
-			expect(doc.modified, "Modified flag").to.equal(false);
+			expect(doc.modified, "Modified flag").to.equal(true);
 		});
 		
 		//
@@ -1184,7 +1209,7 @@ describe( "Edge class tests:", function ()
 			selector._key = key_insert_filled;
 			func = () => {
 				doc =
-					new TestClassPersistNoSignificant(
+					new TestClass(
 						param.request,
 						selector,
 						default_collection
@@ -1201,7 +1226,7 @@ describe( "Edge class tests:", function ()
 				expect( doc.document, `Missing property` ).to.have.property(field);
 				if( doc.document.hasOwnProperty( field ) )
 				{
-					if( field === doc.lockedFields[ 0 ] )
+					if( doc.lockedFields.includes( field ) )
 						expect( doc.document[ field ], `Locked property mismatch [${field}]` )
 							.to.equal( param.content[ field ] );
 					else
@@ -1213,7 +1238,7 @@ describe( "Edge class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistNoSignificant(
+					new TestClass(
 						param.request,
 						selector,
 						default_collection
@@ -1248,14 +1273,15 @@ describe( "Edge class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistNoSignificant(
+					new TestClass(
 						param.request,
 						key_insert_filled,
 						default_collection
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
-			expect(doc.persistent, "Persistent flag").to.equal(true);
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			expect(doc.modified, "Instantiation modified flag").to.equal(false);
 			
 			db._collection(default_collection)
 				.update(
@@ -1281,14 +1307,15 @@ describe( "Edge class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistNoSignificant(
+					new TestClass(
 						param.request,
 						key_insert_filled,
 						default_collection
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
-			expect(doc.persistent, "Persistent flag").to.equal(true);
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			expect(doc.modified, "Instantiation modified flag").to.equal(false);
 			
 			db._collection(default_collection)
 				.update(
@@ -1316,7 +1343,6 @@ describe( "Edge class tests:", function ()
 							.to.equal( param.content[ field ] );
 				}
 			}
-			expect(doc.modified, "Modified flag").to.equal(true);
 			
 			db._remove( doc.document._id, {waitForSync: true} );
 			const tmp = new TestClass(param.request, param.content, default_collection);
@@ -1327,18 +1353,28 @@ describe( "Edge class tests:", function ()
 		//
 		// Resolve multiple documents.
 		//
-		// Should always raise an exception.
+		// Edges cannot have multiple documents, the key is computed and the only
+		// unique combination is the _from, _to and predicate: edges require those
+		// parameter to be in the selector, but then they cmopute the key and resolve
+		// the edge by reference.
+		//
+		// This means that we simply test instantiation and resolve.
 		//
 		it( "Resolve multiple documents:", function ()
 		{
 			let doc;
 			let func;
 			let result;
-			
-			const selector = { var: 'VAR'};
+			const selector = {
+				_from: param.content._from,
+				_to: param.content._to,
+				predicate: param.content.predicate,
+				var: 'VAR'
+			};
+
 			func = () => {
 				doc =
-					new TestClassPersistSignificant(
+					new TestClass(
 						param.request,
 						selector,
 						default_collection
@@ -1350,34 +1386,29 @@ describe( "Edge class tests:", function ()
 			func = () => {
 				result = doc.resolveDocument(false, true);
 			};
-			expect( func, "Resolve no replace do raise" )
-				.to.throw( MyError, /combination of fields is not unique/ );
-			expect( result, "Resolve no replace do raise result" ).to.equal( undefined );
-			expect(doc.persistent, "Resolve no replace do raise persistent flag").to.equal(false);
+			expect( func, "Resolve no replace do raise" ).not.to.throw();
+			expect( result, "Resolve no replace do raise result" ).to.equal( true );
+			expect(doc.persistent, "Resolve no replace do raise persistent flag").to.equal(true);
 			func = () => {
 				result = doc.resolveDocument(false, false);
 			};
-			expect( func, "Resolve no replace no raise" )
-				.to.throw( MyError, /combination of fields is not unique/ );
-			expect( result, "Resolve no replace no raise result" ).to.equal( undefined );
-			expect(doc.persistent, "Resolve no replace no raise persistent flag").to.equal(false);
+			expect( func, "Resolve no replace do raise" ).not.to.throw();
+			expect( result, "Resolve no replace do raise result" ).to.equal( true );
+			expect(doc.persistent, "Resolve no replace do raise persistent flag").to.equal(true);
 			
 			func = () => {
 				result = doc.resolveDocument(true, true);
 			};
-			expect( func, "Resolve do replace do raise" )
-				.to.throw( MyError, /combination of fields is not unique/ );
-			expect( result, "Resolve do replace do raise result" ).to.equal( undefined );
-			expect(doc.persistent, "Resolve do replace do raise persistent flag").to.equal(false);
+			expect( func, "Resolve do replace do raise" ).not.to.throw();
+			expect( result, "Resolve do replace do raise result" ).to.equal( true );
+			expect(doc.persistent, "Resolve do replace do raise persistent flag").to.equal(true);
 			func = () => {
 				result = doc.resolveDocument(true, false);
 			};
-			expect( func, "Resolve do replace no raise" )
-				.to.throw( MyError, /combination of fields is not unique/ );
-			expect( result, "Resolve do replace no raise result" ).to.equal( undefined );
-			expect(doc.persistent, "Resolve do replace no raise persistent flag").to.equal(false);
+			expect( func, "Resolve do replace no raise" ).not.to.throw();
+			expect( result, "Resolve do replace no raise result" ).to.equal( true );
+			expect(doc.persistent, "Resolve do replace no raise persistent flag").to.equal(true);
 		});
-*/
 	
 	});	// Resolve.
 	
