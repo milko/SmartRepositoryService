@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dictionary/Dict.js" beforeDir="false" afterPath="$PROJECT_DIR$/dictionary/Dict.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/test_Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_Document.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/test_Edge.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_Edge.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_example.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/example.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -37,8 +34,8 @@
           <file leaf-file-name="test_Edge.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/test/test_Edge.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-7">
-                  <caret line="1585" selection-start-line="1584" selection-end-line="1585" />
+                <state relative-caret-position="570">
+                  <caret line="1784" column="12" lean-forward="true" selection-start-line="1784" selection-start-column="12" selection-end-line="1784" selection-end-column="12" />
                 </state>
               </provider>
             </entry>
@@ -91,8 +88,8 @@
           <file leaf-file-name="test_Document.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/test/test_Document.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-172">
-                  <caret line="1497" selection-start-line="1497" selection-end-line="1497" />
+                <state relative-caret-position="983">
+                  <caret line="1666" selection-start-line="1666" selection-end-line="1666" />
                 </state>
               </provider>
             </entry>
@@ -110,7 +107,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>func_resolve</find>
       <find>NotFound</find>
       <find>this.defaultEdgeCollection</find>
       <find>param.collection_document</find>
@@ -140,6 +136,7 @@
       <find>Resolve with changed locked field</find>
       <find>Replace value</find>
       <find>Insert duplicate object</find>
+      <find>Remove constrained document</find>
     </findStrings>
     <replaceStrings>
       <replace>Descriptor.</replace>
@@ -225,8 +222,8 @@
         <option value="$PROJECT_DIR$/routes/test/Document.js" />
         <option value="$PROJECT_DIR$/main.js" />
         <option value="$PROJECT_DIR$/routes/test/TestDocument.js" />
-        <option value="$PROJECT_DIR$/test/test_Edge.js" />
         <option value="$PROJECT_DIR$/test/test_Document.js" />
+        <option value="$PROJECT_DIR$/test/test_Edge.js" />
       </list>
     </option>
   </component>
@@ -433,12 +430,12 @@
       <workItem from="1528787326253" duration="13849000" />
       <workItem from="1528802280303" duration="560000" />
       <workItem from="1528802878203" duration="15587000" />
-      <workItem from="1528825274160" duration="1894000" />
+      <workItem from="1528825274160" duration="2698000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="469853000" />
+    <option name="totallyTimeSpent" value="470657000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="639" y="23" width="1919" height="1417" extended-state="0" />
@@ -738,17 +735,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_Edge.js">
+    <entry file="file://$PROJECT_DIR$/test/test_Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-7">
-          <caret line="1585" selection-start-line="1584" selection-end-line="1585" />
+        <state relative-caret-position="983">
+          <caret line="1666" selection-start-line="1666" selection-end-line="1666" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_Document.js">
+    <entry file="file://$PROJECT_DIR$/test/test_Edge.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-172">
-          <caret line="1497" selection-start-line="1497" selection-end-line="1497" />
+        <state relative-caret-position="570">
+          <caret line="1784" column="12" lean-forward="true" selection-start-line="1784" selection-start-column="12" selection-end-line="1784" selection-end-column="12" />
         </state>
       </provider>
     </entry>

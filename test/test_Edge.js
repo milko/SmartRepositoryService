@@ -57,6 +57,15 @@ class TestClass extends Edge
 				Dict.descriptor.kVariable
 			]);
 	}
+	
+	validateDocumentConstraints( doAssert = true )
+	{
+		const result = super.validateDocumentConstraints(doAssert);
+		if( result === true )
+			return (! ( this._document.hasOwnProperty('name')
+					 && (this._document.name === "CONSTRAINED") ));
+		return result;
+	}
 }
 
 //
@@ -1614,7 +1623,6 @@ describe( "Edge class tests:", function ()
 	//
 	describe( "Remove:", function ()
 	{
-/*
 		//
 		// Remove non persistent document.
 		//
@@ -1717,7 +1725,22 @@ describe( "Edge class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassConstrained(
+					new TestClass(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			
+			doc.document.name = "CONSTRAINED";
+			func = () => {
+				doc.replaceDocument();
+			};
+			expect( func, "Replacing document" ).not.to.throw();
+			
+			func = () => {
+				doc =
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
@@ -1731,6 +1754,12 @@ describe( "Edge class tests:", function ()
 				.to.throw( MyError, /has constraints that prevent it from being removed/ );
 			expect(result, "Remove result").to.equal(undefined);
 			expect(doc.persistent, "Remove persistent flag").to.equal(true);
+			
+			doc.document.name = "NOT CONSTRAINED";
+			func = () => {
+				doc.replaceDocument();
+			};
+			expect( func, "Replacing document" ).not.to.throw();
 		});
 		
 		//
@@ -1761,7 +1790,6 @@ describe( "Edge class tests:", function ()
 			expect(doc.persistent, "Remove persistent flag").to.equal(false);
 			expect(db._exists(id), "Still exists").to.equal(false);
 		});
-*/
 	
 	});	// Remove.
 	

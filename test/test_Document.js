@@ -91,7 +91,8 @@ class TestClassConstrained extends TestClassPersistSignificant
 	{
 		const result = super.validateDocumentConstraints(doAssert);
 		if( result === true )
-			return false;
+			return (! ( this._document.hasOwnProperty('name')
+				&& (this._document.name === "CONSTRAINED") ));
 		return result;
 	}
 }
@@ -1634,6 +1635,21 @@ describe( "Document class tests:", function ()
 			};
 			expect( func, "Instantiation" ).not.to.throw();
 			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+
+			doc.document.name = "CONSTRAINED";
+			func = () => {
+				doc.replaceDocument();
+			};
+			expect( func, "Replacing document" ).not.to.throw();
+			
+			func = () => {
+				doc =
+					new TestClassConstrained(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
 			
 			func = () => {
 				result = doc.removeDocument( false );
@@ -1642,6 +1658,12 @@ describe( "Document class tests:", function ()
 				.to.throw( MyError, /has constraints that prevent it from being removed/ );
 			expect(result, "Remove result").to.equal(undefined);
 			expect(doc.persistent, "Remove persistent flag").to.equal(true);
+			
+			doc.document.name = "NOT CONSTRAINED";
+			func = () => {
+				doc.replaceDocument();
+			};
+			expect( func, "Replacing document" ).not.to.throw();
 		});
 		
 		//
