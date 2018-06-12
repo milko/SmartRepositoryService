@@ -359,7 +359,7 @@ module.exports = Object.freeze(
 			BadGroupReference	:  95,
 			BadManagerReference	:  96,
 			CannotManageUser	:  97,
-			BugEdgeKeyMissFld	:  98,
+			CannotMakeEdgeKey	:  98,
 			CannotManageBranches:  99,
 			NotBranchedEdge		: 100,
 			IsPersistent		: 101,

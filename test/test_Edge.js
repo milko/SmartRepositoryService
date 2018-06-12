@@ -67,14 +67,50 @@ const compatible_collection = 'edges';
 const nodes = [];
 
 //
+// Set environment.
+//
+describe( "Setting environment:", function () {
+	for( const node of param.nodes )
+	{
+		it( `Storing node [${node._key}]`, function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc = new NodeClass( param.request, node, param.collection_document );
+			};
+			expect(func, "Instantiating node").not.to.throw();
+			
+			func = () => {
+				result = doc.insertDocument();
+			}
+			expect(func, "Inserting node").not.to.throw();
+			nodes.push(doc._id);
+		});
+	}
+});
+
+
+//
 // Write nodes.
 //
 for( const node of param.nodes )
 {
-	const doc = new NodeClass( param.request, node, param.collection_document );
-	doc.insertDocument();
-	nodes.push(doc._id);
 }
+
+//
+// Check nodes.
+//
+describe( "Check environment:", function () {
+	for( const node of nodes )
+	{
+		it( `Checking node [${node}]`, function () {
+			expect(db._exists(node), `Missing node [${node}]`).not.to.be.false;
+		});
+	}
+});
 
 //
 // Globals.
@@ -584,7 +620,6 @@ describe( "Edge class tests:", function ()
 	//
 	// Persistence globals.
 	//
-	let key_insert_empty;
 	let key_insert_filled;
 	let key_insert_same;
 	
@@ -593,11 +628,10 @@ describe( "Edge class tests:", function ()
 	//
 	describe( "Insert:", function ()
 	{
-/*
 		//
 		// Insert empty object.
 		//
-		// Should not fail.
+		// Should raise an exception.
 		//
 		it( "Insert empty object:", function ()
 		{
@@ -616,49 +650,9 @@ describe( "Edge class tests:", function ()
 			func = () => {
 				result = doc.insertDocument();
 			};
-			expect( func, "Insert" ).not.to.throw();
-			expect( doc.document, "Should not be empty").not.to.be.empty;
-			for( const field of doc.localFields )
-				expect(doc.document, "Has local fields").to.have.property(field);
-			expect( result, "Insert result" ).to.equal( true );
-			expect( doc.persistent, "Persistent flag").to.equal(true);
-			expect( doc.modified, "Modified flag").to.equal(false);
-			key_insert_empty = doc.document._key;
-		});
-		
-		//
-		// Insert duplicate object.
-		//
-		// Should fail.
-		//
-		it( "Insert duplicate object:", function ()
-		{
-			let doc;
-			let func;
-			let result;
-			
-			func = () => {
-				doc =
-					new TestClass(
-						param.request, {_key: key_insert_empty}, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			
-			func = () => {
-				result = doc.insertDocument();
-			};
 			expect( func, "Insert" )
-				.to.throw( MyError, /duplicate document in collection/ );
-			expect( doc.document, "Should not be empty").not.to.be.empty;
-			for( const field of doc.localFields )
-			{
-				if( field !== '_key' )
-					expect(doc.document, "Has local fields").not.to.have.property(field);
-			}
-			expect( result, "Insert result" ).to.equal( undefined );
-			expect( doc.persistent, "Persistent flag").to.equal(false);
-			expect( doc.modified, "Modified flag").to.equal(false);
+				.to.throw( MyError, /missing fields required to compute edge key / );
+			expect( doc.document, "Should not be empty").to.be.empty;
 		});
 		
 		//
@@ -674,21 +668,23 @@ describe( "Edge class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistNoSignificant(
-						param.request, null, default_collection
+					new TestClass(
+						param.request, param.content, default_collection
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
 			
+			doc.setDocumentProperties({ predicate: null, name: "pippo" });
 			func = () => {
 				result = doc.insertDocument();
 			};
 			expect( func, "Insert" )
-				.to.throw( MyError, /missing required field/ );
-			expect( doc.document, "Should be empty").to.be.empty;
+				.to.throw( MyError, /missing fields required to compute edge key/ );
+			expect( doc.document, "Should not be empty").not.to.be.empty;
+			expect( doc.document, "Should have the field").to.have.property('name');
 			expect( result, "Insert result" ).to.equal( undefined );
 			expect( doc.persistent, "Persistent flag").to.equal(false);
-			expect( doc.modified, "Modified flag").to.equal(false);
+			expect( doc.modified, "Modified flag").to.equal(true);
 		});
 		
 		//
@@ -704,7 +700,7 @@ describe( "Edge class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistNoRequired(
+					new TestClass(
 						param.request, {name : "No Significant"}, default_collection
 					);
 			};
@@ -713,10 +709,11 @@ describe( "Edge class tests:", function ()
 			func = () => {
 				result = doc.insertDocument();
 			};
-			expect( func, "Insert" ).not.to.throw();
+			expect( func, "Insert" )
+				.to.throw( MyError, /missing fields required to compute edge key/ );
 			expect( doc.document, "Should not be empty").not.to.be.empty;
-			expect( result, "Insert result" ).to.equal( true );
-			expect( doc.persistent, "Persistent flag").to.equal(true);
+			expect( result, "Insert result" ).to.equal( undefined );
+			expect( doc.persistent, "Persistent flag").to.equal(false);
 			expect( doc.modified, "Modified flag").to.equal(false);
 		});
 		
@@ -733,7 +730,7 @@ describe( "Edge class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistNoSignificant(
+					new TestClass(
 						param.request, param.content, default_collection
 					);
 			};
@@ -745,11 +742,75 @@ describe( "Edge class tests:", function ()
 			expect( func, "Insert" ).not.to.throw();
 			expect( doc.document, "Should not be empty").not.to.be.empty;
 			for( const field of doc.localFields )
-				expect(doc.document, "Has local fields").to.have.property(field);
+			{
+				if( field !== Dict.descriptor.kMStamp )
+					expect(doc.document, "Has local fields").to.have.property(field);
+			}
 			expect( result, "Insert result" ).to.equal( true );
 			expect( doc.persistent, "Persistent flag").to.equal(true);
 			expect( doc.modified, "Modified flag").to.equal(false);
 			key_insert_filled = doc.document._key;
+		});
+		
+		//
+		// Insert duplicate object.
+		//
+		// Should fail.
+		//
+		it( "Insert duplicate object:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			const selector = {};
+			selector._from = param.content._from;
+			selector._to = param.content._to;
+			selector.predicate = param.content.predicate;
+			
+			func = () => {
+				doc =
+					new TestClass(
+						param.request, selector, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			
+			func = () => {
+				result = doc.insertDocument();
+			};
+			expect( func, "Insert" )
+				.to.throw( MyError, /duplicate document in collection/ );
+			expect( doc.document, "Should not be empty").not.to.be.empty;
+			for( const field of doc.localFields )
+			{
+				switch( field )
+				{
+					case '_id':
+					case '_rev':
+					case Dict.descriptor.kMStamp:
+						expect(doc.document, `Has local field [${field}]`).not.to.have.property(field);
+						break;
+					
+					case Dict.descriptor.kCStamp:
+						expect(doc.document, `Has local field [${field}]`).to.have.property(field);
+						break;
+					
+					case '_key':
+						expect(doc.document, `Has local field [${field}]`).to.have.property(field);
+						expect(doc.document[ field ], `Value of [${field}]`)
+							.to.equal(key_insert_filled);
+						break;
+					
+					default:
+						expect(doc.document, `Has local field [${field}]`).to.have.property(field);
+						expect(doc.document[ field ], `Value of [${field}]`)
+							.to.equal(selector[ field ]);
+						break;
+				}
+			}
+			expect( result, "Insert result" ).to.equal( undefined );
+			expect( doc.persistent, "Persistent flag").to.equal(false);
+			expect( doc.modified, "Modified flag").to.equal(false);
 		});
 		
 		//
@@ -765,7 +826,7 @@ describe( "Edge class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistSignificant(
+					new TestClass(
 						param.request, param.content, default_collection
 					);
 			};
@@ -774,14 +835,39 @@ describe( "Edge class tests:", function ()
 			func = () => {
 				result = doc.insertDocument();
 			};
-			expect( func, "Insert" ).not.to.throw();
+			expect( func, "Insert" )
+				.to.throw( MyError, /duplicate document in collection/ );
 			expect( doc.document, "Should not be empty").not.to.be.empty;
 			for( const field of doc.localFields )
-				expect(doc.document, "Has local fields").to.have.property(field);
-			expect( result, "Insert result" ).to.equal( true );
-			expect( doc.persistent, "Persistent flag").to.equal(true);
+			{
+				switch( field )
+				{
+					case '_id':
+					case '_rev':
+					case Dict.descriptor.kMStamp:
+						expect(doc.document, `Has local field [${field}]`).not.to.have.property(field);
+						break;
+					
+					case Dict.descriptor.kCStamp:
+						expect(doc.document, `Has local field [${field}]`).to.have.property(field);
+						break;
+					
+					case '_key':
+						expect(doc.document, `Has local field [${field}]`).to.have.property(field);
+						expect(doc.document[ field ], `Value of [${field}]`)
+							.to.equal(key_insert_filled);
+						break;
+					
+					default:
+						expect(doc.document, `Has local field [${field}]`).to.have.property(field);
+						expect(doc.document[ field ], `Value of [${field}]`)
+							.to.equal(param.content[ field ]);
+						break;
+				}
+			}
+			expect( result, "Insert result" ).to.equal( undefined );
+			expect( doc.persistent, "Persistent flag").to.equal(false);
 			expect( doc.modified, "Modified flag").to.equal(false);
-			key_insert_same = doc.document._key;
 		});
 		
 		//
@@ -797,7 +883,7 @@ describe( "Edge class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistSignificant(
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
@@ -810,13 +896,15 @@ describe( "Edge class tests:", function ()
 				.to.throw( MyError, /document is persistent/ );
 			expect( doc.document, "Should not be empty").not.to.be.empty;
 			for( const field of doc.localFields )
-				expect(doc.document, "Has local fields").to.have.property(field);
+			{
+				if( field !== Dict.descriptor.kMStamp )
+					expect(doc.document, "Has local fields").to.have.property(field);
+			}
 			expect( result, "Insert result" ).to.equal( undefined );
 			expect( doc.persistent, "Persistent flag").to.equal(true);
 			expect( doc.modified, "Modified flag").to.equal(false);
 			key_insert_same = doc.document._key;
 		});
-*/
 	
 	});	// Insert.
 	

@@ -123,11 +123,11 @@ class Edge extends Document
 			if( doAssert )
 				throw(
 					new MyError(
-						'Bug',									// Error name.
-						K.error.BugEdgeKeyMissFld,				// Message code.
+						'ConstraintViolated',					// Error name.
+						K.error.CannotMakeEdgeKey,				// Message code.
 						this._request.application.language,		// Language.
 						this.instance,							// Arguments.
-						500										// HTTP error code.
+						409										// HTTP error code.
 					)
 				);																// !@! ==>
 			

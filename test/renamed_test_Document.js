@@ -664,41 +664,6 @@ describe( "Document class tests:", function ()
 		});
 		
 		//
-		// Insert duplicate object.
-		//
-		// Should fail.
-		//
-		it( "Insert duplicate object:", function ()
-		{
-			let doc;
-			let func;
-			let result;
-			
-			func = () => {
-				doc =
-					new TestClass(
-						param.request, {_key: key_insert_empty}, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			
-			func = () => {
-				result = doc.insertDocument();
-			};
-			expect( func, "Insert" )
-				.to.throw( MyError, /duplicate document in collection/ );
-			expect( doc.document, "Should not be empty").not.to.be.empty;
-			for( const field of doc.localFields )
-			{
-				if( field !== '_key' )
-					expect(doc.document, "Has local fields").not.to.have.property(field);
-			}
-			expect( result, "Insert result" ).to.equal( undefined );
-			expect( doc.persistent, "Persistent flag").to.equal(false);
-			expect( doc.modified, "Modified flag").to.equal(false);
-		});
-		
-		//
 		// Insert object without required field.
 		//
 		// Should fail.
@@ -712,20 +677,22 @@ describe( "Document class tests:", function ()
 			func = () => {
 				doc =
 					new TestClassPersistNoSignificant(
-						param.request, null, default_collection
+						param.request, param.content, default_collection
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
 			
+			doc.setDocumentProperties({ var: null, name: "pippo" });
 			func = () => {
 				result = doc.insertDocument();
 			};
 			expect( func, "Insert" )
 				.to.throw( MyError, /missing required field/ );
-			expect( doc.document, "Should be empty").to.be.empty;
+			expect( doc.document, "Should not be empty").not.to.be.empty;
+			expect( doc.document, "Should have the field").to.have.property('name');
 			expect( result, "Insert result" ).to.equal( undefined );
 			expect( doc.persistent, "Persistent flag").to.equal(false);
-			expect( doc.modified, "Modified flag").to.equal(false);
+			expect( doc.modified, "Modified flag").to.equal(true);
 		});
 		
 		//
@@ -787,6 +754,41 @@ describe( "Document class tests:", function ()
 			expect( doc.persistent, "Persistent flag").to.equal(true);
 			expect( doc.modified, "Modified flag").to.equal(false);
 			key_insert_filled = doc.document._key;
+		});
+		
+		//
+		// Insert duplicate object.
+		//
+		// Should fail.
+		//
+		it( "Insert duplicate object:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new TestClass(
+						param.request, {_key: key_insert_filled}, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			
+			func = () => {
+				result = doc.insertDocument();
+			};
+			expect( func, "Insert" )
+				.to.throw( MyError, /duplicate document in collection/ );
+			expect( doc.document, "Should not be empty").not.to.be.empty;
+			for( const field of doc.localFields )
+			{
+				if( field !== '_key' )
+					expect(doc.document, "Has local fields").not.to.have.property(field);
+			}
+			expect( result, "Insert result" ).to.equal( undefined );
+			expect( doc.persistent, "Persistent flag").to.equal(false);
+			expect( doc.modified, "Modified flag").to.equal(false);
 		});
 		
 		//
