@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/paramEdge.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/test_Edge.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Document.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/test_Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_Document.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -20,35 +23,55 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Document.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Document.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/classes/Document.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="267">
-              <caret line="2179" column="19" selection-start-line="2179" selection-start-column="8" selection-end-line="2179" selection-end-column="19" />
+            <state relative-caret-position="194">
+              <caret line="454" column="73" selection-start-line="454" selection-start-column="73" selection-end-line="454" selection-end-column="73" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_Document.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="test_Edge.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/test_Edge.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="913">
+              <caret line="577" selection-start-line="577" selection-end-line="577" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="paramEdge.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/paramEdge.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="651">
+              <caret line="64" column="20" selection-start-line="64" selection-start-column="20" selection-end-line="64" selection-end-column="20" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Edge.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/classes/Edge.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="29">
+              <caret line="298" column="8" selection-start-line="298" selection-start-column="8" selection-end-line="298" selection-end-column="8" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_Document.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/test_Document.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="582">
-              <caret line="58" column="63" lean-forward="true" selection-start-line="58" selection-start-column="63" selection-end-line="58" selection-end-column="63" />
+            <state relative-caret-position="507">
+              <caret line="615" selection-start-line="615" selection-end-line="615" />
             </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="paramDocument.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/paramDocument.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-181" />
           </provider>
         </entry>
       </file>
       <file leaf-file-name="Constants.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils/Constants.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="566">
+            <state relative-caret-position="5565">
               <caret line="371" column="26" selection-start-line="371" selection-start-column="12" selection-end-line="371" selection-end-column="26" />
             </state>
           </provider>
@@ -57,7 +80,7 @@
       <file leaf-file-name="messages.json" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/data/messages.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="276">
+            <state relative-caret-position="9690">
               <caret line="646" column="94" selection-start-line="646" selection-start-column="94" selection-end-line="646" selection-end-column="94" />
             </state>
           </provider>
@@ -74,14 +97,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>setDocumentProperty</find>
-      <find>expecting</find>
-      <find>function ()</find>
-      <find>() =&gt;</find>
-      <find>done();</find>
-      <find>content</find>
-      <find>Invalid</find>
-      <find>test</find>
       <find>TestClassPersistent</find>
       <find>mutable</find>
       <find>select</find>
@@ -104,6 +119,14 @@
       <find>constraint</find>
       <find>_rev</find>
       <find>Document</find>
+      <find>exists</find>
+      <find>'schemas/3e3d5e71d9654933b0454fb23fa14cb3'</find>
+      <find>'schemas'</find>
+      <find>MILKO</find>
+      <find>'descriptors/</find>
+      <find>'descriptors/name'</find>
+      <find>'descriptors'</find>
+      <find>Replace persistent object locked field</find>
     </findStrings>
     <replaceStrings>
       <replace>Descriptor.</replace>
@@ -129,6 +152,8 @@
       <replace>default_collection</replace>
       <replace>wrong_collection</replace>
       <replace>TestClass</replace>
+      <replace>example_id</replace>
+      <replace>example_collection</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -137,8 +162,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/models/user/signInAdmin.js" />
-        <option value="$PROJECT_DIR$/models/user/signUpForm.js" />
         <option value="$PROJECT_DIR$/models/user/signIn.js" />
         <option value="$PROJECT_DIR$/models/session/hierarchy.js" />
         <option value="$PROJECT_DIR$/models/session/managed.js" />
@@ -180,14 +203,16 @@
         <option value="$PROJECT_DIR$/test/test_example.js" />
         <option value="$PROJECT_DIR$/utils/Validation.js" />
         <option value="$PROJECT_DIR$/test/OldTest.js" />
-        <option value="$PROJECT_DIR$/test/paramDocument.js" />
         <option value="$PROJECT_DIR$/routes/test/Document.js" />
         <option value="$PROJECT_DIR$/data/errors.json" />
         <option value="$PROJECT_DIR$/classes/User.js" />
         <option value="$PROJECT_DIR$/data/messages.json" />
         <option value="$PROJECT_DIR$/utils/Constants.js" />
-        <option value="$PROJECT_DIR$/classes/Document.js" />
+        <option value="$PROJECT_DIR$/test/paramDocument.js" />
+        <option value="$PROJECT_DIR$/test/paramEdge.js" />
         <option value="$PROJECT_DIR$/test/test_Document.js" />
+        <option value="$PROJECT_DIR$/test/test_Edge.js" />
+        <option value="$PROJECT_DIR$/classes/Document.js" />
       </list>
     </option>
   </component>
@@ -345,6 +370,9 @@
       </list>
     </option>
   </component>
+  <component name="StructureViewFactory">
+    <option name="ACTIVE_ACTIONS" value=",HIDE_INHERITED_FROM_OBJECT" />
+  </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -392,24 +420,25 @@
       <workItem from="1528740451385" duration="9444000" />
       <workItem from="1528756545368" duration="1867000" />
       <workItem from="1528787326253" duration="13849000" />
+      <workItem from="1528802280303" duration="560000" />
+      <workItem from="1528802878203" duration="6490000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="451812000" />
+    <option name="totallyTimeSpent" value="458862000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1192" height="1001" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.47559592" visible="true" weight="0.26046115" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.47332576" visible="true" weight="0.26046115" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.49489218" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" order="9" />
-      <window_info active="true" id="Structure" order="1" sideWeight="0.5244041" side_tool="true" visible="true" weight="0.26046115" />
+      <window_info active="true" id="Structure" order="1" sideWeight="0.5266742" side_tool="true" visible="true" weight="0.26046115" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -419,6 +448,7 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.49489218" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -433,18 +463,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/routes/test/MyError.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-32" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/utils/MyError.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5700">
-          <caret line="380" column="18" selection-start-line="380" selection-start-column="4" selection-end-line="380" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/classes/Descriptor.old.js" />
     <entry file="file://$PROJECT_DIR$/routes/session.js">
       <provider selected="true" editor-type-id="text-editor">
@@ -620,18 +638,10 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/defaultDocument.js" />
-    <entry file="file://$PROJECT_DIR$/test/test_example.js" />
     <entry file="file://$PROJECT_DIR$/utils/Validation.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2370">
           <caret line="158" selection-start-line="158" selection-end-line="159" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Edge.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="382">
-          <caret line="218" selection-start-line="213" selection-end-line="218" />
         </state>
       </provider>
     </entry>
@@ -664,21 +674,16 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/paramDocument.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-181" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/data/messages.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="276">
+        <state relative-caret-position="9690">
           <caret line="646" column="94" selection-start-line="646" selection-start-column="94" selection-end-line="646" selection-end-column="94" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/Constants.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="566">
+        <state relative-caret-position="5565">
           <caret line="371" column="26" selection-start-line="371" selection-start-column="12" selection-end-line="371" selection-end-column="26" />
         </state>
       </provider>
@@ -690,17 +695,48 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Document.js">
+    <entry file="file://$PROJECT_DIR$/test/test_example.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/paramDocument.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="267">
-          <caret line="2179" column="19" selection-start-line="2179" selection-start-column="8" selection-end-line="2179" selection-end-column="19" />
+        <state relative-caret-position="225">
+          <caret line="15" column="16" selection-start-line="15" selection-start-column="16" selection-end-line="15" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/paramEdge.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="651">
+          <caret line="64" column="20" selection-start-line="64" selection-start-column="20" selection-end-line="64" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Edge.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="29">
+          <caret line="298" column="8" selection-start-line="298" selection-start-column="8" selection-end-line="298" selection-end-column="8" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/test_Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="582">
-          <caret line="58" column="63" lean-forward="true" selection-start-line="58" selection-start-column="63" selection-end-line="58" selection-end-column="63" />
+        <state relative-caret-position="507">
+          <caret line="615" selection-start-line="615" selection-end-line="615" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/test_Edge.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="913">
+          <caret line="577" selection-start-line="577" selection-end-line="577" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Document.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="194">
+          <caret line="454" column="73" selection-start-line="454" selection-start-column="73" selection-end-line="454" selection-end-column="73" />
         </state>
       </provider>
     </entry>

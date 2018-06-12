@@ -23,7 +23,7 @@ const expect = require('chai').expect;
 //
 // Test parameters.
 //
-const param = require( './paramDocument' );
+const param = require( './paramEdge' );
 
 //
 // Application.
@@ -35,66 +35,12 @@ const MyError = require( '../utils/MyError' );
 //
 // Base Document class.
 //
-const TestClass = require( '../classes/Document' );
+const TestClass = require( '../classes/Edge' );
 
 //
-// Base Document class with default collection.
+// Node class.
 //
-class TestClassCollection extends TestClass
-{
-	get defaultCollection()	{	return param.collection_document; }
-	validateCollectionType( theCollection, doAssert = true )
-	{
-		return TestClass.isDocumentCollection(
-			this._request,
-			theCollection,
-			doAssert
-		);
-	}
-}
-
-//
-// Base persistent class without significant fields.
-//
-class TestClassPersistNoSignificant extends TestClassCollection
-{
-	get requiredFields()	{	return [ Dict.descriptor.kVariable ]; }
-	get uniqueFields()		{	return [ Dict.descriptor.kVariable ]; }
-	get lockedFields()		{	return [ Dict.descriptor.kVariable ]; }
-}
-
-//
-// Base persistent class With significant fields and no required.
-//
-class TestClassPersistNoRequired extends TestClassCollection
-{
-	get significantFields()	{	return [ [Dict.descriptor.kVariable] ]; }
-	get uniqueFields()		{	return [ Dict.descriptor.kVariable ]; }
-	get lockedFields()		{	return [ Dict.descriptor.kVariable ]; }
-}
-
-//
-// Base persistent class with significant and restricted fields.
-//
-class TestClassPersistSignificant extends TestClassPersistNoSignificant
-{
-	get significantFields()	{	return [ [Dict.descriptor.kVariable] ]; }
-	get restrictedFields()	{	return [ Dict.descriptor.kOrder ] }
-}
-
-//
-// Base persistent class with significant, restricted fields and constraints.
-//
-class TestClassConstrained extends TestClassPersistSignificant
-{
-	validateDocumentConstraints( doAssert = true )
-	{
-		const result = super.validateDocumentConstraints(doAssert);
-		if( result === true )
-			return false;
-		return result;
-	}
-}
+const NodeClass = require( '../classes/Document' );
 
 //
 // Clear collections.
@@ -114,22 +60,34 @@ else
 //
 // Set default collection names.
 //
-const wrong_collection   = param.collection_edge;
-const default_collection = param.collection_document;
-const compatible_collection = 'toponyms';
+const wrong_collection   = param.collection_document;
+const default_collection = param.collection_edge;
+const compatible_collection = 'edges';
+
+const nodes = [];
+
+//
+// Write nodes.
+//
+for( const node of param.nodes )
+{
+	const doc = new NodeClass( param.request, node, param.collection_document );
+	doc.insertDocument();
+	nodes.push(doc._id);
+}
 
 //
 // Globals.
 //
-const example_id = 'descriptors/name';
-const example_collection = 'descriptors';
+const example_id = 'schemas/3e3d5e71d9654933b0454fb23fa14cb3';
+const example_collection = 'schemas';
 
 /**
- * Document class tests
+ * Edge class tests
  *
- * We test the Document class.
+ * We test the Edge class.
  */
-describe( "Document class tests:", function ()
+describe( "Edge class tests:", function ()
 {
 	//
 	// Instantiation tests.
@@ -183,6 +141,18 @@ describe( "Document class tests:", function ()
 		});
 		
 		//
+		// Instantiate with null selector and wrong collection type.
+		//
+		// Should raise an exception.
+		//
+		it( "Instantiate with null selector and wrong collection type:", function ()
+		{
+			expect( () => {
+				const tmp = new TestClass( param.request, null, wrong_collection );
+			}).to.throw( MyError, /Invalid collection/ );
+		});
+		
+		//
 		// Instantiate with null selector and existing edge collection.
 		//
 		// Should not raise: the Document class accepts any collection type.
@@ -190,39 +160,31 @@ describe( "Document class tests:", function ()
 		it( "Instantiate with null selector and existing edge collection:", function ()
 		{
 			expect( () => {
-				const tmp = new TestClass( param.request, null, wrong_collection );
-			}).not.to.throw();
-		});
-		
-		//
-		// Instantiate with null selector and existing document collection.
-		//
-		// Should not raise: the Document class accepts any collection type.
-		//
-		it( "Instantiate with null selector and existing document collection:", function ()
-		{
-			expect( () => {
 				const tmp = new TestClass( param.request, null, default_collection );
 			}).not.to.throw();
 		});
 		
 		//
-		// Instantiate with null selector and default collection.
+		// Instantiate with null selector and default or provided collection.
 		//
-		// Should not raise: the Document class accepts any collection type.
+		// Should raise an exception, because it doesn't have a default collection;
+		// should accept any edge collection argument.
 		//
-		it( "Instantiate with null selector and default collection:", function ()
+		it( "Instantiate with null selector and default or provided collection:", function ()
 		{
 			let doc;
-			const func_default = () => {
-				doc = new TestClassCollection( param.request, null );
+			let func;
+			
+			func = () => {
+				doc = new TestClass( param.request, null );
 			};
-			expect(func_default, "Collection not provided instantiation").not.to.throw();
-			expect(doc.collection, "Collection not provided name").to.equal(doc.defaultCollection);
-			const func_provided = () => {
-				doc = new TestClassCollection( param.request, null, compatible_collection );
+			expect(func, "Collection not provided instantiation")
+				.to.throw( MyError, /missing collection reference/ );
+			
+			func = () => {
+				doc = new TestClass( param.request, null, compatible_collection );
 			};
-			expect(func_provided, "Collection provided instantiation").not.to.throw();
+			expect(func, "Collection provided instantiation").not.to.throw();
 			expect(doc.collection, "Collection provided name").to.equal(compatible_collection);
 		});
 		
@@ -235,7 +197,7 @@ describe( "Document class tests:", function ()
 		{
 			expect( () => {
 				const tmp =
-					new TestClassCollection(
+					new TestClass(
 						param.request, null, wrong_collection );
 			}).to.throw(
 				MyError,
@@ -254,42 +216,42 @@ describe( "Document class tests:", function ()
 			let func;
 			
 			func = () => {
-				doc = new TestClassCollection( param.request, null );
+				doc = new TestClass( param.request, null, default_collection );
 			};
 			expect( func, "Instantiation empty mutable document" ).not.to.throw();
 			expect( doc.document, "Empty mutable document should be mutable" ).not.to.be.sealed;
 			expect( doc.modified, "Empty mutable document modified flag" ).to.equal(false);
 			
 			func = () => {
-				doc = new TestClassCollection( param.request, null, null, true );
+				doc = new TestClass( param.request, null, default_collection, true );
 			};
 			expect( func, "Instantiation empty immutable document" ).not.to.throw();
 			expect( doc.document, "Empty immutable document should be mutable" ).not.to.be.sealed;
 			expect( doc.modified, "Empty immutable document modified flag" ).to.equal(false);
 			
 			func = () => {
-				doc = new TestClassCollection( param.request, param.content );
+				doc = new TestClass( param.request, param.content, default_collection );
 			};
 			expect( func, "Instantiation filled mutable document" ).not.to.throw();
 			expect( doc.document, "Filled mutable document should be mutable" ).not.to.be.sealed;
 			expect( doc.modified, "Filled mutable document modified flag" ).to.equal(false);
 			
 			func = () => {
-				doc = new TestClassCollection( param.request, param.content, null, true );
+				doc = new TestClass( param.request, param.content, default_collection, true );
 			};
 			expect( func, "Instantiation filled immutable document" ).not.to.throw();
 			expect( doc.document, "Filled immutable document should be mutable" ).not.to.be.sealed;
 			expect( doc.modified, "Filled immutable document modified flag" ).to.equal(false);
 			
 			func = () => {
-				doc = new TestClassCollection( param.request, example_id, example_collection );
+				doc = new TestClass( param.request, example_id, example_collection );
 			};
 			expect( func, "Instantiation referenced mutable document" ).not.to.throw();
 			expect( doc.document, "Referenced mutable document should be mutable" ).not.to.be.sealed;
 			expect( doc.modified, "Referenced mutable document modified flag" ).to.equal(false);
 			
 			func = () => {
-				doc = new TestClassCollection( param.request, example_id, example_collection, true );
+				doc = new TestClass( param.request, example_id, example_collection, true );
 			};
 			expect( func, "Instantiation referenced immutable document" ).not.to.throw();
 			expect( doc.document, "Referenced immutable document should be immutable" ).to.be.sealed;
@@ -323,7 +285,7 @@ describe( "Document class tests:", function ()
 			expect( () => {
 				const tmp =
 					new TestClass(
-						param.request, 'test_Document/MISSING', default_collection );
+						param.request, 'test_Edge/3e3d5e71d9654933b0454fb23fa14cb3', default_collection );
 			}).to.throw(
 				MyError,
 				/not found in collection/
@@ -395,7 +357,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistSignificant(
+					new TestClass(
 						param.request, param.content, default_collection
 					);
 			};
@@ -419,7 +381,7 @@ describe( "Document class tests:", function ()
 				expect(doc.modified, "Modified flag").to.equal(false);
 			}
 		});
-		
+	
 	});	// Instantiation.
 	
 	//
@@ -470,7 +432,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistNoRequired(
+					new TestClass(
 						param.request, param.content, default_collection
 					);
 			};
@@ -551,7 +513,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistNoSignificant(
+					new TestClass(
 						param.request, param.content, default_collection
 					);
 			};
@@ -584,7 +546,7 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassPersistNoSignificant(
+					new TestClass(
 						param.request, example_id, example_collection
 					);
 			};
@@ -602,7 +564,7 @@ describe( "Document class tests:", function ()
 				
 				func = () => {
 					doc =
-						new TestClassPersistNoSignificant(
+						new TestClass(
 							param.request, example_id, example_collection
 						);
 				};
@@ -616,7 +578,7 @@ describe( "Document class tests:", function ()
 				expect(doc.modified, "Modified flag").to.equal(false);
 			}
 		});
-		
+
 	});	// Contents.
 	
 	//
@@ -631,6 +593,7 @@ describe( "Document class tests:", function ()
 	//
 	describe( "Insert:", function ()
 	{
+/*
 		//
 		// Insert empty object.
 		//
@@ -853,7 +816,8 @@ describe( "Document class tests:", function ()
 			expect( doc.modified, "Modified flag").to.equal(false);
 			key_insert_same = doc.document._key;
 		});
-		
+*/
+	
 	});	// Insert.
 	
 	//
@@ -861,6 +825,7 @@ describe( "Document class tests:", function ()
 	//
 	describe( "Resolve:", function ()
 	{
+/*
 		//
 		// Resolve persistent document.
 		//
@@ -1035,13 +1000,13 @@ describe( "Document class tests:", function ()
 			func = () => {
 				doc =
 					new TestClass(
-							param.request,
-							selector,
-							default_collection
-						);
+						param.request,
+						selector,
+						default_collection
+					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
-
+			
 			func = () => {
 				result = doc.resolveDocument(true, true);
 			};
@@ -1324,6 +1289,7 @@ describe( "Document class tests:", function ()
 			expect( result, "Resolve do replace no raise result" ).to.equal( undefined );
 			expect(doc.persistent, "Resolve do replace no raise persistent flag").to.equal(false);
 		});
+*/
 	
 	});	// Resolve.
 	
@@ -1332,6 +1298,7 @@ describe( "Document class tests:", function ()
 	//
 	describe( "Replace:", function ()
 	{
+/*
 		//
 		// Replace non persistent document.
 		//
@@ -1351,7 +1318,7 @@ describe( "Document class tests:", function ()
 			};
 			expect( func, "Instantiation" ).not.to.throw();
 			expect(doc.persistent, "Instantiation persistent flag").to.equal(false);
-
+			
 			func = () => {
 				result = doc.replaceDocument();
 			};
@@ -1418,7 +1385,7 @@ describe( "Document class tests:", function ()
 			};
 			expect( func, "Setting data" ).not.to.throw();
 			expect(doc.persistent, "Setting data persistent flag").to.equal(true);
-
+			
 			func = () => {
 				result = doc.replaceDocument();
 			};
@@ -1511,6 +1478,7 @@ describe( "Document class tests:", function ()
 			expect(doc.persistent, "Replace persistent flag").to.equal(true);
 			expect( result, "Replace result" ).to.equal( undefined );
 		});
+*/
 	
 	});	// Replace.
 	
@@ -1519,6 +1487,7 @@ describe( "Document class tests:", function ()
 	//
 	describe( "Remove:", function ()
 	{
+/*
 		//
 		// Remove non persistent document.
 		//
@@ -1665,6 +1634,7 @@ describe( "Document class tests:", function ()
 			expect(doc.persistent, "Remove persistent flag").to.equal(false);
 			expect(db._exists(id), "Still exists").to.equal(false);
 		});
+*/
 	
 	});	// Remove.
 	

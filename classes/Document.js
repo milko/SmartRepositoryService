@@ -451,6 +451,10 @@ class Document
 	 * if an existing value is changed, it will not be set if the provided value is
 	 * not in the document, or if the provided value is restricted.
 	 *
+	 * Also be aware that if the locked fields method, validateLockedProperties(),
+	 * fails, the contents of the current document are undetermined (the method is not
+	 * transactional).
+	 *
 	 * All exceptions will be raised by the called setDocumentProperty() method.
 	 *
 	 * @param theData		{Object}	The object properties to add.
