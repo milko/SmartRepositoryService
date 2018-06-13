@@ -410,7 +410,6 @@ describe( "EdgeAttribute class tests:", function ()
 	//
 	describe( "Content:", function ()
 	{
-/*
 		//
 		// Load empty object.
 		//
@@ -600,7 +599,6 @@ describe( "EdgeAttribute class tests:", function ()
 				expect(doc.modified, "Modified flag").to.equal(false);
 			}
 		});
-*/
 	
 	});	// Contents.
 	
