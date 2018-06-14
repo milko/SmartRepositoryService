@@ -418,6 +418,9 @@ module.exports = Object.freeze(
 			},
 			clone		: (obj) => {
 				return JSON.parse(JSON.stringify(obj));
+			},
+			flatten		: (arr) => {
+				return [].concat(...arr);
 			}
 		}
 	}

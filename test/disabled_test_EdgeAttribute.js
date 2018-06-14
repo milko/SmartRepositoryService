@@ -23,7 +23,7 @@ const expect = require('chai').expect;
 //
 // Test parameters.
 //
-const param = require( './paramEdge' );
+const param = require( './paramEdgeAttribute' );
 
 //
 // Application.
@@ -472,8 +472,14 @@ describe( "EdgeAttribute class tests:", function ()
 				if( doc.document.hasOwnProperty( field ) )
 				{
 					if( doc.lockedFields.includes( field ) )
-						expect( doc.document[ field ], `Property mismatch [${field}]` )
-							.to.equal( param.replace[ field ] );
+					{
+						if( Array.isArray(doc.document[field]) )
+							expect( doc.document[ field ], `Property mismatch [${field}]` )
+								.to.have.members( param.replace[ field ] );
+						else
+							expect( doc.document[ field ], `Property mismatch [${field}]` )
+								.to.equal( param.replace[ field ] );
+					}
 					else
 						expect( doc.document[ field ], `Property mismatch [${field}]` )
 							.to.equal( param.content[ field ] );
@@ -516,8 +522,14 @@ describe( "EdgeAttribute class tests:", function ()
 				else
 					expect( doc.document, `Missing property` ).to.have.property(field);
 				if( doc.document.hasOwnProperty( field ) )
-					expect( doc.document[ field ], `Property mismatch [${field}]` )
-						.to.equal( param.replace[ field ] );
+				{
+					if( Array.isArray(doc.document[field]) )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.have.members( param.replace[ field ] );
+					else
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.replace[ field ] );
+				}
 			}
 			expect( doc.modified, "Modified flag").to.equal(true);
 		});
@@ -548,9 +560,14 @@ describe( "EdgeAttribute class tests:", function ()
 			for( const field in param.replace )
 			{
 				expect( doc.document, `Missing property` ).to.have.property(field);
-				if( doc.document.hasOwnProperty( field ) )
-					expect( doc.document[ field ], `Property mismatch [${field}]` )
-						.to.equal( param.replace[ field ] );
+				{
+					if( Array.isArray(doc.document[field]) )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.have.members( param.replace[ field ] );
+					else
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.replace[ field ] );
+				}
 			}
 			expect(doc.modified, "Modified flag").to.equal(true);
 		});
@@ -613,7 +630,6 @@ describe( "EdgeAttribute class tests:", function ()
 	//
 	describe( "Insert:", function ()
 	{
-/*
 		//
 		// Insert empty object.
 		//
@@ -660,17 +676,16 @@ describe( "EdgeAttribute class tests:", function ()
 			};
 			expect( func, "Instantiation" ).not.to.throw();
 			
-			doc.setDocumentProperties({ predicate: null, name: "pippo" });
+			delete doc.document[Dict.descriptor.kAttributes];
 			func = () => {
 				result = doc.insertDocument();
 			};
 			expect( func, "Insert" )
 				.to.throw( MyError, /missing fields required to compute edge key/ );
 			expect( doc.document, "Should not be empty").not.to.be.empty;
-			expect( doc.document, "Should have the field").to.have.property('name');
+			expect( doc.document, "Should have the field").to.have.property('var');
 			expect( result, "Insert result" ).to.equal( undefined );
 			expect( doc.persistent, "Persistent flag").to.equal(false);
-			expect( doc.modified, "Modified flag").to.equal(true);
 		});
 		
 		//
@@ -714,6 +729,10 @@ describe( "EdgeAttribute class tests:", function ()
 			let func;
 			let result;
 			
+			expect( param.content, "Providing from" ).to.have.property('_from');
+			expect( param.content, "Providing to" ).to.have.property('_to');
+			expect( param.content, "Providing predicate" ).to.have.property(Dict.descriptor.kPredicate);
+			expect( param.content, "Providing attributes" ).to.have.property(Dict.descriptor.kAttributes);
 			func = () => {
 				doc =
 					new TestClass(
@@ -721,6 +740,10 @@ describe( "EdgeAttribute class tests:", function ()
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
+			expect( doc.document, "Has from" ).to.have.property('_from');
+			expect( doc.document, "Has to" ).to.have.property('_to');
+			expect( doc.document, "Has predicate" ).to.have.property(Dict.descriptor.kPredicate);
+			expect( doc.document, "Has attributes" ).to.have.property(Dict.descriptor.kAttributes);
 			
 			func = () => {
 				result = doc.insertDocument();
@@ -748,16 +771,11 @@ describe( "EdgeAttribute class tests:", function ()
 			let doc;
 			let func;
 			let result;
-			const selector = {};
-			selector._from = param.content._from;
-			selector._to = param.content._to;
-			selector.predicate = param.content.predicate;
-			selector.var = "EDGE";
 			
 			func = () => {
 				doc =
 					new TestClass(
-						param.request, selector, default_collection
+						param.request, {_key: key_insert_filled}, default_collection
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
@@ -857,42 +875,43 @@ describe( "EdgeAttribute class tests:", function ()
 			expect( doc.modified, "Modified flag").to.equal(false);
 		});
 		
-		//
-		// Insert persistent object.
-		//
-		// Should fail.
-		//
-		it( "Insert persistent object:", function ()
-		{
-			let doc;
-			let func;
-			let result;
-			
-			func = () => {
-				doc =
-					new TestClass(
-						param.request, key_insert_filled, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			
-			func = () => {
-				result = doc.insertDocument();
-			};
-			expect( func, "Insert" )
-				.to.throw( MyError, /document is persistent/ );
-			expect( doc.document, "Should not be empty").not.to.be.empty;
-			for( const field of doc.localFields )
-			{
-				if( field !== Dict.descriptor.kMStamp )
-					expect(doc.document, "Has local fields").to.have.property(field);
-			}
-			expect( result, "Insert result" ).to.equal( undefined );
-			expect( doc.persistent, "Persistent flag").to.equal(true);
-			expect( doc.modified, "Modified flag").to.equal(false);
-			key_insert_same = doc.document._key;
-		});
-*/
+		/*
+						//
+						// Insert persistent object.
+						//
+						// Should fail.
+						//
+						it( "Insert persistent object:", function ()
+						{
+							let doc;
+							let func;
+							let result;
+							
+							func = () => {
+								doc =
+									new TestClass(
+										param.request, key_insert_filled, default_collection
+									);
+							};
+							expect( func, "Instantiation" ).not.to.throw();
+							
+							func = () => {
+								result = doc.insertDocument();
+							};
+							expect( func, "Insert" )
+								.to.throw( MyError, /document is persistent/ );
+							expect( doc.document, "Should not be empty").not.to.be.empty;
+							for( const field of doc.localFields )
+							{
+								if( field !== Dict.descriptor.kMStamp )
+									expect(doc.document, "Has local fields").to.have.property(field);
+							}
+							expect( result, "Insert result" ).to.equal( undefined );
+							expect( doc.persistent, "Persistent flag").to.equal(true);
+							expect( doc.modified, "Modified flag").to.equal(false);
+							key_insert_same = doc.document._key;
+						});
+				*/
 	
 	});	// Insert.
 	

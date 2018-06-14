@@ -8,15 +8,18 @@
  * 	- The request (request).
  * 	- The edge collection (collection_edge).
  * 	- The document collection (collection_document).
- * 	- The test document (content):
- * 		- var:		[VAR] significant, locked and unique.
- * 		- name:		[NAME] can be duplicate.
- * 		- order:	[0] restricted.
+ *
+ * 	- Significant fields: [nid, lid].
+ * 	- Required fields: var.
+ * 	- Unique fields: gid.
+ * 	- Locked fields: sym.
+ * 	- Restricted fields: password.
+ * 	- Constraint: the name field equals "CONSTRAINED".
  */
 module.exports = {
 	
 	//
-	// Test collection.
+	// Test collections.
 	//
 	collection_edge		: 'test_Edge',
 	collection_document	: 'test_Document',
@@ -25,7 +28,12 @@ module.exports = {
 	// Document contents.
 	//
 	content : {
+		nid: 'terms/:id',
+		lid: 'LID',
+		gid: 'terms/:id:LID',
+		sym: 'SYMBOL',
 		var: 'VAR',
+		password: 'XXX',
 		name: "NAME",
 		order: 0
 	},
@@ -34,9 +42,15 @@ module.exports = {
 	// Replace contents.
 	//
 	replace : {
-		name: "NAME_REPLACED",
-		order: 10,
-		var: 'VAR_REPLACED'
+		nid: 'terms/:def',
+		lid: 'LID_REPLACED',
+		gid: 'terms/:def:LID_REPLACED',
+		sym: 'SYMBOL_replaced',
+		var: 'VAR_REPLACED',
+		password: 'XXX',
+		name: "NAME",
+		order: 1,
+		username: "USERNAME"
 	},
 	
 	//

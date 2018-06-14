@@ -368,8 +368,14 @@ describe( "Edge class tests:", function ()
 			{
 				expect( doc.document, `Missing property` ).to.have.property(field);
 				if( doc.document.hasOwnProperty( field ) )
-					expect( doc.document[ field ], `Property mismatch [${field}]` )
-						.to.equal( param.content[ field ] );
+				{
+					if( Array.isArray(doc.document[field]) )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.have.members( param.content[ field ] );
+					else
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.content[ field ] );
+				}
 			}
 			expect( doc.persistent, "Persistent flag").to.equal(false);
 			expect(doc.modified, "Modified flag").to.equal(false);
@@ -403,8 +409,14 @@ describe( "Edge class tests:", function ()
 					{
 						expect( doc.document, `Missing property` ).to.have.property(field);
 						if( doc.document.hasOwnProperty( field ) )
-							expect( doc.document[ field ], `Property mismatch [${field}]` )
-								.to.equal( param.content[ field ] );
+						{
+							if( Array.isArray(doc.document[field]) )
+								expect( doc.document[ field ], `Property mismatch [${field}]` )
+									.to.have.members( param.content[ field ] );
+							else
+								expect( doc.document[ field ], `Property mismatch [${field}]` )
+									.to.equal( param.content[ field ] );
+						}
 					}
 				}
 				expect( doc.persistent, "Persistent flag").to.equal(false);
@@ -444,8 +456,14 @@ describe( "Edge class tests:", function ()
 			{
 				expect( doc.document, `Missing property` ).to.have.property(field);
 				if( doc.document.hasOwnProperty( field ) )
-					expect( doc.document[ field ], `Property mismatch [${field}]` )
-						.to.equal( param.content[ field ] );
+				{
+					if( Array.isArray(doc.document[field]) )
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.have.members( param.content[ field ] );
+					else
+						expect( doc.document[ field ], `Property mismatch [${field}]` )
+							.to.equal( param.content[ field ] );
+				}
 			}
 			expect( doc.modified, "Modified flag").to.equal(false);
 		});
@@ -481,11 +499,23 @@ describe( "Edge class tests:", function ()
 				if( doc.document.hasOwnProperty( field ) )
 				{
 					if( doc.lockedFields.includes( field ) )
-						expect( doc.document[ field ], `Property mismatch [${field}]` )
-							.to.equal( param.replace[ field ] );
+					{
+						if( Array.isArray(doc.document[field]) )
+							expect( doc.document[ field ], `Property mismatch [${field}]` )
+								.to.have.members( param.replace[ field ] );
+						else
+							expect( doc.document[ field ], `Property mismatch [${field}]` )
+								.to.equal( param.replace[ field ] );
+					}
 					else
-						expect( doc.document[ field ], `Property mismatch [${field}]` )
-							.to.equal( param.content[ field ] );
+					{
+						if( Array.isArray(doc.document[field]) )
+							expect( doc.document[ field ], `Property mismatch [${field}]` )
+								.to.have.members( param.content[ field ] );
+						else
+							expect( doc.document[ field ], `Property mismatch [${field}]` )
+								.to.equal( param.content[ field ] );
+					}
 				}
 			}
 			expect( doc.document[ Dict.descriptor.kUsername ], "Added property" )

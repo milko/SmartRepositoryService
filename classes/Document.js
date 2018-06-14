@@ -485,8 +485,8 @@ class Document
 			// Errors will raise an exception.
 			//
 			if( doReplace										// Want to replace,
-				|| isLocked										// or field is locked,
-				|| (! this._document.hasOwnProperty( field )) )	// or not in document.
+			 || isLocked										// or field is locked,
+			 || (! this._document.hasOwnProperty( field )) )	// or not in document.
 				this.setDocumentProperty(
 					field,										// Field name.
 					( restricted.includes( field ) )			// If restricted
@@ -2074,36 +2074,36 @@ class Document
 	}	// document
 	
 	/**
-	 * Return list of significant fields
-	 *
-	 * This method should return the list of properties that will uniquely identify
-	 * the document, it is used when resolving a document from an object.
-	 *
-	 * The method should return an array of elements that represent the combination of
-	 * fields necessary to identify a single instance of the object in the database.
-	 * Each element of the array must be an array of descriptor _key elements: when
-	 * resolving the object, all elements of the returned array will be matched with
-	 * the object contents and if one of these combinations matches the fields in the
-	 * object, the document will be resolved using this combination.
-	 *
-	 * In this class we return an empty array, since there are no defined significant
-	 * properties: to resolve the document you must provide a reference in the
-	 * constructor..
-	 *
-	 * @returns {Array}	List of significant fields.
-	 */
-	get significantFields()
-	{
-		return [];																	// ==>
-		
-	}	// significantFields
-	
-	/**
 	 * Return list of required fields
 	 *
 	 * This method should return the list of required properties.
 	 *
 	 * In this class we return no properties, since the key can be database-assigned.
+	 *
+	 * The setDocumentProperties() method behaves as follows:
+	 * 	- The document is not persistent:
+	 * 		- The replace flag is false:
+	 * 			- Provided value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- The value is set.
+	 * 				- The field exists in the document:
+	 * 					- The value is not replaced.
+	 * 			- Deleted value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- No change.
+	 * 				- The field exists in the document:
+	 * 					- The value is not deleted.
+	 * 		- The replace flag is true:
+	 * 			- Provided value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- The value is set.
+	 * 				- The field exists in the document:
+	 * 					- The value is replaced.
+	 * 			- Deleted value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- No change.
+	 * 				- The field exists in the document:
+	 * 					- The value is deleted.
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
@@ -2119,6 +2119,31 @@ class Document
 	 * This method should return the list of unique properties.
 	 *
 	 * In this class we return the key.
+	 *
+	 * The setDocumentProperties() method behaves as follows:
+	 * 	- The document is not persistent:
+	 * 		- The replace flag is false:
+	 * 			- Provided value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- The value is set.
+	 * 				- The field exists in the document:
+	 * 					- The value is not replaced.
+	 * 			- Deleted value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- No change.
+	 * 				- The field exists in the document:
+	 * 					- The value is not deleted.
+	 * 		- The replace flag is true:
+	 * 			- Provided value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- The value is set.
+	 * 				- The field exists in the document:
+	 * 					- The value is replaced.
+	 * 			- Deleted value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- No change.
+	 * 				- The field exists in the document:
+	 * 					- The value is deleted.
 	 *
 	 * @returns {Array}	List of unique fields.
 	 */
@@ -2136,6 +2161,31 @@ class Document
 	 *
 	 * In this class we return the id, key and revision.
 	 *
+	 * The setDocumentProperties() method behaves as follows:
+	 * 	- The document is not persistent:
+	 * 		- The replace flag is false:
+	 * 			- Provided value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- The value is set.
+	 * 				- The field exists in the document:
+	 * 					- The value is not replaced.
+	 * 			- Deleted value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- No change.
+	 * 				- The field exists in the document:
+	 * 					- The value is not deleted.
+	 * 		- The replace flag is true:
+	 * 			- Provided value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- The value is set.
+	 * 				- The field exists in the document:
+	 * 					- The value is replaced.
+	 * 			- Deleted value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- No change.
+	 * 				- The field exists in the document:
+	 * 					- The value is deleted.
+	 *
 	 * @returns {Array}	List of locked fields.
 	 */
 	get lockedFields()
@@ -2143,6 +2193,56 @@ class Document
 		return [ '_id', '_key', '_rev' ];											// ==>
 		
 	}	// lockedFields
+	
+	/**
+	 * Return list of significant fields
+	 *
+	 * This method should return the list of properties that will uniquely identify
+	 * the document, it is used when resolving a document from an object.
+	 *
+	 * The method should return an array of elements that represent the combination of
+	 * fields necessary to identify a single instance of the object in the database.
+	 * Each element of the array must be an array of descriptor _key elements: when
+	 * resolving the object, all elements of the returned array will be matched with
+	 * the object contents and if one of these combinations matches the fields in the
+	 * object, the document will be resolved using this combination.
+	 *
+	 * In this class we return an empty array, since there are no defined significant
+	 * properties: to resolve the document you must provide a reference in the
+	 * constructor.
+	 *
+	 * The setDocumentProperties() method behaves as follows:
+	 * 	- The document is not persistent:
+	 * 		- The replace flag is false:
+	 * 			- Provided value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- The value is set.
+	 * 				- The field exists in the document:
+	 * 					- The value is not replaced.
+	 * 			- Deleted value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- No change.
+	 * 				- The field exists in the document:
+	 * 					- The value is not deleted.
+	 * 		- The replace flag is true:
+	 * 			- Provided value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- The value is set.
+	 * 				- The field exists in the document:
+	 * 					- The value is replaced.
+	 * 			- Deleted value:
+	 * 				- The field doesn't exist in the document:
+	 * 					- No change.
+	 * 				- The field exists in the document:
+	 * 					- The value is deleted.
+	 *
+	 * @returns {Array}	List of significant fields.
+	 */
+	get significantFields()
+	{
+		return [];																	// ==>
+		
+	}	// significantFields
 	
 	
 	/************************************************************************************
