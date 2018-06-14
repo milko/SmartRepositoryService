@@ -2,16 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/test/classDocument.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test/old_test_Document.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Document.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Description.numbers" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/paramDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/paramDocument.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/classDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/classDocument.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/test_Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_Document.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_Edge.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/disabled_test_Edge.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_EdgeAttribute.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/disabled_test_EdgeAttribute.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/Constants.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/Constants.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -27,7 +20,7 @@
     <option name="OUTPUT_DIRECTORY" value="$PROJECT_DIR$/exportToHTML" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.24368049">
+    <splitter split-orientation="horizontal" split-proportion="0.48771498">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="disabled_test_EdgeAttribute.js" pinned="false" current-in-tab="false">
@@ -48,7 +41,7 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Document.js" pinned="false" current-in-tab="true">
+          <file leaf-file-name="Document.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/classes/Document.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="277">
@@ -60,7 +53,7 @@
           <file leaf-file-name="Edge.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/classes/Edge.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="327">
+                <state relative-caret-position="4695">
                   <caret line="313" column="21" selection-start-line="313" selection-start-column="21" selection-end-line="313" selection-end-column="21" />
                 </state>
               </provider>
@@ -69,8 +62,26 @@
           <file leaf-file-name="Constants.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/utils/Constants.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="711">
-                  <caret line="422" column="41" selection-start-line="422" selection-start-column="41" selection-end-line="422" selection-end-column="41" />
+                <state relative-caret-position="6330">
+                  <caret line="425" column="5" selection-start-line="425" selection-start-column="5" selection-end-line="425" selection-end-column="5" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="old_test_Document.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/test/old_test_Document.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="270">
+                  <caret line="18" column="2" lean-forward="true" selection-start-line="18" selection-start-column="2" selection-end-line="18" selection-end-column="2" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="classDocument.js" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/test/classDocument.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="412">
+                  <caret line="144" column="10" lean-forward="true" selection-start-line="144" selection-start-column="10" selection-end-line="144" selection-end-column="10" />
                 </state>
               </provider>
             </entry>
@@ -78,88 +89,44 @@
         </leaf>
       </split-first>
       <split-second>
-        <splitter split-orientation="vertical" split-proportion="0.5641317">
-          <split-first>
-            <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-              <file leaf-file-name="test_Document.js" pinned="false" current-in-tab="true">
-                <entry file="file://$PROJECT_DIR$/test/test_Document.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="250">
-                      <caret line="77" column="45" lean-forward="true" selection-start-line="77" selection-start-column="45" selection-end-line="77" selection-end-column="45" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="classDocument.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/test/classDocument.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="381">
-                      <caret line="154" selection-start-line="143" selection-end-line="154" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="paramDocument.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/test/paramDocument.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="-188">
-                      <caret line="24" column="4" selection-start-line="24" selection-start-column="4" selection-end-line="24" selection-end-column="4" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="disabled_test_Edge.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/test/disabled_test_Edge.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="142">
-                      <caret line="523" column="11" selection-start-line="523" selection-start-column="11" selection-end-line="523" selection-end-column="11" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="paramEdge.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/test/paramEdge.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="480">
-                      <caret line="32" column="24" selection-start-line="32" selection-start-column="24" selection-end-line="32" selection-end-column="24" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="EdgeAttribute.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/classes/EdgeAttribute.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="3540">
-                      <caret line="236" column="8" selection-start-line="236" selection-start-column="8" selection-end-line="236" selection-end-column="8" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-            </leaf>
-          </split-first>
-          <split-second>
-            <leaf>
-              <file leaf-file-name="classDocument.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/test/classDocument.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="61">
-                      <caret line="1152" selection-start-line="1152" selection-end-line="1152" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="old_test_Document.js" pinned="false" current-in-tab="true">
-                <entry file="file://$PROJECT_DIR$/test/old_test_Document.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="162">
-                      <caret line="743" selection-start-line="743" selection-end-line="744" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-            </leaf>
-          </split-second>
-        </splitter>
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+          <file leaf-file-name="test_Document.js" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/test/test_Document.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="1071">
+                  <caret line="80" column="34" selection-start-line="80" selection-start-column="34" selection-end-line="80" selection-end-column="34" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="paramDocument.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/test/paramDocument.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="405">
+                  <caret line="27" column="4" selection-start-line="27" selection-start-column="4" selection-end-line="27" selection-end-column="4" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="paramEdge.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/test/paramEdge.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="480">
+                  <caret line="32" column="24" selection-start-line="32" selection-start-column="24" selection-end-line="32" selection-end-column="24" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="EdgeAttribute.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/classes/EdgeAttribute.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="3540">
+                  <caret line="236" column="8" selection-start-line="236" selection-start-column="8" selection-end-line="236" selection-end-column="8" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
       </split-second>
     </splitter>
   </component>
@@ -291,8 +258,8 @@
         <option value="$PROJECT_DIR$/classes/Document.js" />
         <option value="$PROJECT_DIR$/utils/Constants.js" />
         <option value="$PROJECT_DIR$/test/old_test_Document.js" />
-        <option value="$PROJECT_DIR$/test/classDocument.js" />
         <option value="$PROJECT_DIR$/test/test_Document.js" />
+        <option value="$PROJECT_DIR$/test/classDocument.js" />
       </list>
     </option>
   </component>
@@ -317,10 +284,10 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1280" />
+    <option name="x" value="639" />
     <option name="y" value="23" />
-    <option name="width" value="1280" />
-    <option name="height" value="1001" />
+    <option name="width" value="1919" />
+    <option name="height" value="1417" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -503,6 +470,7 @@
       <workItem from="1528839144819" duration="3532000" />
       <workItem from="1528872117358" duration="29833000" />
       <workItem from="1528963578521" duration="26138000" />
+      <workItem from="1529014297237" duration="992000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring Document unit tests.&#10;Developed functions to make lengthy checks: will not transform functions into classes to make checks inherited and reusable.">
       <created>1528974578541</created>
@@ -515,20 +483,19 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="530160000" />
+    <option name="totallyTimeSpent" value="531152000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
-    <editor active="true" />
+    <frame x="639" y="23" width="1919" height="1417" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.46992055" visible="true" weight="0.21445592" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4695451" visible="true" weight="0.14225501" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.49489218" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.49421743" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" order="9" />
-      <window_info id="Structure" order="1" sideWeight="0.5300795" side_tool="true" visible="true" weight="0.21445592" />
+      <window_info active="true" id="Structure" order="1" sideWeight="0.5304549" side_tool="true" visible="true" weight="0.14225501" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -714,7 +681,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/OldTest.js" />
     <entry file="file://$PROJECT_DIR$/classes/Descriptor.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="4215">
@@ -788,14 +754,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/Constants.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="711">
-          <caret line="422" column="41" selection-start-line="422" selection-start-column="41" selection-end-line="422" selection-end-column="41" />
+        <state relative-caret-position="6330">
+          <caret line="425" column="5" selection-start-line="425" selection-start-column="5" selection-end-line="425" selection-end-column="5" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/Edge.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="327">
+        <state relative-caret-position="4695">
           <caret line="313" column="21" selection-start-line="313" selection-start-column="21" selection-end-line="313" selection-end-column="21" />
         </state>
       </provider>
@@ -814,38 +780,37 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/old_test_Document.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="743" selection-start-line="743" selection-end-line="744" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/disabled_test_Edge.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="142">
-          <caret line="523" column="11" selection-start-line="523" selection-start-column="11" selection-end-line="523" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/test/disabled_test_Edge.js" />
     <entry file="file://$PROJECT_DIR$/test/paramDocument.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-188">
-          <caret line="24" column="4" selection-start-line="24" selection-start-column="4" selection-end-line="24" selection-end-column="4" />
+        <state relative-caret-position="405">
+          <caret line="27" column="4" selection-start-line="27" selection-start-column="4" selection-end-line="27" selection-end-column="4" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/classDocument.js">
+    <entry file="file://$PROJECT_DIR$/test/OldTest.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="381">
-          <caret line="154" selection-start-line="143" selection-end-line="154" />
+        <state relative-caret-position="-9083" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/old_test_Document.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="18" column="2" lean-forward="true" selection-start-line="18" selection-start-column="2" selection-end-line="18" selection-end-column="2" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/test_Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="250">
-          <caret line="77" column="45" lean-forward="true" selection-start-line="77" selection-start-column="45" selection-end-line="77" selection-end-column="45" />
+        <state relative-caret-position="1071">
+          <caret line="80" column="34" selection-start-line="80" selection-start-column="34" selection-end-line="80" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/classDocument.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="412">
+          <caret line="144" column="10" lean-forward="true" selection-start-line="144" selection-start-column="10" selection-end-line="144" selection-end-column="10" />
         </state>
       </provider>
     </entry>

@@ -123,10 +123,10 @@ class ClassTest
 		//
 		// Set instantiation test queue.
 		//
-		this.instantiation = [];
-		this.instantiation.push({
+		this.unit_instantiation = [];
+		this.unit_instantiation.push({
 			name: "Instantiate class without selector and without collection",
-			unit: this.instantiateNoSelectorNoCollection
+			unit: 'instantiateNoSelectorNoCollection'
 		});
 		
 	}	// constructor
@@ -141,18 +141,20 @@ class ClassTest
 	 */
 	testInstantiation()
 	{
+/*
 		//
 		// Post description.
 		//
 		describe( "Instantiation:", function () {
-			for( const test of this.instantiation ) {
+			for( const test of this.instantiationUnit ) {
 				it( "pippo", function () {
 					// test.unit( this );
 					expect(true).to.be.false;
 				});
 			}
 		});
-		
+*/
+	
 	}	// testInstantiation
 	
 
@@ -165,10 +167,8 @@ class ClassTest
 	 *
 	 * Assert that instantiating the class without the reference and collection
 	 * parameters raises an exception.
-	 *
-	 * @param theModule	{ClassTest}	The instance that called the method.
 	 */
-	instantiateNoSelectorNoCollection( theModule )
+	instantiateNoSelectorNoCollection()
 	{
 		//
 		// Instantiate without selector and without collection
@@ -178,7 +178,7 @@ class ClassTest
 		expect( () => {
 			const tmp =
 				new TestClass(
-					theModule.request
+					this.request
 				);
 		}).to.throw(
 			MyError,
@@ -1184,6 +1184,13 @@ class ClassTest
 	 * @return {String}
 	 */
 	get exampleCollection()		{	return this.example_collection;	}
+	
+	
+	/****************************************************************************
+	 * UNIT TEST GETTERS														*
+	 ****************************************************************************/
+	
+	get instantiationUnit()		{	return this.unit_instantiation;	}
 	
 }	// ClassTest.
 

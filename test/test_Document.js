@@ -73,12 +73,12 @@ else
 describe( "Document class tests:", function ()
 {
 	//
-	// Post description.
+	// Instantiation unit tests.
 	//
 	describe( "Instantiation:", function () {
-		for( const test of myTest.instantiation ) {
+		for( const test of myTest.instantiationUnit ) {
 			it( test.name, function () {
-				test.unit( myTest );
+				myTest[ test.unit ];
 			});
 		}
 	});
