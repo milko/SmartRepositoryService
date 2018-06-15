@@ -75,10 +75,20 @@ describe( "Document class tests:", function ()
 	//
 	// Instantiation unit tests.
 	//
+/*
 	describe( "Instantiation:", function () {
 		for( const test of myTest.instantiationUnit ) {
 			it( test.name, function () {
-				myTest[ test.unit ];
+				myTest[ test.unit ]( test.clas );
+			});
+		}
+	});
+*/
+	const tests = myTest.instantiationUnit;
+	describe( "Instantiation:", function () {
+		for( const test in tests ) {
+			it( tests[ test ].name, function () {
+				myTest[ test ]( tests[ test ].clas );
 			});
 		}
 	});

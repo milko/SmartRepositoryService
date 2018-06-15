@@ -123,35 +123,48 @@ class ClassTest
 		//
 		// Set instantiation test queue.
 		//
+/*
 		this.unit_instantiation = [];
 		this.unit_instantiation.push({
 			name: "Instantiate class without selector and without collection",
-			unit: 'instantiateNoSelectorNoCollection'
+			unit: 'instantiateNoSelectorNoCollection',
+			clas: TestClass
 		});
+*/
+		this.unit_instantiation = {};
+		this.unit_instantiation[ 'instantiateNoSelectorNoCollection' ] = {
+			name: "Instantiate class without selector and without collection",
+			clas: TestClass
+		};
 		
 	}	// constructor
 	
 
 	/****************************************************************************
-	 * TEST SUITES DEFINITIONS													*
+	 * TEST SUITES INITIALISERS													*
 	 ****************************************************************************/
 	
 	/**
-	 * Run instantiation tests
+	 * Define instantiation tests
+	 *
+	 * This method will load the instantiation tests queue with the desired test
+	 * records, each record is structured as follows:
+	 *
+	 * 	- name:	The test title used in the 'describe'.
+	 * 	- unit:	The name of the method that runs all the 'it' tests.
+	 * 	- clas:	The class to be used in the tests.
 	 */
 	testInstantiation()
 	{
+		//
+		// Set instantiation test queue.
+		//
 /*
-		//
-		// Post description.
-		//
-		describe( "Instantiation:", function () {
-			for( const test of this.instantiationUnit ) {
-				it( "pippo", function () {
-					// test.unit( this );
-					expect(true).to.be.false;
-				});
-			}
+		this.unit_instantiation = [];
+		this.unit_instantiation.push({
+			name: "Instantiate class without selector and without collection",
+			unit: 'instantiateNoSelectorNoCollection',
+			clas: TestClass
 		});
 */
 	
@@ -167,8 +180,10 @@ class ClassTest
 	 *
 	 * Assert that instantiating the class without the reference and collection
 	 * parameters raises an exception.
+	 *
+	 * @param theClass	{Function}	The class to test.
 	 */
-	instantiateNoSelectorNoCollection()
+	instantiateNoSelectorNoCollection( theClass = TestClass )
 	{
 		//
 		// Instantiate without selector and without collection
@@ -177,7 +192,7 @@ class ClassTest
 		//
 		expect( () => {
 			const tmp =
-				new TestClass(
+				new theClass(
 					this.request
 				);
 		}).to.throw(
