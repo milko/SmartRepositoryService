@@ -2002,7 +2002,7 @@ class Document
 	 */
 	get collection()
 	{
-		return this._collection;													// ==>
+		return ( this.hasOwnProperty( '_collection' ) ) ? this._collection : null;	// ==>
 		
 	}	// collection
 	

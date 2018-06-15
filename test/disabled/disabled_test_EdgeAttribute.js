@@ -28,19 +28,19 @@ const param = require( './paramEdgeAttribute' );
 //
 // Application.
 //
-const K = require( '../utils/Constants' );
-const Dict = require( '../dictionary/Dict' );
-const MyError = require( '../utils/MyError' );
+const K = require( '../../utils/Constants' );
+const Dict = require( '../../dictionary/Dict' );
+const MyError = require( '../../utils/MyError' );
 
 //
 // Base Document class.
 //
-const TestClass = require( '../classes/EdgeAttribute' );
+const TestClass = require( '../../classes/EdgeAttribute' );
 
 //
 // Node class.
 //
-const NodeClass = require( '../classes/Document' );
+const NodeClass = require( '../../classes/Document' );
 
 //
 // Set default collection names.

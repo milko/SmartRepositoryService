@@ -23,7 +23,7 @@ const expect = require('chai').expect;
 //
 // Support.
 //
-const param = require( './paramDocument' );
+const param = require( './disabled/paramDocument' );
 
 //
 // Application.

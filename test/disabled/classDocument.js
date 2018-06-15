@@ -14,9 +14,9 @@ const expect = require('chai').expect;
 //
 // Application.
 //
-const K = require( '../utils/Constants' );
-const Dict = require( '../dictionary/Dict' );
-const MyError = require( '../utils/MyError' );
+const K = require( '../../utils/Constants' );
+const Dict = require( '../../dictionary/Dict' );
+const MyError = require( '../../utils/MyError' );
 
 //
 // Test parameters.
@@ -26,7 +26,7 @@ const param = require( './paramDocument' );
 //
 // Base class.
 //
-const TestClass = require( '../classes/Document' );
+const TestClass = require( '../../classes/Document' );
 
 //
 // Base class with restrictions.
@@ -123,6 +123,7 @@ class ClassTest
 		//
 		// Set instantiation test queue.
 		//
+		this.instantiationUnitsInit();
 /*
 		this.unit_instantiation = [];
 		this.unit_instantiation.push({
@@ -131,34 +132,42 @@ class ClassTest
 			clas: TestClass
 		});
 */
+/*
 		this.unit_instantiation = {};
 		this.unit_instantiation[ 'instantiateNoSelectorNoCollection' ] = {
 			name: "Instantiate class without selector and without collection",
 			clas: TestClass
 		};
-		
+*/
+	
 	}	// constructor
 	
 
 	/****************************************************************************
-	 * TEST SUITES INITIALISERS													*
+	 * DEFAULT TEST MODULES DEFINITIONS											*
 	 ****************************************************************************/
 	
 	/**
 	 * Define instantiation tests
 	 *
 	 * This method will load the instantiation tests queue with the desired test
-	 * records, each record is structured as follows:
+	 * records, each record has a property:
 	 *
-	 * 	- name:	The test title used in the 'describe'.
-	 * 	- unit:	The name of the method that runs all the 'it' tests.
-	 * 	- clas:	The class to be used in the tests.
+	 * 	- The name of the method that runs all the 'it' tests, whose value is an
+	 * 	  object structured as follows:
+	 * 		- name:	The test title used in the 'describe'.
+	 * 		- clas:	The class to be used in the tests.
 	 */
-	testInstantiation()
+	instantiationUnitsInit()
 	{
 		//
 		// Set instantiation test queue.
 		//
+		this.instantiationUnitSet(
+			'instantiateNoSelectorNoCollection',
+			"Instantiate class without selector and without collection",
+			TestClass
+		);
 /*
 		this.unit_instantiation = [];
 		this.unit_instantiation.push({
@@ -168,7 +177,7 @@ class ClassTest
 		});
 */
 	
-	}	// testInstantiation
+	}	// instantiationUnitsInit
 	
 
 	/****************************************************************************
@@ -1155,6 +1164,230 @@ class ClassTest
 	
 	
 	/****************************************************************************
+	 * TEST UNIT SUITES INTERFACE												*
+	 ****************************************************************************/
+	
+	/**
+	 * Set instantiation unit test.
+	 *
+	 * See the unitSet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @param theName		{String}		Unit test title.
+	 * @param theClass		{String}		Unit test class, defaults to TestClass.
+	 */
+	instantiationUnitSet( theUnit, theName, theClass = TestClass ) {
+		this.unitSet( 'unit_instantiation', theUnit, theName, theClass );
+	}
+	
+	/**
+	 * Get instantiation unit test(s).
+	 *
+	 * See the unitGet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The record or false /null.
+	 */
+	instantiationUnitGet( theUnit = null ) {
+		return this.unitGet( 'unit_instantiation', theUnit );						// ==>
+	}
+	
+	/**
+	 * Delete instantiation unit test(s).
+	 *
+	 * See the unitDel() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The deleted record or false /null.
+	 */
+	instantiationUnitDel( theUnit = null ) {
+		return this.unitDel( 'unit_instantiation', theUnit );						// ==>
+	}
+	
+	
+	/****************************************************************************
+	 * TEST UNIT SUITES LOCAL INTERFACE											*
+	 ****************************************************************************/
+	
+	/**
+	 * Set unit test.
+	 *
+	 * This method can be used to set a unit test record, these records are stored as
+	 * an object whose properties represent the method name of the unit test and their
+	 * value is an object structured as follows:
+	 *
+	 * 	- name:	The unit test title, will be used for the 'describe'.
+	 * 	- clas:	The class to test, if omitted, the default TestClass will be set.
+	 *
+	 * The method expects the following parameters:
+	 *
+	 * 	- theGroup:	The name of the data member that holds the unit tests of that group.
+	 * 	- theUnit:	The unit test method name.
+	 * 	- theName:	The unit test title, used in the 'it'.
+	 * 	- theClass:	The class to test in the unit.
+	 *
+	 * @param theGroup		{String}		Unit test group data member name.
+	 * @param theUnit		{String}		Unit test method name.
+	 * @param theName		{String}		Unit test title.
+	 * @param theClass		{String}		Unit test class, defaults to TestClass.
+	 */
+	unitSet( theGroup, theUnit, theName, theClass )
+	{
+		//
+		// Init data member.
+		//
+		if( ! this.hasOwnProperty( theGroup ) )
+			this[ theGroup ] = {};
+		
+		//
+		// Init record.
+		//
+		if( ! this[ theGroup ].hasOwnProperty( theUnit ) )
+			this[ theGroup ][ theUnit ] = {};
+		
+		//
+		// Load record.
+		//
+		this[ theGroup ][ theUnit ].name = theName;
+		this[ theGroup ][ theUnit ].clas = theClass;
+		
+	}	// unitSet
+	
+	/**
+	 * Get unit test(s).
+	 *
+	 * This method can be used to retrieve the unit tests, provide a string to
+	 * retrieve the unit test record corresponding to the string, or provide null or
+	 * omit the parameter to retrieve all the instantiation tests.
+	 *
+	 * The instantiation unit test records are structured as follors:
+	 *
+	 * 	- unit:	The method name of the test, it contains an object:
+	 * 		- name:	The unit test title, will be used for the 'describe'.
+	 * 		- clas:	The class to test.
+	 *
+	 * If you provide a string, the method will return the matching unit object which
+	 * contains the name and class; if you omit the parameter, the method will return
+	 * all unit tests.
+	 *
+	 * If the current object does not have the unit tests data member, the method will
+	 * return false; if the provided string doesn't match any unit test, the method
+	 * will return null.
+	 *
+	 * The method expects the following parameters:
+	 *
+	 * 	- theGroup:	The name of the data member that holds the unit tests of that group.
+	 * 	- theUnit:	The unit test method name.
+	 *
+	 * Note that the returned objects are not sealed, so modify them at your own risk.
+	 *
+	 * @param theGroup		{String}		Unit test group data member name.
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The record or false /null.
+	 */
+	unitGet( theGroup, theUnit = null )
+	{
+		//
+		// Check data member.
+		//
+		if( ! this.hasOwnProperty( theGroup ) )
+			return false;															// ==>
+		
+		//
+		// Return all unit tests.
+		//
+		if( theUnit === null )
+			return this[ theGroup ];												// ==>
+		
+		//
+		// Handle unit record.
+		//
+		if( this[ theGroup ].hasOwnProperty( theUnit ) )
+			return this[ theGroup ][ theUnit ];										// ==>
+		
+		return null;																// ==>
+		
+	}	// unitGet
+	
+	/**
+	 * Delete unit test(s).
+	 *
+	 * This method can be used to remove the instantiation unit matching the provided
+	 * string, the method will return the following values:
+	 *
+	 * 	- false:	If the current object does not have the instantiation unit test
+	 * 				records data member.
+	 * 	- null:		If the provided string doesn't match any record.
+	 * 	- object:	The deleted record(s) if matched.
+	 *
+	 * If you omit the parameter, or pass null, the method will delete all the
+	 * records, but keep the data member: be careful when calling this method.
+	 *
+	 * The unit test records are structured as follors:
+	 *
+	 * 	- unit:	The method name of the test, it contains an object:
+	 * 		- name:	The unit test title, will be used for the 'describe'.
+	 * 		- clas:	The class to test.
+	 *
+	 * The method expects the following parameters:
+	 *
+	 * 	- theGroup:	The name of the data member that holds the unit tests of that group.
+	 * 	- theUnit:	The unit test method name.
+	 *
+	 * @param theGroup		{String}		Unit test group data member name.
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The deleted record or false /null.
+	 */
+	unitDel( theGroup, theUnit = null )
+	{
+		//
+		// Check data member.
+		//
+		if( ! this.hasOwnProperty( theGroup ) )
+			return false;															// ==>
+		
+		//
+		// Delete all unit tests.
+		//
+		if( theUnit === null )
+		{
+			//
+			// Clone records.
+			//
+			const clone = K.function.clone(this[ theGroup ]);
+			
+			//
+			// Delete records.
+			//
+			this[ theGroup ] = [];
+			
+			return clone;															// ==>
+		}
+		
+		//
+		// Handle unit record.
+		//
+		if( this[ theGroup ].hasOwnProperty( theUnit ) )
+		{
+			//
+			// Clone record.
+			//
+			const clone = K.function.clone(this[ theGroup ][theUnit]);
+			
+			//
+			// Delete records.
+			//
+			delete this[ theGroup ][theUnit];
+			
+			return clone;															// ==>
+		}
+		
+		return null;																// ==>
+		
+	}	// unitDel
+	
+	
+	/****************************************************************************
 	 * MEMBER GETTERS															*
 	 ****************************************************************************/
 	
@@ -1199,13 +1432,6 @@ class ClassTest
 	 * @return {String}
 	 */
 	get exampleCollection()		{	return this.example_collection;	}
-	
-	
-	/****************************************************************************
-	 * UNIT TEST GETTERS														*
-	 ****************************************************************************/
-	
-	get instantiationUnit()		{	return this.unit_instantiation;	}
 	
 }	// ClassTest.
 

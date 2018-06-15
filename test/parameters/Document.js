@@ -1,68 +1,56 @@
 'use strint';
 
-//
-// Application.
-//
-const Dict = require( '../dictionary/Dict' );
-
-
 /**
- * Edge test parameters.
+ * Document test parameters.
  *
  * The object implements the default parameters to the unit tests, it provides:
  *
  * 	- The request (request).
  * 	- The edge collection (collection_edge).
  * 	- The document collection (collection_document).
- * 	- The test document nodes array (nodes).
+ *
+ * 	- Significant fields: [nid, lid].
+ * 	- Required fields: var.
+ * 	- Unique fields: gid.
+ * 	- Locked fields: sym.
+ * 	- Restricted fields: password.
+ * 	- Constraint: the name field equals "CONSTRAINED".
  */
 module.exports = {
 	
 	//
-	// Test collection.
+	// Test collections.
 	//
 	collection_edge		: 'test_Edge',
 	collection_document	: 'test_Document',
 	
 	//
-	// Nodes.
+	// Document contents.
 	//
-	nodes : [
-		{
-			_key: 'NODE0',
-			var: 'FROM',
-			name: "Origin node",
-			order: 0
-		},
-		{
-			_key: 'NODE1',
-			var: 'TO',
-			name: "Destination node node",
-			order: 1
-		},
-		{
-			_key: 'NODE2',
-			var: 'OTHER',
-			name: "Other node",
-			order: 2
-		}
-	],
-	
-	//
-	// Content.
-	//
-	content: {
-		_from: 'test_Document/NODE0',
-		_to: 'test_Document/NODE1',
-		predicate: `terms/${Dict.term.kPredicateEnumOf}`,
-		var: "EDGE"
+	content : {
+		nid: 'terms/:id',
+		lid: 'LID',
+		gid: 'terms/:id:LID',
+		sym: 'SYMBOL',
+		var: 'VAR',
+		password: 'XXX',
+		name: "NAME",
+		order: 0
 	},
 	
-	replace: {
-		var: "OTHER_EDGE",
-		_from: 'test_Document/NODE1',
-		_to: 'test_Document/NODE2',
-		predicate: `terms/${Dict.term.kPredicateManagedBy}`
+	//
+	// Replace contents.
+	//
+	replace : {
+		nid: 'terms/:def',
+		lid: 'LID_REPLACED',
+		gid: 'terms/:def:LID_REPLACED',
+		sym: 'SYMBOL_replaced',
+		var: 'VAR_REPLACED',
+		password: 'XXX',
+		name: "NAME",
+		order: 1,
+		username: "USERNAME"
 	},
 	
 	//

@@ -28,14 +28,14 @@ const param = require( './paramEdge' );
 //
 // Application.
 //
-const K = require( '../utils/Constants' );
-const Dict = require( '../dictionary/Dict' );
-const MyError = require( '../utils/MyError' );
+const K = require( '../../utils/Constants' );
+const Dict = require( '../../dictionary/Dict' );
+const MyError = require( '../../utils/MyError' );
 
 //
 // Base Document class.
 //
-const Edge = require( '../classes/Edge' );
+const Edge = require( '../../classes/Edge' );
 
 //
 // Test class.
@@ -71,7 +71,7 @@ class TestClass extends Edge
 //
 // Node class.
 //
-const NodeClass = require( '../classes/Document' );
+const NodeClass = require( '../../classes/Document' );
 
 //
 // Set default collection names.

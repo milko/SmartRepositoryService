@@ -15,7 +15,7 @@ const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
 
 //
-// Tests.
+// Global tests.
 //
 const should = require('chai').should();
 const expect = require('chai').expect;
@@ -28,29 +28,32 @@ const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
 
 //
-// Test classes.
+// Unit test class.
 //
-const TestClass = require( './classDocument' ).class_base;
-const TestClassCustom = require( './classDocument' ).class_custom;
-const ClassTest = require( './classDocument' ).class_test;
+const UnitTestClass = require( './classes/DocumentUnitTest' );
 
 //
 // Test parameters.
 //
-const param = require( './paramDocument' );
+const param = require( './parameters/Document' );
+
+
+/********************************************************************************
+ * ENVIRONMENT INITIALISATION													*
+ ********************************************************************************/
 
 //
 // Instantiate test class.
 //
-const myTest = new ClassTest(
-	param.request,
-	'descriptors/name',
-	'toponyms',
-	param.collection_edge,
-	param.collection_document,
-	'toponyms'
-);
-
+const unitTest =
+	new UnitTestClass(
+		param.request,
+		'descriptors/name',
+		'descriptors',
+		param.collection_edge,
+		param.collection_document,
+		'terms'
+	);
 
 //
 // Clear collections.
@@ -65,6 +68,10 @@ else
 	db._collection( param.collection_document ).truncate();
 
 
+/********************************************************************************
+ * UNIT TESTS																	*
+ ********************************************************************************/
+
 /**
  * Document class tests
  *
@@ -75,20 +82,11 @@ describe( "Document class tests:", function ()
 	//
 	// Instantiation unit tests.
 	//
-/*
-	describe( "Instantiation:", function () {
-		for( const test of myTest.instantiationUnit ) {
-			it( test.name, function () {
-				myTest[ test.unit ]( test.clas );
-			});
-		}
-	});
-*/
-	const tests = myTest.instantiationUnitGet();
+	const tests = unitTest.instantiationUnitGet();
 	describe( "Instantiation:", function () {
 		for( const test in tests ) {
 			it( tests[ test ].name, function () {
-				myTest[ test ]( tests[ test ].clas );
+				unitTest[ test ]( tests[ test ].clas );
 			});
 		}
 	});

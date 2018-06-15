@@ -3,11 +3,11 @@
 //
 // Application.
 //
-const Dict = require( '../dictionary/Dict' );
+const Dict = require( '../../dictionary/Dict' );
 
 
 /**
- * EdgeAttribute test parameters.
+ * Edge test parameters.
  *
  * The object implements the default parameters to the unit tests, it provides:
  *
@@ -55,11 +55,6 @@ module.exports = {
 		_from: 'test_Document/NODE0',
 		_to: 'test_Document/NODE1',
 		predicate: `terms/${Dict.term.kPredicateEnumOf}`,
-		attributes: [
-			':class:descriptor:iaddr',
-			':class:descriptor:any',
-			':class:descriptor:txt'
-		],
 		var: "EDGE"
 	},
 	
@@ -67,12 +62,7 @@ module.exports = {
 		var: "OTHER_EDGE",
 		_from: 'test_Document/NODE1',
 		_to: 'test_Document/NODE2',
-		predicate: `terms/${Dict.term.kPredicateManagedBy}`,
-		attributes: [
-			':class:descriptor:iaddr',
-			':class:descriptor:any',
-			':class:descriptor:txt'
-		]
+		predicate: `terms/${Dict.term.kPredicateManagedBy}`
 	},
 	
 	//

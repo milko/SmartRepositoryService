@@ -6,6 +6,11 @@
 //
 
 //
+// Frameworks.
+//
+const db = require('@arangodb').db;
+
+//
 // Tests.
 //
 const should = require('chai').should();
@@ -17,6 +22,11 @@ const expect = require('chai').expect;
 const K = require( '../../utils/Constants' );
 const Dict = require( '../../dictionary/Dict' );
 const MyError = require( '../../utils/MyError' );
+
+//
+// Test parameters.
+//
+const param = require( '../parameters/Document' );
 
 //
 // Test classes.
@@ -87,6 +97,107 @@ class DocumentUnitTest extends UnitTest
 			TestClass
 		);
 		
+		//
+		// Instantiate with null selector and without collection.
+		//
+		this.instantiationUnitSet(
+			'instantiateNullSelectorNoCollection',
+			"Instantiate with null selector and without collection:",
+			TestClass
+		);
+		
+		//
+		// Instantiate with null selector and non existant collection.
+		//
+		this.instantiationUnitSet(
+			'instantiateNullSelectorMissingCollection',
+			"Instantiate with null selector and non existant collection:",
+			TestClass
+		);
+		
+		//
+		// Instantiate with default collection.
+		//
+		this.instantiationUnitSet(
+			'instantiateDefaultCollection',
+			"Instantiate with default collection:",
+			TestClass
+		);
+		
+		//
+		// Instantiate with existing edge collection.
+		//
+		this.instantiationUnitSet(
+			'instantiateEdgeCollection',
+			"Instantiate with existing edge collection:",
+			TestClass
+		);
+		
+		//
+		// Instantiate with existing document collection.
+		//
+		this.instantiationUnitSet(
+			'instantiateDocumentCollection',
+			"Instantiate with existing document collection:",
+			TestClass
+		);
+		
+		//
+		// Instantiate mutable/immutable document.
+		//
+		this.instantiationUnitSet(
+			'instantiateMutableImmutableDocument',
+			"Instantiate mutable/immutable document:",
+			TestClass,
+			param.content
+		);
+		
+		//
+		// Instantiate with invalid _id reference.
+		//
+		this.instantiationUnitSet(
+			'instantiateInvalidReferenceId',
+			"Instantiate with invalid _id reference:",
+			TestClass
+		);
+		
+		//
+		// Instantiate with cross-collection reference.
+		//
+		this.instantiationUnitSet(
+			'instantiateCrossCollectionReference',
+			"Instantiate with cross-collection reference:",
+			TestClass
+		);
+		
+		//
+		// Instantiate with not found _id reference.
+		//
+		this.instantiationUnitSet(
+			'instantiateNotFoundIdReference',
+			"Instantiate with not found reference:",
+			TestClass
+		);
+		
+		//
+		// Instantiate with found reference.
+		//
+		this.instantiationUnitSet(
+			'instantiateFoundReference',
+			"Instantiate with found reference:",
+			TestClass
+		);
+		
+		//
+		// Instantiate with content.
+		//
+		this.instantiationUnitSet(
+			'instantiateWithContent',
+			"Instantiate with content:",
+			TestClass,
+			param.content
+		);
+		
 	}	// instantiationUnitsInit
 	
 	
@@ -97,17 +208,371 @@ class DocumentUnitTest extends UnitTest
 	/**
 	 * Instantiate class without selector and without collection
 	 *
+	 * Assert instantiating the class without the reference and collection.
+	 *
+	 * Should fail with base class and succeed with custom class.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	instantiateNoSelectorNoCollection( theClass, theParam = null )
+	{
+		//
+		// Should raise: Missing required parameter.
+		//
+		this.testInstantiateNoSelectorNoCollectionFail( TestClass );
+		
+		//
+		// Should succeed, because the custom class implements default collection.
+		//
+		if( TestClassCustom !== null )
+			this.testInstantiateNoSelectorNoCollectionSucceed( TestClassCustom );
+		
+	}	// instantiateNoSelectorNoCollection
+	
+	/**
+	 * Instantiate with null selector and without collection.
+	 *
+	 * Assert instantiating the class with null reference and no collection.
+	 *
+	 * Should fail with base class and succeed with custom class.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	instantiateNullSelectorNoCollection( theClass, theParam = null )
+	{
+		//
+		// Should raise: Missing required parameter.
+		//
+		this.testInstantiateNullSelectorNoCollectionFail( TestClass, theParam );
+		
+		//
+		// Should succeed with custom class: it implements the default collection.
+		//
+		if( TestClassCustom !== null )
+			this.testInstantiateNullSelectorNoCollectionSucceed(
+				TestClassCustom, theParam
+			);
+		
+	}	// instantiateNullSelectorNoCollection
+	
+	/**
+	 * Instantiate with null selector and non existant collection.
+	 *
+	 * Assert that instantiating the class with null reference and a non existing
+	 * collection parameters raises an exception.
+	 *
+	 * Should fail with both base and custom class.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	instantiateNullSelectorMissingCollection( theClass, theParam = null )
+	{
+		//
+		// Init local storage.
+		//
+		const test_collection = 'test';
+		
+		//
+		// Remove test collection.
+		//
+		const collection = db._collection( test_collection );
+		if( collection )
+			db._drop( test_collection );
+		
+		//
+		// Should fail with both classes.
+		//
+		this.testInstantiateNullSelectorMissingCollectionFail(
+			TestClass, test_collection
+		);
+		this.testInstantiateNullSelectorMissingCollectionFail(
+			TestClassCustom, test_collection
+		);
+		
+	}	// instantiateNullSelectorMissingCollection
+	
+	/**
+	 * Instantiate with default collection.
+	 *
+	 * In this class we test both the base class, that should raise an exception, and
+	 * the custom class that should not: we use routines to perform these tests.
+	 *
+	 * In derived classes that do not declare a custom class you must overload this
+	 * method.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	instantiateDefaultCollection( theClass, theParam = null )
+	{
+		//
+		// Test class without default collection.
+		//
+		this.testDefaultCollectionFail( TestClass, theParam );
+		
+		//
+		// Test class with default collection.
+		//
+		if( TestClassCustom !== null )
+			this.testDefaultCollectionSucceed(
+				TestClassCustom, theParam
+			);
+		
+	}	// instantiateDefaultCollection
+	
+	/**
+	 * Instantiate with existing edge collection.
+	 *
+	 * For the base class it will succeed, for custom class it will raise an
+	 * exception, because it implements a default document collection.
+	 *
+	 * In derived classes you should overload this method if the class expects
+	 * collections of a specific type.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	instantiateEdgeCollection( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testInstantiateEdgeSucceed( TestClass, theParam );
+		
+		//
+		// Should fail.
+		//
+		if( TestClassCustom !== null )
+			this.testInstantiateEdgeFail(
+				TestClassCustom, theParam
+			);
+		
+	}	// instantiateEdgeCollection
+	
+	/**
+	 * Instantiate with existing document collection.
+	 *
+	 * The base class accepts both types, the custom class implements a document
+	 * default collection, so both classes should succeed.
+	 *
+	 * In derived classes you should overload this method if the class expects
+	 * collections of a specific type.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	instantiateDocumentCollection( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testInstantiateDocumentSucceed( TestClass, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( TestClassCustom !== null )
+			this.testInstantiateDocumentSucceed(
+				TestClassCustom, theParam
+			);
+		
+	}	// instantiateDocumentCollection
+	
+	/**
+	 * Instantiate mutable/immutable document.
+	 *
+	 * Assert that the document data is immutable only when instantiated from an
+	 * existing reference.
+	 *
+	 * This method expects both parameters to be provided.
+	 *
+	 * Should succeed for both the base and custom classes.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	instantiateMutableImmutableDocument( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testInstantiateMutableImmutable( TestClass, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( TestClassCustom !== null )
+			this.testInstantiateMutableImmutable(
+				TestClassCustom, theParam
+			);
+		
+	}	// instantiateMutableImmutableDocument
+	
+	/**
+	 * Instantiate with invalid _id reference.
+	 *
+	 * Assert that the provided _id reference is valid.
+	 *
+	 * Should fail for both the base and custom classes.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	instantiateInvalidReferenceId( theClass, theParam = null )
+	{
+		//
+		// Should fail.
+		//
+		this.testInstantiateInvalidIdNoDefaultCollection( TestClass, theParam );
+		
+		//
+		// Should fail.
+		//
+		if( TestClassCustom !== null )
+			this.testInstantiateInvalidIdDefaultCollection(
+				TestClassCustom, theParam
+			);
+		
+	}	// instantiateInvalidReferenceId
+	
+	/**
+	 * Instantiate with cross-collection reference.
+	 *
+	 * Assert that it fails if the provided reference is not of the same collection as
+	 * the provided one, or the default collection.
+	 *
+	 * Should fail for both the base and custom classes.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	instantiateCrossCollectionReference( theClass, theParam = null )
+	{
+		//
+		// Should fail.
+		//
+		this.testInstantiateCrossCollectionReferenceProvidedCollection(
+			TestClass, theParam
+		);
+		
+		//
+		// Should fail.
+		//
+		if( TestClassCustom !== null )
+			this.testInstantiateCrossCollectionReferenceDefaultCollection(
+				TestClassCustom, theParam
+			);
+		
+	}	// instantiateCrossCollectionReference
+	
+	/**
+	 * Instantiate with not found _id reference.
+	 *
+	 * Assert that it fails if the provided reference is not found in the collection.
+	 *
+	 * Should fail for both the base and custom classes.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	instantiateNotFoundIdReference( theClass, theParam = null )
+	{
+		//
+		// Should fail.
+		//
+		this.testInstantiateNotFoundIdReferenceProvidedCollection(
+			TestClass, theParam
+		);
+		
+		//
+		// Should fail.
+		//
+		if( TestClassCustom !== null )
+			this.testInstantiateNotFoundIdReferenceDefaultCollection(
+				TestClassCustom, theParam
+			);
+		
+	}	// instantiateCrossCollectionReference
+	
+	/**
+	 * Instantiate with found reference.
+	 *
+	 * Assert that it succeeds if the reference is found in the right collection.
+	 *
+	 * Should succeed for both the base and custom classes.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	instantiateFoundReference( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testInstantiateFoundReferenceProvidedCollection(
+			TestClass, theParam
+		);
+		
+		//
+		// Should fail.
+		//
+		if( TestClassCustom !== null )
+			this.testInstantiateFoundReferenceDefaultCollection(
+				TestClassCustom, theParam
+			);
+		
+	}	// instantiateFoundReference
+	
+	/**
+	 * Instantiate with content.
+	 *
+	 * Assert that it succeeds and double check collection constraints.
+	 *
+	 * Should succeed for both the base and custom classes.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	instantiateWithContent( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		// this.testInstantiateWithContentProvidedCollection(
+		// 	TestClass, theParam
+		// );
+		
+		//
+		// Should fail.
+		//
+		if( TestClassCustom !== null )
+			this.testInstantiateWithContentDefaultCollection(
+				TestClassCustom, theParam
+			);
+	
+	}	// instantiateWithContent
+	
+	
+	/****************************************************************************
+	 * INSTANTIATION TEST ROUTINE DEFINITIONS									*
+	 ****************************************************************************/
+	
+	/**
+	 * Fail instantiate class without selector and without collection
+	 *
 	 * Assert that instantiating the class without the reference and collection
 	 * parameters raises an exception.
 	 *
 	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
-	instantiateNoSelectorNoCollection( theClass = TestClass )
+	testInstantiateNoSelectorNoCollectionFail( theClass, theParam = null )
 	{
 		//
-		// Instantiate without selector and without collection
-		//
-		// Should raise Missing required parameter.
+		// Should raise: Missing required parameter.
 		//
 		expect( () => {
 			const tmp =
@@ -119,12 +584,1154 @@ class DocumentUnitTest extends UnitTest
 			/Missing required parameter/
 		);
 		
-	}	// inst_selNo_colNo
+	}	// testInstantiateNoSelectorNoCollectionFail
+	
+	/**
+	 * Fail instantiate class without selector and without collection
+	 *
+	 * Assert that instantiating the class without the reference and collection
+	 * parameters succeeds: this should only occur if the class implements default
+	 * collection.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateNoSelectorNoCollectionSucceed( theClass, theParam = null )
+	{
+		//
+		// Should raise: Missing required parameter.
+		//
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request
+				);
+		}).not.to.throw();
+		
+	}	// testInstantiateNoSelectorNoCollectionSucceed
+	
+	/**
+	 * Fail instantiate with null selector and without collection.
+	 *
+	 * Assert that instantiating the class with null reference and no collection
+	 * parameters raises an exception.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateNullSelectorNoCollectionFail( theClass, theParam = null )
+	{
+		//
+		// Should raise: Missing required parameter.
+		//
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					null
+				);
+		}).to.throw(
+			MyError,
+			/Missing required parameter/
+		);
+		
+	}	// testInstantiateNullSelectorNoCollectionFail
+	
+	/**
+	 * Succeed instantiate with null selector and without collection.
+	 *
+	 * Assert that instantiating the class with null reference and no collection
+	 * parameters succeeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateNullSelectorNoCollectionSucceed( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					null
+				);
+		}).not.to.throw();
+		
+	}	// testInstantiateNullSelectorNoCollectionSucceed
+	
+	/**
+	 * Fail with null selector and non existant collection.
+	 *
+	 * Assert that instantiating the class with null reference and a non existing
+	 * collection parameters raises an exception.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateNullSelectorMissingCollectionFail( theClass, theParam = null )
+	{
+		//
+		// Should raise: unknown or invalid collection name.
+		//
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					null,
+					theParam
+				);
+		}).to.throw(
+			MyError,
+			/unknown or invalid collection name/
+		);
+		
+	}	// testInstantiateNullSelectorMissingCollectionFail
+	
+	/**
+	 * Succeed with null selector and non existant collection.
+	 *
+	 * Assert that instantiating the class with null reference and a non existing
+	 * collection parameters succeeds: this should only be vaild for classes that have
+	 * a default collection.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateNullSelectorMissingCollectionSucceed( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					null,
+					theParam
+				);
+		}).not.to.throw();
+		
+	}	// testInstantiateNullSelectorMissingCollectionSucceed
+	
+	/**
+	 * Test instantiation with missing default collection
+	 *
+	 * Perform tests for default collection with class that does not have default
+	 * collection.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testDefaultCollectionFail( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		let action;
+		
+		//
+		// Instantiate without collection.
+		// Should raise: Missing required parameter.
+		//
+		message = "Missing selector and missing collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request
+				);
+		};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/Missing required parameter/
+		);
+		
+		//
+		// Instantiate with null selector and provided collection.
+		// Collection should be the provided one.
+		//
+		message = "Null selector and provided collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.compatibleCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Collection name";
+		expect( doc.collection, `${message} - ${action}` )
+			.to.equal( this.compatibleCollection );
+		
+		//
+		// Instantiate with existing _id reference and missing collection.
+		// Collection should be the extracted from the reference.
+		//
+		message = "Existing reference and missing collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.exampleId
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Collection name";
+		expect( doc.collection, `${message} - ${action}` )
+			.to.equal( this.exampleId.split('/')[ 0 ] );
+		
+	}	// testDefaultCollectionFail
+	
+	/**
+	 * Test instantiation with existing default collection
+	 *
+	 * Perform tests for default collection with class that has default collection.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testDefaultCollectionSucceed( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		let action;
+		
+		//
+		// Instantiate without collection.
+		// Should raise: Missing required parameter.
+		//
+		message = "Missing selector and missing collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Collection name";
+		expect( doc.collection, `${message} - ${action}` )
+			.to.equal( doc.defaultCollection );
+		
+		//
+		// Instantiate with null selector and provided collection.
+		// Collection should be the provided one.
+		//
+		message = "Null selector and provided collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.compatibleCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Collection name";
+		expect( doc.collection, `${message} - ${action}` )
+			.to.equal( this.compatibleCollection );
+		
+		//
+		// Instantiate with existing _id reference and missing collection.
+		// Collection should be the extracted from the reference.
+		// Should raise an exception.
+		//
+		message = "Existing reference and missing collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.exampleId
+				);
+		};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/Invalid document reference: cross-collection reference/
+		);
+		
+	}	// testDefaultCollectionSucceed
+	
+	/**
+	 * Test successful instantiation with existing edge collection
+	 *
+	 * Assert instantiating with edge collection succeeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateEdgeSucceed( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					null,
+					this.edgeCollection
+				);
+		}).not.to.throw();
+		
+	}	// testInstantiateEdgeSucceed
+	
+	/**
+	 * Test successful instantiation with existing document collection
+	 *
+	 * Assert instantiating with document collection succeeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateDocumentSucceed( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					null,
+					this.documentCollection
+				);
+		}).not.to.throw();
+		
+	}	// testInstantiateDocumentSucceed
+	
+	/**
+	 * Test unsuccessful instantiation with existing edge collection
+	 *
+	 * Assert instantiating with edge collection fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateEdgeFail( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					null,
+					this.edgeCollection
+				);
+		}).to.throw(
+			MyError,
+			/Invalid collection/
+		);
+		
+	}	// testInstantiateEdgeFail
+	
+	/**
+	 * Test unsuccessful instantiation with existing document collection
+	 *
+	 * Assert instantiating with document collection fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateDocumentFail( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					null,
+					this.documentCollection
+				);
+		}).to.throw(
+			MyError,
+			/Invalid collection/
+		);
+		
+	}	// testInstantiateDocumentFail
+	
+	/**
+	 * Instantiate mutable/immutable document.
+	 *
+	 * Assert that the document data is immutable only when instantiated from an
+	 * existing reference.
+	 *
+	 * You should always provide both parameters.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateMutableImmutable( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		let action;
+		
+		//
+		// Empty mutable document.
+		//
+		message = "Empty mutable document";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection,
+					false
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Should be mutable";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.sealed;
+		action = "Modified flag";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Empty immutable document.
+		//
+		message = "Empty immutable document";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection,
+					true
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Should be mutable";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.sealed;
+		action = "Modified flag";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Filled mutable document.
+		//
+		message = "Filled mutable document";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection,
+					false
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Should be mutable";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.sealed;
+		action = "Modified flag";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Filled immutable document.
+		//
+		message = "Filled immutable document";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection,
+					true
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Should be mutable";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.sealed;
+		action = "Modified flag";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Referenced mutable document.
+		//
+		message = "Referenced mutable document";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.exampleId,
+					this.exampleCollection,
+					false
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Should be mutable";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.sealed;
+		action = "Modified flag";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Referenced immutable document.
+		//
+		message = "Referenced immutable document";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.exampleId,
+					this.exampleCollection,
+					true
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Should be immutable";
+		expect( doc.document, `${message} - ${action}` ).to.be.sealed;
+		action = "Modified flag";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+	}	// testInstantiateMutableImmutable
+	
+	/**
+	 * Instantiate with invalid _id reference and default collection.
+	 *
+	 * Assert that the provided _id reference is invalid. This test assumes that the
+	 * class implements a default collection: the test will assert that the error is
+	 * of the correct type.
+	 *
+	 * Should always fail.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateInvalidIdDefaultCollection( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					`XXXXXXXX`
+				);
+		}).to.throw(
+			MyError,
+			/not found in collection/
+		);
+		
+	}	// testInstantiateInvalidIdDefaultCollection
+	
+	/**
+	 * Instantiate with invalid _id reference.
+	 *
+	 * Assert that the provided _id reference is invalid. This test assumes that the
+	 * class does not implement a default collection: the test will assert that the
+	 * error is of the correct type.
+	 *
+	 * Should always fail.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateInvalidIdNoDefaultCollection( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					`XXXXXXXX`
+				);
+		}).to.throw(
+			MyError,
+			/invalid object reference handle/
+		);
+		
+	}	// testInstantiateInvalidIdNoDefaultCollection
+	
+	/**
+	 * Instantiate with cross-collection reference and default collection.
+	 *
+	 * Assert that the provided _id reference belongs to the same declared or implicit
+	 * collection.
+	 *
+	 * Should always fail.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateCrossCollectionReferenceDefaultCollection( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					this.exampleId
+				);
+		}).to.throw(
+			MyError,
+			/cross-collection reference/
+		);
+		
+	}	// testInstantiateCrossCollectionReferenceDefaultCollection
+	
+	/**
+	 * Instantiate with cross-collection reference and provided collection.
+	 *
+	 * Assert that the provided _id reference belongs to the same declared or implicit
+	 * collection.
+	 *
+	 * Should always fail.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateCrossCollectionReferenceProvidedCollection( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					this.exampleId,
+					this.defaultTestCollection
+				);
+		}).to.throw(
+			MyError,
+			/cross-collection reference/
+		);
+		
+	}	// testInstantiateCrossCollectionReferenceProvidedCollection
+	
+	/**
+	 * Instantiate with not found _id reference and default collection.
+	 *
+	 * Assert that the test raises an error of the not found type.
+	 *
+	 * Should always fail.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateNotFoundIdReferenceDefaultCollection( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					`${this.defaultTestCollection}/XXXXXXXX`
+				);
+		}).to.throw(
+			MyError,
+			/not found in collection/
+		);
+		
+	}	// testInstantiateNotFoundIdReferenceDefaultCollection
+	
+	/**
+	 * Instantiate with not found _id reference and provided collection.
+	 *
+	 * Assert that the test raises an error of the not found type.
+	 *
+	 * Should always fail.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateNotFoundIdReferenceProvidedCollection( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					`${this.defaultTestCollection}/XXXXXXXX`,
+					this.defaultTestCollection
+				);
+		}).to.throw(
+			MyError,
+			/not found in collection/
+		);
+		
+	}	// testInstantiateNotFoundIdReferenceProvidedCollection
+	
+	/**
+	 * Instantiate with found reference and default collection.
+	 *
+	 * Assert that the test raises an error only if the provided reference
+	 * doesn't match the default collection.
+	 *
+	 * Should always fail.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateFoundReferenceDefaultCollection( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		let action;
+		
+		//
+		// Test instantiation with reference collection different than default collection.
+		// Should fail: the provided _id is of a different collection than the default
+		// collection.
+		//
+		message = "Reference collection different than default collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.exampleId
+				);
+		};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/cross-collection reference/
+		);
+		
+		//
+		// Test instantiation with reference collection different than provided collection.
+		// Should fail: the provided _id is of a different collection than the provided
+		// collection.
+		//
+		message = "Reference collection different than provided collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.exampleId,
+					this.compatibleCollection
+				);
+		};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/cross-collection reference/
+		);
+		
+		//
+		// Test instantiation with reference collection same as provided collection.
+		// Should succeed.
+		//
+		message = "Reference collection same as provided collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.exampleId,
+					this.exampleCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.exampleCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Insert test document.
+		//
+		const meta =
+			db._collection( doc.defaultCollection )
+				.insert({
+					name: "PIPPO"
+				});
+		
+		//
+		// Test instantiation with reference collection inferred and same as default collection.
+		// Should succeed.
+		//
+		message = "Reference collection inferred and same as default collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					meta._id
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Remove test document.
+		//
+		db._remove(meta._id);
+		
+	}	// testInstantiateFoundReferenceDefaultCollection
+	
+	/**
+	 * Instantiate with found reference and provided collection.
+	 *
+	 * Assert that the test raises an error only if the provided reference doesn't
+	 * match the provided collection.
+	 *
+	 * Should always fail.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateFoundReferenceProvidedCollection( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		let action;
+		
+		//
+		// Test instantiation with reference collection different than provided collection.
+		// Should fail: the provided _id is of a different collection than the provided
+		// collection.
+		//
+		message = "Reference collection different than provided collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.exampleId,
+					this.compatibleCollection
+				);
+		};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/cross-collection reference/
+		);
+		
+		//
+		// Test instantiation with reference collection same as provided collection.
+		// Should succeed.
+		//
+		message = "Reference collection same as provided collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.exampleId,
+					this.exampleCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.exampleCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Insert test document.
+		//
+		const meta =
+			db._collection( this.defaultTestCollection )
+				.insert({
+					name: "PIPPO"
+				});
+		
+		//
+		// Test instantiation with collection inferred from reference.
+		// Should succeed.
+		//
+		message = "Collection inferred from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					meta._id
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Remove test document.
+		//
+		db._remove(meta._id);
+		
+	}	// testInstantiateFoundReferenceProvidedCollection
+	
+	/**
+	 * Instantiate with content and default collection.
+	 *
+	 * Assert that the test succeeds both with and without collection.
+	 *
+	 * Should always succeed.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateWithContentDefaultCollection( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		let action;
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+
+		expect(theParam, "Not an object").to.be.an.object;
+		
+		//
+		// Check object state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Check content.
+		//
+		this.validateInstantiateContents( "Check contents", doc, theParam );
+		
+	}	// testInstantiateWithContentDefaultCollection
 	
 	
 	/****************************************************************************
 	 * VALIDATION UTILITIES														*
 	 ****************************************************************************/
+	
+	/**
+	 * Validate the contents after inserting.
+	 *
+	 * This method can be used to assert that the provided contents can be found in
+	 * the document, except for restricted properties.
+	 *
+	 * It will iterate through theNewData properties and set them one by one,
+	 * asserting that the operation succeeds or raises an exception. Once this process
+	 * is finished it will compare the values of the updated object with the provided
+	 * data and assert that the object contents are as required.
+	 *
+	 * The method does not return any status, errors are expected to be posted during
+	 * the unit tests.
+	 *
+	 * @param theMessage	{String}	The main error message part.
+	 * @param theObject		{Object}	The tested class instance.
+	 * @param theContents	{Object}	The data used for instantiation.
+	 */
+	validateInstantiateContents(
+		theMessage,		// Error message.
+		theObject,		// The document object.
+		theContents		// The instantiation contents data.
+	)
+	{
+		//
+		// Init local storage.
+		//
+		let status;
+		let action;
+		
+		//
+		// Flatten significant fields.
+		//
+		let significant = [];
+		if( theObject.significantFields.length > 0 )
+			significant = K.function.flatten(theObject.significantFields);
+		
+		//
+		// Replace properties.
+		//
+		for( const field in theContents )
+		{
+			//
+			// Set action.
+			//
+			if( theObject.restrictedFields.includes( field ) )
+			{
+				status = 'R';
+				action = `Restricted field [${field}]`;
+			}
+			else if( significant.includes( field ) )
+			{
+				status = 'S';
+				action = `Significant field [${field}]`;
+			}
+			else if( theObject.requiredFields.includes( field ) )
+			{
+				status = 'Q';
+				action = `Required field [${field}]`;
+			}
+			else if( theObject.uniqueFields().includes( field ) )
+			{
+				status = 'U';
+				action = `Unique field [${field}]`;
+			}
+			else if( theObject.lockedFields().includes( field ) )
+			{
+				status = 'L';
+				action = `Locked field [${field}]`;
+			}
+			else
+			{
+				status = null;
+				action = `Field [${field}]`;
+			}
+			
+			//
+			// Handle provided value and not restricted.
+			//
+			if( (status !== 'R')					// Restricted field,
+			 && (theContents[ field ] !== null) )	// or deleted field.
+			{
+				//
+				// Adjust action.
+				//
+				action += ' set';
+				
+				//
+				// Assert field is there.
+				//
+				expect( theObject.document, `${theMessage} - ${action}` ).to.have.property(field);
+				if( theObject.document.hasOwnProperty( field ) )
+				{
+					//
+					// Parse by descriptor status.
+					//
+					switch( status )
+					{
+						//
+						// Locked fields are set.
+						//
+						case 'L':
+							compareContents(
+								theContents[ field ],
+								theObject.document[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+						//
+						// Significant fields are set.
+						//
+						case 'S':
+							compareContents(
+								theContents[ field ],
+								theObject.document[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+						//
+						// Required fields are set.
+						//
+						case 'Q':
+							compareContents(
+								theContents[ field ],
+								theObject.document[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+						//
+						// Unique fields are set.
+						//
+						case 'U':
+							compareContents(
+								theContents[ field ],
+								theObject.document[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+						//
+						// All other fields are set.
+						//
+						default:
+							compareContents(
+								theContents[ field ],
+								theObject.document[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+					}	// Parsing by descriptor status.
+					
+				}	// Has field.
+				
+			}	// Neither restricted nor deleted.
+			
+			//
+			// Handle restricted or deleted fields.
+			// Should not have been set, or should have been deleted.
+			//
+			else
+			{
+				//
+				// Update action.
+				//
+				if( theContents[ field ] !== null )
+					action += " deleted";
+				
+				//
+				// Assert property is not there.
+				//
+				expect( theDestination, `${theMessage} - ${action}` )
+					.not.to.have.property(field);
+				
+			}	// Restricted or deleted.
+			
+		}	// Iterating replace properties.
+		
+	}	// validateInstantiateContents
 	
 	/**
 	 * Validate replacing data in persistent object
@@ -511,7 +2118,7 @@ class DocumentUnitTest extends UnitTest
 			// Handle provided value and not restricted.
 			//
 			if( (status !== 'R')					// Restricted field,
-				&& (theReplaced[ field ] !== null) )	// or deleted field.
+			 && (theReplaced[ field ] !== null) )	// or deleted field.
 			{
 				//
 				// Assert field is there.
@@ -1041,6 +2648,18 @@ class DocumentUnitTest extends UnitTest
 	instantiationUnitDel( theUnit = null ) {
 		return this.unitDel( 'unit_instantiation', theUnit );						// ==>
 	}
+	
+	
+	/****************************************************************************
+	 * MEMBER GETTERS															*
+	 ****************************************************************************/
+	
+	/**
+	 * Return default test collection.
+	 *
+	 * @return {String}
+	 */
+	get defaultTestCollection()	{	return this.document_collection;	}
 	
 }	// DocumentUnitTest.
 
