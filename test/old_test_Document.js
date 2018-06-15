@@ -341,7 +341,7 @@ function checkPersistentReplacedContents
 						// An exception will be thrown when replacing.
 						//
 						case 'L':
-							compareContents(
+							compareValues(
 								theSource[ field ],
 								theDestination[ field ],
 								theMessage,
@@ -353,7 +353,7 @@ function checkPersistentReplacedContents
 						// Significant fields are replaced.
 						//
 						case 'S':
-							compareContents(
+							compareValues(
 								theReplaced[ field ],
 								theDestination[ field ],
 								theMessage,
@@ -365,7 +365,7 @@ function checkPersistentReplacedContents
 						// Required fields are replaced.
 						//
 						case 'Q':
-							compareContents(
+							compareValues(
 								theReplaced[ field ],
 								theDestination[ field ],
 								theMessage,
@@ -377,7 +377,7 @@ function checkPersistentReplacedContents
 						// Unique fields are replaced.
 						//
 						case 'U':
-							compareContents(
+							compareValues(
 								theReplaced[ field ],
 								theDestination[ field ],
 								theMessage,
@@ -389,7 +389,7 @@ function checkPersistentReplacedContents
 						// All other fields are replaced.
 						//
 						default:
-							compareContents(
+							compareValues(
 								theReplaced[ field ],
 								theDestination[ field ],
 								theMessage,
@@ -416,7 +416,7 @@ function checkPersistentReplacedContents
 						// An exception will be thrown when replacing.
 						//
 						case 'L':
-							compareContents(
+							compareValues(
 								theSource[ field ],
 								theDestination[ field ],
 								theMessage,
@@ -428,7 +428,7 @@ function checkPersistentReplacedContents
 						// Significant fields are not replaced.
 						//
 						case 'S':
-							compareContents(
+							compareValues(
 								( was_there ) ? theSource[ field ] : theReplaced[ field ],
 								theDestination[ field ],
 								theMessage,
@@ -440,7 +440,7 @@ function checkPersistentReplacedContents
 						// Required fields are not replaced.
 						//
 						case 'Q':
-							compareContents(
+							compareValues(
 								( was_there ) ? theSource[ field ] : theReplaced[ field ],
 								theDestination[ field ],
 								theMessage,
@@ -452,7 +452,7 @@ function checkPersistentReplacedContents
 						// Unique fields are not replaced.
 						//
 						case 'U':
-							compareContents(
+							compareValues(
 								( was_there ) ? theSource[ field ] : theReplaced[ field ],
 								theDestination[ field ],
 								theMessage,
@@ -464,7 +464,7 @@ function checkPersistentReplacedContents
 						// All other fields are not replaced.
 						//
 						default:
-							compareContents(
+							compareValues(
 								( was_there ) ? theSource[ field ] : theReplaced[ field ],
 								theDestination[ field ],
 								theMessage,
@@ -557,7 +557,7 @@ function checkNonPersistentReplacedContents(
 				// Check locked fields.
 				//
 				if( theLocked.includes( field ) )
-					compareContents(
+					compareValues(
 						theReplaced[ field ],
 						theDestination[ field ],
 						theMessage,
@@ -574,7 +574,7 @@ function checkNonPersistentReplacedContents(
 					// Everything should be replaced.
 					//
 					if( theFlag )
-						compareContents(
+						compareValues(
 							theReplaced[ field ],
 							theDestination[ field ],
 							theMessage,
@@ -586,7 +586,7 @@ function checkNonPersistentReplacedContents(
 					// Nothing should be replaced.
 					//
 					else
-						compareContents(
+						compareValues(
 							theSource[ field ],
 							theDestination[ field ],
 							theMessage,
@@ -642,7 +642,7 @@ function checkContents(
 				//
 				// Check contents.
 				//
-				compareContents(
+				compareValues(
 					theSource[ field ],
 					theDestination[ field ],
 					theMessage,
@@ -659,7 +659,7 @@ function checkContents(
 //
 // This function can be used to compare the contents of two values.
 //
-function compareContents( theSource, theDestination, theMessage, theAction )
+function compareValues( theSource, theDestination, theMessage, theAction )
 {
 	//
 	// Handle objects.
@@ -682,7 +682,7 @@ function compareContents( theSource, theDestination, theMessage, theAction )
 			//
 			// Check contents.
 			//
-			compareContents(
+			compareValues(
 				theSource[ member ],
 				theDestination[ member ],
 				theMessage,
@@ -731,56 +731,6 @@ else
  */
 describe( "Document class tests:", function ()
 {
-	//
-	// Instantiation tests.
-	//
-	describe( "Instantiation:", function ()
-	{
-		//
-		// Instantiate with content.
-		//
-		// The document should contain all the provided data, except restricted fields.
-		//
-		it( "Instantiate with content:", function ()
-		{
-			let doc;
-			let func;
-			let message;
-			let action;
-			
-			//
-			// Instantiate.
-			//
-			message = "Instantiation";
-			func = () => {
-				doc =
-					new TestClassCustom(
-						param.request,
-						param.content
-					);
-			};
-			expect( func, `${message}` ).not.to.throw();
-			
-			//
-			// Check object state.
-			//
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(default_collection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.be.false;
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.be.false;
-			
-			//
-			// Check content.
-			//
-			checkContents( "Check contents", param.content, doc.document, doc.restrictedFields );
-		});
-		
-	});	// Instantiation.
-	
 	//
 	// Content tests.
 	//

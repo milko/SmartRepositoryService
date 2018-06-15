@@ -541,9 +541,9 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		// this.testInstantiateWithContentProvidedCollection(
-		// 	TestClass, theParam
-		// );
+		this.testInstantiateWithContentProvidedCollection(
+			TestClass, theParam
+		);
 		
 		//
 		// Should fail.
@@ -970,6 +970,13 @@ class DocumentUnitTest extends UnitTest
 		let action;
 		
 		//
+		// Check provided parameter.
+		//
+		expect( theParam, "Parameter not null").not.to.be.null;
+		expect( theParam, "Parameter not an object").to.be.an.object;
+		expect( theParam, `${message} - ${action}` ).not.to.be.empty;
+		
+		//
 		// Empty mutable document.
 		//
 		message = "Empty mutable document";
@@ -1339,14 +1346,16 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Insert test document.
 		//
+		const collection = doc.defaultCollection;
 		const meta =
-			db._collection( doc.defaultCollection )
+			db._collection( collection )
 				.insert({
 					name: "PIPPO"
 				});
 		
 		//
-		// Test instantiation with reference collection inferred and same as default collection.
+		// Test instantiation with reference inferred collection same as default
+		// collection.
 		// Should succeed.
 		//
 		message = "Reference collection inferred and same as default collection";
@@ -1356,6 +1365,90 @@ class DocumentUnitTest extends UnitTest
 				new theClass(
 					this.request,
 					meta._id
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Test instantiation with reference collection inferred and same as provided
+		// collection.
+		// Should succeed.
+		//
+		message = "Reference collection inferred and same as provided collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					meta._id,
+					collection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Test instantiation with key reference and default collection.
+		// Should succeed.
+		//
+		message = "Key reference and default collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					meta._key
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Test instantiation with key reference and provided collection.
+		// Should succeed.
+		//
+		message = "Key reference and default collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					meta._key,
+					collection
 				);
 		};
 		expect( func, `${message} - ${action}` ).not.to.throw();
@@ -1449,17 +1542,18 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Insert test document.
 		//
+		const collection = this.defaultTestCollection;
 		const meta =
-			db._collection( this.defaultTestCollection )
+			db._collection( collection )
 				.insert({
 					name: "PIPPO"
 				});
 		
 		//
-		// Test instantiation with collection inferred from reference.
+		// Test instantiation with reference inferred collection.
 		// Should succeed.
 		//
-		message = "Collection inferred from reference";
+		message = "Reference infers collection";
 		action = "Instantiation";
 		func = () => {
 			doc =
@@ -1476,7 +1570,64 @@ class DocumentUnitTest extends UnitTest
 		action = "Contents";
 		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
 		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Test instantiation with reference collection inferred and same as provided
+		// collection.
+		// Should succeed.
+		//
+		message = "Reference collection inferred and same as provided collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					meta._id,
+					collection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Test instantiation with key reference and provided collection.
+		// Should succeed.
+		//
+		message = "Key reference and default collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					meta._key,
+					collection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
 		action = "Modified";
@@ -1507,9 +1658,16 @@ class DocumentUnitTest extends UnitTest
 		let action;
 		
 		//
-		// Instantiate.
+		// Check provided parameter.
 		//
-		message = "Instantiation";
+		expect( theParam, "Parameter not null").not.to.be.null;
+		expect( theParam, "Parameter not an object").to.be.an.object;
+		expect( theParam, `${message} - ${action}` ).not.to.be.empty;
+		
+		//
+		// Instantiate with default collection.
+		//
+		message = "Instantiation with default collection";
 		func = () => {
 			doc =
 				new theClass(
@@ -1518,8 +1676,6 @@ class DocumentUnitTest extends UnitTest
 				);
 		};
 		expect( func, `${message}` ).not.to.throw();
-
-		expect(theParam, "Not an object").to.be.an.object;
 		
 		//
 		// Check object state.
@@ -1538,7 +1694,88 @@ class DocumentUnitTest extends UnitTest
 		//
 		this.validateInstantiateContents( "Check contents", doc, theParam );
 		
+		//
+		// Instantiate with provided.
+		//
+		message = "Instantiation with provided collection";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Check object state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Check content.
+		//
+		this.validateInstantiateContents( "Check contents", doc, theParam );
+		
 	}	// testInstantiateWithContentDefaultCollection
+	
+	/**
+	 * Instantiate with content and provided collection.
+	 *
+	 * Assert that the test succeeds with collection.
+	 *
+	 * Should always succeed.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateWithContentProvidedCollection( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		let action;
+		
+		//
+		// Instantiate with provided.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Check object state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Check content.
+		//
+		this.validateInstantiateContents( "Check contents", doc, theParam );
+		
+	}	// testInstantiateWithContentProvidedCollection
 	
 	
 	/****************************************************************************
@@ -1605,12 +1842,12 @@ class DocumentUnitTest extends UnitTest
 				status = 'Q';
 				action = `Required field [${field}]`;
 			}
-			else if( theObject.uniqueFields().includes( field ) )
+			else if( theObject.uniqueFields.includes( field ) )
 			{
 				status = 'U';
 				action = `Unique field [${field}]`;
 			}
-			else if( theObject.lockedFields().includes( field ) )
+			else if( theObject.lockedFields.includes( field ) )
 			{
 				status = 'L';
 				action = `Locked field [${field}]`;
@@ -1647,7 +1884,7 @@ class DocumentUnitTest extends UnitTest
 						// Locked fields are set.
 						//
 						case 'L':
-							compareContents(
+							this.compareValues(
 								theContents[ field ],
 								theObject.document[ field ],
 								theMessage,
@@ -1659,7 +1896,7 @@ class DocumentUnitTest extends UnitTest
 						// Significant fields are set.
 						//
 						case 'S':
-							compareContents(
+							this.compareValues(
 								theContents[ field ],
 								theObject.document[ field ],
 								theMessage,
@@ -1671,7 +1908,7 @@ class DocumentUnitTest extends UnitTest
 						// Required fields are set.
 						//
 						case 'Q':
-							compareContents(
+							this.compareValues(
 								theContents[ field ],
 								theObject.document[ field ],
 								theMessage,
@@ -1683,7 +1920,7 @@ class DocumentUnitTest extends UnitTest
 						// Unique fields are set.
 						//
 						case 'U':
-							compareContents(
+							this.compareValues(
 								theContents[ field ],
 								theObject.document[ field ],
 								theMessage,
@@ -1695,7 +1932,7 @@ class DocumentUnitTest extends UnitTest
 						// All other fields are set.
 						//
 						default:
-							compareContents(
+							this.compareValues(
 								theContents[ field ],
 								theObject.document[ field ],
 								theMessage,
@@ -1724,7 +1961,7 @@ class DocumentUnitTest extends UnitTest
 				//
 				// Assert property is not there.
 				//
-				expect( theDestination, `${theMessage} - ${action}` )
+				expect( theObject.document, `${theMessage} - ${action}` )
 					.not.to.have.property(field);
 				
 			}	// Restricted or deleted.
@@ -2146,7 +2383,7 @@ class DocumentUnitTest extends UnitTest
 							// An exception will be thrown when replacing.
 							//
 							case 'L':
-								compareContents(
+								this.compareValues(
 									theSource[ field ],
 									theDestination[ field ],
 									theMessage,
@@ -2158,7 +2395,7 @@ class DocumentUnitTest extends UnitTest
 							// Significant fields are replaced.
 							//
 							case 'S':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theReplaced[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2171,7 +2408,7 @@ class DocumentUnitTest extends UnitTest
 							// Required fields are replaced.
 							//
 							case 'Q':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theReplaced[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2184,7 +2421,7 @@ class DocumentUnitTest extends UnitTest
 							// Unique fields are replaced.
 							//
 							case 'U':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theReplaced[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2197,7 +2434,7 @@ class DocumentUnitTest extends UnitTest
 							// All other fields are replaced.
 							//
 							default:
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theReplaced[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2225,7 +2462,7 @@ class DocumentUnitTest extends UnitTest
 							// An exception will be thrown when replacing.
 							//
 							case 'L':
-								compareContents(
+								this.compareValues(
 									theSource[ field ],
 									theDestination[ field ],
 									theMessage,
@@ -2237,7 +2474,7 @@ class DocumentUnitTest extends UnitTest
 							// Significant fields are not replaced.
 							//
 							case 'S':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theSource[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2250,7 +2487,7 @@ class DocumentUnitTest extends UnitTest
 							// Required fields are not replaced.
 							//
 							case 'Q':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theSource[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2263,7 +2500,7 @@ class DocumentUnitTest extends UnitTest
 							// Unique fields are not replaced.
 							//
 							case 'U':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theSource[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2276,7 +2513,7 @@ class DocumentUnitTest extends UnitTest
 							// All other fields are not replaced.
 							//
 							default:
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theSource[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2435,7 +2672,7 @@ class DocumentUnitTest extends UnitTest
 							// Locked fields are replaced,
 							//
 							case 'L':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theReplaced[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2448,7 +2685,7 @@ class DocumentUnitTest extends UnitTest
 							// Significant fields are replaced.
 							//
 							case 'S':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theReplaced[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2461,7 +2698,7 @@ class DocumentUnitTest extends UnitTest
 							// Required fields are replaced.
 							//
 							case 'Q':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theReplaced[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2474,7 +2711,7 @@ class DocumentUnitTest extends UnitTest
 							// Unique fields are replaced.
 							//
 							case 'U':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theReplaced[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2487,7 +2724,7 @@ class DocumentUnitTest extends UnitTest
 							// All other fields are replaced.
 							//
 							default:
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theReplaced[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2514,7 +2751,7 @@ class DocumentUnitTest extends UnitTest
 							// Locked fields are replaced,
 							//
 							case 'L':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theSource[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2527,7 +2764,7 @@ class DocumentUnitTest extends UnitTest
 							// Significant fields are replaced.
 							//
 							case 'S':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theSource[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2540,7 +2777,7 @@ class DocumentUnitTest extends UnitTest
 							// Required fields are replaced.
 							//
 							case 'Q':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theSource[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2553,7 +2790,7 @@ class DocumentUnitTest extends UnitTest
 							// Unique fields are replaced.
 							//
 							case 'U':
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theSource[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2566,7 +2803,7 @@ class DocumentUnitTest extends UnitTest
 							// All other fields are replaced.
 							//
 							default:
-								compareContents(
+								this.compareValues(
 									( was_there ) ? theSource[ field ]
 												  : theReplaced[ field ],
 									theDestination[ field ],
@@ -2620,9 +2857,10 @@ class DocumentUnitTest extends UnitTest
 	 * @param theUnit		{String}		Unit test method name.
 	 * @param theName		{String}		Unit test title.
 	 * @param theClass		{String}		Unit test class, defaults to TestClass.
+	 * @param theParam		{*}				Eventual parameters for the method.
 	 */
-	instantiationUnitSet( theUnit, theName, theClass = TestClass ) {
-		this.unitSet( 'unit_instantiation', theUnit, theName, theClass );
+	instantiationUnitSet( theUnit, theName, theClass, theParam = null ) {
+		this.unitSet( 'unit_instantiation', theUnit, theName, theClass, theParam );
 	}
 	
 	/**

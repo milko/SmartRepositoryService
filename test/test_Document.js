@@ -86,7 +86,7 @@ describe( "Document class tests:", function ()
 	describe( "Instantiation:", function () {
 		for( const test in tests ) {
 			it( tests[ test ].name, function () {
-				unitTest[ test ]( tests[ test ].clas );
+				unitTest[ test ]( tests[ test ].clas, tests[ test ].parm );
 			});
 		}
 	});
