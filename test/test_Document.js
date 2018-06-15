@@ -84,7 +84,7 @@ describe( "Document class tests:", function ()
 		}
 	});
 */
-	const tests = myTest.instantiationUnit;
+	const tests = myTest.instantiationUnitGet();
 	describe( "Instantiation:", function () {
 		for( const test in tests ) {
 			it( tests[ test ].name, function () {
