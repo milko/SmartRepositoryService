@@ -137,64 +137,6 @@ class Edge extends Document
 		
 	}	// normaliseDocumentProperties
 	
-	/**
-	 * Normalise insert properties
-	 *
-	 * This method should load any default properties set when inserting the object.
-	 *
-	 * In this class we set the creation time stamp.
-	 *
-	 * @param doAssert	{Boolean}	True raises an exception on error (default).
-	 * @returns {Boolean}			True if valid.
-	 */
-	normaliseInsertProperties( doAssert = true )
-	{
-		//
-		// Call parent method.
-		//
-		if( super.normaliseInsertProperties( doAssert ) )
-		{
-			//
-			// Set creation time stamp.
-			//
-			this._document[ Dict.descriptor.kCStamp ] = Date.now();
-			
-			return true;															// ==>
-		}
-		
-		return false;																// ==>
-		
-	}	// normaliseInsertProperties
-	
-	/**
-	 * Normalise replace properties
-	 *
-	 * This method should load any default properties set when replacing the object.
-	 *
-	 * In this class we set the modification time stamp.
-	 *
-	 * @param doAssert	{Boolean}	True raises an exception on error (default).
-	 * @returns {Boolean}			True if valid.
-	 */
-	normaliseReplaceProperties( doAssert = true )
-	{
-		//
-		// Call parent method.
-		//
-		if( super.normaliseReplaceProperties( doAssert ) )
-		{
-			//
-			// Set creation time stamp.
-			//
-			this._document[ Dict.descriptor.kMStamp ] = Date.now();
-			
-			return true;															// ==>
-		}
-		
-		return false;																// ==>
-		
-	}	// normaliseReplaceProperties
-	
 	
 	/************************************************************************************
 	 * VALIDATION METHODS																*
@@ -344,28 +286,6 @@ class Edge extends Document
 			]);																		// ==>
 		
 	}	// lockedFields
-	
-	
-	/************************************************************************************
-	 * DEFAULT GLOBALS																	*
-	 ************************************************************************************/
-	
-	/**
-	 * Return local fields list
-	 *
-	 * We overload this method to add the time stamps.
-	 *
-	 * @returns {String}|{null}	The default collection name.
-	 */
-	get localFields()
-	{
-		return super.localFields
-			.concat([
-				Dict.descriptor.kCStamp,	// Creation time stamp.
-				Dict.descriptor.kMStamp		// Modivifation time stamp.
-			]);																		// ==>
-		
-	}	// localFields
 	
 	
 	/************************************************************************************

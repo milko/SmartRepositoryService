@@ -650,14 +650,26 @@ class Document
 	 *
 	 * This method should load any default properties set when inserting the object.
 	 *
-	 * In this class we do notning.
+	 * In this class we set the creation time stamp and remove the eventual
+	 * modification time stamp.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
 	 */
 	normaliseInsertProperties( doAssert = true )
 	{
-		return true;																// ==>
+		//
+		// Set creation time stamp.
+		//
+		this._document[ Dict.descriptor.kCStamp ] = Date.now();
+		
+		//
+		// Remove eventual modificaton time stamp.
+		//
+		if( this._document.hasOwnProperty( Dict.descriptor.kMStamp ) )
+			delete this._document[ Dict.descriptor.kMStamp ];
+		
+		return true;															// ==>
 		
 	}	// normaliseInsertProperties
 	
@@ -666,13 +678,18 @@ class Document
 	 *
 	 * This method should load any default properties set when replacing the object.
 	 *
-	 * In this class we do notning.
+	 * In this class we set the modification time stamp.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
 	 */
 	normaliseReplaceProperties( doAssert = true )
 	{
+		//
+		// Set creation time stamp.
+		//
+		this._document[ Dict.descriptor.kMStamp ] = Date.now();
+		
 		return true;																// ==>
 		
 	}	// normaliseReplaceProperties
@@ -2190,7 +2207,12 @@ class Document
 	 */
 	get lockedFields()
 	{
-		return [ '_id', '_key', '_rev' ];											// ==>
+		return [
+			'_id',						// Database key.
+			'_key',						// Collection key.
+			'_rev',						// Revision.
+			Dict.descriptor.kCStamp		// Creation time stamp.
+		];																			// ==>
 		
 	}	// lockedFields
 	
@@ -2283,7 +2305,13 @@ class Document
 	 */
 	get localFields()
 	{
-		return [ '_id', '_key', '_rev' ];											// ==>
+		return [
+			'_id',						// Database key.
+			'_key',						// Collection key.
+			'_rev',						// Revision.
+			Dict.descriptor.kCStamp,	// Creation time stamp.
+			Dict.descriptor.kMStamp		// Modification time stamp.
+		];																			// ==>
 		
 	}	// localFields
 	
