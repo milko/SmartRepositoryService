@@ -18,7 +18,7 @@ const MyError = require( '../utils/MyError' );
 //
 // Parent.
 //
-const Document = require( './Document' );
+const Persistent = require( './Persistent' );
 
 //
 // Classes.
@@ -100,7 +100,7 @@ const Edge = require( './Edge' );
  * was handled, the method will remove all the user log entries. At the end, the
  * method will call removeDocumentReferences() to remove any edge pointing to the user.
  */
-class User extends Document
+class User extends Persistent
 {
 	/**
 	 * Constructor

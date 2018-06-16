@@ -650,25 +650,13 @@ class Document
 	 *
 	 * This method should load any default properties set when inserting the object.
 	 *
-	 * In this class we set the creation time stamp and remove the eventual
-	 * modification time stamp.
+	 * In this class we do nothing.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
 	 */
 	normaliseInsertProperties( doAssert = true )
 	{
-		//
-		// Set creation time stamp.
-		//
-		this._document[ Dict.descriptor.kCStamp ] = Date.now();
-		
-		//
-		// Remove eventual modificaton time stamp.
-		//
-		if( this._document.hasOwnProperty( Dict.descriptor.kMStamp ) )
-			delete this._document[ Dict.descriptor.kMStamp ];
-		
 		return true;															// ==>
 		
 	}	// normaliseInsertProperties
@@ -678,18 +666,13 @@ class Document
 	 *
 	 * This method should load any default properties set when replacing the object.
 	 *
-	 * In this class we set the modification time stamp.
+	 * In this class we do nothing.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
 	 */
 	normaliseReplaceProperties( doAssert = true )
 	{
-		//
-		// Set creation time stamp.
-		//
-		this._document[ Dict.descriptor.kMStamp ] = Date.now();
-		
 		return true;																// ==>
 		
 	}	// normaliseReplaceProperties
@@ -2210,8 +2193,7 @@ class Document
 		return [
 			'_id',						// Database key.
 			'_key',						// Collection key.
-			'_rev',						// Revision.
-			Dict.descriptor.kCStamp		// Creation time stamp.
+			'_rev'						// Revision.
 		];																			// ==>
 		
 	}	// lockedFields
@@ -2308,9 +2290,7 @@ class Document
 		return [
 			'_id',						// Database key.
 			'_key',						// Collection key.
-			'_rev',						// Revision.
-			Dict.descriptor.kCStamp,	// Creation time stamp.
-			Dict.descriptor.kMStamp		// Modification time stamp.
+			'_rev'						// Revision.
 		];																			// ==>
 		
 	}	// localFields
