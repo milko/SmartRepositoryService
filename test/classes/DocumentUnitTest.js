@@ -3333,7 +3333,15 @@ class DocumentUnitTest extends UnitTest
 		let func;
 		let action;
 		let replace;
-		const theOldData = JSON.parse(JSON.stringify(theObject.document));
+		
+		//
+		// Clone existing and new data.
+		// We clone new data, because if the replace raises an exception, we must
+		// replace the replaced value with the original one, since the exception would
+		// have prevented the replace.
+		//
+		const oldData = JSON.parse(JSON.stringify(theObject.document));
+		const newData = JSON.parse(JSON.stringify(theNewData));
 		
 		//
 		// Flatten significant fields.
@@ -3345,12 +3353,12 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Replace properties.
 		//
-		for( const field in theNewData )
+		for( const field in newData )
 		{
 			//
 			// Set operation.
 			//
-			op = ( theNewData[ field ] === null ) ? 'Delete' : 'Replace';
+			op = ( newData[ field ] === null ) ? 'Delete' : 'Replace';
 			op = ( theObject.document.hasOwnProperty( field ) )
 				 ? `${op} existing`
 				 : `${op} missing`;
@@ -3359,7 +3367,7 @@ class DocumentUnitTest extends UnitTest
 			// Replace field function.
 			//
 			replace = {};
-			replace[ field ] = theNewData[ field ];
+			replace[ field ] = newData[ field ];
 			func = () => {
 				theObject.setDocumentProperties(
 					replace,
@@ -3404,7 +3412,8 @@ class DocumentUnitTest extends UnitTest
 			}
 			
 			//
-			// Replace locked field.
+			// Replace locked field,
+			// and set new data to original data if the replace raises an exception.
 			//
 			else if( theObject.lockedFields.includes( field ) )
 			{
@@ -3414,6 +3423,11 @@ class DocumentUnitTest extends UnitTest
 					MyError,
 					/Property is locked/
 				);
+				
+				if( oldData.hasOwnProperty( field ) )
+					newData[ field ] = oldData[ field ];
+				else
+					delete newData[ field ];
 			}
 			
 			//
@@ -3434,9 +3448,9 @@ class DocumentUnitTest extends UnitTest
 		(
 			theFlag,						// Replace flag.
 			theMessage,						// Error message.
-			theOldData,						// Data before replace.
+			oldData,						// Data before replace.
 			theObject.document,				// The object to test.
-			theNewData,						// The replacement data.
+			newData,						// The replacement data.
 			theObject.restrictedFields,		// Restricted fields.
 			theObject.requiredFields,		// Required fields.
 			theObject.lockedFields,			// Locked fields.
