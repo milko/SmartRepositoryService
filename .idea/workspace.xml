@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/old_test_Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/old_test_Document.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -45,8 +44,8 @@
               <file leaf-file-name="DocumentUnitTest.js" pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTest.js">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="45">
-                      <caret line="344" column="40" selection-start-line="344" selection-start-column="14" selection-end-line="344" selection-end-column="40" />
+                    <state relative-caret-position="120">
+                      <caret line="349" column="10" lean-forward="true" selection-start-line="349" selection-start-column="10" selection-end-line="349" selection-end-column="10" />
                     </state>
                   </provider>
                 </entry>
@@ -58,8 +57,8 @@
               <file leaf-file-name="DocumentUnitTest.js" pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTest.js">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="474">
-                      <caret line="3389" selection-start-line="3384" selection-end-line="3389" />
+                    <state relative-caret-position="195">
+                      <caret line="3344" column="43" selection-start-line="3344" selection-start-column="43" selection-end-line="3344" selection-end-column="43" />
                       <folding>
                         <element signature="n#!!block;n#testInstantiateNoSelectorNoCollectionFail#1;n#DocumentUnitTest#0" />
                         <element signature="n#!!block;n#testContentsLoadEmptyObject#1;n#DocumentUnitTest#0" />
@@ -483,7 +482,7 @@
       <workItem from="1529106488074" duration="715000" />
       <workItem from="1529107276823" duration="1216000" />
       <workItem from="1529147763340" duration="55000" />
-      <workItem from="1529309197544" duration="26521000" />
+      <workItem from="1529309197544" duration="26736000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring Document unit tests.&#10;Developed functions to make lengthy checks: will not transform functions into classes to make checks inherited and reusable.">
       <created>1528974578541</created>
@@ -517,7 +516,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="595214000" />
+    <option name="totallyTimeSpent" value="595429000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
@@ -825,8 +824,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTest.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="474">
-          <caret line="3389" selection-start-line="3384" selection-end-line="3389" />
+        <state relative-caret-position="195">
+          <caret line="3344" column="43" selection-start-line="3344" selection-start-column="43" selection-end-line="3344" selection-end-column="43" />
           <folding>
             <element signature="n#!!block;n#testInstantiateNoSelectorNoCollectionFail#1;n#DocumentUnitTest#0" />
             <element signature="n#!!block;n#testContentsLoadEmptyObject#1;n#DocumentUnitTest#0" />

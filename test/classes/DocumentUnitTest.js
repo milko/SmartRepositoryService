@@ -3272,9 +3272,9 @@ class DocumentUnitTest extends UnitTest
 	}	// testInsertEmptyObjectFail
 	
 	/**
-	 * Succeed inserting empty object
+	 * Succeed inserting document withour required field
 	 *
-	 * Assert that inserting an empty object succeeds.
+	 * This shoud,succeed on documents without required fields.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -3340,9 +3340,9 @@ class DocumentUnitTest extends UnitTest
 	}	// testInsertEmptyObjectSucceed
 	
 	/**
-	 * Fail inserting empty object
+	 * Fail inserting document without required fields
 	 *
-	 * Assert that inserting an empty object fails.
+	 * This should fail with documents that have required fields.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -3391,9 +3391,9 @@ class DocumentUnitTest extends UnitTest
 	}	// testInsertWithoutRequiredFieldsFail
 	
 	/**
-	 * Succeed inserting empty object
+	 * Succeed inserting document without required fields
 	 *
-	 * Assert that inserting an empty object succeeds.
+	 * This should succeed with documents that do not have required fields.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
