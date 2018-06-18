@@ -818,15 +818,15 @@ class DocumentUnitTest extends UnitTest
 	insertEmptyObject( theClass, theParam = null )
 	{
 		//
-		// Should raise: Missing required parameter.
+		// Should not raise.
 		//
-		this.testInsertEmptyObjectSucceed( TestClass );
+		this.testInsertEmptyObject( TestClass );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( TestClassCustom !== null )
-			this.testInsertEmptyObjectFail( TestClassCustom );
+			this.testInsertEmptyObject( TestClassCustom );
 		
 	}	// insertEmptyObject
 	
@@ -845,13 +845,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInsertWithoutRequiredFieldsSucceed( TestClass, theParam );
+		this.testInsertWithoutRequiredFields( TestClass, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( TestClassCustom !== null )
-			this.testInsertWithoutRequiredFieldsFail( TestClassCustom, theParam );
+			this.testInsertWithoutRequiredFields( TestClassCustom, theParam );
 		
 	}	// insertWithoutRequiredFields
 	
@@ -870,13 +870,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInsertWithoutSignificantFieldsSucceed( TestClass, theParam );
+		this.testInsertWithoutSignificantFields( TestClass, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( TestClassCustom !== null )
-			this.testInsertWithoutSignificantFieldsSucceed( TestClassCustom, theParam );
+			this.testInsertWithoutSignificantFields( TestClassCustom, theParam );
 		
 	}	// insertWithoutSignificantFields
 	
@@ -3263,15 +3263,15 @@ class DocumentUnitTest extends UnitTest
 	 ****************************************************************************/
 	
 	/**
-	 * Fail inserting empty object
+	 * Test inserting empty object
 	 *
-	 * Assert that inserting an empty object fails: the class should implement
-	 * required fields.
+	 * Assert that inserting an empty object fails if the object has required fields,
+	 * or succeed if object does not have required fields.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
-	testInsertEmptyObjectFail( theClass, theParam = null )
+	testInsertEmptyObject( theClass, theParam = null )
 	{
 		let doc;
 		let func;
@@ -3294,98 +3294,84 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
-		// Insert object.
+		// Handle required fields.
 		//
-		action = "Insertion";
-		func = () => {
-			result = doc.insertDocument();
-		};
-		expect( func, `${message} - ${action}`
-		).to.throw(
-			MyError,
-			/missing required field/
-		);
-	
-	}	// testInsertEmptyObjectFail
-	
-	/**
-	 * Succeed inserting empty document
-	 *
-	 * Assert that inserting an empty object succeeds: the class should not implement
-	 * any required fields.
-	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
-	testInsertEmptyObjectSucceed( theClass, theParam = null )
-	{
-		let doc;
-		let func;
-		let result;
-		let action;
-		let message;
-		
-		//
-		// Instantiate empty object.
-		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.request,
-					null,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Insert object.
-		//
-		action = "Insertion";
-		func = () => {
-			result = doc.insertDocument();
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		action = "Insertion result";
-		expect( result, `${message} - ${action}` ).to.equal( true );
-		
-		//
-		// Check object persistent state.
-		//
-		action = "Insertion result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check local fields.
-		//
-		for( const field of doc.localFields )
+		if( doc.requiredFields.length > 0 )
 		{
-			action = `Has field [${field}]`;
-			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
-			action = `Field [${field}] not empty`;
-			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+			//
+			// Insert object.
+			//
+			action = "Insertion";
+			func = () => {
+				result = doc.insertDocument();
+			};
+			
+			//
+			// Assert exception.
+			//
+			expect( func, `${message} - ${action}`
+			).to.throw(
+				MyError,
+				/missing required field/
+			);
 		}
 		
-	}	// testInsertEmptyObjectSucceed
+		//
+		// Handle no required fields.
+		//
+		else
+		{
+			//
+			// Insert object.
+			//
+			action = "Insertion";
+			func = () => {
+				result = doc.insertDocument();
+			};
+			
+			//
+			// Assert no exception.
+			//
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object persistent state.
+			//
+			action = "Insertion result";
+			expect( result, `${message} - ${action}` ).to.be.true;
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Check local fields.
+			//
+			for( const field of doc.localFields )
+			{
+				action = `Has field [${field}]`;
+				expect( doc.document, `${message} - ${action}` ).to.have.property( field );
+				action = `Field [${field}] not empty`;
+				expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+			}
+		}
+		
+	}	// testInsertEmptyObject
 	
 	/**
-	 * Fail inserting document without required fields
+	 * Test inserting document without required fields
 	 *
-	 * This should fail with documents that have required fields.
+	 * Assert that inserting an object without required fields fails and succeeds if
+	 * the object has no required fields.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
-	testInsertWithoutRequiredFieldsFail( theClass, theParam = null )
+	testInsertWithoutRequiredFields( theClass, theParam = null )
 	{
 		let doc;
 		let func;
@@ -3394,7 +3380,7 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
-		// Instantiate empty object.
+		// Instantiate object with contents.
 		//
 		message = "Instantiation";
 		func = () => {
@@ -3414,127 +3400,166 @@ class DocumentUnitTest extends UnitTest
 		//
 		
 		//
-		// Check required field.
+		// Handle required field.
 		//
 		const required = doc.requiredFields;
-		expect( required, "Has required fields" ).not.to.be.empty;
-		
-		//
-		// Remove required field.
-		// Assume 'var' is required and remove it if required,
-		// or remove first required field.
-		//
-		const field = ( required.includes( 'var' ) )
-					? 'var'
-					: required[ 0 ];
-		const data = {};
-		data[ field ] = null;
-		message = "Removal";
-		func = () => {
-			doc.setDocumentProperties( data, true );
-		};
-		expect( func, `${message}` ).not.to.throw();
-		expect( doc.document, message ).not.to.have.property( field );
-		
-		//
-		// Insert object.
-		//
-		action = "Insertion";
-		func = () => {
-			result = doc.insertDocument();
-		};
-		expect( func, `${message} - ${action}`
-		).to.throw(
-			MyError,
-			/missing required field/
-		);
-	
-	}	// testInsertWithoutRequiredFieldsFail
-	
-	/**
-	 * Succeed inserting document without required field
-	 *
-	 * This shoud succeed on documents without required fields.
-	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
-	testInsertWithoutRequiredFieldsSucceed( theClass, theParam = null )
-	{
-		let doc;
-		let func;
-		let result;
-		let action;
-		let message;
-		
-		//
-		// Remove field 'var'.
-		//
-		const data = K.function.clone( theParam );
-		if( data.hasOwnProperty( 'var' ) )
-			delete data.var;
-		
-		//
-		// Instantiate empty object.
-		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.request,
-					data,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-
-		//
-		// Insert object.
-		//
-		action = "Insertion";
-		func = () => {
-			result = doc.insertDocument();
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		action = "Insertion result";
-		expect( result, `${message} - ${action}` ).to.equal( true );
-		
-		//
-		// Check object persistent state.
-		//
-		action = "Insertion result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check local fields.
-		//
-		for( const field of doc.localFields )
+		if( required.length > 0 )
 		{
-			action = `Has field [${field}]`;
-			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
-			action = `Field [${field}] not empty`;
-			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
-		}
+			//
+			// Iterate required fields.
+			//
+			for( const field of required )
+			{
+				//
+				// Match in current object.
+				//
+				if( doc.document.hasOwnProperty( field ) )
+				{
+					//
+					// Remove field.
+					//
+					const data = {};
+					data[ field ] = null;
+					message = `Remove [${field}]`;
+					func = () => {
+						doc.setDocumentProperties( data, true );
+					};
+					expect( func, `${message}` ).not.to.throw();
+					expect( doc.document, message ).not.to.have.property( field );
+					
+					//
+					// Insert object.
+					//
+					message = `Insert without [${field}]`;
+					func = () => {
+						result = doc.insertDocument();
+					};
+					expect( func, `${message}`
+					).to.throw(
+						MyError,
+						/missing required field/
+					);
+				}
+				
+				//
+				// Insert document.
+				//
+				else
+				{
+					//
+					// Insert object.
+					//
+					message = "Insertion";
+					func = () => {
+						result = doc.insertDocument();
+					};
+					
+					//
+					// Assert no exception.
+					//
+					expect( func, `${message}` ).not.to.throw();
+					expect( doc.document, message ).not.to.have.property( field );
+					
+					//
+					// Check object persistent state.
+					//
+					action = "Insertion result";
+					expect( result, `${message} - ${action}` ).to.be.true;
+					action = "Contents";
+					expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+					action = "Collection";
+					expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+					action = "Persistent";
+					expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+					action = "Modified";
+					expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+					
+					//
+					// Check local fields.
+					//
+					for( const field of doc.localFields )
+					{
+						action = `Has field [${field}]`;
+						expect( doc.document, `${message} - ${action}` ).to.have.property( field );
+						action = `Field [${field}] not empty`;
+						expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+					}
+				}
+				
+				//
+				// Instantiate object with contents.
+				//
+				message = "Instantiation";
+				func = () => {
+					doc =
+						new theClass(
+							this.request,
+							theParam,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message}` ).not.to.throw();
+			
+			}	// Iterating required fields.
 		
-	}	// testInsertWithoutRequiredFieldsSucceed
+		}	// Has required fields.
+		
+		//
+		// Handle no required fields.
+		//
+		else
+		{
+			//
+			// Insert object.
+			//
+			message = "Insertion";
+			func = () => {
+				result = doc.insertDocument();
+			};
+			
+			//
+			// Assert no exception.
+			//
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Check object persistent state.
+			//
+			action = "Insertion result";
+			expect( result, `${message} - ${action}` ).to.be.true;
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Check local fields.
+			//
+			for( const field of doc.localFields )
+			{
+				action = `Has field [${field}]`;
+				expect( doc.document, `${message} - ${action}` ).to.have.property( field );
+				action = `Field [${field}] not empty`;
+				expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+			}
+		
+		} // Has no required fields.
+		
+	}	// testInsertWithoutRequiredFields
 	
 	/**
-	 * Fail inserting document without significant fields
+	 * Test inserting document without significant fields
 	 *
-	 * This should fail with documents that have significant fields.
+	 * Assert that inserting an object without significant fields suceeds.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
-	testInsertWithoutSignificantFieldsFail( theClass, theParam = null )
+	testInsertWithoutSignificantFields( theClass, theParam = null )
 	{
 		let doc;
 		let func;
@@ -3543,7 +3568,7 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
-		// Instantiate object.
+		// Instantiate object with contents.
 		//
 		message = "Instantiation";
 		func = () => {
@@ -3557,142 +3582,169 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
-		// Check significant field.
-		//
-		const significant = doc.significantFields;
-		expect( significant, "Has significant fields" ).not.to.be.empty;
-		
-		//
 		// ToDo
 		// Note: we need to instantiate the object first, because we need to get the
 		// list of significant fields: should make the method static...
 		//
 		
 		//
-		// Remove significant field.
-		// Assume 'lid' is significant and remove it if significant,
-		// or remove first significant field.
-		//
-		const field = ( significant.includes( 'lid' ) )
-					  ? 'lid'
-					  : significant[ 0 ];
-		const data = {};
-		data[ field ] = null;
-		message = "Removal";
-		func = () => {
-			doc.setDocumentProperties( data, true );
-		};
-		expect( func, `${message}` ).not.to.throw();
-		expect( doc.document, message ).not.to.have.property( field );
-		
-		//
-		// Insert object.
-		//
-		action = "Insertion";
-		func = () => {
-			result = doc.insertDocument();
-		};
-		expect( func, `${message} - ${action}`
-		).to.throw(
-			MyError,
-			/missing significant field/
-		);
-		
-	}	// testInsertWithoutSignificantFieldsFail
-	
-	/**
-	 * Succeed inserting document without significant field
-	 *
-	 * This shoud succeed also on documents with significant fields.
-	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
-	testInsertWithoutSignificantFieldsSucceed( theClass, theParam = null )
-	{
-		let doc;
-		let data;
-		let func;
-		let field;
-		let result;
-		let action;
-		let message;
-		
-		//
-		// Instantiate object.
-		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.request,
-					theParam,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// ToDo
-		// Note: we need to instantiate the object first, because we need to get the
-		// list of significant fields: should make the method static...
-		//
-		
-		//
-		// Check significant field.
-		// Note that we check if the object has significant fields: this will be
-		// useful when checking the modified flag after inserting.
+		// Handle required field.
 		//
 		const significant = doc.significantFields;
-		const has_significant = ( significant.length > 0 );
-		field = ( has_significant )					// Has significant
-			  ? ( ( significant.includes( 'lid' ) )	// and has 'lid',
-				? 'lid'								// set 'lid',
-				: significant[ 0 ] )				// or first significant;
-			  : 'lid';								// or set 'lid'.
+		if( significant.length > 0 )
+		{
+			//
+			// Iterate significant fields.
+			//
+			for( const field of significant )
+			{
+				//
+				// Match in current object.
+				//
+				if( doc.document.hasOwnProperty( field ) )
+				{
+					//
+					// Remove field.
+					//
+					const data = {};
+					data[ field ] = null;
+					message = `Remove [${field}]`;
+					func = () => {
+						doc.setDocumentProperties( data, true );
+					};
+					expect( func, `${message}` ).not.to.throw();
+					expect( doc.document, message ).not.to.have.property( field );
+					
+					//
+					// Insert object.
+					//
+					message = `Insert without [${field}]`;
+					func = () => {
+						result = doc.insertDocument();
+					};
+					
+					//
+					// Check if also required.
+					//
+					if( doc.requiredFields.includes( field ) )
+						expect( func, `${message}`
+						).to.throw(
+							MyError,
+							/missing required field/
+						);
+					else
+						expect( func, `${message}` ).not.to.throw();
+				}
+				
+				//
+				// Insert document.
+				//
+				else
+				{
+					//
+					// Insert object.
+					//
+					message = "Insertion";
+					func = () => {
+						result = doc.insertDocument();
+					};
+					
+					//
+					// Assert no exception.
+					//
+					expect( func, `${message}` ).not.to.throw();
+					expect( doc.document, message ).not.to.have.property( field );
+					
+					//
+					// Check object persistent state.
+					//
+					action = "Insertion result";
+					expect( result, `${message} - ${action}` ).to.be.true;
+					action = "Contents";
+					expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+					action = "Collection";
+					expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+					action = "Persistent";
+					expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+					action = "Modified";
+					expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+					
+					//
+					// Check local fields.
+					//
+					for( const field of doc.localFields )
+					{
+						action = `Has field [${field}]`;
+						expect( doc.document, `${message} - ${action}` ).to.have.property( field );
+						action = `Field [${field}] not empty`;
+						expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+					}
+				}
+				
+				//
+				// Instantiate object with contents.
+				//
+				message = "Instantiation";
+				func = () => {
+					doc =
+						new theClass(
+							this.request,
+							theParam,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message}` ).not.to.throw();
+				
+			}	// Iterating significant fields.
+			
+		}	// Has significant fields.
 		
 		//
-		// Remove significant field.
+		// Handle no significant fields.
 		//
-		message = "Removal";
-		data = {};
-		data[ field ] = null;
-		func = () => {
-			doc.setDocumentProperties( data, true );
-		};
-		expect( func, `${message}` ).not.to.throw();
-		expect( doc.document, message ).not.to.have.property( field );
+		else
+		{
+			//
+			// Insert object.
+			//
+			message = "Insertion";
+			func = () => {
+				result = doc.insertDocument();
+			};
+			
+			//
+			// Assert no exception.
+			//
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Check object persistent state.
+			//
+			action = "Insertion result";
+			expect( result, `${message} - ${action}` ).to.be.true;
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Check local fields.
+			//
+			for( const field of doc.localFields )
+			{
+				action = `Has field [${field}]`;
+				expect( doc.document, `${message} - ${action}` ).to.have.property( field );
+				action = `Field [${field}] not empty`;
+				expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+			}
+			
+		} // Has no significant fields.
 		
-		//
-		// Insert object.
-		//
-		message = "Insertion";
-		func = () => {
-			result = doc.insertDocument();
-		};
-		expect( func, `${message}` ).not.to.throw();
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.equal( true );
-		
-		//
-		// Check object persistent state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( ! has_significant );
-		
-		//
-		// Check significant field.
-		//
-		action = `Has significant field [${field}]`;
-		expect( doc.document, `${message} - ${action}` ).not.to.have.property( field );
-		
-	}	// testInsertWithoutSignificantFieldsSucceed
+	}	// testInsertWithoutSignificantFields
 	
 	
 	/****************************************************************************
