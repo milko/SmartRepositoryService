@@ -193,14 +193,18 @@ class UnitTest
 	 * 	- theUnit:	The unit test method name.
 	 * 	- theName:	The unit test title, used in the 'it'.
 	 * 	- theClass:	The class to test in the unit.
+	 * 	- theParam:	Eventual parameters for the test.
+	 * 	- doNew:	A flag that if true will raise an exception if the unit exists.
 	 *
 	 * @param theGroup		{String}		Unit test group data member name.
 	 * @param theUnit		{String}		Unit test method name.
 	 * @param theName		{String}		Unit test title.
 	 * @param theClass		{String}		Unit test class, defaults to TestClass.
 	 * @param theParam		{*}				Eventual parameters for the method.
+	 * @param doNew			{Boolean}		If true, assert the unit doesn't exist.
+	 *
 	 */
-	unitSet( theGroup, theUnit, theName, theClass, theParam = null )
+	unitSet( theGroup, theUnit, theName, theClass, theParam = null, doNew = false )
 	{
 		//
 		// Init data member.
@@ -213,6 +217,8 @@ class UnitTest
 		//
 		if( ! this[ theGroup ].hasOwnProperty( theUnit ) )
 			this[ theGroup ][ theUnit ] = {};
+		else if( doNew )
+			throw new Error( `Group [${theGroup}] has already the unit [${theUnit}]` );
 		
 		//
 		// Load record.

@@ -116,7 +116,9 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateNoSelectorNoCollection',
 			"Instantiate class without selector and without collection",
-			TestClass
+			TestClass,
+			null,
+			true
 		);
 		
 		//
@@ -125,7 +127,9 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateNullSelectorNoCollection',
 			"Instantiate with null selector and without collection:",
-			TestClass
+			TestClass,
+			null,
+			true
 		);
 		
 		//
@@ -134,7 +138,9 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateNullSelectorMissingCollection',
 			"Instantiate with null selector and non existant collection:",
-			TestClass
+			TestClass,
+			null,
+			true
 		);
 		
 		//
@@ -143,7 +149,9 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateDefaultCollection',
 			"Instantiate with default collection:",
-			TestClass
+			TestClass,
+			null,
+			true
 		);
 		
 		//
@@ -152,7 +160,9 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateEdgeCollection',
 			"Instantiate with existing edge collection:",
-			TestClass
+			TestClass,
+			null,
+			true
 		);
 		
 		//
@@ -161,7 +171,9 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateDocumentCollection',
 			"Instantiate with existing document collection:",
-			TestClass
+			TestClass,
+			null,
+			true
 		);
 		
 		//
@@ -171,7 +183,8 @@ class DocumentUnitTest extends UnitTest
 			'instantiateMutableImmutableDocument',
 			"Instantiate mutable/immutable document:",
 			TestClass,
-			param.content
+			param.content,
+			true
 		);
 		
 		//
@@ -180,7 +193,9 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateCrossCollectionReference',
 			"Instantiate with cross-collection reference:",
-			TestClass
+			TestClass,
+			null,
+			true
 		);
 		
 		//
@@ -189,7 +204,9 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateInvalidReferenceId',
 			"Instantiate with invalid _id reference:",
-			TestClass
+			TestClass,
+			null,
+			true
 		);
 		
 		//
@@ -198,7 +215,9 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateNotFoundIdReference',
 			"Instantiate with not found reference:",
-			TestClass
+			TestClass,
+			null,
+			true
 		);
 		
 		//
@@ -207,7 +226,9 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateFoundReference',
 			"Instantiate with found reference:",
-			TestClass
+			TestClass,
+			null,
+			true
 		);
 		
 		//
@@ -217,7 +238,8 @@ class DocumentUnitTest extends UnitTest
 			'instantiateWithContent',
 			"Instantiate with content:",
 			TestClass,
-			param.content
+			param.content,
+			true
 		);
 		
 	}	// instantiationUnitsInit
@@ -248,7 +270,8 @@ class DocumentUnitTest extends UnitTest
 			'contentsLoadEmptyObject',
 			"Load contents in empty object",
 			TestClass,
-			param.content
+			param.content,
+			true
 		);
 		
 		//
@@ -258,7 +281,19 @@ class DocumentUnitTest extends UnitTest
 			'contentsLoadFilledObject',
 			"Load filled non persistent object:",
 			TestClass,
-			{ base: param.content, replace: param.replace }
+			{ base: param.content, replace: param.replace },
+			true
+		);
+		
+		//
+		// Load persistent object.
+		//
+		this.contentsUnitSet(
+			'contentsLoadPersistentObject',
+			"Load persistent object:",
+			TestClass,
+			{ base: param.content, replace: param.replace },
+			true
 		);
 		
 	}	// contentsUnitsInit
@@ -650,7 +685,7 @@ class DocumentUnitTest extends UnitTest
 	}	// contentsLoadEmptyObject
 	
 	/**
-	 // Load filled and non persistent object.
+	 * Load filled and non persistent object
 	 *
 	 * Will test replacing contents of non persistent object with both replace flag
 	 * values in both base and custom classes.
@@ -674,6 +709,32 @@ class DocumentUnitTest extends UnitTest
 			this.testContentsLoadFilledObject( TestClassCustom, theParam );
 		
 	}	// contentsLoadFilledObject
+	
+	/**
+	 * Load persistent object
+	 *
+	 * Will test replacing contents of a persistent object with both replace flag
+	 * values in both base and custom classes.
+	 *
+	 * Should succeed with both base and custom class.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	contentsLoadPersistentObject( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testContentsLoadPersistentObject( TestClass, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( TestClassCustom !== null )
+			this.testContentsLoadPersistentObject( TestClassCustom, theParam );
+		
+	}	// contentsLoadPersistentObject
 	
 	
 	/****************************************************************************
@@ -1459,9 +1520,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.exampleCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Insert test document.
@@ -1497,9 +1558,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Test instantiation with reference collection inferred and same as provided
@@ -1526,9 +1587,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Test instantiation with key reference and default collection.
@@ -1553,9 +1614,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Test instantiation with key reference and provided collection.
@@ -1581,9 +1642,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Remove test document.
@@ -1655,9 +1716,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.exampleCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Insert test document.
@@ -1692,9 +1753,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Test instantiation with reference collection inferred and same as provided
@@ -1721,9 +1782,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Test instantiation with key reference and provided collection.
@@ -1749,9 +1810,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Remove test document.
@@ -1805,9 +1866,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Check content.
@@ -1838,9 +1899,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Check content.
@@ -1869,9 +1930,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Check content.
@@ -1901,9 +1962,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Check content.
@@ -1951,9 +2012,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Check content.
@@ -2011,9 +2072,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Load data.
@@ -2035,9 +2096,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Check content.
@@ -2067,9 +2128,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Load data.
@@ -2094,9 +2155,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Instantiate for false replace flag test.
@@ -2121,9 +2182,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Load data.
@@ -2146,9 +2207,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Check content.
@@ -2182,9 +2243,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Load data.
@@ -2206,9 +2267,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Check content.
@@ -2238,9 +2299,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Load data.
@@ -2265,9 +2326,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Instantiate for true replace flag test.
@@ -2292,9 +2353,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Load data.
@@ -2317,9 +2378,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Check content.
@@ -2332,7 +2393,13 @@ class DocumentUnitTest extends UnitTest
 	 * Succeed loading contents in filled object
 	 *
 	 * Assert that loading contents in a filled non persistent object works for all fields
-	 * except restricted fields.
+	 * except restricted fields, the following checks will be performed:
+	 *
+	 * 	- Restricted fields are not copied.
+	 * 	- All other fields are copied.
+	 * 	- Locked fields are always replaced, regardless of replace flag.
+	 * 	- No fields, except locked, are replaced if the flag is off.
+	 * 	- All fields are replaced if the flag is on.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -2383,9 +2450,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Replace and check contents.
@@ -2405,9 +2472,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Instantiate for false replace flag test.
@@ -2432,9 +2499,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Replace and check contents.
@@ -2457,9 +2524,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Instantiate for false replace flag test.
@@ -2484,9 +2551,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Replace and check contents.
@@ -2510,9 +2577,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// REPLACE FLAG TRUE
@@ -2541,9 +2608,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Replace and check contents.
@@ -2563,9 +2630,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Instantiate for true replace flag test.
@@ -2590,9 +2657,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Replace and check contents.
@@ -2615,9 +2682,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Instantiate for true replace flag test.
@@ -2642,9 +2709,9 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Replace and check contents.
@@ -2668,11 +2735,378 @@ class DocumentUnitTest extends UnitTest
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 	
 	}	// testContentsLoadFilledObject
+	
+	/**
+	 * Succeed loading contents in persistent object
+	 *
+	 * Assert that loading contents in a persistent object works for all fields
+	 * except restricted fields, the following checks will be performed:
+	 *
+	 * 	- Restricted fields are not copied.
+	 * 	- All other fields are copied.
+	 * 	- Locked fields are always replaced, regardless of replace flag.
+	 * 	- No fields, except locked, are replaced if the flag is off.
+	 * 	- All fields are replaced if the flag is on.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testContentsLoadPersistentObject( theClass, theParam = null )
+	{
+		let id;
+		let doc;
+		let data;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Get base and replace contents.
+		//
+		message = "Unit test parameter";
+		expect( theParam, message ).to.be.an.object;
+		expect( theParam, message ).to.have.property( 'base' );
+		expect( theParam, message ).to.have.property( 'replace' );
+		
+		const base_data = theParam[ 'base' ];
+		const replace_data = theParam[ 'replace' ];
+		
+		//
+		// Instantiate object for inserting.
+		//
+		message = "Persistent copy";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					base_data,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Insert object.
+		//
+		action = "Insertion";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object persistent state.
+		//
+		action = "Insertion result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		action = "Has _id";
+		expect( doc.document, `${message} - ${action}` ).to.have.property( '_id' );
+		
+		//
+		// Save ID.
+		//
+		id = doc.document._id;
+		
+		//
+		// REPLACE FLAG FALSE
+		//
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object persistent state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, base_data );
+		
+		//
+		// Replace and check contents.
+		//
+		message = "Replace value and flag is off";
+		this.validatePersistentReplace(
+			message,								// Error message.
+			false,									// Replace flag.
+			doc,									// The document object.
+			replace_data							// The replacement data.
+		);
+		
+		//
+		// Check object replaced state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Replace and check contents.
+		//
+		data = K.function.clone( replace_data );
+		for( const item in data )
+			data[ item ] = null;
+		message = "Replace value and flag is off";
+		this.validatePersistentReplace(
+			`${message} - replace with delete contents`,	// Error message.
+			false,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Replace and check contents.
+		//
+		data = { "UNKNOWN" : "CONTENT" };
+		message = "Replace value and flag is off";
+		this.validatePersistentReplace(
+			`${message} - replace with invalid contents`,	// Error message.
+			false,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		action = "Has invalid field";
+		expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
+		expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// REPLACE FLAG TRUE
+		//
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object persistent state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, base_data );
+		
+		//
+		// Replace and check contents.
+		//
+		message = "Replace value and flag is on";
+		this.validatePersistentReplace(
+			message,								// Error message.
+			true,									// Replace flag.
+			doc,									// The document object.
+			replace_data							// The replacement data.
+		);
+		
+		//
+		// Check object replaced state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Replace and check contents.
+		//
+		data = K.function.clone( replace_data );
+		for( const item in data )
+			data[ item ] = null;
+		message = "Replace value and flag is on";
+		this.validatePersistentReplace(
+			`${message} - replace with delete contents`,	// Error message.
+			true,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Replace and check contents.
+		//
+		data = { "UNKNOWN" : "CONTENT" };
+		message = "Replace value and flag is on";
+		this.validatePersistentReplace(
+			`${message} - replace with invalid contents`,	// Error message.
+			true,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		action = "Has invalid field";
+		expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
+		expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+	
+	}	// testContentsLoadPersistentObject
 	
 	
 	/****************************************************************************
@@ -3440,9 +3874,12 @@ class DocumentUnitTest extends UnitTest
 				
 				//
 				// Assert property is not there.
+				// Note that locked properties cannot be modified.
 				//
-				expect( theDestination, `${theMessage} - ${action}` )
-					.not.to.have.property(field);
+				if( theFlag				// Replace flag set
+				 && (status !== 'L') )	// and property not locked.
+					expect( theDestination, `${theMessage} - ${action}` )
+						.not.to.have.property(field);
 				
 			}	// Restricted or deleted.
 			

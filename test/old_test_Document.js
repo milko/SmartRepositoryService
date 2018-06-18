@@ -737,170 +737,6 @@ describe( "Document class tests:", function ()
 	describe( "Content:", function ()
 	{
 		//
-		// Load filled and non persistent object.
-		//
-		// Besides no errors and environment checks, the contents are validated as
-		// follows:
-		//
-		// 	- Restricted fields are not copied.
-		//	- All other fields are copied.
-		//	- Locked fields are always replaced, regardless of replace flag.
-		//	- No fields, except locked, are replaced if the flag is off.
-		//	- All fields are replaced if the flag is on.
-		//
-		it( "Load filled non persistent object:", function ()
-		{
-			let doc;
-			let func;
-			let message;
-			let action;
-			
-			//
-			// Instantiate.
-			//
-			message = "Provided original content";
-			action = "Instantiation";
-			func = () => {
-				doc =
-					new TestClassCustom(
-						param.request,
-						param.content
-					);
-			};
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Check object original state.
-			//
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.be.false;
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.be.false;
-			
-			//
-			// Check content.
-			//
-			checkContents( message, param.content, doc.document, doc.restrictedFields );
-			
-			//
-			// Load data.
-			//
-			message = "Replace flag is false";
-			action = "Set document properties";
-			func = () => {
-				doc.setDocumentProperties(
-					param.replace,
-					false
-				);
-			};
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Check object loaded state.
-			//
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.be.false;
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.be.true;
-			
-			//
-			// Check content.
-			//
-			checkNonPersistentReplacedContents(
-				false,
-				message,
-				param.content,
-				doc.document,
-				param.replace,
-				doc.restrictedFields,
-				doc.requiredFields,
-				doc.lockedFields,
-				doc.uniqueFields,
-				doc.significantFields
-			);
-			
-			//
-			// Instantiate.
-			//
-			message = "Provided original content";
-			action = "Instantiation";
-			func = () => {
-				doc =
-					new TestClassCustom(
-						param.request,
-						param.content
-					);
-			};
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Check object original state.
-			//
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.be.false;
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.be.false;
-			
-			//
-			// Check content.
-			//
-			checkContents( message, param.content, doc.document, doc.restrictedFields );
-			
-			//
-			// Load data.
-			//
-			message = "Replace flag is true";
-			action = "Set document properties";
-			func = () => {
-				doc.setDocumentProperties(
-					param.replace,
-					true
-				);
-			};
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Check object loaded state.
-			//
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.be.false;
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.be.true;
-			
-			//
-			// Check content.
-			//
-			checkNonPersistentReplacedContents(
-				true,
-				message,
-				param.content,
-				doc.document,
-				param.replace,
-				doc.restrictedFields,
-				doc.requiredFields,
-				doc.lockedFields,
-				doc.uniqueFields,
-				doc.significantFields
-			);
-		});
-		
-		//
 		// Load persistent object.
 		//
 		// Besides no errors and environment checks, the contents are validated as
@@ -1008,165 +844,161 @@ describe( "Document class tests:", function ()
 			action = "Modified";
 			expect( doc.modified, `${message} - ${action}` ).to.be.false;
 			
-			/*
-			 //
-			 // Flatten significant fields.
-			 //
-			 let significant = [];
-			 if( doc.significantFields.length > 0 )
-			 significant = K.function.flatten(doc.significantFields);
-			 
-			 //
-			 // Replace properties.
-			 //
-			 message = "Replace value and flag is off";
-			 for( const field in param.replace )
-			 {
-			 //
-			 // Replace field function.
-			 //
-			 replace = {};
-			 replace[ field ] = param.replace[ field ];
-			 func = () => {
-			 doc.setDocumentProperties(
-			 replace,
-			 false
-			 );
-			 };
-			 
-			 //
-			 // Replace restricted field.
-			 //
-			 if( doc.restrictedFields.includes( field ) )
-			 {
-			 action = `Replace restricted [${field}]`;
-			 expect( func, `${message} - ${action}`).not.to.throw();
-			 }
-			 
-			 //
-			 // Replace significant field.
-			 //
-			 else if( significant.includes( field ) )
-			 {
-			 action = `Replace significant [${field}]`;
-			 expect( func, `${message} - ${action}`).not.to.throw();
-			 }
-			 
-			 //
-			 // Replace required field.
-			 //
-			 else if( doc.requiredFields.includes( field ) )
-			 {
-			 action = `Replace required [${field}]`;
-			 expect( func, `${message} - ${action}`).not.to.throw();
-			 }
-			 
-			 //
-			 // Replace unique field.
-			 //
-			 else if( doc.uniqueFields.includes( field ) )
-			 {
-			 action = `Replace unique [${field}]`;
-			 expect( func, `${message} - ${action}`).not.to.throw();
-			 }
-			 
-			 //
-			 // Replace locked field.
-			 //
-			 else if( doc.lockedFields.includes( field ) )
-			 {
-			 action = `Replace locked [${field}]`;
-			 expect( func, `${message} - ${action}`
-			 ).to.throw(
-			 MyError,
-			 /Property is locked/
-			 );
-			 }
-			 
-			 //
-			 // Replace field.
-			 //
-			 else
-			 {
-			 action = `Replace [${field}]`;
-			 expect( func, `${message} - ${action}`).not.to.throw();
-			 }
-			 
-			 }	// Iterating replace properties.
-			 
-			 //
-			 // Check object replace state.
-			 //
-			 action = "Contents";
-			 expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			 action = "Collection";
-			 expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-			 action = "Persistent";
-			 expect( doc.persistent, `${message} - ${action}` ).to.be.true;
-			 action = "Modified";
-			 expect( doc.modified, `${message} - ${action}` ).to.be.false;
-			 
-			 //
-			 // Check contents.
-			 //
-			 checkPersistentReplacedContents
-			 (
-			 false,						// Replace flag.
-			 message,					// Error message.
-			 param.content,				// Data before replace.
-			 doc.document,				// The object to test.
-			 param.replace,				// The replacement data.
-			 doc.restrictedFields,		// Restricted fields.
-			 doc.requiredFields,			// Required fields.
-			 doc.lockedFields,			// Locked fields.
-			 doc.uniqueFields,			// Unique fields.
-			 doc.significantFields		// Significant fields.
-			 );
-			 */
+			//
+			// Flatten significant fields.
+			//
+			let significant = [];
+			if( doc.significantFields.length > 0 )
+				significant = K.function.flatten(doc.significantFields);
 			
-			/*
-			 //
-			 // Replace with same values.
-			 //
-			 message = "Replace same value and flag is off";
-			 replace = JSON.parse(JSON.stringify(doc.document));
-			 func = () => {
-			 doc.setDocumentProperties(
-			 replace,
-			 false
-			 );
-			 };
-			 expect( func, `${message} - ${action}`).not.to.throw();
-			 
-			 //
-			 // Check object replace state.
-			 //
-			 action = "Contents";
-			 expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			 action = "Collection";
-			 expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-			 action = "Persistent";
-			 expect( doc.persistent, `${message} - ${action}` ).to.be.true;
-			 action = "Modified";
-			 expect( doc.modified, `${message} - ${action}` ).to.be.false;
-			 
-			 //
-			 // Check contents.
-			 //
-			 checkPersistentReplacedContents
-			 (
-			 false,						// Replace flag.
-			 message,					// Error message.
-			 replace,					// Data before replace.
-			 doc.document,				// The object to test.
-			 replace,					// The replacement data.
-			 doc.restrictedFields,		// Restricted fields.
-			 doc.requiredFields,			// Required fields.
-			 doc.lockedFields,			// Locked fields.
-			 doc.uniqueFields,			// Unique fields.
-			 doc.significantFields		// Significant fields.
-			 );
-			 */
+			//
+			// Replace properties.
+			//
+			message = "Replace value and flag is off";
+			for( const field in param.replace )
+			{
+				//
+				// Replace field function.
+				//
+				replace = {};
+				replace[ field ] = param.replace[ field ];
+				func = () => {
+					doc.setDocumentProperties(
+						replace,
+						false
+					);
+				};
+				
+				//
+				// Replace restricted field.
+				//
+				if( doc.restrictedFields.includes( field ) )
+				{
+					action = `Replace restricted [${field}]`;
+					expect( func, `${message} - ${action}`).not.to.throw();
+				}
+				
+				//
+				// Replace significant field.
+				//
+				else if( significant.includes( field ) )
+				{
+					action = `Replace significant [${field}]`;
+					expect( func, `${message} - ${action}`).not.to.throw();
+				}
+				
+				//
+				// Replace required field.
+				//
+				else if( doc.requiredFields.includes( field ) )
+				{
+					action = `Replace required [${field}]`;
+					expect( func, `${message} - ${action}`).not.to.throw();
+				}
+				
+				//
+				// Replace unique field.
+				//
+				else if( doc.uniqueFields.includes( field ) )
+				{
+					action = `Replace unique [${field}]`;
+					expect( func, `${message} - ${action}`).not.to.throw();
+				}
+				
+				//
+				// Replace locked field.
+				//
+				else if( doc.lockedFields.includes( field ) )
+				{
+					action = `Replace locked [${field}]`;
+					expect( func, `${message} - ${action}`
+					).to.throw(
+						MyError,
+						/Property is locked/
+					);
+				}
+				
+				//
+				// Replace field.
+				//
+				else
+				{
+					action = `Replace [${field}]`;
+					expect( func, `${message} - ${action}`).not.to.throw();
+				}
+				
+			}	// Iterating replace properties.
+			
+			//
+			// Check object replace state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.be.false;
+			
+			//
+			// Check contents.
+			//
+			checkPersistentReplacedContents
+			(
+				false,						// Replace flag.
+				message,					// Error message.
+				param.content,				// Data before replace.
+				doc.document,				// The object to test.
+				param.replace,				// The replacement data.
+				doc.restrictedFields,		// Restricted fields.
+				doc.requiredFields,			// Required fields.
+				doc.lockedFields,			// Locked fields.
+				doc.uniqueFields,			// Unique fields.
+				doc.significantFields		// Significant fields.
+			);
+			
+			//
+			// Replace with same values.
+			//
+			message = "Replace same value and flag is off";
+			replace = JSON.parse(JSON.stringify(doc.document));
+			func = () => {
+				doc.setDocumentProperties(
+					replace,
+					false
+				);
+			};
+			expect( func, `${message} - ${action}`).not.to.throw();
+			
+			//
+			// Check object replace state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.be.true;
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.be.false;
+			
+			//
+			// Check contents.
+			//
+			checkPersistentReplacedContents
+			(
+				false,						// Replace flag.
+				message,					// Error message.
+				replace,					// Data before replace.
+				doc.document,				// The object to test.
+				replace,					// The replacement data.
+				doc.restrictedFields,		// Restricted fields.
+				doc.requiredFields,			// Required fields.
+				doc.lockedFields,			// Locked fields.
+				doc.uniqueFields,			// Unique fields.
+				doc.significantFields		// Significant fields.
+			);
 		});
 		
 		/*
