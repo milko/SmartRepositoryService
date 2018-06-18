@@ -744,38 +744,6 @@ describe( "Document class tests:", function ()
 	describe( "Insert:", function ()
 	{
 		//
-		// Insert object without required field.
-		//
-		// Should fail.
-		//
-		it( "Insert object without required field:", function ()
-		{
-			let doc;
-			let func;
-			let result;
-			
-			func = () => {
-				doc =
-					new TestClassPersistNoSignificant(
-						param.request, param.content, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			
-			doc.setDocumentProperties({ var: null, name: "pippo" });
-			func = () => {
-				result = doc.insertDocument();
-			};
-			expect( func, "Insert" )
-				.to.throw( MyError, /missing required field/ );
-			expect( doc.document, "Should not be empty").not.to.be.empty;
-			expect( doc.document, "Should have the field").to.have.property('name');
-			expect( result, "Insert result" ).to.equal( undefined );
-			expect( doc.persistent, "Persistent flag").to.equal(false);
-			expect( doc.modified, "Modified flag").to.equal(true);
-		});
-		
-		//
 		// Insert object without significant field.
 		//
 		// Should not fail.

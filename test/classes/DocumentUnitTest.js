@@ -349,6 +349,17 @@ class DocumentUnitTest extends UnitTest
 			true
 		);
 		
+		//
+		// Insert object without significant fields.
+		//
+		this.insertUnitSet(
+			'insertWithoutSignificantFields',
+			"Insert object without significant fields",
+			TestClass,
+			param.content,
+			true
+		);
+		
 	}	// unitsInitInsert
 	
 	
@@ -3229,7 +3240,8 @@ class DocumentUnitTest extends UnitTest
 	/**
 	 * Fail inserting empty object
 	 *
-	 * Assert that inserting an empty object fails.
+	 * Assert that inserting an empty object fails: the class should implement
+	 * required fields.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -3272,9 +3284,10 @@ class DocumentUnitTest extends UnitTest
 	}	// testInsertEmptyObjectFail
 	
 	/**
-	 * Succeed inserting document withour required field
+	 * Succeed inserting empty document
 	 *
-	 * This shoud,succeed on documents without required fields.
+	 * Assert that inserting an empty object succeeds: the class should not implement
+	 * any required fields.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -3356,12 +3369,6 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
-		// Remove required field 'var'.
-		//
-		const data = K.function.clone( theParam );
-		delete data.var;
-		
-		//
 		// Instantiate empty object.
 		//
 		message = "Instantiation";
@@ -3374,6 +3381,35 @@ class DocumentUnitTest extends UnitTest
 				);
 		};
 		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Check required field.
+		//
+		const required = doc.requiredFields;
+		expect( required, "Has required fields" ).not.to.be.empty;
+		
+		//
+		// ToDo
+		// Note: we need to instantiate the object first, because we need to get the
+		// list of reqauired fields: should make the method static...
+		//
+		
+		//
+		// Remove required field.
+		// Assume 'var' is required and remove it if required,
+		// or remove first required field.
+		//
+		const field = ( required.includes( 'var' ) )
+					? 'var'
+					: required[ 0 ];
+		const data = {};
+		data[ field ] = null;
+		message = "Removal";
+		func = () => {
+			doc.setDocumentProperties( data, true );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( doc.document, message ).not.to.have.property( field );
 		
 		//
 		// Insert object.
@@ -3391,9 +3427,9 @@ class DocumentUnitTest extends UnitTest
 	}	// testInsertWithoutRequiredFieldsFail
 	
 	/**
-	 * Succeed inserting document without required fields
+	 * Succeed inserting document without required field
 	 *
-	 * This should succeed with documents that do not have required fields.
+	 * This shoud succeed on documents without required fields.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -3407,10 +3443,11 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
-		// Remove required field 'var'.
+		// Remove field 'var'.
 		//
 		const data = K.function.clone( theParam );
-		delete data.var;
+		if( data.hasOwnProperty( 'var' ) )
+			delete data.var;
 		
 		//
 		// Instantiate empty object.
