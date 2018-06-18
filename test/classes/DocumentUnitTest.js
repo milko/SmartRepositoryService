@@ -55,6 +55,9 @@ class DocumentUnitTest extends UnitTest
 	 * Define unit tests
 	 *
 	 * We overload this method to load the Document unit test groups.
+	 *
+	 * Be aware that if the tests do not run, it may be because you are setting twice
+	 * the same unit test: replace tests only in derived classes.
 	 */
 	unitsInit()
 	{
@@ -4206,9 +4209,10 @@ class DocumentUnitTest extends UnitTest
 	 * @param theName		{String}		Unit test title.
 	 * @param theClass		{String}		Unit test class, defaults to TestClass.
 	 * @param theParam		{*}				Eventual parameters for the method.
+	 * @param doNew			{Boolean}		If true, assert the unit doesn't exist.
 	 */
-	instantiationUnitSet( theUnit, theName, theClass, theParam = null ) {
-		this.unitSet( 'unit_instantiation', theUnit, theName, theClass, theParam );
+	instantiationUnitSet( theUnit, theName, theClass, theParam = null, doNew = false ) {
+		this.unitSet( 'unit_instantiation', theUnit, theName, theClass, theParam, doNew );
 	}
 	
 	/**
@@ -4244,9 +4248,10 @@ class DocumentUnitTest extends UnitTest
 	 * @param theName		{String}		Unit test title.
 	 * @param theClass		{String}		Unit test class, defaults to TestClass.
 	 * @param theParam		{*}				Eventual parameters for the method.
+	 * @param doNew			{Boolean}		If true, assert the unit doesn't exist.
 	 */
-	contentsUnitSet( theUnit, theName, theClass, theParam = null ) {
-		this.unitSet( 'unit_contents', theUnit, theName, theClass, theParam );
+	contentsUnitSet( theUnit, theName, theClass, theParam = null, doNew = false ) {
+		this.unitSet( 'unit_contents', theUnit, theName, theClass, theParam, doNew );
 	}
 	
 	/**
