@@ -382,13 +382,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInstantiateNoSelectorNoCollectionFail( TestClass );
+		this.testInstantiateNoSelectorNoCollection( TestClass );
 		
 		//
 		// Should succeed, because the custom class implements default collection.
 		//
 		if( TestClassCustom !== null )
-			this.testInstantiateNoSelectorNoCollectionSucceed( TestClassCustom );
+			this.testInstantiateNoSelectorNoCollection( TestClassCustom );
 		
 	}	// instantiateNoSelectorNoCollection
 	
@@ -407,13 +407,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInstantiateNullSelectorNoCollectionFail( TestClass, theParam );
+		this.testInstantiateNullSelectorNoCollection( TestClass, theParam );
 		
 		//
 		// Should succeed with custom class: it implements the default collection.
 		//
 		if( TestClassCustom !== null )
-			this.testInstantiateNullSelectorNoCollectionSucceed(
+			this.testInstantiateNullSelectorNoCollection(
 				TestClassCustom, theParam
 			);
 		
@@ -447,10 +447,10 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail with both classes.
 		//
-		this.testInstantiateNullSelectorMissingCollectionFail(
+		this.testInstantiateNullSelectorMissingCollection(
 			TestClass, test_collection
 		);
-		this.testInstantiateNullSelectorMissingCollectionFail(
+		this.testInstantiateNullSelectorMissingCollection(
 			TestClassCustom, test_collection
 		);
 		
@@ -473,15 +473,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Test class without default collection.
 		//
-		this.testDefaultCollectionFail( TestClass, theParam );
+		this.testDefaultCollection( TestClass, theParam );
 		
 		//
 		// Test class with default collection.
 		//
 		if( TestClassCustom !== null )
-			this.testDefaultCollectionSucceed(
-				TestClassCustom, theParam
-			);
+			this.testDefaultCollection( TestClassCustom, theParam );
 		
 	}	// instantiateDefaultCollection
 	
@@ -886,116 +884,140 @@ class DocumentUnitTest extends UnitTest
 	 ****************************************************************************/
 	
 	/**
-	 * Fail instantiate class without selector and without collection
+	 * Test instantiate class without selector and without collection
 	 *
 	 * Assert that instantiating the class without the reference and collection
-	 * parameters raises an exception.
+	 * parameters raises an exception if class has no default collection.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
-	testInstantiateNoSelectorNoCollectionFail( theClass, theParam = null )
+	testInstantiateNoSelectorNoCollection( theClass, theParam = null )
 	{
 		//
-		// Should raise: Missing required parameter.
+		// Init local storage.
 		//
-		expect( () => {
-			const tmp =
+		let doc;
+		
+		//
+		// Instantiate class.
+		// ToDo:
+		// Need to do it in order to ger default collection:
+		// should make this static.
+		//
+		doc =
+			new theClass(
+				this.request,
+				null,
+				this.defaultTestCollection
+			);
+		
+		//
+		// Get default collection.
+		//
+		const default_collection = doc.defaultCollection;
+		
+		//
+		// Instantiate function.
+		//
+		const func = () => {
+			doc =
 				new theClass(
 					this.request
 				);
-		}).to.throw(
-			MyError,
-			/Missing required parameter/
-		);
+		};
 		
-	}	// testInstantiateNoSelectorNoCollectionFail
-	
-	/**
-	 * Fail instantiate class without selector and without collection
-	 *
-	 * Assert that instantiating the class without the reference and collection
-	 * parameters succeeds: this should only occur if the class implements default
-	 * collection.
-	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
-	testInstantiateNoSelectorNoCollectionSucceed( theClass, theParam = null )
-	{
 		//
 		// Should raise: Missing required parameter.
 		//
-		expect( () => {
-			const tmp =
-				new theClass(
-					this.request
-				);
-		}).not.to.throw();
+		if( default_collection === null )
+			expect( func
+			).to.throw(
+				MyError,
+				/Missing required parameter/
+			);
 		
-	}	// testInstantiateNoSelectorNoCollectionSucceed
+		//
+		// Should not raise an exception.
+		//
+		else
+			expect( func ).not.to.throw();
+		
+	}	// testInstantiateNoSelectorNoCollection
 	
 	/**
-	 * Fail instantiate with null selector and without collection.
+	 * Test instantiate with null selector and without collection.
 	 *
 	 * Assert that instantiating the class with null reference and no collection
-	 * parameters raises an exception.
+	 * raises an exception if class has no default collection.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
-	testInstantiateNullSelectorNoCollectionFail( theClass, theParam = null )
+	testInstantiateNullSelectorNoCollection( theClass, theParam = null )
 	{
 		//
-		// Should raise: Missing required parameter.
+		// Init local storage.
 		//
-		expect( () => {
-			const tmp =
+		let doc;
+		
+		//
+		// Instantiate class.
+		// ToDo:
+		// Need to do it in order to ger default collection:
+		// should make this static.
+		//
+		doc =
+			new theClass(
+				this.request,
+				null,
+				this.defaultTestCollection
+			);
+		
+		//
+		// Get default collection.
+		//
+		const default_collection = doc.defaultCollection;
+		
+		//
+		// Instantiate function.
+		//
+		const func = () => {
+			doc =
 				new theClass(
 					this.request,
 					null
 				);
-		}).to.throw(
-			MyError,
-			/Missing required parameter/
-		);
+		};
 		
-	}	// testInstantiateNullSelectorNoCollectionFail
+		//
+		// Should raise: Missing required parameter.
+		//
+		if( default_collection === null )
+			expect( func
+			).to.throw(
+				MyError,
+				/Missing required parameter/
+			);
+		
+		//
+		// Should not raise an exception.
+		//
+		else
+			expect( func ).not.to.throw();
+		
+	}	// testInstantiateNullSelectorNoCollection
 	
 	/**
-	 * Succeed instantiate with null selector and without collection.
-	 *
-	 * Assert that instantiating the class with null reference and no collection
-	 * parameters succeeds.
-	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
-	testInstantiateNullSelectorNoCollectionSucceed( theClass, theParam = null )
-	{
-		//
-		// Should succeed.
-		//
-		expect( () => {
-			const tmp =
-				new theClass(
-					this.request,
-					null
-				);
-		}).not.to.throw();
-		
-	}	// testInstantiateNullSelectorNoCollectionSucceed
-	
-	/**
-	 * Fail with null selector and non existant collection.
+	 * Test with null selector and non existant collection.
 	 *
 	 * Assert that instantiating the class with null reference and a non existing
-	 * collection parameters raises an exception.
+	 * collection parameters raises an exception in all cases.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
-	testInstantiateNullSelectorMissingCollectionFail( theClass, theParam = null )
+	testInstantiateNullSelectorMissingCollection( theClass, theParam = null )
 	{
 		//
 		// Should raise: unknown or invalid collection name.
@@ -1012,33 +1034,7 @@ class DocumentUnitTest extends UnitTest
 			/unknown or invalid collection name/
 		);
 		
-	}	// testInstantiateNullSelectorMissingCollectionFail
-	
-	/**
-	 * Succeed with null selector and non existant collection.
-	 *
-	 * Assert that instantiating the class with null reference and a non existing
-	 * collection parameters succeeds: this should only be vaild for classes that have
-	 * a default collection.
-	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
-	testInstantiateNullSelectorMissingCollectionSucceed( theClass, theParam = null )
-	{
-		//
-		// Should succeed.
-		//
-		expect( () => {
-			const tmp =
-				new theClass(
-					this.request,
-					null,
-					theParam
-				);
-		}).not.to.throw();
-		
-	}	// testInstantiateNullSelectorMissingCollectionSucceed
+	}	// testInstantiateNullSelectorMissingCollection
 	
 	/**
 	 * Test instantiation with missing default collection
@@ -1049,7 +1045,7 @@ class DocumentUnitTest extends UnitTest
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
-	testDefaultCollectionFail( theClass, theParam = null )
+	testDefaultCollection( theClass, theParam = null )
 	{
 		let doc;
 		let func;
@@ -1057,29 +1053,64 @@ class DocumentUnitTest extends UnitTest
 		let action;
 		
 		//
-		// Instantiate without collection.
-		// Should raise: Missing required parameter.
+		// Instantiate class.
+		// ToDo:
+		// Need to do it in order to ger default collection:
+		// should make this static.
+		//
+		doc =
+			new theClass(
+				this.request,
+				null,
+				this.defaultTestCollection
+			);
+		
+		//
+		// Get default collection.
+		//
+		const default_collection = doc.defaultCollection;
+		
+		//
+		// Instantiate without reference and collection.
+		// Should fail if no default collection.
 		//
 		message = "Missing selector and missing collection";
-		action = "Instantiation";
 		func = () => {
 			doc =
 				new theClass(
 					this.request
 				);
 		};
-		expect( func, `${message} - ${action}`
-		).to.throw(
-			MyError,
-			/Missing required parameter/
-		);
+		if( default_collection === null )
+		{
+			//
+			// Should raise: Missing required parameter.
+			//
+			action = "Instantiation without default collection";
+			expect( func, `${message} - ${action}`
+			).to.throw(
+				MyError,
+				/Missing required parameter/
+			);
+		}
+		else
+		{
+			//
+			// Should succeed.
+			//
+			action = "Instantiation with default collection";
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			action = "Collection name";
+			expect( doc.collection, `${message} - ${action}` )
+				.to.equal( doc.defaultCollection );
+		}
 		
 		//
 		// Instantiate with null selector and provided collection.
 		// Collection should be the provided one.
+		// Should succeed.
 		//
 		message = "Null selector and provided collection";
-		action = "Instantiation";
 		func = () => {
 			doc =
 				new theClass(
@@ -1088,17 +1119,33 @@ class DocumentUnitTest extends UnitTest
 					this.compatibleCollection
 				);
 		};
+		
+		//
+		// Set action.
+		//
+		action = ( default_collection === null )
+			   ? "Instantiation without default collection"
+			   : "Instantiation with default collection";
+
+		//
+		// Should succeed regardless of default collection.
+		//
 		expect( func, `${message} - ${action}` ).not.to.throw();
 		action = "Collection name";
+		
+		//
+		// Collection should match provided one.
+		//
 		expect( doc.collection, `${message} - ${action}` )
 			.to.equal( this.compatibleCollection );
 		
 		//
-		// Instantiate with existing _id reference and missing collection.
-		// Collection should be the extracted from the reference.
+		// Instantiate with existing reference and missing collection.
+		// Collection should be resolved from the reference.
+		// Should succeed if no default collection, or if default collection is the
+		// same as the reference collection.
 		//
 		message = "Existing reference and missing collection";
-		action = "Instantiation";
 		func = () => {
 			doc =
 				new theClass(
@@ -1106,85 +1153,40 @@ class DocumentUnitTest extends UnitTest
 					this.exampleId
 				);
 		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		action = "Collection name";
-		expect( doc.collection, `${message} - ${action}` )
-			.to.equal( this.exampleId.split('/')[ 0 ] );
-		
-	}	// testDefaultCollectionFail
-	
-	/**
-	 * Test instantiation with existing default collection
-	 *
-	 * Perform tests for default collection with class that has default collection.
-	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
-	testDefaultCollectionSucceed( theClass, theParam = null )
-	{
-		let doc;
-		let func;
-		let message;
-		let action;
 		
 		//
-		// Instantiate without collection.
-		// Should raise: Missing required parameter.
+		// Set action.
 		//
-		message = "Missing selector and missing collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.request
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		action = "Collection name";
-		expect( doc.collection, `${message} - ${action}` )
-			.to.equal( doc.defaultCollection );
+		action = ( default_collection === null )
+				 ? "Instantiation without default collection"
+				 : "Instantiation with default collection";
 		
 		//
-		// Instantiate with null selector and provided collection.
-		// Collection should be the provided one.
+		// Handle no default collection.
 		//
-		message = "Null selector and provided collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.request,
-					null,
-					this.compatibleCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		action = "Collection name";
-		expect( doc.collection, `${message} - ${action}` )
-			.to.equal( this.compatibleCollection );
+		if( default_collection === null )
+		{
+			//
+			// Should succeed with any collection.
+			//
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			action = "Collection name";
+			expect( doc.collection, `${message} - ${action}` )
+				.to.equal( this.exampleId.split('/')[ 0 ] );
+		}
+		else
+		{
+			//
+			// Should succeed only with reference in default collection.
+			//
+			expect( func, `${message} - ${action}`
+			).to.throw(
+				MyError,
+				/Invalid document reference: cross-collection reference/
+			);
+		}
 		
-		//
-		// Instantiate with existing _id reference and missing collection.
-		// Collection should be the extracted from the reference.
-		// Should raise an exception.
-		//
-		message = "Existing reference and missing collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.request,
-					this.exampleId
-				);
-		};
-		expect( func, `${message} - ${action}`
-		).to.throw(
-			MyError,
-			/Invalid document reference: cross-collection reference/
-		);
-		
-	}	// testDefaultCollectionSucceed
+	}	// testDefaultCollection
 	
 	/**
 	 * Test successful instantiation with existing edge collection
