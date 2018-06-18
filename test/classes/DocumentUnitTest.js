@@ -76,6 +76,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		this.contentsUnitsInit();
 		
+		//
+		// Insert tests.
+		//
+		this.insertUnitsInit();
+		
 	}	// unitsInit
 	
 	
@@ -262,7 +267,9 @@ class DocumentUnitTest extends UnitTest
 	 * This set of tests will validate all operations involving udating the object
 	 * contents, it will do the following checks:
 	 *
-	 * 	- Load empty object.
+	 * 	- Load contents in empty object.
+	 * 	- Load filled non persistent object.
+	 * 	- Load persistent object.
 	 */
 	contentsUnitsInit()
 	{
@@ -300,6 +307,38 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 	}	// contentsUnitsInit
+	
+	/**
+	 * Define insert tests
+	 *
+	 * This method will load the contents tests queue with the desired test
+	 * records, each record has a property:
+	 *
+	 * 	- The name of the method that runs all the 'it' tests, whose value is an
+	 * 	  object structured as follows:
+	 * 		- name:	The test title used in the 'describe'.
+	 * 		- clas:	The class to be used in the tests.
+	 * 		- parm:	The eventual parameters for the test.
+	 *
+	 * This set of tests will validate all operations involving inserting the object,
+	 * it will do the following checks:
+	 *
+	 * 	- Insert empty object.
+	 */
+	insertUnitsInit()
+	{
+		//
+		// Insert empty object.
+		//
+		this.insertUnitSet(
+			'insertEmptyObject',
+			"Insert empty object",
+			TestClass,
+			null,
+			true
+		);
+		
+	}	// insertUnitsInit
 	
 	
 	/****************************************************************************
@@ -738,6 +777,36 @@ class DocumentUnitTest extends UnitTest
 			this.testContentsLoadPersistentObject( TestClassCustom, theParam );
 		
 	}	// contentsLoadPersistentObject
+	
+	
+	/****************************************************************************
+	 * INSERT TEST MODULES DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Instantiate class without selector and without collection
+	 *
+	 * Assert instantiating the class without the reference and collection.
+	 *
+	 * Should fail with base class and succeed with custom class.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	insertEmptyObject( theClass, theParam = null )
+	{
+		//
+		// Should raise: Missing required parameter.
+		//
+		this.testInsertEmptyObjectSucceed( TestClass );
+		
+		//
+		// Should fail, because the custom class has required fields.
+		//
+		if( TestClassCustom !== null )
+			this.testInsertEmptyObjectFail( TestClassCustom );
+		
+	}	// insertEmptyObject
 	
 	
 	/****************************************************************************
@@ -3108,8 +3177,131 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
 		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Remove document.
+		//
+		db._remove( id );
 	
 	}	// testContentsLoadPersistentObject
+	
+	
+	/****************************************************************************
+	 * INSERT TEST ROUTINE DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Fail inserting empty object
+	 *
+	 * Assert that inserting an empty object fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertEmptyObjectFail( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Instantiate empty object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Insert object.
+		//
+		action = "Insertion";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/missing required field/
+		);
+	
+	}	// testInsertEmptyObjectFail
+	
+	/**
+	 * Succeed inserting empty object
+	 *
+	 * Assert that inserting an empty object succeeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertEmptyObjectSucceed( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Instantiate empty object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Insert object.
+		//
+		action = "Insertion";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Insertion result";
+		expect( result, `${message} - ${action}` ).to.equal( true );
+		
+		//
+		// Check object persistent state.
+		//
+		action = "Insertion result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check local fields.
+		//
+		for( const field of doc.localFields )
+		{
+			action = `Has field [${field}]`;
+			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
+			action = `Field [${field}] not empty`;
+			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+		}
+		
+	}	// testInsertEmptyObjectSucceed
 	
 	
 	/****************************************************************************
@@ -4276,6 +4468,45 @@ class DocumentUnitTest extends UnitTest
 	 */
 	contentsUnitDel( theUnit = null ) {
 		return this.unitDel( 'unit_contents', theUnit );							// ==>
+	}
+	
+	/**
+	 * Set insert unit test.
+	 *
+	 * See the unitSet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @param theName		{String}		Unit test title.
+	 * @param theClass		{String}		Unit test class, defaults to TestClass.
+	 * @param theParam		{*}				Eventual parameters for the method.
+	 * @param doNew			{Boolean}		If true, assert the unit doesn't exist.
+	 */
+	insertUnitSet( theUnit, theName, theClass, theParam = null, doNew = false ) {
+		this.unitSet( 'unit_insert', theUnit, theName, theClass, theParam, doNew );
+	}
+	
+	/**
+	 * Get insert unit test(s).
+	 *
+	 * See the unitGet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The record or false /null.
+	 */
+	insertUnitGet( theUnit = null ) {
+		return this.unitGet( 'unit_insert', theUnit );							// ==>
+	}
+	
+	/**
+	 * Delete insert unit test(s).
+	 *
+	 * See the unitDel() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The deleted record or false /null.
+	 */
+	insertUnitDel( theUnit = null ) {
+		return this.unitDel( 'unit_insert', theUnit );							// ==>
 	}
 	
 	

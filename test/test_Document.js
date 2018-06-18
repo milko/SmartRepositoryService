@@ -92,5 +92,12 @@ describe( "Document class tests:", function ()
 	describe( "Contents:", function () {
 		UnitTestClass.unitTestRun(unitTest, 'contents' );
 	});
+	
+	//
+	// Insert unit tests.
+	//
+	describe( "Insert:", function () {
+		UnitTestClass.unitTestRun(unitTest, 'insert' );
+	});
 
 });
