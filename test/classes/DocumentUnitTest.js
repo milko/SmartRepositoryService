@@ -855,6 +855,31 @@ class DocumentUnitTest extends UnitTest
 		
 	}	// insertWithoutRequiredFields
 	
+	/**
+	 * Insert object without significant field
+	 *
+	 * Assert inserting a document without significant field.
+	 *
+	 * Should succeed with both base and custom classes.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	insertWithoutSignificantFields( theClass, theParam = null )
+	{
+		//
+		// Should raise: Missing required parameter.
+		//
+		this.testInsertWithoutSignificantFieldsSucceed( TestClass, theParam );
+		
+		//
+		// Should fail, because the custom class has required fields.
+		//
+		if( TestClassCustom !== null )
+			this.testInsertWithoutSignificantFieldsSucceed( TestClassCustom, theParam );
+		
+	}	// insertWithoutSignificantFields
+	
 	
 	/****************************************************************************
 	 * INSTANTIATION TEST ROUTINE DEFINITIONS									*
@@ -3376,23 +3401,23 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.request,
-					data,
+					theParam,
 					this.defaultTestCollection
 				);
 		};
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
-		// Check required field.
-		//
-		const required = doc.requiredFields;
-		expect( required, "Has required fields" ).not.to.be.empty;
-		
-		//
 		// ToDo
 		// Note: we need to instantiate the object first, because we need to get the
 		// list of reqauired fields: should make the method static...
 		//
+		
+		//
+		// Check required field.
+		//
+		const required = doc.requiredFields;
+		expect( required, "Has required fields" ).not.to.be.empty;
 		
 		//
 		// Remove required field.
@@ -3500,6 +3525,174 @@ class DocumentUnitTest extends UnitTest
 		}
 		
 	}	// testInsertWithoutRequiredFieldsSucceed
+	
+	/**
+	 * Fail inserting document without significant fields
+	 *
+	 * This should fail with documents that have significant fields.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithoutSignificantFieldsFail( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Instantiate object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Check significant field.
+		//
+		const significant = doc.significantFields;
+		expect( significant, "Has significant fields" ).not.to.be.empty;
+		
+		//
+		// ToDo
+		// Note: we need to instantiate the object first, because we need to get the
+		// list of significant fields: should make the method static...
+		//
+		
+		//
+		// Remove significant field.
+		// Assume 'lid' is significant and remove it if significant,
+		// or remove first significant field.
+		//
+		const field = ( significant.includes( 'lid' ) )
+					  ? 'lid'
+					  : significant[ 0 ];
+		const data = {};
+		data[ field ] = null;
+		message = "Removal";
+		func = () => {
+			doc.setDocumentProperties( data, true );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( doc.document, message ).not.to.have.property( field );
+		
+		//
+		// Insert object.
+		//
+		action = "Insertion";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/missing significant field/
+		);
+		
+	}	// testInsertWithoutSignificantFieldsFail
+	
+	/**
+	 * Succeed inserting document without significant field
+	 *
+	 * This shoud succeed also on documents with significant fields.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithoutSignificantFieldsSucceed( theClass, theParam = null )
+	{
+		let doc;
+		let data;
+		let func;
+		let field;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Instantiate object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// ToDo
+		// Note: we need to instantiate the object first, because we need to get the
+		// list of significant fields: should make the method static...
+		//
+		
+		//
+		// Check significant field.
+		// Note that we check if the object has significant fields: this will be
+		// useful when checking the modified flag after inserting.
+		//
+		const significant = doc.significantFields;
+		const has_significant = ( significant.length > 0 );
+		field = ( has_significant )					// Has significant
+			  ? ( ( significant.includes( 'lid' ) )	// and has 'lid',
+				? 'lid'								// set 'lid',
+				: significant[ 0 ] )				// or first significant;
+			  : 'lid';								// or set 'lid'.
+		
+		//
+		// Remove significant field.
+		//
+		message = "Removal";
+		data = {};
+		data[ field ] = null;
+		func = () => {
+			doc.setDocumentProperties( data, true );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( doc.document, message ).not.to.have.property( field );
+		
+		//
+		// Insert object.
+		//
+		message = "Insertion";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.equal( true );
+		
+		//
+		// Check object persistent state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( ! has_significant );
+		
+		//
+		// Check significant field.
+		//
+		action = `Has significant field [${field}]`;
+		expect( doc.document, `${message} - ${action}` ).not.to.have.property( field );
+		
+	}	// testInsertWithoutSignificantFieldsSucceed
 	
 	
 	/****************************************************************************
