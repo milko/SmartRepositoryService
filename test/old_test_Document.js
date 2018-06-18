@@ -744,38 +744,6 @@ describe( "Document class tests:", function ()
 	describe( "Insert:", function ()
 	{
 		//
-		// Insert empty object.
-		//
-		// Should not fail.
-		//
-		it( "Insert empty object:", function ()
-		{
-			let doc;
-			let func;
-			let result;
-			
-			func = () => {
-				doc =
-					new TestClass(
-						param.request, null, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			
-			func = () => {
-				result = doc.insertDocument();
-			};
-			expect( func, "Insert" ).not.to.throw();
-			expect( doc.document, "Should not be empty").not.to.be.empty;
-			for( const field of doc.localFields )
-				expect(doc.document, "Has local fields").to.have.property(field);
-			expect( result, "Insert result" ).to.equal( true );
-			expect( doc.persistent, "Persistent flag").to.equal(true);
-			expect( doc.modified, "Modified flag").to.equal(false);
-			key_insert_empty = doc.document._key;
-		});
-		
-		//
 		// Insert object without required field.
 		//
 		// Should fail.

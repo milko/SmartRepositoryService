@@ -69,17 +69,17 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Instantiation tests.
 		//
-		this.instantiationUnitsInit();
+		this.unitsInitInstantiation();
 		
 		//
 		// Contents tests.
 		//
-		this.contentsUnitsInit();
+		this.unitsInitContent();
 		
 		//
 		// Insert tests.
 		//
-		this.insertUnitsInit();
+		this.unitsInitInsert();
 		
 	}	// unitsInit
 	
@@ -116,7 +116,7 @@ class DocumentUnitTest extends UnitTest
 	 * 	- Instantiate with found reference.
 	 * 	- Instantiate with content.
 	 */
-	instantiationUnitsInit()
+	unitsInitInstantiation()
 	{
 		//
 		// Instantiate class without selector and without collection.
@@ -250,7 +250,7 @@ class DocumentUnitTest extends UnitTest
 			true
 		);
 		
-	}	// instantiationUnitsInit
+	}	// unitsInitInstantiation
 	
 	/**
 	 * Define contents tests
@@ -271,7 +271,7 @@ class DocumentUnitTest extends UnitTest
 	 * 	- Load filled non persistent object.
 	 * 	- Load persistent object.
 	 */
-	contentsUnitsInit()
+	unitsInitContent()
 	{
 		//
 		// Load empty object.
@@ -306,7 +306,7 @@ class DocumentUnitTest extends UnitTest
 			true
 		);
 		
-	}	// contentsUnitsInit
+	}	// unitsInitContent
 	
 	/**
 	 * Define insert tests
@@ -325,7 +325,7 @@ class DocumentUnitTest extends UnitTest
 	 *
 	 * 	- Insert empty object.
 	 */
-	insertUnitsInit()
+	unitsInitInsert()
 	{
 		//
 		// Insert empty object.
@@ -338,7 +338,18 @@ class DocumentUnitTest extends UnitTest
 			true
 		);
 		
-	}	// insertUnitsInit
+		//
+		// Insert object without required fields.
+		//
+		this.insertUnitSet(
+			'insertWithoutRequiredFields',
+			"Insert object without required fields",
+			TestClass,
+			param.content,
+			true
+		);
+		
+	}	// unitsInitInsert
 	
 	
 	/****************************************************************************
@@ -784,11 +795,11 @@ class DocumentUnitTest extends UnitTest
 	 ****************************************************************************/
 	
 	/**
-	 * Instantiate class without selector and without collection
+	 * Insert empty object
 	 *
-	 * Assert instantiating the class without the reference and collection.
+	 * Assert inserting an empty object.
 	 *
-	 * Should fail with base class and succeed with custom class.
+	 * Should succeed with base class and fail with custom class.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -807,6 +818,31 @@ class DocumentUnitTest extends UnitTest
 			this.testInsertEmptyObjectFail( TestClassCustom );
 		
 	}	// insertEmptyObject
+	
+	/**
+	 * Insert object without required field
+	 *
+	 * Assert inserting a document without required field.
+	 *
+	 * Should succeed with base class and fail with custom class.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	insertWithoutRequiredFields( theClass, theParam = null )
+	{
+		//
+		// Should raise: Missing required parameter.
+		//
+		this.testInsertWithoutRequiredFieldsSucceed( TestClass, theParam );
+		
+		//
+		// Should fail, because the custom class has required fields.
+		//
+		if( TestClassCustom !== null )
+			this.testInsertWithoutRequiredFieldsFail( TestClassCustom, theParam );
+		
+	}	// insertWithoutRequiredFields
 	
 	
 	/****************************************************************************
@@ -3302,6 +3338,131 @@ class DocumentUnitTest extends UnitTest
 		}
 		
 	}	// testInsertEmptyObjectSucceed
+	
+	/**
+	 * Fail inserting empty object
+	 *
+	 * Assert that inserting an empty object fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithoutRequiredFieldsFail( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Remove required field 'var'.
+		//
+		const data = K.function.clone( theParam );
+		delete data.var;
+		
+		//
+		// Instantiate empty object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					data,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Insert object.
+		//
+		action = "Insertion";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/missing required field/
+		);
+	
+	}	// testInsertWithoutRequiredFieldsFail
+	
+	/**
+	 * Succeed inserting empty object
+	 *
+	 * Assert that inserting an empty object succeeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithoutRequiredFieldsSucceed( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Remove required field 'var'.
+		//
+		const data = K.function.clone( theParam );
+		delete data.var;
+		
+		//
+		// Instantiate empty object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					data,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+
+		//
+		// Insert object.
+		//
+		action = "Insertion";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Insertion result";
+		expect( result, `${message} - ${action}` ).to.equal( true );
+		
+		//
+		// Check object persistent state.
+		//
+		action = "Insertion result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check local fields.
+		//
+		for( const field of doc.localFields )
+		{
+			action = `Has field [${field}]`;
+			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
+			action = `Field [${field}] not empty`;
+			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+		}
+		
+	}	// testInsertWithoutRequiredFieldsSucceed
 	
 	
 	/****************************************************************************
