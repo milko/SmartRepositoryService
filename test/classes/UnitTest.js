@@ -358,6 +358,51 @@ class UnitTest
 	
 	
 	/****************************************************************************
+	 * INSTANTIATION TEST ROUTINE DEFINITIONS									*
+	 ****************************************************************************/
+	
+	/**
+	 * Validate unit test record
+	 *
+	 * This method can be used to validate the contents of a unit test record, it will
+	 * assert that the record has all the required elements and that the unit test tag
+	 * is a method of the current object.
+	 *
+	 * Call this method within an it block.
+	 *
+	 * @param theRecords	{Object}	Unit test records.
+	 * @param theUnitMethod	{String}	Unit test method name.
+	 */
+	testUnit( theRecords, theUnitMethod )
+	{
+		//
+		// Init local storage.
+		//
+		let message =  `Unit test [${theUnitMethod}]`;
+		let action;
+		
+		//
+		// Validate unit test method.
+		//
+		action = `Test function`;
+		expect( this, `${message} - ${action}` ).to.have.property( theUnitMethod );
+		expect( this[ theUnitMethod ], `${message} - ${action}` ).to.be.a.function;
+		
+		//
+		// Validate unit test record.
+		//
+		action = `Test record`;
+		expect( theRecords, `${message} - ${action}` ).to.be.object;
+		expect( theRecords, `${message} - ${action}` ).to.have.property( theUnitMethod );
+		expect( theRecords[ theUnitMethod ], `${message} - ${action}` ).to.be.object;
+		expect( theRecords[ theUnitMethod ], `${message} - ${action}` ).to.have.property( 'name' );
+		expect( theRecords[ theUnitMethod ], `${message} - ${action}` ).to.have.property( 'clas' );
+		expect( theRecords[ theUnitMethod ], `${message} - ${action}` ).to.have.property( 'parm' );
+		
+	}	// testUnit
+	
+	
+	/****************************************************************************
 	 * MEMBER GETTERS															*
 	 ****************************************************************************/
 	
@@ -402,6 +447,70 @@ class UnitTest
 	 * @return {String}
 	 */
 	get exampleCollection()		{	return this.example_collection;	}
+	
+	
+	/****************************************************************************
+	 * STATIC GROUP TEST MODULES EXECUTION										*
+	 ****************************************************************************/
+	
+	/**
+	 * Run unit test group
+	 *
+	 * This method can be used to run the set of unit tests belonging to a group, the
+	 * method must be called statically by providing the unit test object and the
+	 * prefix of the unit tests records getter method.
+	 *
+	 * The method must be called within a describe block and will only run it blocks.
+	 * It will first assert that a group unit test records getter method exists with
+	 * the provided prefix, if that is not the case, it will raise an error and stop.
+	 * It will then iterate through each of the group's unit tests and first assert
+	 * the record has all the required elements, if that is not the case it will raise
+	 * an error, if the element is valid, it will run the tests of that section.
+	 *
+	 * @param theUnitTest		{Object}	The unit tests instance.
+	 * @param theGroupPrefix	{String}	The unit test records getter prefix.
+	 */
+	static unitTestRun( theUnitTest, theGroupPrefix )
+	{
+		//
+		// Init local storage.
+		//
+		let message;
+		const getter = `${theGroupPrefix}UnitGet`;
+		
+		//
+		// Check getter method.
+		//
+		it( "Unit test group environment", function ()
+		{
+			message = `Getter method [${getter}]`;
+			expect( theUnitTest, message ).to.have.property( getter );
+			expect( theUnitTest[ getter ], message ).to.be.a.function;
+		});
+		
+		//
+		// Run tests.
+		//
+		const tests = theUnitTest[ getter ]();
+		for( const item in tests )
+		{
+			//
+			// Set parameters.
+			//
+			const title = tests[ item ].name;
+			const test_class = tests[ item ].clas;
+			const test_param = tests[ item ].parm;
+			
+			//
+			// Run unit test.
+			//
+			it( title, function () {
+				theUnitTest.testUnit( tests,  item );
+				theUnitTest[ item ]( test_class, test_param );
+			});
+		}
+		
+	}	// unitTestRun
 	
 }	// UnitTest.
 

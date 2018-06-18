@@ -68,6 +68,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		this.instantiationUnitsInit();
 		
+		//
+		// Contents tests.
+		//
+		this.contentsUnitsInit();
+		
 	}	// unitsInit
 	
 	
@@ -85,6 +90,23 @@ class DocumentUnitTest extends UnitTest
 	 * 	  object structured as follows:
 	 * 		- name:	The test title used in the 'describe'.
 	 * 		- clas:	The class to be used in the tests.
+	 * 		- parm:	The eventual parameters for the test.
+	 *
+	 * This set of tests will validate instantiating the object in different ways and
+	 * environments, particularily, it will do the following checks:
+	 *
+	 * 	- Instantiate class without selector and without collection.
+	 * 	- Instantiate with null selector and without collection.
+	 * 	- Instantiate with null selector and non existant collection.
+	 * 	- Instantiate with default collection.
+	 * 	- Instantiate with existing edge collection.
+	 * 	- Instantiate with existing document collection.
+	 * 	- Instantiate mutable/immutable document.
+	 * 	- Instantiate with cross-collection reference.
+	 * 	- Instantiate with invalid _id reference.
+	 * 	- Instantiate with not found _id reference.
+	 * 	- Instantiate with found reference.
+	 * 	- Instantiate with content.
 	 */
 	instantiationUnitsInit()
 	{
@@ -153,20 +175,20 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 		//
-		// Instantiate with invalid _id reference.
-		//
-		this.instantiationUnitSet(
-			'instantiateInvalidReferenceId',
-			"Instantiate with invalid _id reference:",
-			TestClass
-		);
-		
-		//
 		// Instantiate with cross-collection reference.
 		//
 		this.instantiationUnitSet(
 			'instantiateCrossCollectionReference',
 			"Instantiate with cross-collection reference:",
+			TestClass
+		);
+		
+		//
+		// Instantiate with invalid _id reference.
+		//
+		this.instantiationUnitSet(
+			'instantiateInvalidReferenceId',
+			"Instantiate with invalid _id reference:",
 			TestClass
 		);
 		
@@ -199,6 +221,47 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 	}	// instantiationUnitsInit
+	
+	/**
+	 * Define contents tests
+	 *
+	 * This method will load the contents tests queue with the desired test
+	 * records, each record has a property:
+	 *
+	 * 	- The name of the method that runs all the 'it' tests, whose value is an
+	 * 	  object structured as follows:
+	 * 		- name:	The test title used in the 'describe'.
+	 * 		- clas:	The class to be used in the tests.
+	 * 		- parm:	The eventual parameters for the test.
+	 *
+	 * This set of tests will validate all operations involving udating the object
+	 * contents, it will do the following checks:
+	 *
+	 * 	- Load empty object.
+	 */
+	contentsUnitsInit()
+	{
+		//
+		// Load empty object.
+		//
+		this.contentsUnitSet(
+			'contentsLoadEmptyObject',
+			"Load contents in empty object",
+			TestClass,
+			param.content
+		);
+		
+		//
+		// Load filled and non persistent object.
+		//
+		this.contentsUnitSet(
+			'contentsLoadFilledObject',
+			"Load filled non persistent object:",
+			TestClass,
+			{ base: param.content, replace: param.replace }
+		);
+		
+	}	// contentsUnitsInit
 	
 	
 	/****************************************************************************
@@ -554,6 +617,63 @@ class DocumentUnitTest extends UnitTest
 			);
 	
 	}	// instantiateWithContent
+	
+	
+	/****************************************************************************
+	 * CONTENTS TEST MODULES DEFINITIONS										*
+	 ****************************************************************************/
+	
+	/**
+	 * Load contents in empty object
+	 *
+	 * Will test loading contents in empty object with both replace flag values in
+	 * both base and custom classes.
+	 *
+	 * Should succeed with both base and custom class.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	contentsLoadEmptyObject( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testContentsLoadEmptyObject( TestClass, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( TestClassCustom !== null )
+			this.testContentsLoadEmptyObject( TestClassCustom, theParam );
+		
+	}	// contentsLoadEmptyObject
+	
+	/**
+	 // Load filled and non persistent object.
+	 *
+	 * Will test replacing contents of non persistent object with both replace flag
+	 * values in both base and custom classes.
+	 *
+	 * Should succeed with both base and custom class.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	contentsLoadFilledObject( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testContentsLoadFilledObject( TestClass, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( TestClassCustom !== null )
+			this.testContentsLoadFilledObject( TestClassCustom, theParam );
+		
+	}	// contentsLoadFilledObject
 	
 	
 	/****************************************************************************
@@ -1692,7 +1812,40 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check content.
 		//
-		this.validateInstantiateContents( "Check contents", doc, theParam );
+		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
+		
+		//
+		// Instantiate with default collection and invalid property.
+		// Should not fail, it will be caught before persisting.
+		//
+		const contents = K.function.clone( theParam );
+		contents[ "UNKNOWN" ] = "Should not be there";
+			message = "Instantiation with default collection and invalid property";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					contents
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Check object state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, contents );
 		
 		//
 		// Instantiate with provided.
@@ -1723,7 +1876,39 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check content.
 		//
-		this.validateInstantiateContents( "Check contents", doc, theParam );
+		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
+		
+		//
+		// Instantiate with provided collection and invalid property.
+		// Should not fail, it will be caught before persisting.
+		//
+		message = "Instantiation with default collection and invalid property";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					contents,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Check object state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, contents );
 		
 	}	// testInstantiateWithContentDefaultCollection
 	
@@ -1773,9 +1958,721 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check content.
 		//
-		this.validateInstantiateContents( "Check contents", doc, theParam );
+		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
 		
 	}	// testInstantiateWithContentProvidedCollection
+	
+	
+	/****************************************************************************
+	 * CONTENTS TEST ROUTINE DEFINITIONS										*
+	 ****************************************************************************/
+	
+	/**
+	 * Succeed loading contents in empty object
+	 *
+	 * Assert that loading contents in an empty object works for all fields except
+	 * restricted fields.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testContentsLoadEmptyObject( theClass, theParam = null )
+	{
+		let doc;
+		let data;
+		let func;
+		let action;
+		let message;
+		
+		//
+		// REPLACE FLAG FALSE
+		//
+		
+		//
+		// Instantiate for false replace flag test.
+		//
+		message = "Replace flag is false";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Load data.
+		//
+		action = "Set document properties filled";
+		func = () => {
+			doc.setDocumentProperties(
+				theParam,
+				false
+			);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
+		
+		//
+		// Instantiate for false replace flag test.
+		//
+		message = "Replace flag is false";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Load data.
+		//
+		data = K.function.clone( theParam );
+		for( const item in data )
+			data[ item ] = null;
+		action = "Set document properties delete";
+		func = () => {
+			doc.setDocumentProperties(
+				data,
+				false
+			);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Instantiate for false replace flag test.
+		//
+		message = "Replace flag is false";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Load data.
+		//
+		action = "Set invalid document property";
+		data = { "UNKNOWN" : "CONTENT" };
+		func = () => {
+			doc.setDocumentProperties(
+				data,
+				false
+			);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, data );
+		
+		//
+		// REPLACE FLAG TRUE
+		//
+		
+		//
+		// Instantiate for true replace flag test.
+		//
+		message = "Replace flag is true";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Load data.
+		//
+		action = "Set document properties filled";
+		func = () => {
+			doc.setDocumentProperties(
+				theParam,
+				true
+			);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
+		
+		//
+		// Instantiate for true replace flag test.
+		//
+		message = "Replace flag is true";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Load data.
+		//
+		data = K.function.clone( theParam );
+		for( const item in data )
+			data[ item ] = null;
+		action = "Set document properties delete";
+		func = () => {
+			doc.setDocumentProperties(
+				data,
+				true
+			);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Instantiate for true replace flag test.
+		//
+		message = "Replace flag is true";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Load data.
+		//
+		action = "Set invalid document property";
+		data = { "UNKNOWN" : "CONTENT" };
+		func = () => {
+			doc.setDocumentProperties(
+				data,
+				true
+			);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, data );
+	
+	}	// testContentsLoadEmptyObject
+	
+	/**
+	 * Succeed loading contents in filled object
+	 *
+	 * Assert that loading contents in a filled non persistent object works for all fields
+	 * except restricted fields.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testContentsLoadFilledObject( theClass, theParam = null )
+	{
+		let doc;
+		let data;
+		let func;
+		let action;
+		let message;
+		
+		//
+		// Get base and replace contents.
+		//
+		message = "Unit test parameter";
+		expect( theParam, message ).to.be.an.object;
+		expect( theParam, message ).to.have.property( 'base' );
+		expect( theParam, message ).to.have.property( 'replace' );
+		
+		const base_data = theParam[ 'base' ];
+		const replace_data = theParam[ 'replace' ];
+		
+		//
+		// REPLACE FLAG FALSE
+		//
+		
+		//
+		// Instantiate for false replace flag test.
+		//
+		message = "Replace flag is false";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					base_data,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Replace and check contents.
+		//
+		this.validateNonPersistentReplace(
+			`${message} - replace with contents`,	// Error message.
+			false,									// Replace flag.
+			doc,									// The document object.
+			replace_data							// The replacement data.
+		);
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Instantiate for false replace flag test.
+		//
+		message = "Replace flag is false";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					base_data,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Replace and check contents.
+		//
+		data = K.function.clone( replace_data );
+		for( const item in data )
+			data[ item ] = null;
+		this.validateNonPersistentReplace(
+			`${message} - replace with delete contents`,	// Error message.
+			false,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Instantiate for false replace flag test.
+		//
+		message = "Replace flag is false";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					base_data,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Replace and check contents.
+		//
+		data = { "UNKNOWN" : "CONTENT" };
+		this.validateNonPersistentReplace(
+			`${message} - replace with invalid contents`,	// Error message.
+			false,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		action = "Has invalid field";
+		expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
+		expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// REPLACE FLAG TRUE
+		//
+		
+		//
+		// Instantiate for false replace flag test.
+		//
+		message = "Replace flag is true";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					base_data,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Replace and check contents.
+		//
+		this.validateNonPersistentReplace(
+			`${message} - replace with contents`,	// Error message.
+			true,									// Replace flag.
+			doc,									// The document object.
+			replace_data							// The replacement data.
+		);
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Instantiate for true replace flag test.
+		//
+		message = "Replace flag is true";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					base_data,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Replace and check contents.
+		//
+		data = K.function.clone( replace_data );
+		for( const item in data )
+			data[ item ] = null;
+		this.validateNonPersistentReplace(
+			`${message} - replace with delete contents`,	// Error message.
+			true,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Instantiate for true replace flag test.
+		//
+		message = "Replace flag is true";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					base_data,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object empty state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+		
+		//
+		// Replace and check contents.
+		//
+		data = { "UNKNOWN" : "CONTENT" };
+		this.validateNonPersistentReplace(
+			`${message} - replace with invalid contents`,	// Error message.
+			true,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		action = "Has invalid field";
+		expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
+		expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.be.false;
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.be.false;
+	
+	}	// testContentsLoadFilledObject
 	
 	
 	/****************************************************************************
@@ -1788,10 +2685,9 @@ class DocumentUnitTest extends UnitTest
 	 * This method can be used to assert that the provided contents can be found in
 	 * the document, except for restricted properties.
 	 *
-	 * It will iterate through theNewData properties and set them one by one,
-	 * asserting that the operation succeeds or raises an exception. Once this process
-	 * is finished it will compare the values of the updated object with the provided
-	 * data and assert that the object contents are as required.
+	 * It will iterate through theNewData properties and compare the values of the
+	 * updated object with the provided data and asserting that the object contains
+	 * all provided data elements, except for restricted properties.
 	 *
 	 * The method does not return any status, errors are expected to be posted during
 	 * the unit tests.
@@ -1800,7 +2696,7 @@ class DocumentUnitTest extends UnitTest
 	 * @param theObject		{Object}	The tested class instance.
 	 * @param theContents	{Object}	The data used for instantiation.
 	 */
-	validateInstantiateContents(
+	assertAllProvidedDataInDocument(
 		theMessage,		// Error message.
 		theObject,		// The document object.
 		theContents		// The instantiation contents data.
@@ -1968,7 +2864,7 @@ class DocumentUnitTest extends UnitTest
 			
 		}	// Iterating replace properties.
 		
-	}	// validateInstantiateContents
+	}	// assertAllProvidedDataInDocument
 	
 	/**
 	 * Validate replacing data in persistent object
@@ -2645,7 +3541,7 @@ class DocumentUnitTest extends UnitTest
 			// Handle provided value and not restricted.
 			//
 			if( (status !== 'R')					// Restricted field,
-				&& (theReplaced[ field ] !== null) )	// or deleted field.
+			 && (theReplaced[ field ] !== null) )	// or deleted field.
 			{
 				//
 				// Assert field is there.
@@ -2748,12 +3644,11 @@ class DocumentUnitTest extends UnitTest
 						switch( status )
 						{
 							//
-							// Locked fields are replaced,
+							// Locked fields are replaced in all cases.
 							//
 							case 'L':
 								this.compareValues(
-									( was_there ) ? theSource[ field ]
-												  : theReplaced[ field ],
+									theReplaced[ field ],
 									theDestination[ field ],
 									theMessage,
 									action
@@ -2833,10 +3728,12 @@ class DocumentUnitTest extends UnitTest
 					action += " deleted";
 				
 				//
-				// Assert property is not there.
+				// Assert property is not there,
+				// only if the flag is true.
 				//
-				expect( theDestination, `${theMessage} - ${action}` )
-					.not.to.have.property(field);
+				if( theFlag )
+					expect( theDestination, `${theMessage} - ${action}` )
+						.not.to.have.property(field);
 				
 			}	// Restricted or deleted.
 			
@@ -2885,6 +3782,44 @@ class DocumentUnitTest extends UnitTest
 	 */
 	instantiationUnitDel( theUnit = null ) {
 		return this.unitDel( 'unit_instantiation', theUnit );						// ==>
+	}
+	
+	/**
+	 * Set contents unit test.
+	 *
+	 * See the unitSet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @param theName		{String}		Unit test title.
+	 * @param theClass		{String}		Unit test class, defaults to TestClass.
+	 * @param theParam		{*}				Eventual parameters for the method.
+	 */
+	contentsUnitSet( theUnit, theName, theClass, theParam = null ) {
+		this.unitSet( 'unit_contents', theUnit, theName, theClass, theParam );
+	}
+	
+	/**
+	 * Get contents unit test(s).
+	 *
+	 * See the unitGet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The record or false /null.
+	 */
+	contentsUnitGet( theUnit = null ) {
+		return this.unitGet( 'unit_contents', theUnit );							// ==>
+	}
+	
+	/**
+	 * Delete contents unit test(s).
+	 *
+	 * See the unitDel() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The deleted record or false /null.
+	 */
+	contentsUnitDel( theUnit = null ) {
+		return this.unitDel( 'unit_contents', theUnit );							// ==>
 	}
 	
 	

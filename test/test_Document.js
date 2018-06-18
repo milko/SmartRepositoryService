@@ -82,13 +82,15 @@ describe( "Document class tests:", function ()
 	//
 	// Instantiation unit tests.
 	//
-	const tests = unitTest.instantiationUnitGet();
 	describe( "Instantiation:", function () {
-		for( const test in tests ) {
-			it( tests[ test ].name, function () {
-				unitTest[ test ]( tests[ test ].clas, tests[ test ].parm );
-			});
-		}
+		UnitTestClass.unitTestRun(unitTest, 'instantiation' );
+	});
+	
+	//
+	// Contents unit tests.
+	//
+	describe( "Contents:", function () {
+		UnitTestClass.unitTestRun(unitTest, 'contents' );
 	});
 
 });

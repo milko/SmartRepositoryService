@@ -26,7 +26,7 @@ const param = require( '../parameters/Document' );
 //
 // Base class.
 //
-const TestClass = require( '../../classes/Persistent' );
+const TestClass = require( '../../classes/Document' );
 
 //
 // Base class with restrictions.
