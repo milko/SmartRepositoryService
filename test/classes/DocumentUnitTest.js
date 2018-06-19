@@ -404,6 +404,17 @@ class DocumentUnitTest extends UnitTest
 			true
 		);
 		
+		//
+		// Insert without persist.
+		//
+		this.insertUnitSet(
+			'insertWithoutPersist',
+			"Insert without persist",
+			TestClass,
+			param.replace,
+			true
+		);
+		
 	}	// unitsInitInsert
 	
 	
@@ -1023,6 +1034,29 @@ class DocumentUnitTest extends UnitTest
 			this.testInsertPersistentObject( TestClassCustom, theParam );
 		
 	}	// insertPersistentObject
+	
+	/**
+	 * Insert without persist
+	 *
+	 * Assert inserting without persisting succeeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	insertWithoutPersist( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testInsertWithoutPersist( TestClass, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( TestClassCustom !== null )
+			this.testInsertWithoutPersist( TestClassCustom, theParam );
+		
+	}	// insertWithoutPersist
 	
 	
 	/****************************************************************************
@@ -4235,6 +4269,64 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 	}	// testInsertPersistentObject
+	
+	/**
+	 * Test inserting without persisting
+	 *
+	 * Assert that inserting with the persist flag off succeeds and that all required
+	 * fields are set.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithoutPersist( theClass, theParam = null )
+	{
+		let id;
+		let key;
+		let doc;
+		let data;
+		let func;
+		let result;
+		let action;
+		let message;
+		let selector;
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Insert.
+		//
+		message = "Insert";
+		func = () => {
+			result = doc.insertDocument( false );
+		};
+		expect( func, message ).not.to.throw();
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.equal( true );
+		action = "Should not be empty";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Has local fields";
+		for( const field of doc.localFields )
+			expect(doc.document, `${message} - ${action}` ).not.to.have.property(field);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal(false);
+		this.assertAllProvidedDataInDocument( "Contents", doc, theParam );
+		
+	}	// testInsertWithoutPersist
 	
 	
 	/****************************************************************************

@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/classes/Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Document.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/old_test_Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/old_test_Document.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -44,8 +46,8 @@
               <file leaf-file-name="DocumentUnitTest.js" pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTest.js">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="81">
-                      <caret line="402" column="16" selection-start-line="402" selection-start-column="16" selection-end-line="402" selection-end-column="16" />
+                    <state relative-caret-position="33">
+                      <caret line="410" column="33" selection-start-line="410" selection-start-column="14" selection-end-line="410" selection-end-column="33" />
                     </state>
                   </provider>
                 </entry>
@@ -54,11 +56,11 @@
           </split-first>
           <split-second>
             <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-              <file leaf-file-name="DocumentUnitTest.js" pinned="false" current-in-tab="true">
+              <file leaf-file-name="DocumentUnitTest.js" pinned="false" current-in-tab="false">
                 <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTest.js">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="362">
-                      <caret line="4234" column="10" selection-start-line="4234" selection-start-column="10" selection-end-line="4234" selection-end-column="10" />
+                    <state relative-caret-position="154">
+                      <caret line="4301" column="28" selection-start-line="4301" selection-start-column="28" selection-end-line="4301" selection-end-column="28" />
                     </state>
                   </provider>
                 </entry>
@@ -72,11 +74,11 @@
                   </provider>
                 </entry>
               </file>
-              <file leaf-file-name="Document.js" pinned="false" current-in-tab="false">
+              <file leaf-file-name="Document.js" pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/classes/Document.js">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="201">
-                      <caret line="1126" column="71" selection-start-line="1126" selection-start-column="71" selection-end-line="1126" selection-end-column="71" />
+                    <state relative-caret-position="319">
+                      <caret line="1184" selection-start-line="1184" selection-end-line="1184" />
                     </state>
                   </provider>
                 </entry>
@@ -99,8 +101,8 @@
           <file leaf-file-name="old_test_Document.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/test/old_test_Document.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="500">
-                  <caret line="768" column="59" selection-start-line="768" selection-start-column="37" selection-end-line="768" selection-end-column="59" />
+                <state relative-caret-position="7430">
+                  <caret line="1213" selection-start-line="1213" selection-end-line="1213" />
                 </state>
               </provider>
             </entry>
@@ -245,9 +247,9 @@
         <option value="$PROJECT_DIR$/test/classes/DocumentUnitTestClass.js" />
         <option value="$PROJECT_DIR$/test/test_Document.js" />
         <option value="$PROJECT_DIR$/test/classes/UnitTest.js" />
-        <option value="$PROJECT_DIR$/classes/Document.js" />
         <option value="$PROJECT_DIR$/test/old_test_Document.js" />
         <option value="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" />
+        <option value="$PROJECT_DIR$/classes/Document.js" />
       </list>
     </option>
   </component>
@@ -481,7 +483,7 @@
       <workItem from="1529309197544" duration="29148000" />
       <workItem from="1529358279496" duration="1931000" />
       <workItem from="1529360319538" duration="2679000" />
-      <workItem from="1529395325461" duration="5750000" />
+      <workItem from="1529395325461" duration="6389000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring Document unit tests.&#10;Developed functions to make lengthy checks: will not transform functions into classes to make checks inherited and reusable.">
       <created>1528974578541</created>
@@ -515,7 +517,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="608201000" />
+    <option name="totallyTimeSpent" value="608840000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
@@ -800,13 +802,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Document.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="201">
-          <caret line="1126" column="71" selection-start-line="1126" selection-start-column="71" selection-end-line="1126" selection-end-column="71" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/classes/UnitTest.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="60">
@@ -816,15 +811,22 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test/old_test_Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="500">
-          <caret line="768" column="59" selection-start-line="768" selection-start-column="37" selection-end-line="768" selection-end-column="59" />
+        <state relative-caret-position="7430">
+          <caret line="1213" selection-start-line="1213" selection-end-line="1213" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTest.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="362">
-          <caret line="4234" column="10" selection-start-line="4234" selection-start-column="10" selection-end-line="4234" selection-end-column="10" />
+        <state relative-caret-position="154">
+          <caret line="4301" column="28" selection-start-line="4301" selection-start-column="28" selection-end-line="4301" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Document.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="319">
+          <caret line="1184" selection-start-line="1184" selection-end-line="1184" />
         </state>
       </provider>
     </entry>

@@ -1122,9 +1122,9 @@ class Document
 	 * The parameter to the method can be used to prepare the object for insertion,
 	 * but not perform the actual insertion, this is useful when executing
 	 * transactions: the object will have been validated and will contain all required
-	 * properties, but it will not be inserted in the database. At exit, the object
-	 * will not have its persistent flag set, because we might not have the document
-	 * _key, this means that you should discard such objects after use.
+	 * properties, but it will not be inserted in the database. At exit, the
+	 * persistent flag will be set to true, this to indicate the successful operation:
+	 * you MUST discard the object after this call, because its state will be incorrect.
 	 *
 	 * NOTE: This method will not call validateLockedProperties(), because the
 	 * document is not persistent: this means that you must set collection indexes so
@@ -1176,12 +1176,12 @@ class Document
 					this._document._id = meta._id;
 					this._document._key = meta._key;
 					this._document._rev = meta._rev;
-					
-					//
-					// Set persistent flag.
-					//
-					this._persistent = true;
 				}
+				
+				//
+				// Set persistent flag.
+				//
+				this._persistent = true;
 			}
 			catch( error )
 			{
