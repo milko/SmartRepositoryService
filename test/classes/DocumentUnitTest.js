@@ -360,6 +360,28 @@ class DocumentUnitTest extends UnitTest
 			true
 		);
 		
+		//
+		// Insert object with content.
+		//
+		this.insertUnitSet(
+			'insertWithContent',
+			"Insert object with content",
+			TestClass,
+			param.content,
+			true
+		);
+		
+		//
+		// Insert duplicate object.
+		//
+		this.insertUnitSet(
+			'insertDuplicate',
+			"Insert duplicate object",
+			TestClass,
+			param.content,
+			true
+		);
+		
 	}	// unitsInitInsert
 	
 	
@@ -877,6 +899,57 @@ class DocumentUnitTest extends UnitTest
 			this.testInsertWithoutSignificantFields( TestClassCustom, theParam );
 		
 	}	// insertWithoutSignificantFields
+	
+	/**
+	 * Insert object with content
+	 *
+	 * Assert inserting a document with content.
+	 *
+	 * Should succeed with both base and custom classes.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	insertWithContent( theClass, theParam = null )
+	{
+		//
+		// Should raise: Missing required parameter.
+		//
+		this.testInsertWithContent( TestClass, theParam );
+		
+		//
+		// Should fail, because the custom class has required fields.
+		//
+		if( TestClassCustom !== null )
+			this.testInsertWithContent( TestClassCustom, theParam );
+		
+	}	// insertWithContent
+	
+	/**
+	 * Insert duplicate object
+	 *
+	 * Assert inserting a duplicate object fails.
+	 *
+	 * Should fail in all cases, note that we use the _key to make it fail, we don't
+	 * have other unique keys.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	insertDuplicate( theClass, theParam = null )
+	{
+		//
+		// Should raise: duplicate document in collection.
+		//
+		this.testInsertDuplicate( TestClass, theParam );
+		
+		//
+		// Should raise: duplicate document in collection.
+		//
+		if( TestClassCustom !== null )
+			this.testInsertDuplicate( TestClassCustom, theParam );
+		
+	}	// insertDuplicate
 	
 	
 	/****************************************************************************
@@ -3747,6 +3820,151 @@ class DocumentUnitTest extends UnitTest
 		} // Has no significant fields.
 		
 	}	// testInsertWithoutSignificantFields
+	
+	/**
+	 * Test inserting document with content
+	 *
+	 * Assert that inserting an object with contents suceeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithContent( theClass, theParam = null )
+	{
+		let id;
+		let key;
+		let doc;
+		let data;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Insert.
+		//
+		message = "Insert";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, message ).not.to.throw();
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.equal( true );
+		action = "Should not be empty";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Has local fields";
+		for( const field of doc.localFields )
+			expect(doc.document, `${message} - ${action}` ).to.have.property(field);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal(false);
+		
+		//
+		// Get ID and clone data.
+		//
+		id = doc.document._id;
+		key = doc.document._key;
+		data = K.function.clone( doc.document );
+		
+		//
+		// Save inserted ID in current object.
+		//
+		this.intermediate_results.key_insert_filled = key;
+		expect(this.intermediate_results).to.have.property("key_insert_filled");
+		expect(this.intermediate_results.key_insert_filled).to.equal(key);
+		
+		//
+		// Retrieve.
+		//
+		message = "Retrieve";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		this.assertAllProvidedDataInDocument( "Contents", doc, data );
+		
+	}	// testInsertWithContent
+	
+	/**
+	 * Test inserting a duplicate document
+	 *
+	 * Assert that inserting a duplicate object fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertDuplicate( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let message;
+		let selector;
+		
+		//
+		// Check persistent document.
+		//
+		message = "Check parameter";
+		expect(this, message).to.have.property('intermediate_results');
+		expect(this.intermediate_results, message).to.have.property('key_insert_filled');
+		expect(this.intermediate_results.key_insert_filled, message).to.be.a.string;
+		db._collection( this.defaultTestCollection )
+			.document( this.intermediate_results.key_insert_filled );
+		
+		//
+		// Create selector.
+		//
+		selector = K.function.clone( theParam );
+		selector._key = this.intermediate_results.key_insert_filled;
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					selector,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Insert.
+		//
+		message = "Insert";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, message
+		).to.throw(
+			MyError,
+			/duplicate document in collection/
+		);
+		
+	}	// testInsertDuplicate
 	
 	
 	/****************************************************************************

@@ -1119,13 +1119,21 @@ class Document
 	 * Any error encountered in this method will raise an exception, including
 	 * validation errors.
 	 *
+	 * The parameter to the method can be used to prepare the object for insertion,
+	 * but not perform the actual insertion, this is useful when executing
+	 * transactions: the object will have been validated and will contain all required
+	 * properties, but it will not be inserted in the database. At exit, the object
+	 * will not have its persistent flag set, because we might not have the document
+	 * _key, this means that you should discard such objects after use.
+	 *
 	 * NOTE: This method will not call validateLockedProperties(), because the
 	 * document is not persistent: this means that you must set collection indexes so
 	 * that unique field conflicts are caught.
 	 *
+	 * @param doInsert	{Boolean}	True means inset the document (default).
 	 * @returns {Boolean}	True if inserted.
 	 */
-	insertDocument()
+	insertDocument( doInsert = true )
 	{
 		//
 		// Prevent inserting persistent objects.
@@ -1153,21 +1161,27 @@ class Document
 				//
 				// Insert.
 				//
-				const meta =
-					db._collection( this._collection )
-						.insert( this._document );
-				
-				//
-				// Update metadata.
-				//
-				this._document._id = meta._id;
-				this._document._key = meta._key;
-				this._document._rev = meta._rev;
-				
-				//
-				// Set persistent flag.
-				//
-				this._persistent = true;
+				if( doInsert )
+				{
+					//
+					// Write to database.
+					//
+					const meta =
+						db._collection( this._collection )
+							.insert( this._document );
+					
+					//
+					// Update metadata.
+					//
+					this._document._id = meta._id;
+					this._document._key = meta._key;
+					this._document._rev = meta._rev;
+					
+					//
+					// Set persistent flag.
+					//
+					this._persistent = true;
+				}
 			}
 			catch( error )
 			{

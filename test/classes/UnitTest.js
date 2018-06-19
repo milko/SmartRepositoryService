@@ -47,17 +47,31 @@ class UnitTest
 	)
 	{
 		//
-		// Set data members.
+		// Set current request.
 		//
 		this.current_request = theRequest;
 		
+		//
+		// Set working collections.
+		//
 		this.edge_collection = theEdgeCollection;
 		this.document_collection = theDocumentCollection;
 		
+		//
+		// Set example objects.
+		//
 		this.example_id = theExampleId;
 		this.example_collection = theExampleCollection;
 		
+		//
+		// Set compatible collection.
+		//
 		this.compatible_collection = theCompatibleCollection;
+		
+		//
+		// Init intermediate results collector.
+		//
+		this.intermediate_results = {};
 		
 		//
 		// Set instantiation test queue.
