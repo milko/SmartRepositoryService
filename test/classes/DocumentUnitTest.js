@@ -81,6 +81,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		this.unitsInitInsert();
 		
+		//
+		// Resolve tests.
+		//
+		this.unitsInitResolve();
+		
 	}	// unitsInit
 	
 	
@@ -324,6 +329,13 @@ class DocumentUnitTest extends UnitTest
 	 * it will do the following checks:
 	 *
 	 * 	- Insert empty object.
+	 * 	- Insert object without required fields.
+	 * 	- Insert object without significant fields.
+	 * 	- Insert object with content.
+	 * 	- Insert duplicate object.
+	 * 	- Insert object with same content.
+	 * 	- Insert persistent object.
+	 * 	- Insert without persist.
 	 */
 	unitsInitInsert()
 	{
@@ -416,6 +428,38 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 	}	// unitsInitInsert
+	
+	/**
+	 * Define resolve tests
+	 *
+	 * This method will load the contents tests queue with the desired test
+	 * records, each record has a property:
+	 *
+	 * 	- The name of the method that runs all the 'it' tests, whose value is an
+	 * 	  object structured as follows:
+	 * 		- name:	The test title used in the 'describe'.
+	 * 		- clas:	The class to be used in the tests.
+	 * 		- parm:	The eventual parameters for the test.
+	 *
+	 * This set of tests will validate all operations involving resolving the object,
+	 * it will do the following checks:
+	 *
+	 * 	- Resolve persistent document.
+	 */
+	unitsInitResolve()
+	{
+		//
+		// Resolve persistent document.
+		//
+		this.insertUnitSet(
+			'resolvePersistent',
+			"Resolve persistent document",
+			TestClass,
+			null,
+			true
+		);
+		
+	}	// unitsInitResolve
 	
 	
 	/****************************************************************************
@@ -1057,6 +1101,34 @@ class DocumentUnitTest extends UnitTest
 			this.testInsertWithoutPersist( TestClassCustom, theParam );
 		
 	}	// insertWithoutPersist
+	
+	
+	/****************************************************************************
+	 * RESOLVE TEST MODULES DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Resolve persistent document
+	 *
+	 * Assert resolving persistent document.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	resolvePersistent( theClass, theParam = null )
+	{
+		//
+		// Should not raise.
+		//
+		this.testResolvePersistent( TestClass );
+		
+		//
+		// Should fail, because the custom class has required fields.
+		//
+		if( TestClassCustom !== null )
+			this.testResolvePersistent( TestClassCustom );
+		
+	}	// resolvePersistent
 	
 	
 	/****************************************************************************
@@ -4330,6 +4402,253 @@ class DocumentUnitTest extends UnitTest
 	
 	
 	/****************************************************************************
+	 * RESOLVE TEST ROUTINE DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Test resolving persistent object
+	 *
+	 * Assert that resolving a persistent object succeeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testResolvePersistent( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Instantiate empty object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Set _id.
+		//
+		message = "Set _id";
+		func = () => {
+			doc.setDocumentProperties(
+				{ _id: `${this.defaultTestCollection}/${this.intermediate_results.key_insert_filled}` },
+				true
+			);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve object.
+		//
+		message = "Resolve by _id with replace flag off";
+		func = () => {
+			result = doc.resolveDocument( false, true );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check local fields.
+		//
+		for( const field of doc.localFields )
+		{
+			action = `Has field [${field}]`;
+			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
+			action = `Field [${field}] not empty`;
+			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+		}
+		
+		//
+		// Instantiate empty object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Set _id.
+		//
+		message = "Set _id";
+		func = () => {
+			doc.setDocumentProperties(
+				{ _id: `${this.defaultTestCollection}/${this.intermediate_results.key_insert_filled}` },
+				true
+			);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve object.
+		//
+		message = "Resolve by _id with replace flag on";
+		func = () => {
+			result = doc.resolveDocument( true, true );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check local fields.
+		//
+		for( const field of doc.localFields )
+		{
+			action = `Has field [${field}]`;
+			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
+			action = `Field [${field}] not empty`;
+			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+		}
+		
+		//
+		// Instantiate empty object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Set _key.
+		//
+		message = "Set _key";
+		func = () => {
+			doc.setDocumentProperties(
+				{ _key: `${this.intermediate_results.key_insert_filled}` },
+				true
+			);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve object.
+		//
+		message = "Resolve by _key with replace flag off";
+		func = () => {
+			result = doc.resolveDocument( false, true );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check local fields.
+		//
+		for( const field of doc.localFields )
+		{
+			action = `Has field [${field}]`;
+			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
+			action = `Field [${field}] not empty`;
+			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+		}
+		
+		//
+		// Instantiate empty object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Set _key.
+		//
+		message = "Set _key";
+		func = () => {
+			doc.setDocumentProperties(
+				{ _key: `${this.intermediate_results.key_insert_filled}` },
+				true
+			);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve object.
+		//
+		message = "Resolve by _key with replace flag on";
+		func = () => {
+			result = doc.resolveDocument( true, true );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check local fields.
+		//
+		for( const field of doc.localFields )
+		{
+			action = `Has field [${field}]`;
+			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
+			action = `Field [${field}] not empty`;
+			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
+		}
+		
+	}	// testResolvePersistent
+	
+	
+	/****************************************************************************
 	 * VALIDATION UTILITIES														*
 	 ****************************************************************************/
 	
@@ -5532,6 +5851,45 @@ class DocumentUnitTest extends UnitTest
 	 */
 	insertUnitDel( theUnit = null ) {
 		return this.unitDel( 'unit_insert', theUnit );							// ==>
+	}
+	
+	/**
+	 * Set resolve unit test.
+	 *
+	 * See the unitSet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @param theName		{String}		Unit test title.
+	 * @param theClass		{String}		Unit test class, defaults to TestClass.
+	 * @param theParam		{*}				Eventual parameters for the method.
+	 * @param doNew			{Boolean}		If true, assert the unit doesn't exist.
+	 */
+	resolveUnitSet( theUnit, theName, theClass, theParam = null, doNew = false ) {
+		this.unitSet( 'unit_resolve', theUnit, theName, theClass, theParam, doNew );
+	}
+	
+	/**
+	 * Get resolve unit test(s).
+	 *
+	 * See the unitGet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The record or false /null.
+	 */
+	resolveUnitGet( theUnit = null ) {
+		return this.unitGet( 'unit_resolve', theUnit );							// ==>
+	}
+	
+	/**
+	 * Delete resolve unit test(s).
+	 *
+	 * See the unitDel() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The deleted record or false /null.
+	 */
+	resolveUnitDel( theUnit = null ) {
+		return this.unitDel( 'unit_resolve', theUnit );							// ==>
 	}
 	
 	

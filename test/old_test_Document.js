@@ -744,63 +744,6 @@ describe( "Document class tests:", function ()
 	describe( "Resolve:", function ()
 	{
 		//
-		// Resolve persistent document.
-		//
-		// Should not fail.
-		//
-		it( "Resolve persistent document:", function ()
-		{
-			let doc;
-			let func;
-			let result;
-			
-			func = () => {
-				doc =
-					new TestClass(
-						param.request, key_insert_filled, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			const copy = JSON.parse(JSON.stringify(doc.document));
-			
-			func = () => {
-				result = doc.resolveDocument(true, true);
-			};
-			expect( func, "Resolve and replace" ).not.to.throw();
-			expect( result, "Resolve and replace result" ).to.equal( true );
-			expect( doc.modified, "Resolve and replace modified flag").to.equal(false);
-			for( const field in copy )
-			{
-				expect( doc.document, `Missing property` ).to.have.property(field);
-				if( doc.document.hasOwnProperty( field ) )
-					expect( doc.document[ field ], `Locked property mismatch [${field}]` )
-						.to.equal( copy[ field ] );
-			}
-			
-			func = () => {
-				doc =
-					new TestClass(
-						param.request, key_insert_filled, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			
-			func = () => {
-				result = doc.resolveDocument(false, true);
-			};
-			expect( func, "Resolve and no replace" ).not.to.throw();
-			expect( result, "Resolve and no replace result" ).to.equal( true );
-			expect( doc.modified, "Resolve and no replace modified flag").to.equal(false);
-			for( const field in copy )
-			{
-				expect( doc.document, `Missing property` ).to.have.property(field);
-				if( doc.document.hasOwnProperty( field ) )
-					expect( doc.document[ field ], `Locked property mismatch [${field}]` )
-						.to.equal( copy[ field ] );
-			}
-		});
-		
-		//
 		// Resolve null reference.
 		//
 		// Should fail.
