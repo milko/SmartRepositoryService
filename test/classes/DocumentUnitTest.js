@@ -393,6 +393,17 @@ class DocumentUnitTest extends UnitTest
 			true
 		);
 		
+		//
+		// Insert persistent object.
+		//
+		this.insertUnitSet(
+			'insertPersistentObject',
+			"Insert persistent object",
+			TestClass,
+			null,
+			true
+		);
+		
 	}	// unitsInitInsert
 	
 	
@@ -990,6 +1001,29 @@ class DocumentUnitTest extends UnitTest
 		
 	}	// insertWithSameContent
 	
+	/**
+	 * Insert persistent object
+	 *
+	 * Assert inserting a persistent object fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	insertPersistentObject( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testInsertPersistentObject( TestClass, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( TestClassCustom !== null )
+			this.testInsertPersistentObject( TestClassCustom, theParam );
+		
+	}	// insertPersistentObject
+	
 	
 	/****************************************************************************
 	 * INSTANTIATION TEST ROUTINE DEFINITIONS									*
@@ -1301,48 +1335,6 @@ class DocumentUnitTest extends UnitTest
 	}	// testDefaultCollection
 	
 	/**
-	 * Test successful instantiation with existing edge collection
-	 *
-	 * Assert instantiating with edge collection succeeds.
-	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
-	testInstantiateEdgeSucceed( theClass, theParam = null )
-	{
-		expect( () => {
-			const tmp =
-				new theClass(
-					this.request,
-					null,
-					this.edgeCollection
-				);
-		}).not.to.throw();
-		
-	}	// testInstantiateEdgeSucceed
-	
-	/**
-	 * Test successful instantiation with existing document collection
-	 *
-	 * Assert instantiating with document collection succeeds.
-	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
-	testInstantiateDocumentSucceed( theClass, theParam = null )
-	{
-		expect( () => {
-			const tmp =
-				new theClass(
-					this.request,
-					null,
-					this.documentCollection
-				);
-		}).not.to.throw();
-		
-	}	// testInstantiateDocumentSucceed
-	
-	/**
 	 * Test unsuccessful instantiation with existing edge collection
 	 *
 	 * Assert instantiating with edge collection fails.
@@ -1367,6 +1359,27 @@ class DocumentUnitTest extends UnitTest
 	}	// testInstantiateEdgeFail
 	
 	/**
+	 * Test successful instantiation with existing edge collection
+	 *
+	 * Assert instantiating with edge collection succeeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateEdgeSucceed( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					null,
+					this.edgeCollection
+				);
+		}).not.to.throw();
+		
+	}	// testInstantiateEdgeSucceed
+	
+	/**
 	 * Test unsuccessful instantiation with existing document collection
 	 *
 	 * Assert instantiating with document collection fails.
@@ -1389,6 +1402,27 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 	}	// testInstantiateDocumentFail
+	
+	/**
+	 * Test successful instantiation with existing document collection
+	 *
+	 * Assert instantiating with document collection succeeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateDocumentSucceed( theClass, theParam = null )
+	{
+		expect( () => {
+			const tmp =
+				new theClass(
+					this.request,
+					null,
+					this.documentCollection
+				);
+		}).not.to.throw();
+		
+	}	// testInstantiateDocumentSucceed
 	
 	/**
 	 * Instantiate mutable/immutable document.
@@ -4135,6 +4169,72 @@ class DocumentUnitTest extends UnitTest
 		this.assertAllProvidedDataInDocument( "Contents", doc, data );
 		
 	}	// testInsertWithSameContentSucceed
+	
+	/**
+	 * Test inserting persistent object
+	 *
+	 * Assert that inserting a persistent object fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertPersistentObject( theClass, theParam = null )
+	{
+		let id;
+		let key;
+		let doc;
+		let data;
+		let func;
+		let result;
+		let action;
+		let message;
+		let selector;
+		
+		//
+		// Check persistent document.
+		//
+		message = "Check parameter";
+		expect(this, message).to.have.property('intermediate_results');
+		expect(this.intermediate_results, message).to.have.property('key_insert_filled');
+		expect(this.intermediate_results.key_insert_filled, message).to.be.a.string;
+		db._collection( this.defaultTestCollection )
+			.document( this.intermediate_results.key_insert_filled );
+		
+		//
+		// Create selector.
+		//
+		id = `${this.defaultTestCollection}/${this.intermediate_results.key_insert_filled}`;
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
+		
+		//
+		// Insert.
+		//
+		message = "Insert";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, message
+		).to.throw(
+			MyError,
+			/document is persistent/
+		);
+		
+	}	// testInsertPersistentObject
 	
 	
 	/****************************************************************************
