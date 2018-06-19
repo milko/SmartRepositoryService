@@ -471,16 +471,53 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 		//
-		// Resolve selector without significant field.
+		// Resolve significant fields.
 		//
 		this.resolveUnitSet(
 			'resolveSignificantField',
 			"Resolve significant field",
 			TestClass,
-			null,
+			{
+				replace: param.replace,
+				noSig: { name: 'NAME FILLED' },
+				sigFind: {
+					nid: 'terms/:id',
+					lid: 'LID_FILLED'
+				},
+				sigOne: {
+					lid: 'LID_FILLED'
+				},
+				sigAmbig: {
+					nid: 'terms/:id',
+					lid: 'LID'
+				},
+				sigNoFind: {
+					nid: 'UNKNOWN',
+					lid: 'LID'
+				}
+			},
 			true
 		);
 		
+		//
+		// Resolve reference field.
+		//
+/*
+		this.resolveUnitSet(
+			'resolveReplaceContents',
+			"Resolve and replace contents",
+			TestClass,
+			{
+				replace: param.replace,
+				sigFind: {
+					nid: 'terms/:id',
+					lid: 'LID_FILLED'
+				},
+			},
+			true
+		);
+*/
+	
 	}	// unitsInitResolve
 	
 	
@@ -1171,13 +1208,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolvePersistent( TestClass );
+		this.testResolvePersistent( TestClass, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( TestClassCustom !== null )
-			this.testResolvePersistent( TestClassCustom );
+			this.testResolvePersistent( TestClassCustom, theParam );
 		
 	}	// resolvePersistent
 	
@@ -1194,13 +1231,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveNullReference( TestClass );
+		this.testResolveNullReference( TestClass, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( TestClassCustom !== null )
-			this.testResolveNullReference( TestClassCustom );
+			this.testResolveNullReference( TestClassCustom, theParam );
 		
 	}	// resolveNullReference
 	
@@ -1218,15 +1255,38 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveSignificantField( TestClass );
+		this.testResolveSignificantField( TestClass, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( TestClassCustom !== null )
-			this.testResolveSignificantField( TestClassCustom );
+			this.testResolveSignificantField( TestClassCustom, theParam );
 		
 	}	// resolveSignificantField
+	
+	/**
+	 * Resolve and replace contents
+	 *
+	 * Assert resolving a filled object replaces the required contents.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	resolveReplaceContents( theClass, theParam = null )
+	{
+		//
+		// Should not raise.
+		//
+		this.testResolveReplaceContents( TestClass, theParam );
+		
+		//
+		// Should fail, because the custom class has required fields.
+		//
+		if( TestClassCustom !== null )
+			this.testResolveReplaceContents( TestClassCustom, theParam );
+		
+	}	// resolveReplaceContents
 	
 	
 	/****************************************************************************
@@ -4794,15 +4854,19 @@ class DocumentUnitTest extends UnitTest
 	 * This test will assert resolving a document with or without significant fields,
 	 * it will perform the following checks:
 	 *
+	 * 	- Resolve with all significant fields:
+	 * 		- Providing both significant fields should succeed for documents with and
+	 * 		  without significant fields.
+	 * 	- Resolve with one significant field missing:
+	 * 		- Should fail if document features significant fields and succeed if not.
 	 * 	- Resolve without significant fields:
-	 * 		- Succeed if document does not feature significant fields.
-	 * 		- Fail if document features significant fields.
-	 * 	- Resolve with matching significant fields:
-	 * 		- Succeeds with or without featuring significant fields.
+	 * 		- Succeed if document does not feature significant fields and fail if it does.
 	 * 	- Resolve with ambiguous significant fields:
 	 * 		- Fails with or without featuring significant fields.
 	 * 	- Resolve with not found significant fields:
 	 * 		- Fails with or without featuring significant fields.
+	 * 	- Resolve with matching significant fields and different content:
+	 * 		- Should succeed, test with replace flag on and off.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -4814,24 +4878,149 @@ class DocumentUnitTest extends UnitTest
 		let result;
 		let action;
 		let message;
+		let original;
 		
 		//
-		// FAIL OR FIND SINGLE DOCUMENT.
+		// Check parameter.
+		//
+		message = "Checking parameter";
+		expect( theParam, message ).to.have.property( 'replace' );
+		expect( theParam, message ).to.be.an.object;
+		expect( theParam, message ).to.have.property( 'noSig' );
+		expect( theParam, message ).to.have.property( 'sigOne' );
+		expect( theParam, message ).to.have.property( 'sigFind' );
+		expect( theParam, message ).to.have.property( 'sigAmbig' );
+		expect( theParam, message ).to.have.property( 'sigNoFind' );
+		
+		//
+		// RESOLVE WITH SIGNIFICANT FIELDS AND REPLACE FLAG ON.
 		//
 		
 		//
-		// Instantiate with non significant field.
+		// Instantiate with all significant fields.
 		//
-		message = "Instantiate with non significant field";
+		message = "Resolve with all significant fields and replace flag on";
+		action = "Instantiate";
 		func = () => {
 			doc =
 				new theClass(
 					this.request,
-					{ name: 'NAME FILLED' },
+					theParam.sigFind,
 					this.defaultTestCollection
 				);
 		};
-		expect( func, `${message}` ).not.to.throw();
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Resolve.
+		//
+		action = "Resolve"
+		func = () => {
+			result = doc.resolveDocument( true, true );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Assert document state.
+		//
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Save persistent contents.
+		//
+		original = K.function.clone( doc.document );
+		
+		//
+		// Match document contents.
+		//
+		this.validateResolvedContents(
+			true,				// Replace flag.
+			message,			// Error message.
+			doc,				// The object to test.
+			original,			// The persistent contents.
+			theParam.sigFind	// The selection contents.
+		);
+		
+		//
+		// RESOLVE WITH SIGNIFICANT FIELDS AND REPLACE FLAG OFF.
+		//
+		
+		//
+		// Instantiate with all significant fields.
+		//
+		message = "Resolve with all significant fields and replace flag off";
+		action = "Instantiate";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam.sigFind,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Resolve.
+		//
+		action = "Resolve"
+		func = () => {
+			result = doc.resolveDocument( false, true );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Assert document state.
+		//
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Match document contents.
+		//
+		this.validateResolvedContents(
+			false,				// Replace flag.
+			message,			// Error message.
+			doc,				// The object to test.
+			original,			// The persistent contents.
+			theParam.sigFind	// The selection contents.
+		);
+		
+		//
+		// RESOLVE WITH ONE SIGNIFICANT FIELD MISSING.
+		//
+		
+		//
+		// Instantiate with all significant fields.
+		//
+		message = "Resolve with one significant field missing";
+		action = "Instantiate";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam.sigOne,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
 		
 		//
 		// Resolve function.
@@ -4842,12 +5031,10 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Handle document with significant fields.
-		// Should fail.
 		//
-		message = "Resolve with non significant field";
 		if( doc.significantFields.length > 0 )
 		{
-			action = "Has significant fields"
+			action = "Resolve and has significant fields"
 			expect( func, `${message} - ${action}`
 			).to.throw(
 				MyError,
@@ -4864,8 +5051,12 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Resolve.
 			//
-			action = "Has not significant fields"
+			action = "Resolve and has not significant fields"
 			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Assert document state.
+			//
 			action = "Result";
 			expect( result, `${message} - ${action}` ).to.be.true;
 			action = "Contents";
@@ -4876,117 +5067,543 @@ class DocumentUnitTest extends UnitTest
 			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 			action = "Modified";
 			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Match document contents.
+			//
+			this.validateResolvedContents(
+				false,				// Replace flag.
+				message,			// Error message.
+				doc,				// The object to test.
+				original,			// The persistent contents.
+				theParam.sigOne		// The selection contents.
+			);
 		}
 		
 		//
-		// SUCCEED AND FIND SINGLE DOCUMENT.
+		// RESOLVE WITHOUT SIGNIFICANT FIELD.
 		//
 		
 		//
-		// Instantiate with significant fields.
+		// Instantiate without significant fields.
 		//
-		message = "Instantiate with significant fields";
+		message = "Resolve without significant field";
+		action = "Instantiate";
 		func = () => {
 			doc =
 				new theClass(
 					this.request,
-					{
-						nid: 'terms/:id',
-						lid: 'LID_FILLED'
-					},
+					theParam.noSig,
 					this.defaultTestCollection
 				);
 		};
-		expect( func, `${message}` ).not.to.throw();
+		expect( func, `${message} - ${action}` ).not.to.throw();
 		
 		//
-		// Resolve document.
+		// Resolve function.
 		//
-		message = "Resolve with significant fields";
 		func = () => {
 			result = doc.resolveDocument( true, true );
 		};
-		expect( func, `${message}` ).not.to.throw();
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
-		// FAIL AND FIND MULTIPLE DOCUMENTS.
+		// Handle document with significant fields.
+		//
+		if( doc.significantFields.length > 0 )
+		{
+			action = "Resolve and has significant fields"
+			expect( func, `${message} - ${action}`
+			).to.throw(
+				MyError,
+				/missing required fields to resolve object/
+			);
+		}
+		
+		//
+		// Handle document without significant fields.
+		// Should find the document matching the provided field.
+		//
+		else
+		{
+			//
+			// Resolve.
+			//
+			action = "Resolve and has not significant fields"
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Assert document state.
+			//
+			action = "Result";
+			expect( result, `${message} - ${action}` ).to.be.true;
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Match document contents.
+			//
+			this.validateResolvedContents(
+				false,				// Replace flag.
+				message,			// Error message.
+				doc,				// The object to test.
+				original,			// The persistent contents.
+				theParam.noSig		// The selection contents.
+			);
+		}
+		
+		//
+		// RESOLVE WITH AMBIGUOUG SIGNIFICANT FIELD.
 		//
 		
 		//
-		// Instantiate with significant fields.
+		// Instantiate with ambiguous significant field.
 		//
-		message = "Instantiate with significant fields";
+		message = "Resolve with ambiguous significant field";
+		action = "Instantiate";
 		func = () => {
 			doc =
 				new theClass(
 					this.request,
-					{
-						nid: 'terms/:id',
-						lid: 'LID'
-					},
+					theParam.sigAmbig,
 					this.defaultTestCollection
 				);
 		};
-		expect( func, `${message}` ).not.to.throw();
+		expect( func, `${message} - ${action}` ).not.to.throw();
 		
 		//
-		// Resolve document.
+		// Resolve function.
 		//
-		message = "Resolve ambiguous document with significant fields";
+		action = "Resolve"
 		func = () => {
 			result = doc.resolveDocument( true, true );
 		};
-		expect( func, `${message}`
+		expect( func, `${message} - ${action}`
 		).to.throw(
 			MyError,
-			/resulted in more than one document/
+			/Ambiguous document reference/
 		);
 		
 		//
-		// FAIL AND FIND NO DOCUMENTS.
+		// RESOLVE WITH UNMATCHED SIGNIFICANT FIELD.
 		//
 		
 		//
-		// Instantiate with significant fields.
+		// Instantiate with unmatches significant field.
 		//
-		message = "Instantiate with significant fields";
+		message = "Resolve with unmatched significant field";
+		action = "Instantiate";
 		func = () => {
 			doc =
 				new theClass(
 					this.request,
-					{
-						nid: 'UNKNOWN',
-						lid: 'LID'
-					},
+					theParam.sigNoFind,
 					this.defaultTestCollection
 				);
 		};
-		expect( func, `${message}` ).not.to.throw();
+		expect( func, `${message} - ${action}` ).not.to.throw();
 		
 		//
-		// Resolve document.
+		// Resolve function.
 		//
-		message = "Resolve not found document with significant fields";
+		action = "Resolve"
 		func = () => {
 			result = doc.resolveDocument( true, true );
 		};
-		expect( func, `${message}`
+		expect( func, `${message} - ${action}`
 		).to.throw(
 			MyError,
 			/not found in collection/
 		);
-	
+		
+		//
+		// Change all fields except significant.
+		//
+		const selector = K.function.clone( original );
+		for( const field in theParam.replace )
+			selector[ field ] = theParam.replace[ field ];
+		for( const field in theParam.sigFind )
+			selector[ field ] = theParam.sigFind[ field ];
+		delete selector._id;
+		delete selector._key;
+		delete selector._rev;
+		
+		//
+		// RESOLVE WITH MATCHING SIGNIFICANT FIELD AND DIFFERENT CONTENT.
+		// REPLACE FLAG OFF.
+		//
+		
+		//
+		// Instantiate with matching significant field and changed content.
+		//
+		message = "Matching significant field, changed content and replace flag off";
+		action = "Instantiate";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					selector,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Resolve.
+		//
+		func = () => {
+			result = doc.resolveDocument( false, true );
+		};
+		
+		//
+		// Handle document with significant fields.
+		// Should succeed, because it will use significant fields first.
+		//
+		action = "Resolve"
+		if( doc.significantFields.length > 0 )
+		{
+			//
+			// Succeed.
+			//
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Assert document state.
+			//
+			action = "Result";
+			expect( result, `${message} - ${action}` ).to.be.true;
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			// action = "Modified";
+			// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Match document contents.
+			//
+			this.validateResolvedContents(
+				false,				// Replace flag.
+				message,			// Error message.
+				doc,				// The object to test.
+				original,			// The persistent contents.
+				selector			// The selection contents.
+			);
+		
+		}	// Has significant fields.
+		
+		//
+		// Handle document without significant fields.
+		// Should fail, because it will use all contents.
+		//
+		else
+		{
+			//
+			// fail.
+			//
+			expect( func, `${message} - ${action}`
+			).to.throw(
+				MyError,
+				/not found in collection/
+			);
+		
+		}	// Has no significant fields.
+		
+		//
+		// RESOLVE WITH MATCHING SIGNIFICANT FIELD AND DIFFERENT CONTENT.
+		// REPLACE FLAG ON.
+		//
+		
+		//
+		// Instantiate with matching significant field and changed content.
+		//
+		message = "Matching significant field, changed content and replace flag on";
+		action = "Instantiate";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					selector,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Resolve.
+		//
+		func = () => {
+			result = doc.resolveDocument( true, true );
+		};
+		
+		//
+		// Handle document with significant fields.
+		// Should succeed, because it will use significant fields first.
+		//
+		action = "Resolve"
+		if( doc.significantFields.length > 0 )
+		{
+			//
+			// Succeed.
+			//
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Assert document state.
+			//
+			action = "Result";
+			expect( result, `${message} - ${action}` ).to.be.true;
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			// action = "Modified";
+			// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Match document contents.
+			//
+			this.validateResolvedContents(
+				true,				// Replace flag.
+				message,			// Error message.
+				doc,				// The object to test.
+				original,			// The persistent contents.
+				selector			// The selection contents.
+			);
+			
+		}	// Has significant fields.
+		
+		//
+		// Handle document without significant fields.
+		// Should fail, because it will use all contents.
+		//
+		else
+		{
+			//
+			// fail.
+			//
+			expect( func, `${message} - ${action}`
+			).to.throw(
+				MyError,
+				/not found in collection/
+			);
+			
+		}	// Has no significant fields.
+		
 	}	// testResolveSignificantField
+	
+	/**
+	 * Resolve and replace contents
+	 *
+	 * This test will assert resolving a filled document will replace the correct fields,
+	 * it will perform the following checks:
+	 *
+	 * 	- Resolve with replace flag off:
+	 * 		- Load document with significant fields and all other fields different.
+	 * 		- If document has no significat fields:
+	 * 			- Assert it fails.
+	 * 		- If document has significant fields:
+	 * 			-
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testResolveReplaceContents( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let action;
+		let message;
+		let original;
+		let selector;
+		
+		let locked;
+		let unique;
+		let required;
+		let restricted;
+		let significant;
+		
+		//
+		// Check parameter.
+		//
+		message = "Checking parameter";
+		expect( theParam, message ).to.be.an.object;
+		expect( theParam, message ).to.have.property( 'replace' );
+		expect( theParam, message ).to.have.property( 'sigFind' );
+		
+		//
+		// Resolve document.
+		//
+		message = "Instantiate original document";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam.sigFind,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		message = "Resolve original document";
+		func = () => {
+			result = doc.resolveDocument( true, true );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		original = K.function.clone( db._document( doc.document._id ) );
+		
+		//
+		// Set up selector.
+		//
+		selector = K.function.clone( theParam.replace );
+		for( const field in theParam.sigFind )
+			selector[ field ] = theParam.sigFind[ field ];
+		
+		//
+		// Save document special fields.
+		//
+		significant = doc.significantFields;
+		
+		//
+		// RESOLVE WITH FALSE REPLACE FLAG.
+		//
+		
+		//
+		// Instantiate with non significant field.
+		//
+		message = "Instantiate";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					selector,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve.
+		//
+		message = "Resolve with replace flag off";
+		func = () => {
+			result = doc.resolveDocument( false, true );
+		};
+		
+		//
+		// Handle significant fields.
+		//
+		if( significant.length > 0 )
+		{
+			//
+			// Resolve.
+			//
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Match document contents.
+			//
+			this.validateResolvedContents(
+				false,				// Replace flag.
+				message,			// Error message.
+				doc,				// The object to test.
+				original,			// The persistent contents.
+				selector			// The selection contents.
+			);
+		
+		}	// Has significant fields.
+		
+		//
+		// Handle non significant fields.
+		//
+		else
+		{
+			//
+			// Resolve.
+			//
+			expect( func, `${message}`
+			).to.throw(
+				MyError,
+				/not found in collection/
+			);
+			
+		}	// Has no significant fields.
+		
+		//
+		// RESOLVE WITH TRUE REPLACE FLAG.
+		//
+		
+		//
+		// Instantiate with non significant field.
+		//
+		message = "Instantiate";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					selector,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve.
+		//
+		message = "Resolve with replace flag on";
+		func = () => {
+			result = doc.resolveDocument( true, true );
+		};
+		
+		//
+		// Handle significant fields.
+		//
+		if( significant.length > 0 )
+		{
+			//
+			// Resolve.
+			//
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Match document contents.
+			//
+			this.validateResolvedContents(
+				true,				// Replace flag.
+				message,			// Error message.
+				doc,				// The object to test.
+				original,			// The persistent contents.
+				selector			// The selection contents.
+			);
+			
+		}	// Has significant fields.
+		
+		//
+		// Handle non significant fields.
+		//
+		else
+		{
+			//
+			// Resolve.
+			//
+			expect( func, `${message}`
+			).to.throw(
+				MyError,
+				/not found in collection/
+			);
+			
+		}	// Has no significant fields.
+	
+	}	// testResolveReplaceContents
 	
 	
 	/****************************************************************************
@@ -5007,7 +5624,7 @@ class DocumentUnitTest extends UnitTest
 	 * the unit tests.
 	 *
 	 * @param theMessage	{String}	The main error message part.
-	 * @param theObject		{Object}	The tested class instance.
+	 * @param theObject		{Document}	The tested class instance.
 	 * @param theContents	{Object}	The data used for instantiation.
 	 */
 	assertAllProvidedDataInDocument(
@@ -5196,7 +5813,7 @@ class DocumentUnitTest extends UnitTest
 	 *
 	 * @param theMessage	{String}	The main error message part.
 	 * @param theFlag		{Boolean}	The setDocumentProperties() replace flag.
-	 * @param theObject		{Object}	The tested class instance.
+	 * @param theObject		{Document}	The tested class instance.
 	 * @param theNewData	{Object}	The data used for replace.
 	 */
 	validatePersistentReplace(
@@ -5356,7 +5973,7 @@ class DocumentUnitTest extends UnitTest
 	 *
 	 * @param theMessage	{String}	The main error message part.
 	 * @param theFlag		{Boolean}	The setDocumentProperties() replace flag.
-	 * @param theObject		{Object}	The tested class instance.
+	 * @param theObject		{Document}	The tested class instance.
 	 * @param theNewData	{Object}	The data used for replace.
 	 */
 	validateNonPersistentReplace(
@@ -6071,6 +6688,246 @@ class DocumentUnitTest extends UnitTest
 		}	// Iterating replaced properties.
 		
 	}	// validateNonPersistentContents
+	
+	/**
+	 * Validate replaced data contents in non persistent object
+	 *
+	 * This method will replace the properties of theObject with the properties in
+	 * theNewData.
+	 *
+	 * It will iterate through theNewData properties and set them one by one,
+	 * asserting that the operation succeeds or raises an exception. Once this process
+	 * is finished it will compare the values of the updated object with the provided
+	 * data and assert that the object contents are as required.
+	 *
+	 * The method does not return any status, errors are expected to be posted during
+	 * the unit tests.
+	 *
+	 * @param theFlag			{Boolean}	The setDocumentProperties() replace flag.
+	 * @param theMessage		{String}	The main error message part.
+	 * @param theObject			{Document}	The resolved object.
+	 * @param thePersistent		{Object}	The persistent contents.
+	 * @param theSelection		{Object}	The selection contents.
+	 */
+	validateResolvedContents(
+		theFlag,				// Replace flag.
+		theMessage,				// Error message.
+		theObject,				// The object to test.
+		thePersistent,			// The persistent contents.
+		theSelection			// The selection contents.
+	)
+	{
+		let status;
+		let action;
+		
+		//
+		// Save document special fields.
+		//
+		const local = theObject.localFields;
+		const locked = theObject.lockedFields;
+		const unique = theObject.uniqueFields;
+		const required = theObject.requiredFields;
+		const restricted = theObject.restrictedFields;
+		
+		//
+		// Flatten significant fields.
+		//
+		let significant = [];
+		if( theObject.significantFields.length > 0 )
+			significant = K.function.flatten(theObject.significantFields);
+		
+		//
+		// Iterate object properties.
+		//
+		for( const field in theObject.document )
+		{
+			//
+			// Set action.
+			//
+			if( restricted.includes( field ) )
+			{
+				status = 'R';
+				action = `Restricted field [${field}]`;
+			}
+			else if( local.includes( field ) )
+			{
+				status = 'C';
+				action = `Local field [${field}]`;
+			}
+			else if( significant.includes( field ) )
+			{
+				status = 'S';
+				action = `Significant field [${field}]`;
+			}
+			else if( required.includes( field ) )
+			{
+				status = 'Q';
+				action = `Required field [${field}]`;
+			}
+			else if( unique.includes( field ) )
+			{
+				status = 'U';
+				action = `Unique field [${field}]`;
+			}
+			else if( locked.includes( field ) )
+			{
+				status = 'L';
+				action = `Locked field [${field}]`;
+			}
+			else
+			{
+				status = null;
+				action = `Field [${field}]`;
+			}
+			
+			//
+			// Check if there.
+			//
+			const in_selection = ( theSelection.hasOwnProperty( field ) );
+			const in_persistent = ( thePersistent.hasOwnProperty( field ) );
+			
+			//
+			// Parse by field type.
+			//
+			switch( status )
+			{
+				//
+				// Handle restricted.
+				// Should not be there.
+				//
+				case 'R':
+					expect( theObject, `${theMessage} - ${action}` )
+						.not.to.have.property( field );
+					break;
+				
+				//
+				// Handle significant.
+				// If flag is off, match persistent copy;
+				// if flag is on, match selector contents.
+				//
+				case 'S':
+					if( theFlag
+					 && in_selection )
+						this.compareValues(
+							theObject.document[ field ],
+							theSelection[ field ],
+							theMessage,
+							action
+						);
+					else if( (! theFlag)
+						  && in_persistent )
+						this.compareValues(
+							theObject.document[ field ],
+							thePersistent[ field ],
+							theMessage,
+							action
+						);
+					break;
+				
+				//
+				// Handle required.
+				// If flag is off, match selector contents;
+				// if flag is on, match persistent data.
+				//
+				case 'Q':
+					if( theFlag
+					 && in_persistent )
+						this.compareValues(
+							theObject.document[ field ],
+							thePersistent[ field ],
+							theMessage,
+							action
+						);
+					else if( (! theFlag)
+						  && in_selection )
+						this.compareValues(
+							theObject.document[ field ],
+							theSelection[ field ],
+							theMessage,
+							action
+						);
+					break;
+				
+				//
+				// Handle local.
+				// Always match persistent data.
+				//
+				case 'C':
+					if( in_persistent )
+						this.compareValues(
+							theObject.document[ field ],
+							thePersistent[ field ],
+							theMessage,
+							action
+						);
+					break;
+				
+				//
+				// Handle unique.
+				// If flag is off, match selector contents;
+				// if flag is on, match persistent data.
+				//
+				case 'U':
+					if( theFlag
+						&& in_persistent )
+						this.compareValues(
+							theObject.document[ field ],
+							thePersistent[ field ],
+							theMessage,
+							action
+						);
+					else if( (! theFlag)
+						  && in_selection )
+						this.compareValues(
+							theObject.document[ field ],
+							theSelection[ field ],
+							theMessage,
+							action
+						);
+					break;
+				
+				//
+				// Handle locked.
+				// Locked fields must match the persistent copy.
+				//
+				case 'L':
+					this.compareValues(
+						theObject.document[ field ],
+						thePersistent[ field ],
+						theMessage,
+						action
+					);
+					break;
+				
+				//
+				// Handle other.
+				// If flag is off, match selector contents;
+				// if flag is on, match persistent data.
+				//
+				default:
+					if( theFlag
+					 && in_persistent )
+						this.compareValues(
+							theObject.document[ field ],
+							thePersistent[ field ],
+							theMessage,
+							action
+						);
+					else if( (! theFlag)
+						  && in_selection )
+						this.compareValues(
+							theObject.document[ field ],
+							theSelection[ field ],
+							theMessage,
+							action
+						);
+					break;
+				
+			}	// Parsing property type.
+			
+		}	// Iterating object properties.
+		
+	}	// validateResolvedContents
 	
 	
 	/****************************************************************************
