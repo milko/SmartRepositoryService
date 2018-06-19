@@ -503,9 +503,25 @@ class UnitTest
 		//
 		it( "Unit test group environment", function ()
 		{
+			//
+			// Check unit test getter.
+			//
 			message = `Getter method [${getter}]`;
 			expect( theUnitTest, message ).to.have.property( getter );
 			expect( theUnitTest[ getter ], message ).to.be.a.function;
+		});
+		
+		//
+		// Check unit tests queue.
+		//
+		it( "Unit test queue", function ()
+		{
+			//
+			// Check unit tests queue.
+			//
+			message = `Getter queue [${getter}]`;
+			expect( theUnitTest[ getter ](), message ).to.be.an.object;
+			expect( theUnitTest[ getter ](), message ).not.to.be.empty;
 		});
 		
 		//
