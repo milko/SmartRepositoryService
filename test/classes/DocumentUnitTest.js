@@ -500,23 +500,20 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 		//
-		// Resolve reference field.
+		// Resolve reference fields.
 		//
-/*
 		this.resolveUnitSet(
-			'resolveReplaceContents',
-			"Resolve and replace contents",
+			'resolveReferenceField',
+			"Resolve reference fields",
 			TestClass,
 			{
-				replace: param.replace,
-				sigFind: {
+				sigAmbig: {
 					nid: 'terms/:id',
-					lid: 'LID_FILLED'
-				},
+					lid: 'LID'
+				}
 			},
 			true
 		);
-*/
 	
 	}	// unitsInitResolve
 	
@@ -1266,27 +1263,27 @@ class DocumentUnitTest extends UnitTest
 	}	// resolveSignificantField
 	
 	/**
-	 * Resolve and replace contents
+	 * Resolve reference fields
 	 *
-	 * Assert resolving a filled object replaces the required contents.
+	 * Assert the correct choice when resolving from reference and significant fields.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
-	resolveReplaceContents( theClass, theParam = null )
+	resolveReferenceField( theClass, theParam = null )
 	{
 		//
 		// Should not raise.
 		//
-		this.testResolveReplaceContents( TestClass, theParam );
+		this.testResolveReferenceField( TestClass, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( TestClassCustom !== null )
-			this.testResolveReplaceContents( TestClassCustom, theParam );
+			this.testResolveReferenceField( TestClassCustom, theParam );
 		
-	}	// resolveReplaceContents
+	}	// resolveReferenceField
 	
 	
 	/****************************************************************************
@@ -5283,8 +5280,15 @@ class DocumentUnitTest extends UnitTest
 			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 			action = "Persistent";
 			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			// action = "Modified";
-			// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Handle modified.
+			//
+			action = "Modified";
+			if( doc.lockedFields.length > 0 )
+				expect( doc.modified, `${message} - ${action}` ).to.equal( true );
+			else
+				expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 			
 			//
 			// Match document contents.
@@ -5366,8 +5370,15 @@ class DocumentUnitTest extends UnitTest
 			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 			action = "Persistent";
 			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			// action = "Modified";
-			// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Handle modified.
+			//
+			action = "Modified";
+			if( doc.lockedFields.length > 0 )
+				expect( doc.modified, `${message} - ${action}` ).to.equal( true );
+			else
+				expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 			
 			//
 			// Match document contents.
@@ -5402,85 +5413,75 @@ class DocumentUnitTest extends UnitTest
 	}	// testResolveSignificantField
 	
 	/**
-	 * Resolve and replace contents
+	 * Resolve reference fields
 	 *
-	 * This test will assert resolving a filled document will replace the correct fields,
-	 * it will perform the following checks:
+	 * This test will assert that in the presence of references and significant
+	 * fields, the resolve method will prefer the references, it will perform the
+	 * following checks:
 	 *
-	 * 	- Resolve with replace flag off:
-	 * 		- Load document with significant fields and all other fields different.
-	 * 		- If document has no significat fields:
-	 * 			- Assert it fails.
-	 * 		- If document has significant fields:
-	 * 			-
+	 * 	- Resolve by _id:
+	 * 		- Set valid _id, invalid _key and invalid significant fields: should resolve
+	 * 		_id.
+	 * 	- Resolve by _key:
+	 * 		- Set valid _key and invalid significant fields: should resolve _key.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
-	testResolveReplaceContents( theClass, theParam = null )
+	testResolveReferenceField( theClass, theParam = null )
 	{
 		let doc;
 		let func;
 		let result;
 		let action;
 		let message;
-		let original;
 		let selector;
-		
-		let locked;
-		let unique;
-		let required;
-		let restricted;
-		let significant;
 		
 		//
 		// Check parameter.
 		//
 		message = "Checking parameter";
 		expect( theParam, message ).to.be.an.object;
-		expect( theParam, message ).to.have.property( 'replace' );
-		expect( theParam, message ).to.have.property( 'sigFind' );
+		expect( theParam, message ).to.have.property( 'sigAmbig' );
 		
 		//
-		// Resolve document.
+		// Resolve document by reference.
 		//
-		message = "Instantiate original document";
+		message = "Instantiate with saved reference";
 		func = () => {
 			doc =
 				new theClass(
 					this.request,
-					theParam.sigFind,
+					this.intermediate_results.key_insert_filled,
 					this.defaultTestCollection
 				);
 		};
 		expect( func, `${message}` ).not.to.throw();
-		message = "Resolve original document";
-		func = () => {
-			result = doc.resolveDocument( true, true );
-		};
-		expect( func, `${message}` ).not.to.throw();
-		original = K.function.clone( db._document( doc.document._id ) );
 		
 		//
-		// Set up selector.
+		// Save references.
 		//
-		selector = K.function.clone( theParam.replace );
-		for( const field in theParam.sigFind )
-			selector[ field ] = theParam.sigFind[ field ];
+		const ref_id = doc.document._id;
+		const ref_key = doc.document._key;
+		const nid = doc.document.nid;
+		const lid = doc.document.lid;
+		const original = K.function.clone( doc.document );
 		
 		//
-		// Save document special fields.
+		// Make selector.
 		//
-		significant = doc.significantFields;
+		selector = K.function.clone( theParam.sigAmbig );
+		selector._id = ref_id;
+		selector._key = "UNKNOWN";
 		
 		//
-		// RESOLVE WITH FALSE REPLACE FLAG.
+		// RESOLVE BY ID WITH REPLACE FLAG FALSE.
 		//
 		
 		//
-		// Instantiate with non significant field.
+		// Instantiate with ambiguous selector and reference ID.
 		//
-		message = "Instantiate";
+		message = "Use _id reference with replace flag off";
 		func = () => {
 			doc =
 				new theClass(
@@ -5494,58 +5495,44 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Resolve.
 		//
-		message = "Resolve with replace flag off";
 		func = () => {
 			result = doc.resolveDocument( false, true );
 		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
 		
 		//
-		// Handle significant fields.
+		// Assert document state.
 		//
-		if( significant.length > 0 )
-		{
-			//
-			// Resolve.
-			//
-			expect( func, `${message}` ).not.to.throw();
-			
-			//
-			// Match document contents.
-			//
-			this.validateResolvedContents(
-				false,				// Replace flag.
-				message,			// Error message.
-				doc,				// The object to test.
-				original,			// The persistent contents.
-				selector			// The selection contents.
-			);
-		
-		}	// Has significant fields.
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		// action = "Modified";
+		// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
-		// Handle non significant fields.
+		// Match document contents.
 		//
-		else
-		{
-			//
-			// Resolve.
-			//
-			expect( func, `${message}`
-			).to.throw(
-				MyError,
-				/not found in collection/
-			);
-			
-		}	// Has no significant fields.
+		this.validateResolvedContents(
+			false,				// Replace flag.
+			message,			// Error message.
+			doc,				// The object to test.
+			original,			// The persistent contents.
+			selector			// The selection contents.
+		);
 		
 		//
-		// RESOLVE WITH TRUE REPLACE FLAG.
+		// RESOLVE BY ID WITH REPLACE FLAG TRUE.
 		//
 		
 		//
-		// Instantiate with non significant field.
+		// Instantiate with ambiguous selector and reference ID.
 		//
-		message = "Instantiate";
+		message = "Use _id reference with replace flag on";
 		func = () => {
 			doc =
 				new theClass(
@@ -5559,51 +5546,145 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Resolve.
 		//
-		message = "Resolve with replace flag on";
 		func = () => {
 			result = doc.resolveDocument( true, true );
 		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
 		
 		//
-		// Handle significant fields.
+		// Assert document state.
 		//
-		if( significant.length > 0 )
-		{
-			//
-			// Resolve.
-			//
-			expect( func, `${message}` ).not.to.throw();
-			
-			//
-			// Match document contents.
-			//
-			this.validateResolvedContents(
-				true,				// Replace flag.
-				message,			// Error message.
-				doc,				// The object to test.
-				original,			// The persistent contents.
-				selector			// The selection contents.
-			);
-			
-		}	// Has significant fields.
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		// action = "Modified";
+		// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
-		// Handle non significant fields.
+		// Match document contents.
 		//
-		else
-		{
-			//
-			// Resolve.
-			//
-			expect( func, `${message}`
-			).to.throw(
-				MyError,
-				/not found in collection/
-			);
-			
-		}	// Has no significant fields.
+		this.validateResolvedContents(
+			true,				// Replace flag.
+			message,			// Error message.
+			doc,				// The object to test.
+			original,			// The persistent contents.
+			selector			// The selection contents.
+		);
+		
+		//
+		// Make selector.
+		//
+		selector = K.function.clone( theParam.sigAmbig );
+		selector._key = ref_key;
+		
+		//
+		// RESOLVE BY KEY WITH REPLACE FLAG FALSE.
+		//
+		
+		//
+		// Instantiate with ambiguous selector and reference ID.
+		//
+		message = "Use _key reference with replace flag off";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					selector,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve.
+		//
+		func = () => {
+			result = doc.resolveDocument( false, true );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Assert document state.
+		//
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		// action = "Modified";
+		// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Match document contents.
+		//
+		this.validateResolvedContents(
+			false,				// Replace flag.
+			message,			// Error message.
+			doc,				// The object to test.
+			original,			// The persistent contents.
+			selector			// The selection contents.
+		);
+		
+		//
+		// RESOLVE BY KEY WITH REPLACE FLAG TRUE.
+		//
+		
+		//
+		// Instantiate with ambiguous selector and reference ID.
+		//
+		message = "Use _id reference with replace flag on";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					selector,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve.
+		//
+		func = () => {
+			result = doc.resolveDocument( true, true );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Assert document state.
+		//
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		// action = "Modified";
+		// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Match document contents.
+		//
+		this.validateResolvedContents(
+			true,				// Replace flag.
+			message,			// Error message.
+			doc,				// The object to test.
+			original,			// The persistent contents.
+			selector			// The selection contents.
+		);
 	
-	}	// testResolveReplaceContents
+	}	// testResolveReferenceField
 	
 	
 	/****************************************************************************
@@ -6801,12 +6882,34 @@ class DocumentUnitTest extends UnitTest
 					break;
 				
 				//
+				// Handle local.
+				// Always match persistent data.
+				//
+				case 'C':
+					if( in_persistent )
+						this.compareValues(
+							theObject.document[ field ],
+							thePersistent[ field ],
+							theMessage,
+							action
+						);
+					break;
+				
+				//
 				// Handle significant.
-				// If flag is off, match persistent copy;
-				// if flag is on, match selector contents.
+				// If flag is off, match selector contents;
+				// if flag is on, match persistent data.
 				//
 				case 'S':
 					if( theFlag
+					 && in_persistent )
+						this.compareValues(
+							theObject.document[ field ],
+							thePersistent[ field ],
+							theMessage,
+							action
+						);
+					else if( (! theFlag)
 					 && in_selection )
 						this.compareValues(
 							theObject.document[ field ],
@@ -6814,8 +6917,14 @@ class DocumentUnitTest extends UnitTest
 							theMessage,
 							action
 						);
-					else if( (! theFlag)
-						  && in_persistent )
+					break;
+				
+				//
+				// Handle locked.
+				// Locked fields must match the persistent copy.
+				//
+				case 'L':
+					if( in_persistent )
 						this.compareValues(
 							theObject.document[ field ],
 							thePersistent[ field ],
@@ -6849,20 +6958,6 @@ class DocumentUnitTest extends UnitTest
 					break;
 				
 				//
-				// Handle local.
-				// Always match persistent data.
-				//
-				case 'C':
-					if( in_persistent )
-						this.compareValues(
-							theObject.document[ field ],
-							thePersistent[ field ],
-							theMessage,
-							action
-						);
-					break;
-				
-				//
 				// Handle unique.
 				// If flag is off, match selector contents;
 				// if flag is on, match persistent data.
@@ -6884,19 +6979,6 @@ class DocumentUnitTest extends UnitTest
 							theMessage,
 							action
 						);
-					break;
-				
-				//
-				// Handle locked.
-				// Locked fields must match the persistent copy.
-				//
-				case 'L':
-					this.compareValues(
-						theObject.document[ field ],
-						thePersistent[ field ],
-						theMessage,
-						action
-					);
 					break;
 				
 				//
