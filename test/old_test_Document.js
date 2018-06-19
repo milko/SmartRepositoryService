@@ -744,38 +744,6 @@ describe( "Document class tests:", function ()
 	describe( "Insert:", function ()
 	{
 		//
-		// Insert object with same content.
-		//
-		// Should not fail: _key is unique, other unique fields will fail.
-		//
-		it( "Insert object with same content:", function ()
-		{
-			let doc;
-			let func;
-			let result;
-			
-			func = () => {
-				doc =
-					new TestClassRestricted(
-						param.request, param.content, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			
-			func = () => {
-				result = doc.insertDocument();
-			};
-			expect( func, "Insert" ).not.to.throw();
-			expect( doc.document, "Should not be empty").not.to.be.empty;
-			for( const field of doc.localFields )
-				expect(doc.document, "Has local fields").to.have.property(field);
-			expect( result, "Insert result" ).to.equal( true );
-			expect( doc.persistent, "Persistent flag").to.equal(true);
-			expect( doc.modified, "Modified flag").to.equal(false);
-			key_insert_same = doc.document._key;
-		});
-		
-		//
 		// Insert persistent object.
 		//
 		// Should fail.
