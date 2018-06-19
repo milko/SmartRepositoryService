@@ -744,41 +744,6 @@ describe( "Document class tests:", function ()
 	describe( "Insert:", function ()
 	{
 		//
-		// Insert duplicate object.
-		//
-		// Should fail.
-		//
-		it( "Insert duplicate object:", function ()
-		{
-			let doc;
-			let func;
-			let result;
-			
-			func = () => {
-				doc =
-					new TestClass(
-						param.request, {_key: key_insert_filled}, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			
-			func = () => {
-				result = doc.insertDocument();
-			};
-			expect( func, "Insert" )
-				.to.throw( MyError, /duplicate document in collection/ );
-			expect( doc.document, "Should not be empty").not.to.be.empty;
-			for( const field of doc.localFields )
-			{
-				if( field !== '_key' )
-					expect(doc.document, "Has local fields").not.to.have.property(field);
-			}
-			expect( result, "Insert result" ).to.equal( undefined );
-			expect( doc.persistent, "Persistent flag").to.equal(false);
-			expect( doc.modified, "Modified flag").to.equal(false);
-		});
-		
-		//
 		// Insert object with same content.
 		//
 		// Should not fail: _key is unique, other unique fields will fail.

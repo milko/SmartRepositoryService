@@ -382,6 +382,17 @@ class DocumentUnitTest extends UnitTest
 			true
 		);
 		
+		//
+		// Insert object with same content.
+		//
+		this.insertUnitSet(
+			'insertWithSameContent',
+			"Insert object with same content",
+			TestClass,
+			param.content,
+			true
+		);
+		
 	}	// unitsInitInsert
 	
 	
@@ -950,6 +961,34 @@ class DocumentUnitTest extends UnitTest
 			this.testInsertDuplicate( TestClassCustom, theParam );
 		
 	}	// insertDuplicate
+	
+	/**
+	 * Insert object with same content
+	 *
+	 * Assert inserting a document with same content.
+	 *
+	 * Should succeed with objects in which the _key is database-set and fail in
+	 * objects where the _key is computed from its contents.
+	 *
+	 * In this class and in the custom class it should succeed.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	insertWithSameContent( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testInsertWithSameContentSucceed( TestClass, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( TestClassCustom !== null )
+			this.testInsertWithSameContentSucceed( TestClassCustom, theParam );
+		
+	}	// insertWithSameContent
 	
 	
 	/****************************************************************************
@@ -3906,9 +3945,10 @@ class DocumentUnitTest extends UnitTest
 	}	// testInsertWithContent
 	
 	/**
-	 * Test inserting a duplicate document
+	 * Test inserting document with same content
 	 *
-	 * Assert that inserting a duplicate object fails.
+	 * Assert that inserting an object with same contents succeeds, this should occur if
+	 * the document _key is determined by the database.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -3965,6 +4005,136 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 	}	// testInsertDuplicate
+	
+	/**
+	 * Test inserting document with same content
+	 *
+	 * Assert that inserting an object with same contents fails, this should occur if
+	 * the document _key is computed from the document contents.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithSameContentFail( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let message;
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Insert.
+		//
+		message = "Insert";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, message
+		).to.throw(
+			MyError,
+			/duplicate document in collection/
+		);
+		
+	}	// testInsertWithSameContentFail
+	
+	/**
+	 * Test inserting document with content
+	 *
+	 * Assert that inserting an object with contents suceeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithSameContentSucceed( theClass, theParam = null )
+	{
+		let id;
+		let key;
+		let doc;
+		let data;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Insert.
+		//
+		message = "Insert";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, message ).not.to.throw();
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.equal( true );
+		action = "Should not be empty";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Has local fields";
+		for( const field of doc.localFields )
+			expect(doc.document, `${message} - ${action}` ).to.have.property(field);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal(false);
+		this.assertAllProvidedDataInDocument( "Contents", doc, theParam );
+		
+		//
+		// Get ID and clone data.
+		//
+		id = doc.document._id;
+		key = doc.document._key;
+		data = K.function.clone( doc.document );
+		
+		//
+		// Save inserted ID in current object.
+		//
+		this.intermediate_results.key_insert_same = key;
+		expect(this.intermediate_results).to.have.property("key_insert_same");
+		expect(this.intermediate_results.key_insert_same).to.equal(key);
+		
+		//
+		// Retrieve.
+		//
+		message = "Retrieve";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		this.assertAllProvidedDataInDocument( "Contents", doc, data );
+		
+	}	// testInsertWithSameContentSucceed
 	
 	
 	/****************************************************************************
