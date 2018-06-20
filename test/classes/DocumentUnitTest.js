@@ -514,22 +514,66 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 		//
-		// Resolve locked fields.
+		// Resolve changed locked fields.
 		//
 		this.resolveUnitSet(
 			'resolveChangeLockedField',
-			"Resolve locked fields",
+			"Resolve changed locked fields",
 			TestClass,
 			null,
 			true
 		);
 		
 		//
-		// Resolve significant fields.
+		// Resolve changed significant fields.
 		//
 		this.resolveUnitSet(
 			'resolveChangeSignificantField',
-			"Resolve significant fields",
+			"Resolve changed significant fields",
+			TestClass,
+			null,
+			true
+		);
+		
+		//
+		// Resolve changed required fields.
+		//
+		this.resolveUnitSet(
+			'resolveChangeRequiredField',
+			"Resolve changed required fields",
+			TestClass,
+			null,
+			true
+		);
+		
+		//
+		// Resolve changed unique fields.
+		//
+		this.resolveUnitSet(
+			'resolveChangeUniqueField',
+			"Resolve changed required fields",
+			TestClass,
+			null,
+			true
+		);
+		
+		//
+		// Resolve changed local fields.
+		//
+		this.resolveUnitSet(
+			'resolveChangeLocalField',
+			"Resolve changed local fields",
+			TestClass,
+			null,
+			true
+		);
+		
+		//
+		// Resolve changed standard fields.
+		//
+		this.resolveUnitSet(
+			'resolveChangeStandardField',
+			"Resolve changed standard fields",
 			TestClass,
 			null,
 			true
@@ -1306,7 +1350,7 @@ class DocumentUnitTest extends UnitTest
 	}	// resolveReferenceField
 	
 	/**
-	 * Resolve locked fields
+	 * Resolve changed locked fields
 	 *
 	 * Assert the correct behaviour when a locked field is updated in the background and a
 	 * persistent object is resolved.
@@ -1317,12 +1361,12 @@ class DocumentUnitTest extends UnitTest
 	resolveChangeLockedField( theClass, theParam = null )
 	{
 		//
-		// Should not raise.
+		// Should fail.
 		//
 		this.testResolveChangeLockedField( TestClass, theParam );
 		
 		//
-		// Should fail, because the custom class has required fields.
+		// Should fail.
 		//
 		if( TestClassCustom !== null )
 			this.testResolveChangeLockedField( TestClassCustom, theParam );
@@ -1330,9 +1374,9 @@ class DocumentUnitTest extends UnitTest
 	}	// resolveChangeLockedField
 	
 	/**
-	 * Resolve significant fields
+	 * Resolve changed significant fields
 	 *
-	 * Assert the correct behaviour when a significantfield is updated in the background
+	 * Assert the correct behaviour when a significant field is updated in the background
 	 * and a persistent object is resolved.
 	 *
 	 * @param theClass	{Function}	The class to test.
@@ -1341,17 +1385,113 @@ class DocumentUnitTest extends UnitTest
 	resolveChangeSignificantField( theClass, theParam = null )
 	{
 		//
-		// Should not raise.
+		// Should fail.
 		//
 		this.testResolveChangeSignificantField( TestClass, theParam );
 		
 		//
-		// Should fail, because the custom class has required fields.
+		// Should fail.
 		//
 		if( TestClassCustom !== null )
 			this.testResolveChangeSignificantField( TestClassCustom, theParam );
 		
 	}	// resolveChangeSignificantField
+	
+	/**
+	 * Resolve changed required fields
+	 *
+	 * Assert the correct behaviour when a required field is updated in the background
+	 * and a persistent object is resolved.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	resolveChangeRequiredField( theClass, theParam = null )
+	{
+		//
+		// Should fail.
+		//
+		this.testResolveChangeRequiredField( TestClass, theParam );
+		
+		//
+		// Should fail.
+		//
+		if( TestClassCustom !== null )
+			this.testResolveChangeRequiredField( TestClassCustom, theParam );
+		
+	}	// resolveChangeRequiredField
+	
+	/**
+	 * Resolve changed unique fields
+	 *
+	 * Assert the correct behaviour when a unique field is updated in the background
+	 * and a persistent object is resolved.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	resolveChangeUniqueField( theClass, theParam = null )
+	{
+		//
+		// Should not raise.
+		//
+		this.testResolveChangeUniqueField( TestClass, theParam );
+		
+		//
+		// Should fail, because the custom class has required fields.
+		//
+		if( TestClassCustom !== null )
+			this.testResolveChangeUniqueField( TestClassCustom, theParam );
+		
+	}	// resolveChangeUniqueField
+	
+	/**
+	 * Resolve changed local fields
+	 *
+	 * Assert the correct behaviour when a local field is updated in the background
+	 * and a persistent object is resolved.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	resolveChangeLocalField( theClass, theParam = null )
+	{
+		//
+		// Should not raise.
+		//
+		this.testResolveChangeLocalField( TestClass, theParam );
+		
+		//
+		// Should fail, because the custom class has required fields.
+		//
+		if( TestClassCustom !== null )
+			this.testResolveChangeLocalField( TestClassCustom, theParam );
+		
+	}	// resolveChangeLocalField
+	
+	/**
+	 * Resolve changed standard fields
+	 *
+	 * Assert the correct behaviour when a standard field is updated in the background
+	 * and a persistent object is resolved.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	resolveChangeStandardField( theClass, theParam = null )
+	{
+		//
+		// Should not raise.
+		//
+		this.testResolveChangeStandardField( TestClass, theParam );
+		
+		//
+		// Should fail, because the custom class has required fields.
+		//
+		if( TestClassCustom !== null )
+			this.testResolveChangeStandardField( TestClassCustom, theParam );
+		
+	}	// resolveChangeStandardField
 	
 	
 	/****************************************************************************
@@ -5761,12 +5901,11 @@ class DocumentUnitTest extends UnitTest
 	 * locked fields are changed in the background and the document is resolved, it
 	 * will perform the following checks:
 	 *
-	 * 	- With replace flag off:
-	 * 		- Reference fields are not changed.
-	 * 		- Other fields raise an exception.
-	 * 	- With replace flag on:
-	 * 		- Reference fields are not changed; _rev is not tested.
-	 * 		- Other fields raise an exception.
+	 * 	- If revision change does not raise an exception:
+	 * 		- With replace flag off:
+	 * 			- Reference fields are not changed.
+	 * 		- With replace flag on:
+	 * 			- Reference fields are not changed.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -5775,14 +5914,13 @@ class DocumentUnitTest extends UnitTest
 	{
 		let doc;
 		let func;
-		let fields;
-		let result;
-		let action;
 		let message;
-		let selector;
 		
 		//
-		// Resolve document by reference.
+		// ToDo:
+		// Should make special fields list a static method.
+		//
+		// Instantiate from reference.
 		//
 		message = "Instantiate with saved reference";
 		func = () => {
@@ -5796,375 +5934,14 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
-		// Assert document state.
+		// Perforn test.
 		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Save original contents.
-		//
-		const original = K.function.clone( doc.document );
-		
-		//
-		// Try locked fields with replace flag off.
-		//
-		message = "Replace flag off";
-		fields = doc.lockedFields;
-		for( const field of fields )
-		{
-			//
-			// Do test if the document has it.
-			//
-			if( doc.document.hasOwnProperty( field ) )
-			{
-				//
-				// Resolve document by reference.
-				//
-				action = "Instantiate with reference";
-				func = () => {
-					doc =
-						new theClass(
-							this.request,
-							this.intermediate_results.key_insert_filled,
-							this.defaultTestCollection
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Change field value.
-				//
-				action = "Change value";
-				selector = {};
-				selector[ field ] = "I_CHANGED_IT";
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							this.intermediate_results.key_insert_filled,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Resolve document.
-				//
-				func = () => {
-					result = doc.resolveDocument( false, true );
-				};
-				switch( field )
-				{
-					case '_id':
-					case '_key':
-					case '_rev':
-						action = `Resolve with changed field [${field}]`;
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						action = `Check field [${field}] value`;
-						expect( doc.document[ field ], `${message} - ${action}` )
-							.to.equal( original[ field ] );
-						break;
-					
-					default:
-						action = `Resolve with changed field [${field}]`;
-						expect( func, `${message} - ${action}`
-						).to.throw(
-							MyError,
-							/Ambiguous document reference/
-						);
-						break;
-				}
-				
-				//
-				// Check removing field if not reference.
-				//
-				if( (field !== '_id')
-				 && (field !== '_key')
-				 && (field !== '_rev') )
-				{
-					//
-					// Restore field value.
-					//
-					action = `Restore field [${field}]`;
-					selector = {};
-					selector[ field ] = original[ field ];
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								this.intermediate_results.key_insert_filled,
-								selector,
-								{waitForSync: true}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document by reference.
-					//
-					action = "Instantiate with reference";
-					func = () => {
-						doc =
-							new theClass(
-								this.request,
-								this.intermediate_results.key_insert_filled,
-								this.defaultTestCollection
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Remove field.
-					//
-					action = `Remove field [${field}]`;
-					selector = {};
-					selector[ field ] = null;
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								this.intermediate_results.key_insert_filled,
-								selector,
-								{waitForSync: true, keepNull: false}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document.
-					//
-					func = () => {
-						result = doc.resolveDocument( false, true );
-					};
-					switch( field )
-					{
-						case '_id':
-						case '_key':
-						case '_rev':
-							action = `Resolve with removed field [${field}]`;
-							expect( func, `${message} - ${action}` ).not.to.throw();
-							action = `Check field [${field}] value`;
-							expect( doc.document[ field ], `${message} - ${action}` )
-								.to.equal( original[ field ] );
-							break;
-						
-						default:
-							action = `Resolve with removed field [${field}]`;
-							expect( func, `${message} - ${action}`
-							).to.throw(
-								MyError,
-								/Ambiguous document reference/
-							);
-							break;
-					}
-					
-				}	// Not a reference field.
-				
-				//
-				// Restore field value.
-				//
-				action = `Restore field [${field}]`;
-				selector = {};
-				selector[ field ] = original[ field ];
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							this.intermediate_results.key_insert_filled,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			}	// Document has property.
-		
-		}	// Iterating locked fields with replace flag off.
-		
-		//
-		// Try locked fields with replace flag off.
-		//
-		message = "Replace flag on";
-		for( const field of fields )
-		{
-			//
-			// Do test if the document has it.
-			//
-			if( doc.document.hasOwnProperty( field ) )
-			{
-				//
-				// Resolve document by reference.
-				//
-				action = "Instantiate with reference";
-				func = () => {
-					doc =
-						new theClass(
-							this.request,
-							this.intermediate_results.key_insert_filled,
-							this.defaultTestCollection
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Change field value.
-				//
-				action = "Change value";
-				selector = {};
-				selector[ field ] = "I_CHANGED_IT";
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							this.intermediate_results.key_insert_filled,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Resolve document.
-				//
-				func = () => {
-					result = doc.resolveDocument( true, true );
-				};
-				switch( field )
-				{
-					case '_id':
-					case '_key':
-						action = `Resolve with changed field [${field}]`;
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						action = `Check field [${field}] value`;
-						expect( doc.document[ field ], `${message} - ${action}` )
-							.to.equal( original[ field ] );
-						break;
-					
-					case '_rev':
-						action = `Resolve with changed field [${field}]`;
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						break;
-					
-					default:
-						action = `Resolve with changed field [${field}]`;
-						expect( func, `${message} - ${action}`
-						).to.throw(
-							MyError,
-							/Ambiguous document reference/
-						);
-						break;
-				}
-				
-				//
-				// Check removing field if not reference.
-				//
-				if( (field !== '_id')
-				 && (field !== '_key')
-				 && (field !== '_rev') )
-				{
-					//
-					// Restore field value.
-					//
-					action = `Restore field [${field}]`;
-					selector = {};
-					selector[ field ] = original[ field ];
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								this.intermediate_results.key_insert_filled,
-								selector,
-								{waitForSync: true}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document by reference.
-					//
-					action = "Instantiate with reference";
-					func = () => {
-						doc =
-							new theClass(
-								this.request,
-								this.intermediate_results.key_insert_filled,
-								this.defaultTestCollection
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Remove field.
-					//
-					action = `Remove field [${field}]`;
-					selector = {};
-					selector[ field ] = null;
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								this.intermediate_results.key_insert_filled,
-								selector,
-								{waitForSync: true, keepNull: false}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document.
-					//
-					func = () => {
-						result = doc.resolveDocument( true, true );
-					};
-					switch( field )
-					{
-						case '_id':
-						case '_key':
-							action = `Resolve with changed field [${field}]`;
-							expect( func, `${message} - ${action}` ).not.to.throw();
-							action = `Check field [${field}] value`;
-							expect( doc.document[ field ], `${message} - ${action}` )
-								.to.equal( original[ field ] );
-							break;
-						
-						case '_rev':
-							action = `Resolve with changed field [${field}]`;
-							expect( func, `${message} - ${action}` ).not.to.throw();
-							break;
-						
-						default:
-							action = `Resolve with changed field [${field}]`;
-							expect( func, `${message} - ${action}`
-							).to.throw(
-								MyError,
-								/Ambiguous document reference/
-							);
-							break;
-					}
-					
-				}	// Not a reference field.
-				
-				//
-				// Restore field value.
-				//
-				action = `Restore field [${field}]`;
-				selector = {};
-				selector[ field ] = original[ field ];
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							this.intermediate_results.key_insert_filled,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-			}	// Document has property.
-			
-		}	// Iterating locked fields with replace flag on.
-		
+		this.validateResolveChangedContents(
+			theClass,										// Class to test.
+			this.intermediate_results.key_insert_filled,	// Test object reference.
+			doc.lockedFields								// List of test fields.
+		);
+	
 	}	// testResolveChangeLockedField
 	
 	/**
@@ -6174,10 +5951,11 @@ class DocumentUnitTest extends UnitTest
 	 * significant fields are changed in the background and the document is resolved, it
 	 * will perform the following checks:
 	 *
-	 * 	- With replace flag off:
-	 * 		- Should raise an exception.
-	 * 	- With replace flag on:
-	 * 		- Should raise an exception.
+	 * 	- If revision change does not raise an exception:
+	 * 		- With replace flag off:
+	 * 			- Reference fields are not changed.
+	 * 		- With replace flag on:
+	 * 			- Reference fields are not changed.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -6186,14 +5964,13 @@ class DocumentUnitTest extends UnitTest
 	{
 		let doc;
 		let func;
-		let fields;
-		let result;
-		let action;
 		let message;
-		let selector;
 		
 		//
-		// Resolve document by reference.
+		// ToDo:
+		// Should make special fields list a static method.
+		//
+		// Instantiate from reference.
 		//
 		message = "Instantiate with saved reference";
 		func = () => {
@@ -6207,308 +5984,229 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
-		// Assert document state.
+		// Perforn test.
 		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Save original contents.
-		//
-		const original = K.function.clone( doc.document );
-		
-		//
-		// Try locked fields with replace flag off.
-		//
-		message = "Replace flag off";
-		fields = K.function.flatten(doc.significantFields);
-		for( const field of fields )
-		{
-			//
-			// Do test if the document has it.
-			//
-			if( doc.document.hasOwnProperty( field ) )
-			{
-				//
-				// Resolve document by reference.
-				//
-				action = "Instantiate with reference";
-				func = () => {
-					doc =
-						new theClass(
-							this.request,
-							this.intermediate_results.key_insert_filled,
-							this.defaultTestCollection
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Change field value.
-				//
-				action = "Change value";
-				selector = {};
-				selector[ field ] = "I_CHANGED_IT";
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							this.intermediate_results.key_insert_filled,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Resolve document.
-				//
-				func = () => {
-					result = doc.resolveDocument( false, true );
-				};
-				action = `Resolve with changed field [${field}]`;
-				expect( func, `${message} - ${action}`
-				).to.throw(
-					MyError,
-					/Ambiguous document reference/
-				);
-				
-				//
-				// Check removing field if not reference.
-				//
-				if( (field !== '_id')
-				 && (field !== '_key')
-				 && (field !== '_rev') )
-				{
-					//
-					// Restore field value.
-					//
-					action = `Restore field [${field}]`;
-					selector = {};
-					selector[ field ] = original[ field ];
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								this.intermediate_results.key_insert_filled,
-								selector,
-								{waitForSync: true}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document by reference.
-					//
-					action = "Instantiate with reference";
-					func = () => {
-						doc =
-							new theClass(
-								this.request,
-								this.intermediate_results.key_insert_filled,
-								this.defaultTestCollection
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Remove field.
-					//
-					action = `Remove field [${field}]`;
-					selector = {};
-					selector[ field ] = null;
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								this.intermediate_results.key_insert_filled,
-								selector,
-								{waitForSync: true, keepNull: false}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document.
-					//
-					func = () => {
-						result = doc.resolveDocument( false, true );
-					};
-					action = `Resolve with removed field [${field}]`;
-					expect( func, `${message} - ${action}`
-					).to.throw(
-						MyError,
-						/Ambiguous document reference/
-					);
-				
-				}	// Not a reference field.
-				
-				//
-				// Restore field value.
-				//
-				action = `Restore field [${field}]`;
-				selector = {};
-				selector[ field ] = original[ field ];
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							this.intermediate_results.key_insert_filled,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-			}	// Document has property.
-			
-		}	// Iterating locked fields with replace flag off.
-		
-		//
-		// Try locked fields with replace flag off.
-		//
-		message = "Replace flag on";
-		for( const field of fields )
-		{
-			//
-			// Do test if the document has it.
-			//
-			if( doc.document.hasOwnProperty( field ) )
-			{
-				//
-				// Resolve document by reference.
-				//
-				action = "Instantiate with reference";
-				func = () => {
-					doc =
-						new theClass(
-							this.request,
-							this.intermediate_results.key_insert_filled,
-							this.defaultTestCollection
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Change field value.
-				//
-				action = "Change value";
-				selector = {};
-				selector[ field ] = "I_CHANGED_IT";
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							this.intermediate_results.key_insert_filled,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Resolve document.
-				//
-				func = () => {
-					result = doc.resolveDocument( true, true );
-				};
-				action = `Resolve with changed field [${field}]`;
-				expect( func, `${message} - ${action}`
-				).to.throw(
-					MyError,
-					/Ambiguous document reference/
-				);
-				
-				//
-				// Check removing field if not reference.
-				//
-				if( (field !== '_id')
-				 && (field !== '_key')
-				 && (field !== '_rev') )
-				{
-					//
-					// Restore field value.
-					//
-					action = `Restore field [${field}]`;
-					selector = {};
-					selector[ field ] = original[ field ];
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								this.intermediate_results.key_insert_filled,
-								selector,
-								{waitForSync: true}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document by reference.
-					//
-					action = "Instantiate with reference";
-					func = () => {
-						doc =
-							new theClass(
-								this.request,
-								this.intermediate_results.key_insert_filled,
-								this.defaultTestCollection
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Remove field.
-					//
-					action = `Remove field [${field}]`;
-					selector = {};
-					selector[ field ] = null;
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								this.intermediate_results.key_insert_filled,
-								selector,
-								{waitForSync: true, keepNull: false}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document.
-					//
-					func = () => {
-						result = doc.resolveDocument( true, true );
-					};
-					action = `Resolve with deleted field [${field}]`;
-					expect( func, `${message} - ${action}`
-					).to.throw(
-						MyError,
-						/Ambiguous document reference/
-					);
-				
-				}	// Not a reference field.
-				
-				//
-				// Restore field value.
-				//
-				action = `Restore field [${field}]`;
-				selector = {};
-				selector[ field ] = original[ field ];
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							this.intermediate_results.key_insert_filled,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-			}	// Document has property.
-			
-		}	// Iterating locked fields with replace flag on.
+		this.validateResolveChangedContents(
+			theClass,										// Class to test.
+			this.intermediate_results.key_insert_filled,	// Test object reference.
+			K.function.flatten(doc.significantFields)		// List of test fields.
+		);
 		
 	}	// testResolveChangeSignificantField
+	
+	/**
+	 * Resolve changed required fields
+	 *
+	 * This test will validate the behaviour of a persistent document when its
+	 * required fields are changed in the background and the document is resolved, it
+	 * will perform the following checks:
+	 *
+	 * 	- If revision change does not raise an exception:
+	 * 		- With replace flag off:
+	 * 			- Reference fields are not changed.
+	 * 		- With replace flag on:
+	 * 			- Reference fields are not changed.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testResolveChangeRequiredField( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		
+		//
+		// ToDo:
+		// Should make special fields list a static method.
+		//
+		// Instantiate from reference.
+		//
+		message = "Instantiate with saved reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.intermediate_results.key_insert_filled,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Perforn test.
+		//
+		this.validateResolveChangedContents(
+			theClass,										// Class to test.
+			this.intermediate_results.key_insert_filled,	// Test object reference.
+			doc.requiredFields								// List of test fields.
+		);
+		
+	}	// testResolveChangeRequiredField
+	
+	/**
+	 * Resolve changed unique fields
+	 *
+	 * This test will validate the behaviour of a persistent document when its
+	 * unique fields are changed in the background and the document is resolved, it
+	 * will perform the following checks:
+	 *
+	 * 	- If revision change does not raise an exception:
+	 * 		- With replace flag off:
+	 * 			- Reference fields are not changed.
+	 * 		- With replace flag on:
+	 * 			- Reference fields are not changed.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testResolveChangeUniqueField( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		
+		//
+		// ToDo:
+		// Should make special fields list a static method.
+		//
+		// Instantiate from reference.
+		//
+		message = "Instantiate with saved reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.intermediate_results.key_insert_filled,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Perforn test.
+		//
+		this.validateResolveChangedContents(
+			theClass,										// Class to test.
+			this.intermediate_results.key_insert_filled,	// Test object reference.
+			doc.uniqueFields								// List of test fields.
+		);
+		
+	}	// testResolveChangeUniqueField
+	
+	/**
+	 * Resolve changed local fields
+	 *
+	 * This test will validate the behaviour of a persistent document when its
+	 * local fields are changed in the background and the document is resolved, it
+	 * will perform the following checks:
+	 *
+	 * 	- If revision change does not raise an exception:
+	 * 		- With replace flag off:
+	 * 			- Reference fields are not changed.
+	 * 		- With replace flag on:
+	 * 			- Reference fields are not changed.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testResolveChangeLocalField( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		
+		//
+		// ToDo:
+		// Should make special fields list a static method.
+		//
+		// Instantiate from reference.
+		//
+		message = "Instantiate with saved reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.intermediate_results.key_insert_filled,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Perforn test.
+		//
+		this.validateResolveChangedContents(
+			theClass,										// Class to test.
+			this.intermediate_results.key_insert_filled,	// Test object reference.
+			doc.lockedFields								// List of test fields.
+		);
+		
+	}	// testResolveChangeLocalField
+	
+	/**
+	 * Resolve changed standard fields
+	 *
+	 * This test will validate the behaviour of a persistent document when its
+	 * standard fields are changed in the background and the document is resolved, it
+	 * will perform the following checks:
+	 *
+	 * 	- If revision change does not raise an exception:
+	 * 		- With replace flag off:
+	 * 			- Reference fields are not changed.
+	 * 		- With replace flag on:
+	 * 			- Reference fields are not changed.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testResolveChangeStandardField( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		
+		//
+		// ToDo:
+		// Should make special fields list a static method.
+		//
+		// Instantiate from reference.
+		//
+		message = "Instantiate with saved reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.intermediate_results.key_insert_filled,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Collect standard fields.
+		//
+		const fields = [];
+		for( const field in doc.document )
+		{
+			if( (! doc.lockedFields.includes( field ))
+			 && (! doc.significantFields.includes( field ))
+			 && (! doc.requiredFields.includes( field ))
+			 && (! doc.uniqueFields.includes( field ))
+			 && (! doc.localFields.includes( field )) )
+				fields.push( field );
+		}
+		
+		//
+		// Perforn test.
+		//
+		this.validateResolveChangedContents(
+			theClass,										// Class to test.
+			this.intermediate_results.key_insert_filled,	// Test object reference.
+			fields											// List of test fields.
+		);
+		
+	}	// testResolveChangeStandardField
 	
 	
 	/****************************************************************************
@@ -7834,6 +7532,457 @@ class DocumentUnitTest extends UnitTest
 		}	// Iterating object properties.
 		
 	}	// validateResolvedContents
+	
+	/**
+	 * Validate resolve changed contents
+	 *
+	 * This method expects a list of fields and for each field it will resolve the
+	 * object, change the field in the background and resolve the object again: it
+	 * expects the operation to fail, if the revision changed, or the field not to be
+	 * changed if the revision is the same.
+	 *
+	 * Updates and test documents are expected to be found in the collection
+	 * this.defaultTestCollection.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theReference	{String}	The test object _key.
+	 * @param theFields		{Array}		The list of fields to test.
+	 */
+	validateResolveChangedContents( theClass, theReference, theFields )
+	{
+		let doc;
+		let tmp;
+		let func;
+		let result;
+		let action;
+		let message;
+		let selector;
+		let revision;
+		
+		//
+		// Resolve document by reference.
+		//
+		message = "Instantiate with saved reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theReference,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Assert document state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Save original contents and test fields list.
+		//
+		const original = K.function.clone( doc.document );
+		
+		//
+		// Try fields with replace flag off.
+		//
+		message = "Replace flag off";
+		for( const field of theFields )
+		{
+			//
+			// Do test if the document has it.
+			//
+			if( doc.document.hasOwnProperty( field ) )
+			{
+				//
+				// Resolve document by reference.
+				//
+				action = "Instantiate with reference";
+				func = () => {
+					doc =
+						new theClass(
+							this.request,
+							theReference,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Save current revision.
+				//
+				revision = doc.document._rev;
+				
+				//
+				// Change field value.
+				//
+				action = "Change value";
+				selector = {};
+				selector[ field ] = "I_CHANGED_IT";
+				func = () => {
+					db._collection(this.defaultTestCollection)
+						.update(
+							theReference,
+							selector,
+							{waitForSync: true}
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Catch revision change.
+				//
+				func = () => {
+					tmp = db._collection(this.defaultTestCollection)
+						.document(theReference);
+				};
+				action = `Getting revision with changed field [${field}]`;
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Resolve document.
+				//
+				func = () => {
+					result = doc.resolveDocument( false, true );
+				};
+				if( revision !== tmp._rev )
+				{
+					action = `Catch revision change with changed field [${field}]`;
+					expect( func, `${message} - ${action}`
+					).to.throw(
+						MyError,
+						/Ambiguous document reference/
+					);
+				}
+				else
+				{
+					action = `Resolve with changed field [${field}]`;
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					action = `Check field [${field}] value`;
+					expect( doc.document[ field ], `${message} - ${action}` )
+						.to.equal( original[ field ] );
+				}
+				
+				//
+				// Check removing field if not reference.
+				//
+				if( (field !== '_id')
+					&& (field !== '_key')
+					&& (field !== '_rev') )
+				{
+					//
+					// Restore field value.
+					//
+					action = `Restore field [${field}]`;
+					selector = {};
+					selector[ field ] = original[ field ];
+					func = () => {
+						db._collection(this.defaultTestCollection)
+							.update(
+								theReference,
+								selector,
+								{waitForSync: true}
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Resolve document by reference.
+					//
+					action = "Instantiate with reference";
+					func = () => {
+						doc =
+							new theClass(
+								this.request,
+								theReference,
+								this.defaultTestCollection
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Save current revision.
+					//
+					revision = doc.document._rev;
+					
+					//
+					// Remove field.
+					//
+					action = `Remove field [${field}]`;
+					selector = {};
+					selector[ field ] = null;
+					func = () => {
+						db._collection(this.defaultTestCollection)
+							.update(
+								theReference,
+								selector,
+								{waitForSync: true, keepNull: false}
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Catch revision change.
+					//
+					func = () => {
+						tmp = db._collection(this.defaultTestCollection)
+							.document(theReference);
+					};
+					action = `Getting revision with deleted field [${field}]`;
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Resolve document.
+					//
+					func = () => {
+						result = doc.resolveDocument( false, true );
+					};
+					if( revision !== tmp._rev )
+					{
+						action = `Catch revision change with deleted field [${field}]`;
+						expect( func, `${message} - ${action}`
+						).to.throw(
+							MyError,
+							/Ambiguous document reference/
+						);
+					}
+					else
+					{
+						action = `Resolve with deleted field [${field}]`;
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						action = `Check field [${field}] value`;
+						expect( doc.document[ field ], `${message} - ${action}` )
+							.to.equal( original[ field ] );
+					}
+					
+				}	// Not a reference field.
+				
+				//
+				// Restore field value.
+				//
+				action = `Restore field [${field}]`;
+				selector = {};
+				selector[ field ] = original[ field ];
+				func = () => {
+					db._collection(this.defaultTestCollection)
+						.update(
+							theReference,
+							selector,
+							{waitForSync: true}
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+			}	// Document has property.
+			
+		}	// Iterating fields with replace flag off.
+		
+		//
+		// Try fields with replace flag off.
+		//
+		message = "Replace flag on";
+		for( const field of theFields )
+		{
+			//
+			// Do test if the document has it.
+			//
+			if( doc.document.hasOwnProperty( field ) )
+			{
+				//
+				// Resolve document by reference.
+				//
+				action = "Instantiate with reference";
+				func = () => {
+					doc =
+						new theClass(
+							this.request,
+							theReference,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Save current revision.
+				//
+				revision = doc.document._rev;
+				
+				//
+				// Change field value.
+				//
+				action = "Change value";
+				selector = {};
+				selector[ field ] = "I_CHANGED_IT";
+				func = () => {
+					db._collection(this.defaultTestCollection)
+						.update(
+							theReference,
+							selector,
+							{waitForSync: true}
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Catch revision change.
+				//
+				func = () => {
+					tmp = db._collection(this.defaultTestCollection)
+						.document(theReference);
+				};
+				action = `Getting revision with changed field [${field}]`;
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Resolve document.
+				//
+				func = () => {
+					result = doc.resolveDocument( true, true );
+				};
+				if( revision !== tmp._rev )
+				{
+					action = `Catch revision change with changed field [${field}]`;
+					expect( func, `${message} - ${action}`
+					).to.throw(
+						MyError,
+						/Ambiguous document reference/
+					);
+				}
+				else
+				{
+					action = `Resolve with changed field [${field}]`;
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					action = `Check field [${field}] value`;
+					if( field === '_rev')
+						expect( doc.document[ field ], `${message} - ${action}` )
+							.to.equal( revision );
+					else
+						expect( doc.document[ field ], `${message} - ${action}` )
+							.to.equal( original[ field ] );
+				}
+				
+				//
+				// Check removing field if not reference.
+				//
+				if( (field !== '_id')
+					&& (field !== '_key')
+					&& (field !== '_rev') )
+				{
+					//
+					// Restore field value.
+					//
+					action = `Restore field [${field}]`;
+					selector = {};
+					selector[ field ] = original[ field ];
+					func = () => {
+						db._collection(this.defaultTestCollection)
+							.update(
+								theReference,
+								selector,
+								{waitForSync: true}
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Resolve document by reference.
+					//
+					action = "Instantiate with reference";
+					func = () => {
+						doc =
+							new theClass(
+								this.request,
+								theReference,
+								this.defaultTestCollection
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Save current revision.
+					//
+					revision = doc.document._rev;
+					
+					//
+					// Remove field.
+					//
+					action = `Remove field [${field}]`;
+					selector = {};
+					selector[ field ] = null;
+					func = () => {
+						db._collection(this.defaultTestCollection)
+							.update(
+								theReference,
+								selector,
+								{waitForSync: true, keepNull: false}
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Catch revision change.
+					//
+					func = () => {
+						tmp = db._collection(this.defaultTestCollection)
+							.document(theReference);
+					};
+					action = `Getting revision with changed field [${field}]`;
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Resolve document.
+					//
+					func = () => {
+						result = doc.resolveDocument( false, true );
+					};
+					if( revision !== tmp._rev )
+					{
+						action = `Catch revision change with changed field [${field}]`;
+						expect( func, `${message} - ${action}`
+						).to.throw(
+							MyError,
+							/Ambiguous document reference/
+						);
+					}
+					else
+					{
+						action = `Resolve with changed field [${field}]`;
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						action = `Check field [${field}] value`;
+						expect( doc.document[ field ], `${message} - ${action}` )
+							.to.equal( original[ field ] );
+					}
+					
+				}	// Not a reference field.
+				
+				//
+				// Restore field value.
+				//
+				action = `Restore field [${field}]`;
+				selector = {};
+				selector[ field ] = original[ field ];
+				func = () => {
+					db._collection(this.defaultTestCollection)
+						.update(
+							theReference,
+							selector,
+							{waitForSync: true}
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+			}	// Document has property.
+			
+		}	// Iterating fields with replace flag on.
+		
+	}	// validateResolveChangedContents
 	
 	
 	/****************************************************************************
