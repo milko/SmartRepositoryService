@@ -743,6 +743,19 @@ class DocumentUnitTest extends UnitTest
 			true
 		);
 		
+		//
+		// Replace persistent values.
+		// Assert that replacing a document whose persistent locked field value is
+		// different raises an exception, in all other cases assert it succeeds.
+		//
+		this.replaceUnitSet(
+			'replacePersistentValue',
+			"Replace persistent values",
+			TestClass,
+			null,
+			true
+		);
+		
 	}	// unitsInitReplace
 	
 	
@@ -1753,6 +1766,29 @@ class DocumentUnitTest extends UnitTest
 			this.testReplaceNonExisting( TestClassCustom, theParam );
 		
 	}	// replaceNonExisting
+	
+	/**
+	 * Replace persistent values
+	 *
+	 * Assert replacing persistent locked values fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	replacePersistentValue( theClass, theParam = null )
+	{
+		//
+		// Should raise for locked and not for others.
+		//
+		this.testReplacePersistentValue( TestClass, theParam );
+		
+		//
+		// Should raise for locked and not for others.
+		//
+		if( TestClassCustom !== null )
+			this.testReplacePersistentValue( TestClassCustom, theParam );
+		
+	}	// replacePersistentValue
 	
 	
 	/****************************************************************************
@@ -6771,6 +6807,320 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 	}	// testReplaceNonExisting
+	
+	/**
+	 * Test replacing persistent values
+	 *
+	 * Resolve document, update the value in the background and assert that replacing
+	 * the document will fail when modifying locked fields and not for others.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testReplacePersistentValue( theClass, theParam = null )
+	{
+		let doc;
+		let tmp;
+		let meta;
+		let func;
+		let result;
+		let state;
+		let status;
+		let action;
+		let message;
+		let selector;
+		
+		//
+		// Instantiate from existing reference.
+		//
+		const func_get = () => {
+			tmp =
+				db._collection(this.defaultTestCollection)
+					.document(this.intermediate_results.key_insert_filled);
+		};
+		message = "Instantiate from reference";
+		expect( func_get, `${message}` ).not.to.throw();
+		
+		//
+		// Clone document.
+		// We resolved an immutable document.
+		//
+		const clone = K.function.clone(tmp);
+		
+		//
+		// Iterate document properties.
+		//
+		for( const field in clone )
+		{
+			//
+			// Skip references and revision.
+			//
+			if( (field !== '_id')
+			 && (field !== '_key')
+			 && (field !== '_rev') )
+			{
+				//
+				// Instantiate from existing reference.
+				//
+				message = "Resolve from reference";
+				func = () => {
+					doc =
+						new theClass(
+							this.request,
+							this.intermediate_results.key_insert_filled,
+							this.defaultTestCollection,
+							true
+						);
+				};
+				expect( func, `${message}` ).not.to.throw();
+				action = "Persistent";
+				expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+
+				//
+				// Set action.
+				//
+				if( doc.restrictedFields.includes( field ) )
+				{
+					status = 'R';
+					state = `Restricted field [${field}]`;
+				}
+				else if( doc.lockedFields.includes( field ) )
+				{
+					status = 'L';
+					state = `Locked field [${field}]`;
+				}
+				else if( K.function.flatten(doc.significantFields).includes( field ) )
+				{
+					status = 'S';
+					state = `Significant field [${field}]`;
+				}
+				else if( doc.requiredFields.includes( field ) )
+				{
+					status = 'Q';
+					state = `Required field [${field}]`;
+				}
+				else if( doc.uniqueFields.includes( field ) )
+				{
+					status = 'U';
+					state = `Unique field [${field}]`;
+				}
+				else
+				{
+					status = null;
+					state = `Field [${field}]`;
+				}
+				action = state;
+				
+				//
+				// Update field.
+				//
+				selector = {};
+				selector[ field ] = "THIS_WAS_CHANGED";
+				message = `Update persistent value`;
+				func = () => {
+					meta = db._collection(this.defaultTestCollection)
+						.update(
+							this.intermediate_results.key_insert_filled,
+							selector,
+							{waitForSync: true}
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Update revision.
+				// Or it would always raise an exception.
+				//
+				if( doc.document._rev !== meta._rev )
+					doc.document._rev = meta._rev;
+				
+				//
+				// Replace.
+				//
+				message = "Replace";
+				func = () => {
+					result = doc.replaceDocument();
+				};
+				switch( status )
+				{
+					case 'R':
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						expect( doc.document, `${message} - ${action}` ).not.to.have.property( field );
+						action = state + " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						expect( func_get, "resolving persistent copy" ).not.to.throw();
+						action = state + " matches persistent";
+						expect( tmp, `${message} - ${action}` ).not.to.have.property( field );
+						break;
+					
+					case 'L':
+						expect( func, `${message}`
+						).to.throw(
+							MyError,
+							/Constraint violation/
+						);
+						action += " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						expect( func_get, "resolving persistent copy" ).not.to.throw();
+						action = state + " matches persistent";
+						expect( doc.document[ field ], `${message} - ${action}` ).not.to.equal( tmp[ field ] );
+						break;
+					
+					case 'S':
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+						action += " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						expect( func_get, "resolving persistent copy" ).not.to.throw();
+						action = state + " matches persistent";
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
+						break;
+					
+					case 'Q':
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+						action += " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						expect( func_get, "resolving persistent copy" ).not.to.throw();
+						action = state + " matches persistent";
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
+						break;
+					
+					case 'U':
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+						action += " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						expect( func_get, "resolving persistent copy" ).not.to.throw();
+						action = state + " matches persistent";
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
+						break;
+					
+					default:
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+						action += " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						expect( func_get, "resolving persistent copy" ).not.to.throw();
+						action = state + " matches persistent";
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
+						break;
+				}
+				
+				//
+				// Delete field.
+				//
+				selector = {};
+				selector[ field ] = null;
+				message = `Delete persistent value`;
+				func = () => {
+					meta = db._collection(this.defaultTestCollection)
+						.update(
+							this.intermediate_results.key_insert_filled,
+							selector,
+							{waitForSync: true, keepNull: false}
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Update revision.
+				// Or it would always raise an exception.
+				//
+				if( doc.document._rev !== meta._rev )
+					doc.document._rev = meta._rev;
+				
+				//
+				// Replace.
+				//
+				message = "Replace";
+				action = state;
+				func = () => {
+					result = doc.replaceDocument();
+				};
+				switch( status )
+				{
+					case 'R':
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						expect( doc.document, `${message} - ${action}` ).not.to.have.property( field );
+						action += " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						break;
+					
+					case 'L':
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+						action += " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						expect( func_get, "resolving persistent copy" ).not.to.throw();
+						action = state + " matches persistent";
+						expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
+						break;
+					
+					case 'S':
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+						action += " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						expect( func_get, "resolving persistent copy" ).not.to.throw();
+						action = state + " matches persistent";
+						expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
+						break;
+					
+					case 'Q':
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+						action += " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						expect( func_get, "resolving persistent copy" ).not.to.throw();
+						action = state + " matches persistent";
+						expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
+						break;
+					
+					case 'U':
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+						action += " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						expect( func_get, "resolving persistent copy" ).not.to.throw();
+						action = state + " matches persistent";
+						expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
+						break;
+					
+					default:
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+						action += " is persistent";
+						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+						expect( func_get, "resolving persistent copy" ).not.to.throw();
+						action = state + " matches persistent";
+						expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
+						break;
+				}
+				
+			}	// Not reference or revision.
+			
+		}	// Iterating document properties.
+		
+		//
+		// Remove document.
+		//
+		message = "Remove";
+		func = () => {
+			db._remove(clone._id);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Restore.
+		//
+		message = "Restore";
+		func = () => {
+			db._collection(this.defaultTestCollection).insert( clone );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+	}	// testReplacePersistentValue
 	
 	
 	/****************************************************************************
