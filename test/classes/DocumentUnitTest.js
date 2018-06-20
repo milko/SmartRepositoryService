@@ -86,6 +86,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		this.unitsInitResolve();
 		
+		//
+		// Replace tests.
+		//
+		this.unitsInitReplace();
+		
 	}	// unitsInit
 	
 	
@@ -480,6 +485,17 @@ class DocumentUnitTest extends UnitTest
 	 * it will do the following checks:
 	 *
 	 * 	- Resolve persistent document.
+	 * 	- Resolve ambiguous document.
+	 * 	- Resolve null reference.
+	 * 	- Resolve significant fields.
+	 * 	- Resolve reference fields.
+	 * 	- Resolve without raising.
+	 * 	- Resolve changed locked fields.
+	 * 	- Resolve changed significant fields.
+	 * 	- Resolve changed required fields.
+	 * 	- Resolve changed unique fields.
+	 * 	- Resolve changed local fields.
+	 * 	- Resolve changed standard fields.
 	 */
 	unitsInitResolve()
 	{
@@ -683,6 +699,51 @@ class DocumentUnitTest extends UnitTest
 		);
 	
 	}	// unitsInitResolve
+	
+	/**
+	 * Define replace tests
+	 *
+	 * This method will load the contents tests queue with the desired test
+	 * records, each record has a property:
+	 *
+	 * 	- The name of the method that runs all the 'it' tests, whose value is an
+	 * 	  object structured as follows:
+	 * 		- name:	The test title used in the 'describe'.
+	 * 		- clas:	The class to be used in the tests.
+	 * 		- parm:	The eventual parameters for the test.
+	 *
+	 * This set of tests will validate all operations involving resolving the object,
+	 * it will do the following checks:
+	 *
+	 * 	- Resolve persistent document.
+	 */
+	unitsInitReplace()
+	{
+		//
+		// Replace non persistent document.
+		// Assert that replacing a non persistent document fails.
+		//
+		this.replaceUnitSet(
+			'replaceNonPersistent',
+			"Replace non persistent document",
+			TestClass,
+			param.content,
+			true
+		);
+		
+		//
+		// Replace non existing document.
+		// Assert that replacing a non existing document fails.
+		//
+		this.replaceUnitSet(
+			'replaceNonExisting',
+			"Replace non existing document",
+			TestClass,
+			null,
+			true
+		);
+		
+	}	// unitsInitReplace
 	
 	
 	/****************************************************************************
@@ -1641,6 +1702,57 @@ class DocumentUnitTest extends UnitTest
 			this.testResolveAmbiguous( TestClassCustom, theParam );
 		
 	}	// resolveAmbiguousObject
+	
+	
+	/****************************************************************************
+	 * REPLACE TEST MODULES DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Replace non persistent document
+	 *
+	 * Assert replacing non persistent document fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	replaceNonPersistent( theClass, theParam = null )
+	{
+		//
+		// Should not raise.
+		//
+		this.testReplaceNonPersistent( TestClass, theParam );
+		
+		//
+		// Should fail, because the custom class has required fields.
+		//
+		if( TestClassCustom !== null )
+			this.testReplaceNonPersistent( TestClassCustom, theParam );
+		
+	}	// replaceNonPersistent
+	
+	/**
+	 * Replace non existing document
+	 *
+	 * Assert replacing non existing document fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	replaceNonExisting( theClass, theParam = null )
+	{
+		//
+		// Should not raise.
+		//
+		this.testReplaceNonExisting( TestClass, theParam );
+		
+		//
+		// Should fail, because the custom class has required fields.
+		//
+		if( TestClassCustom !== null )
+			this.testReplaceNonExisting( TestClassCustom, theParam );
+		
+	}	// replaceNonExisting
 	
 	
 	/****************************************************************************
@@ -6541,6 +6653,127 @@ class DocumentUnitTest extends UnitTest
 	
 	
 	/****************************************************************************
+	 * REPLACE TEST ROUTINE DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Test replacing a non persistent object
+	 *
+	 * Assert that replacing a non persistent object fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testReplaceNonPersistent( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let message;
+		
+		//
+		// Instantiate empty object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Replace.
+		//
+		message = "Replace";
+		func = () => {
+			result = doc.replaceDocument();
+		};
+		expect( func, `${message}`
+		).to.throw(
+			MyError,
+			/document is not persistent/
+		);
+		
+	}	// testReplaceNonPersistent
+	
+	/**
+	 * Test replacing a non existing object
+	 *
+	 * Assert that replacing a non persistent object fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testReplaceNonExisting( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Instantiate from existing reference.
+		//
+		message = "Instantiation from existing reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.intermediate_results.key_insert_same,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Persistent";
+		expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+		
+		//
+		// Clone document.
+		//
+		const clone = K.function.clone(doc.document);
+		
+		//
+		// Remove document.
+		//
+		message = "Removing existing document";
+		func = () => {
+			db._remove(doc.document._id);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Replace.
+		//
+		message = "Replace";
+		func = () => {
+			result = doc.replaceDocument();
+		};
+		expect( func, `${message}`
+		).to.throw(
+			MyError,
+			/not found in collection/
+		);
+		action = "Persistent";
+		expect(doc.persistent, `${message} - ${action}`).to.equal(false);
+		
+		//
+		// Restore.
+		//
+		message = "Restore";
+		func = () => {
+			db._collection(this.defaultTestCollection).insert( clone );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+	}	// testReplaceNonExisting
+	
+	
+	/****************************************************************************
 	 * VALIDATION UTILITIES														*
 	 ****************************************************************************/
 	
@@ -8474,6 +8707,45 @@ class DocumentUnitTest extends UnitTest
 	 */
 	resolveUnitDel( theUnit = null ) {
 		return this.unitDel( 'unit_resolve', theUnit );							// ==>
+	}
+	
+	/**
+	 * Set replace unit test.
+	 *
+	 * See the unitSet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @param theName		{String}		Unit test title.
+	 * @param theClass		{String}		Unit test class, defaults to TestClass.
+	 * @param theParam		{*}				Eventual parameters for the method.
+	 * @param doNew			{Boolean}		If true, assert the unit doesn't exist.
+	 */
+	replaceUnitSet( theUnit, theName, theClass, theParam = null, doNew = false ) {
+		this.unitSet( 'unit_replace', theUnit, theName, theClass, theParam, doNew );
+	}
+	
+	/**
+	 * Get replace unit test(s).
+	 *
+	 * See the unitGet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The record or false /null.
+	 */
+	replaceUnitGet( theUnit = null ) {
+		return this.unitGet( 'unit_replace', theUnit );							// ==>
+	}
+	
+	/**
+	 * Delete replace unit test(s).
+	 *
+	 * See the unitDel() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The deleted record or false /null.
+	 */
+	replaceUnitDel( theUnit = null ) {
+		return this.unitDel( 'unit_replace', theUnit );							// ==>
 	}
 	
 	

@@ -737,254 +737,130 @@ describe( "Document class tests:", function ()
 	let key_insert_empty;
 	let key_insert_filled;
 	let key_insert_same;
-
-	//
-	// Resolve tests.
-	//
-	describe( "Resolve:", function ()
-	{
-		//
-		// Resolve multiple documents.
-		//
-		// Should always raise an exception.
-		//
-		it( "Resolve multiple documents:", function ()
-		{
-			let doc;
-			let func;
-			let result;
-			
-			const selector = { var: 'VAR'};
-			func = () => {
-				doc =
-					new TestClassRestricted(
-						param.request,
-						selector,
-						default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			expect(doc.persistent, "Persistent flag").to.equal(false);
-			
-			func = () => {
-				result = doc.resolveDocument(false, true);
-			};
-			expect( func, "Resolve no replace do raise" )
-				.to.throw( MyError, /combination of fields is not unique/ );
-			expect( result, "Resolve no replace do raise result" ).to.equal( undefined );
-			expect(doc.persistent, "Resolve no replace do raise persistent flag").to.equal(false);
-			func = () => {
-				result = doc.resolveDocument(false, false);
-			};
-			expect( func, "Resolve no replace no raise" )
-				.to.throw( MyError, /combination of fields is not unique/ );
-			expect( result, "Resolve no replace no raise result" ).to.equal( undefined );
-			expect(doc.persistent, "Resolve no replace no raise persistent flag").to.equal(false);
-			
-			func = () => {
-				result = doc.resolveDocument(true, true);
-			};
-			expect( func, "Resolve do replace do raise" )
-				.to.throw( MyError, /combination of fields is not unique/ );
-			expect( result, "Resolve do replace do raise result" ).to.equal( undefined );
-			expect(doc.persistent, "Resolve do replace do raise persistent flag").to.equal(false);
-			func = () => {
-				result = doc.resolveDocument(true, false);
-			};
-			expect( func, "Resolve do replace no raise" )
-				.to.throw( MyError, /combination of fields is not unique/ );
-			expect( result, "Resolve do replace no raise result" ).to.equal( undefined );
-			expect(doc.persistent, "Resolve do replace no raise persistent flag").to.equal(false);
-		});
-		
-	});	// Resolve.
-	
 	//
 	// Replace tests.
 	//
 	describe( "Replace:", function ()
 	{
-		/*
-		 //
-		 // Replace non persistent document.
-		 //
-		 // Should fail.
-		 //
-		 it( "Replace non persistent document:", function ()
-		 {
-		 let doc;
-		 let func;
-		 let result;
-		 
-		 func = () => {
-		 doc =
-		 new TestClass(
-		 param.request, null, default_collection
-		 );
-		 };
-		 expect( func, "Instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Instantiation persistent flag").to.equal(false);
-		 
-		 func = () => {
-		 result = doc.replaceDocument();
-		 };
-		 expect( func, "Replace" )
-		 .to.throw( MyError, /document is not persistent/ );
-		 expect(doc.persistent, "Replace persistent flag").to.equal(false);
-		 });
-		 
-		 //
-		 // Replace non existing document.
-		 //
-		 // Should fail.
-		 //
-		 it( "Replace non existing document:", function ()
-		 {
-		 let doc;
-		 let func;
-		 let result;
-		 
-		 func = () => {
-		 doc =
-		 new TestClass(
-		 param.request, key_insert_filled, default_collection
-		 );
-		 };
-		 expect( func, "Instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-		 const copy = doc.document;
-		 
-		 db._remove(doc.document._id);
-		 const func_replace = () => {
-		 result = doc.replaceDocument();
-		 };
-		 expect( func_replace, "Replace" )
-		 .to.throw( MyError, /not found in collection/ );
-		 expect(doc.persistent, "Replace persistent flag").to.equal(false);
-		 const meta = db._collection(default_collection).insert( copy, {waitForSync: true} );
-		 key_insert_filled = meta._key;
-		 });
-		 
-		 //
-		 // Replace value.
-		 //
-		 // Should not fail.
-		 //
-		 it( "Replace value:", function ()
-		 {
-		 let doc;
-		 let func;
-		 let result;
-		 
-		 func = () => {
-		 doc =
-		 new TestClass(
-		 param.request, key_insert_filled, default_collection
-		 );
-		 };
-		 expect( func, "Instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-		 
-		 const data = {name: "New name"};
-		 func = () => {
-		 doc.setDocumentProperties(data, true);
-		 };
-		 expect( func, "Setting data" ).not.to.throw();
-		 expect(doc.persistent, "Setting data persistent flag").to.equal(true);
-		 
-		 func = () => {
-		 result = doc.replaceDocument();
-		 };
-		 expect( func, "Replace" ).not.to.throw();
-		 expect(result, "Replace result").to.equal(true);
-		 expect(doc.persistent, "Replace persistent flag").to.equal(true);
-		 const copy = doc.document;
-		 
-		 func = () => {
-		 doc =
-		 new TestClass(
-		 param.request, key_insert_filled, default_collection
-		 );
-		 };
-		 expect( func, "Re-instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Re-instantiation persistent flag").to.equal(true);
-		 for( const field in copy )
-		 {
-		 expect( doc.document, `Missing property` ).to.have.property(field);
-		 if( doc.document.hasOwnProperty( field ) )
-		 expect( doc.document[ field ], `Locked property mismatch [${field}]` )
-		 .to.equal( copy[ field ] );
-		 }
-		 });
-		 
-		 //
-		 // Replace locked field.
-		 //
-		 // Should fail.
-		 //
-		 it( "Replace locked field:", function ()
-		 {
-		 let doc;
-		 let func;
-		 let result;
-		 
-		 func = () => {
-		 doc =
-		 new TestClassRestricted(
-		 param.request, key_insert_filled, default_collection
-		 );
-		 };
-		 expect( func, "Instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-		 const old_value = doc.document.var;
-		 
-		 db._collection(default_collection)
-		 .update(
-		 key_insert_filled,
-		 {var: "WAS_CHANGED"},
-		 {waitForSync: true}
-		 );
-		 
-		 func = () => {
-		 result = doc.replaceDocument();
-		 };
-		 expect( func, "Replace" )
-		 .to.throw( MyError, /Constraint violation/ );
-		 expect( result, "Replace result" ).to.equal( undefined );
-		 expect(doc.persistent, "Resolve persistent flag").to.equal(true);
-		 expect( doc.document.var, "Replaced property" ).to.equal(old_value);
-		 });
-		 
-		 //
-		 // Replace with missing required field.
-		 //
-		 // Should fail.
-		 //
-		 it( "Replace with missing required field:", function ()
-		 {
-		 let doc;
-		 let func;
-		 let result;
-		 
-		 func = () => {
-		 doc =
-		 new TestClassRestricted(
-		 param.request, key_insert_filled, default_collection
-		 );
-		 };
-		 expect( func, "Instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-		 
-		 delete doc.document.var;
-		 func = () => {
-		 result = doc.replaceDocument();
-		 };
-		 expect( func, "Replace" )
-		 .to.throw( MyError, /missing required field/ );
-		 expect(doc.persistent, "Replace persistent flag").to.equal(true);
-		 expect( result, "Replace result" ).to.equal( undefined );
-		 });
-		 */
+		//
+		// Replace value.
+		//
+		// Should not fail.
+		//
+		it( "Replace value:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new TestClass(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			
+			const data = {name: "New name"};
+			func = () => {
+				doc.setDocumentProperties(data, true);
+			};
+			expect( func, "Setting data" ).not.to.throw();
+			expect(doc.persistent, "Setting data persistent flag").to.equal(true);
+			
+			func = () => {
+				result = doc.replaceDocument();
+			};
+			expect( func, "Replace" ).not.to.throw();
+			expect(result, "Replace result").to.equal(true);
+			expect(doc.persistent, "Replace persistent flag").to.equal(true);
+			const copy = doc.document;
+			
+			func = () => {
+				doc =
+					new TestClass(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Re-instantiation" ).not.to.throw();
+			expect(doc.persistent, "Re-instantiation persistent flag").to.equal(true);
+			for( const field in copy )
+			{
+				expect( doc.document, `Missing property` ).to.have.property(field);
+				if( doc.document.hasOwnProperty( field ) )
+					expect( doc.document[ field ], `Locked property mismatch [${field}]` )
+						.to.equal( copy[ field ] );
+			}
+		});
+		
+		//
+		// Replace locked field.
+		//
+		// Should fail.
+		//
+		it( "Replace locked field:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new TestClassRestricted(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			const old_value = doc.document.var;
+			
+			db._collection(default_collection)
+				.update(
+					key_insert_filled,
+					{var: "WAS_CHANGED"},
+					{waitForSync: true}
+				);
+			
+			func = () => {
+				result = doc.replaceDocument();
+			};
+			expect( func, "Replace" )
+				.to.throw( MyError, /Constraint violation/ );
+			expect( result, "Replace result" ).to.equal( undefined );
+			expect(doc.persistent, "Resolve persistent flag").to.equal(true);
+			expect( doc.document.var, "Replaced property" ).to.equal(old_value);
+		});
+		
+		//
+		// Replace with missing required field.
+		//
+		// Should fail.
+		//
+		it( "Replace with missing required field:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new TestClassRestricted(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			
+			delete doc.document.var;
+			func = () => {
+				result = doc.replaceDocument();
+			};
+			expect( func, "Replace" )
+				.to.throw( MyError, /missing required field/ );
+			expect(doc.persistent, "Replace persistent flag").to.equal(true);
+			expect( result, "Replace result" ).to.equal( undefined );
+		});
 		
 	});	// Replace.
 	

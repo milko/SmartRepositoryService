@@ -106,5 +106,12 @@ describe( "Document class tests:", function ()
 	describe( "Resolve:", function () {
 		UnitTestClass.unitTestRun(unitTest, 'resolve' );
 	});
+	
+	//
+	// Replace unit tests.
+	//
+	describe( "Replace:", function () {
+		UnitTestClass.unitTestRun(unitTest, 'replace' );
+	});
 
 });
