@@ -125,6 +125,7 @@ class DocumentUnitTest extends UnitTest
 	{
 		//
 		// Instantiate class without selector and without collection.
+		// Assert it fails.
 		//
 		this.instantiationUnitSet(
 			'instantiateNoSelectorNoCollection',
@@ -136,6 +137,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Instantiate with null selector and without collection.
+		// Assert it fails if class does not feature default collection.
 		//
 		this.instantiationUnitSet(
 			'instantiateNullSelectorNoCollection',
@@ -147,6 +149,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Instantiate with null selector and non existant collection.
+		// Assert it fails.
 		//
 		this.instantiationUnitSet(
 			'instantiateNullSelectorMissingCollection',
@@ -158,6 +161,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Instantiate with default collection.
+		// Assert that it succeeds.
 		//
 		this.instantiationUnitSet(
 			'instantiateDefaultCollection',
@@ -169,6 +173,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Instantiate with existing edge collection.
+		// Assert that it succeeds for edge collection classes.
 		//
 		this.instantiationUnitSet(
 			'instantiateEdgeCollection',
@@ -180,6 +185,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Instantiate with existing document collection.
+		// Assert that it succeeds for document collection classes.
 		//
 		this.instantiationUnitSet(
 			'instantiateDocumentCollection',
@@ -191,6 +197,8 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Instantiate mutable/immutable document.
+		// Assert that an immutable document is only returned when instantiating from a
+		// reference, in all other cases a mutable document is returned.
 		//
 		this.instantiationUnitSet(
 			'instantiateMutableImmutableDocument',
@@ -202,6 +210,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Instantiate with cross-collection reference.
+		// Assert that it fails.
 		//
 		this.instantiationUnitSet(
 			'instantiateCrossCollectionReference',
@@ -213,6 +222,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Instantiate with invalid _id reference.
+		// Assert that it fails.
 		//
 		this.instantiationUnitSet(
 			'instantiateInvalidReferenceId',
@@ -224,6 +234,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Instantiate with not found _id reference.
+		// Assert that it fails.
 		//
 		this.instantiationUnitSet(
 			'instantiateNotFoundIdReference',
@@ -235,6 +246,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Instantiate with found reference.
+		// Assert that it succeeds.
 		//
 		this.instantiationUnitSet(
 			'instantiateFoundReference',
@@ -246,6 +258,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Instantiate with content.
+		// Assert that it succeeds.
 		//
 		this.instantiationUnitSet(
 			'instantiateWithContent',
@@ -280,6 +293,7 @@ class DocumentUnitTest extends UnitTest
 	{
 		//
 		// Load empty object.
+		// Assert that all field types are copied, except for restricted fields.
 		//
 		this.contentsUnitSet(
 			'contentsLoadEmptyObject',
@@ -291,6 +305,11 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Load filled and non persistent object.
+		// Assert that modifying the contents of a filled non persistent object works as
+		// follows:
+		//	- Restricted fields are not copied.
+		//	- Modifying locked fields will is allowed.
+		//	- All other fields are copied.
 		//
 		this.contentsUnitSet(
 			'contentsLoadFilledObject',
@@ -302,6 +321,10 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Load persistent object.
+		// Assert that modifying the contents of a persistent object works as follows:
+		//	- Restricted fields are not copied.
+		//	- Modifying locked fields will raise an exception.
+		//	- All other fields are copied.
 		//
 		this.contentsUnitSet(
 			'contentsLoadPersistentObject',
@@ -341,6 +364,7 @@ class DocumentUnitTest extends UnitTest
 	{
 		//
 		// Insert empty object.
+		// Assert that inserting an empty object succeeds if it has no required fields.
 		//
 		this.insertUnitSet(
 			'insertEmptyObject',
@@ -352,6 +376,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Insert object without required fields.
+		// Assert that inserting an object without required fields fails.
 		//
 		this.insertUnitSet(
 			'insertWithoutRequiredFields',
@@ -363,6 +388,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Insert object without significant fields.
+		// Assert that inserting a document without significant fields succeeds.
 		//
 		this.insertUnitSet(
 			'insertWithoutSignificantFields',
@@ -374,6 +400,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Insert object with content.
+		// Assert that inserting a document having contents will succeed.
 		//
 		this.insertUnitSet(
 			'insertWithContent',
@@ -385,6 +412,7 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Insert duplicate object.
+		// Assert that inserting a duplicate document will fail.
 		//
 		this.insertUnitSet(
 			'insertDuplicate',
@@ -396,6 +424,9 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Insert object with same content.
+		// Assert that if _key is not required, inserting an object with same contents
+		// as an existing one will not fail, because the database will assign a
+		// different key.
 		//
 		this.insertUnitSet(
 			'insertWithSameContent',
@@ -404,9 +435,10 @@ class DocumentUnitTest extends UnitTest
 			param.content,
 			true
 		);
-		
+
 		//
 		// Insert persistent object.
+		// Assert that inserting a persistent document fails.
 		//
 		this.insertUnitSet(
 			'insertPersistentObject',
@@ -418,6 +450,9 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Insert without persist.
+		// Assert that inserting a document with the persist flag off, succeeds, if
+		// all validations pass and that the document is not actually saved in the
+		// collection.
 		//
 		this.insertUnitSet(
 			'insertWithoutPersist',
@@ -426,7 +461,7 @@ class DocumentUnitTest extends UnitTest
 			param.replace,
 			true
 		);
-		
+	
 	}	// unitsInitInsert
 	
 	/**
@@ -450,6 +485,7 @@ class DocumentUnitTest extends UnitTest
 	{
 		//
 		// Resolve persistent document.
+		// Assert that resolving an existing unique document succeeds.
 		//
 		this.resolveUnitSet(
 			'resolvePersistent',
@@ -460,7 +496,24 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 		//
+		// Resolve ambiguous object.
+		// Assert that resolving a document with more than one match will raise an
+		// exception.
+		//
+		this.resolveUnitSet(
+			'resolveAmbiguousObject',
+			"Resolve ambiguous document",
+			TestClass,
+			{
+				nid: 'terms/:id',
+				lid: 'LID'
+			},
+			true
+		);
+		
+		//
 		// Resolve null reference.
+		// Assert that resolving a document with no content will raise an exception.
 		//
 		this.resolveUnitSet(
 			'resolveNullReference',
@@ -472,6 +525,9 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Resolve significant fields.
+		// This test will assert that if the document has significant fields, these
+		// will be required when resolving; if the document has no significant fields,
+		// the document will be resolved using all its current contents.
 		//
 		this.resolveUnitSet(
 			'resolveSignificantField',
@@ -501,6 +557,9 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Resolve reference fields.
+		// The test will assert that, when resolving a document, if the selector
+		// contains a reference, this will take precedence over significant field
+		// combunations.
 		//
 		this.resolveUnitSet(
 			'resolveReferenceField',
@@ -514,7 +573,36 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 		//
+		// Resolve without raising.
+		// This test will assert that setting the doRaise flag to off prevents exceptions
+		// from being raised only in case the document was not found.
+		//
+		this.resolveUnitSet(
+			'resolveNoException',
+			"Resolve without raising",
+			TestClass,
+			{
+				correct: {
+					nid: 'terms/:id',
+					lid: 'LID_FILLED'
+				},
+				duplicate: {
+					nid: 'terms/:id',
+					lid: 'LID'
+				},
+				incorrect: {
+					nid: 'UNKNOWN',
+					lid: 'UNKNOWN'
+				}
+			},
+			true
+		);
+		
+		//
 		// Resolve changed locked fields.
+		// This test asserts that if a persistent object is resolved after a locked
+		// field is changed in the background, will result in the field not being
+		// replaced, and that if there is a revision change the resolve will fail.
 		//
 		this.resolveUnitSet(
 			'resolveChangeLockedField',
@@ -526,6 +614,9 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Resolve changed significant fields.
+		// This test asserts that if a persistent object is resolved after a significant
+		// field is changed in the background, will result in the field not being
+		// replaced, and that if there is a revision change the resolve will fail.
 		//
 		this.resolveUnitSet(
 			'resolveChangeSignificantField',
@@ -537,6 +628,9 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Resolve changed required fields.
+		// This test asserts that if a persistent object is resolved after a required
+		// field is changed in the background, will result in the field not being
+		// replaced, and that if there is a revision change the resolve will fail.
 		//
 		this.resolveUnitSet(
 			'resolveChangeRequiredField',
@@ -548,6 +642,9 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Resolve changed unique fields.
+		// This test asserts that if a persistent object is resolved after a unique
+		// field is changed in the background, will result in the field not being
+		// replaced, and that if there is a revision change the resolve will fail.
 		//
 		this.resolveUnitSet(
 			'resolveChangeUniqueField',
@@ -559,6 +656,9 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Resolve changed local fields.
+		// This test asserts that if a persistent object is resolved after a local
+		// field is changed in the background, will result in the field not being
+		// replaced, and that if there is a revision change the resolve will fail.
 		//
 		this.resolveUnitSet(
 			'resolveChangeLocalField',
@@ -570,6 +670,9 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Resolve changed standard fields.
+		// This test asserts that if a persistent object is resolved after a standard
+		// field is changed in the background, will result in the field not being
+		// replaced, and that if there is a revision change the resolve will fail.
 		//
 		this.resolveUnitSet(
 			'resolveChangeStandardField',
@@ -1350,6 +1453,29 @@ class DocumentUnitTest extends UnitTest
 	}	// resolveReferenceField
 	
 	/**
+	 * Resolve without raising
+	 *
+	 * Assert that setting the doRaise flag to off doesn't raise exceptions.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	resolveNoException( theClass, theParam = null )
+	{
+		//
+		// Should not raise.
+		//
+		this.testResolveNoException( TestClass, theParam );
+		
+		//
+		// Should not raise.
+		//
+		if( TestClassCustom !== null )
+			this.testResolveNoException( TestClassCustom, theParam );
+		
+	}	// resolveNoException
+	
+	/**
 	 * Resolve changed locked fields
 	 *
 	 * Assert the correct behaviour when a locked field is updated in the background and a
@@ -1492,6 +1618,29 @@ class DocumentUnitTest extends UnitTest
 			this.testResolveChangeStandardField( TestClassCustom, theParam );
 		
 	}	// resolveChangeStandardField
+	
+	/**
+	 * Resolve ambiguous object
+	 *
+	 * Assert that resolving multiple documents raises an exception.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	resolveAmbiguousObject( theClass, theParam = null )
+	{
+		//
+		// Should fail.
+		//
+		this.testResolveAmbiguous( TestClass, theParam );
+		
+		//
+		// Should fail.
+		//
+		if( TestClassCustom !== null )
+			this.testResolveAmbiguous( TestClassCustom, theParam );
+		
+	}	// resolveAmbiguousObject
 	
 	
 	/****************************************************************************
@@ -3156,11 +3305,9 @@ class DocumentUnitTest extends UnitTest
 	 * Assert that loading contents in a filled non persistent object works for all fields
 	 * except restricted fields, the following checks will be performed:
 	 *
-	 * 	- Restricted fields are not copied.
-	 * 	- All other fields are copied.
-	 * 	- Locked fields are always replaced, regardless of replace flag.
-	 * 	- No fields, except locked, are replaced if the flag is off.
-	 * 	- All fields are replaced if the flag is on.
+	 *	- Restricted fields are not copied.
+	 *	- Modifying locked fields will not raise an exception.
+	 *	- All other fields are copied.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -3508,11 +3655,9 @@ class DocumentUnitTest extends UnitTest
 	 * Assert that loading contents in a persistent object works for all fields
 	 * except restricted fields, the following checks will be performed:
 	 *
-	 * 	- Restricted fields are not copied.
-	 * 	- All other fields are copied.
-	 * 	- Locked fields are always replaced, regardless of replace flag.
-	 * 	- No fields, except locked, are replaced if the flag is off.
-	 * 	- All fields are replaced if the flag is on.
+	 *	- Restricted fields are not copied.
+	 *	- Modifying locked fields will raise an exception.
+	 *	- All other fields are copied.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -4556,9 +4701,9 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
-		// Clone parameter.
+		// Clone contents.
 		//
-		const clone = K.function.clone( theParam );
+		const clone = K.function.clone(theParam);
 		
 		//
 		// Change name if already saved.
@@ -4582,59 +4727,67 @@ class DocumentUnitTest extends UnitTest
 		expect( func, message ).not.to.throw();
 		
 		//
-		// Insert.
+		// Perform test only if _key is not required.
+		// If required, it means that the database cannot assign the key.
 		//
-		message = "Insert";
-		func = () => {
-			result = doc.insertDocument();
-		};
-		expect( func, message ).not.to.throw();
-		
-		//
-		// Assert persistent document state.
-		//
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.equal( true );
-		action = "Should not be empty";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Has local fields";
-		for( const field of doc.localFields )
-			expect(doc.document, `${message} - ${action}` ).to.have.property(field);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal(false);
-		this.assertAllProvidedDataInDocument( "Contents", doc, clone );
-		
-		//
-		// Get ID and clone data.
-		//
-		id = doc.document._id;
-		key = doc.document._key;
-		data = K.function.clone( doc.document );
-		
-		//
-		// Save inserted ID in current object.
-		//
-		this.intermediate_results.key_insert_same = key;
-		expect(this.intermediate_results).to.have.property("key_insert_same");
-		expect(this.intermediate_results.key_insert_same).to.equal(key);
-		
-		//
-		// Retrieve.
-		//
-		message = "Retrieve";
-		func = () => {
-			doc =
-				new theClass(
-					this.request,
-					id,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, message ).not.to.throw();
-		this.assertAllProvidedDataInDocument( "Contents", doc, data );
-		
+		if( ! doc.requiredFields.includes( '_key' ) )
+		{
+			//
+			// Insert.
+			//
+			message = "Insert";
+			func = () => {
+				result = doc.insertDocument();
+			};
+			expect( func, message ).not.to.throw();
+			
+			//
+			// Assert persistent document state.
+			//
+			action = "Result";
+			expect( result, `${message} - ${action}` ).to.equal( true );
+			action = "Should not be empty";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Has local fields";
+			for( const field of doc.localFields )
+				expect(doc.document, `${message} - ${action}` ).to.have.property(field);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal(false);
+			this.assertAllProvidedDataInDocument( "Contents", doc, clone );
+			
+			//
+			// Get ID and clone data.
+			//
+			id = doc.document._id;
+			key = doc.document._key;
+			data = K.function.clone( doc.document );
+			
+			//
+			// Save inserted ID in current object.
+			//
+			this.intermediate_results.key_insert_same = key;
+			expect(this.intermediate_results).to.have.property("key_insert_same");
+			expect(this.intermediate_results.key_insert_same).to.equal(key);
+			
+			//
+			// Retrieve.
+			//
+			message = "Retrieve";
+			func = () => {
+				doc =
+					new theClass(
+						this.request,
+						id,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, message ).not.to.throw();
+			this.assertAllProvidedDataInDocument( "Contents", doc, data );
+			
+		}	// _key is not required.
+	
 	}	// testInsertWithSameContentSucceed
 	
 	/**
@@ -4750,9 +4903,10 @@ class DocumentUnitTest extends UnitTest
 		expect( result, `${message} - ${action}` ).to.equal( true );
 		action = "Should not be empty";
 		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Has local fields";
-		for( const field of doc.localFields )
-			expect(doc.document, `${message} - ${action}` ).not.to.have.property(field);
+		action = "Has reference fields";
+		expect(doc.document, `${message} - ${action}` ).not.to.have.property('_id');
+		expect(doc.document, `${message} - ${action}` ).not.to.have.property('_key');
+		expect(doc.document, `${message} - ${action}` ).not.to.have.property('_rev');
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
 		action = "Modified";
@@ -5007,6 +5161,64 @@ class DocumentUnitTest extends UnitTest
 		}
 		
 	}	// testResolvePersistent
+	
+	/**
+	 * Resolve ambiguous object
+	 *
+	 * Assert that resolving an object matches more than one document fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testResolveAmbiguous( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Instantiate object with selector.
+		//
+		message = "Instantiate object with selector";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve document with replace flag off.
+		//
+		message = "Resolve with replace flag off";
+		func = () => {
+			result = doc.resolveDocument( false, true );
+		};
+		expect( func, `${message}`
+		).to.throw(
+			MyError,
+			/combination of fields is not unique/
+		);
+		
+		//
+		// Resolve document with replace flag on.
+		//
+		message = "Resolve with replace flag on";
+		func = () => {
+			result = doc.resolveDocument( true, true );
+		};
+		expect( func, `${message}`
+		).to.throw(
+			MyError,
+			/combination of fields is not unique/
+		);
+		
+	}	// testResolveAmbiguous
 	
 	/**
 	 * Test resolving null reference
@@ -5893,6 +6105,125 @@ class DocumentUnitTest extends UnitTest
 		);
 	
 	}	// testResolveReferenceField
+	
+	/**
+	 * Resolve without raising
+	 *
+	 * This test will assert that setting the doRaise flag to off prevents exceptions
+	 * from being raised only in case the document was not found.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testResolveNoException( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Check parameter.
+		//
+		message = "Checking parameter";
+		expect( theParam, message ).to.be.an.object;
+		expect( theParam, message ).not.to.be.empty;
+		expect( theParam, message ).to.have.property( 'correct' );
+		expect( theParam, message ).to.have.property( 'incorrect' );
+		expect( theParam, message ).to.have.property( 'duplicate' );
+		
+		//
+		// TEST SUCCESS.
+		//
+		
+		//
+		// Set correct selector.
+		//
+		message = "Instantiate with correct selector";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam.correct,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve and succeed.
+		//
+		message = "Resolve and succeed";
+		action = "Expect combination to be found";
+		func = () => {
+			result = doc.resolveDocument( true, true );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// TEST FAIL WITH NOT FOUND.
+		//
+		
+		//
+		// Set not found selector.
+		//
+		message = "Instantiate with not found selector";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam.incorrect,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve and fail.
+		//
+		message = "Resolve and fail";
+		action = "Expect combination not to be found";
+		func = () => {
+			result = doc.resolveDocument( true, false );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		action = "Expect not found result to be false";
+		expect( result,`${message} - ${action}` ).to.be.false;
+		
+		//
+		// TEST FAIL WITH DUPLICATE.
+		//
+		
+		//
+		// Set duplicate selector.
+		//
+		message = "Instantiate with duplicate selector";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam.duplicate,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Resolve and fail.
+		//
+		message = "Resolve and fail";
+		action = "Expect combination to be duplicate";
+		func = () => {
+			result = doc.resolveDocument( true, false );
+		};
+		expect( func,`${message} - ${action}`
+		).to.throw(
+			MyError,
+			/resulted in more than one document found/
+		);
+		
+	}	// testResolveNoException
 	
 	/**
 	 * Resolve changed locked fields
