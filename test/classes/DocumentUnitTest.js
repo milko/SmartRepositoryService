@@ -507,10 +507,8 @@ class DocumentUnitTest extends UnitTest
 			"Resolve reference fields",
 			TestClass,
 			{
-				sigAmbig: {
-					nid: 'terms/:id',
-					lid: 'LID'
-				}
+				nid: 'BAD_NID',
+				lid: 'BAD_LID'
 			},
 			true
 		);
@@ -5442,7 +5440,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Checking parameter";
 		expect( theParam, message ).to.be.an.object;
-		expect( theParam, message ).to.have.property( 'sigAmbig' );
+		expect( theParam, message ).not.to.be.empty;
 		
 		//
 		// Resolve document by reference.
@@ -5470,7 +5468,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Make selector.
 		//
-		selector = K.function.clone( theParam.sigAmbig );
+		selector = K.function.clone( theParam );
 		selector._id = ref_id;
 		selector._key = "UNKNOWN";
 		
@@ -5511,8 +5509,8 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		// action = "Modified";
-		// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( true );
 		
 		//
 		// Match document contents.
@@ -5562,8 +5560,8 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		// action = "Modified";
-		// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( true );
 		
 		//
 		// Match document contents.
@@ -5579,7 +5577,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Make selector.
 		//
-		selector = K.function.clone( theParam.sigAmbig );
+		selector = K.function.clone( theParam );
 		selector._key = ref_key;
 		
 		//
@@ -5619,8 +5617,8 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		// action = "Modified";
-		// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
 		// Match document contents.
@@ -5670,8 +5668,8 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		// action = "Modified";
-		// expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( true );
 		
 		//
 		// Match document contents.
