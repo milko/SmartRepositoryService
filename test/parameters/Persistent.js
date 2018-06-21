@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Document test parameters.
+ * Persistent test parameters.
  *
  * The object implements the default parameters to the unit tests, it provides:
  *

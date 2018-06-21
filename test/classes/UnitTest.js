@@ -28,7 +28,14 @@ class UnitTest
 	 * Constructor
 	 *
 	 * We instantiate the class by providing the example references, the default edge
-	 * and document collections, and the compatible collection.
+	 * and document collections, the compatible collection and the list of test
+	 * classes as an object where the property name is used as the class selector:
+	 *
+	 * 	- 'base':	This property must contain the default test class.
+	 * 	- 'custom':	This property should contain the customised test class, if
+	 * 				available, or be null if not.
+	 *
+	 * Other property names can be set and used in a custom way.
 	 *
 	 * @param theRequest				{Object}	The current request.
 	 * @param theExampleId				{String}	The example document _id.
@@ -36,6 +43,7 @@ class UnitTest
 	 * @param theEdgeCollection			{String}	The default edge collection.
 	 * @param theDocumentCollection		{String}	The default document collection.
 	 * @param theCompatibleCollection	{String}	The compatible collection.
+	 * @param theTestClasses			{Object}	The test classes.
 	 */
 	constructor(
 		theRequest,
@@ -43,7 +51,8 @@ class UnitTest
 		theExampleCollection,
 		theEdgeCollection,
 		theDocumentCollection,
-		theCompatibleCollection
+		theCompatibleCollection,
+		theTestClasses
 	)
 	{
 		//
@@ -67,6 +76,11 @@ class UnitTest
 		// Set compatible collection.
 		//
 		this.compatible_collection = theCompatibleCollection;
+		
+		//
+		// Set test classes.
+		//
+		this.test_classes = theTestClasses;
 		
 		//
 		// Init intermediate results collector.
@@ -113,6 +127,59 @@ class UnitTest
 	/****************************************************************************
 	 * VALIDATION UTILITIES														*
 	 ****************************************************************************/
+	
+	/**
+	 * Get class name
+	 *
+	 * This method can be used to retrieve tha class name corresponding to the
+	 * provided selector, the method will return the following:
+	 *
+	 * 	- The classes member doesn't exist: undefined.
+	 * 	- The classes member is not an object: undefined.
+	 * 	- The the selector is not found in member: false.
+	 * 	- The selector is found but the value is not a class: null.
+	 * 	- The selector is found and the value is a class: the class name.
+	 *
+	 * @param theSelector	{String}	Class selector.
+	 * @returns {Boolean}|{null}		null bad selector, false not right, true ok.
+	 */
+	getClassName( theSelector )
+	{
+		//
+		// Check selector.
+		//
+		if( this.hasOwnProperty( 'test_classes' ) )
+		{
+			//
+			// Assert it is an object.
+			//
+			if( K.function.isObject( this.test_classes ) )
+			{
+				//
+				// Assert selector is found.
+				//
+				if( this.test_classes.hasOwnProperty( theSelector ) )
+				{
+					//
+					// Assert value is a function.
+					//
+					if( typeof( this.test_classes[ theSelector ] ) === 'function' )
+						return this.test_classes[ theSelector ]
+									.prototype.constructor.name;					// ==>
+					
+					return null;													// ==>
+					
+				}	// Has selector.
+				
+				return false;														// ==>
+				
+			}	// Member is an object.
+			
+		}	// Has member.
+		
+		return undefined;															// ==>
+		
+	}	// getClassName
 	
 	/**
 	 * Compare values
@@ -199,7 +266,7 @@ class UnitTest
 	 * value is an object structured as follows:
 	 *
 	 * 	- name:	The unit test title, will be used for the 'describe'.
-	 * 	- clas:	The class to test, if omitted, the default TestClass will be set.
+	 * 	- clas:	The class to test.
 	 *
 	 * The method expects the following parameters:
 	 *
@@ -213,7 +280,7 @@ class UnitTest
 	 * @param theGroup		{String}		Unit test group data member name.
 	 * @param theUnit		{String}		Unit test method name.
 	 * @param theName		{String}		Unit test title.
-	 * @param theClass		{String}		Unit test class, defaults to TestClass.
+	 * @param theClass		{String}		Unit test class.
 	 * @param theParam		{*}				Eventual parameters for the method.
 	 * @param doNew			{Boolean}		If true, assert the unit doesn't exist.
 	 *

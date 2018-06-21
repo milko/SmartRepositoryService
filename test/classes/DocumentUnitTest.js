@@ -29,12 +29,6 @@ const MyError = require( '../../utils/MyError' );
 const param = require( '../parameters/Document' );
 
 //
-// Test classes.
-//
-const TestClass = require( './DocumentUnitTestClass' ).base;
-const TestClassCustom = require( './DocumentUnitTestClass' ).custom;
-
-//
 // Parent class.
 //
 const UnitTest = require( './UnitTest' );
@@ -150,7 +144,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateNoSelectorNoCollection',
 			"Instantiate class without selector and without collection",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -162,7 +156,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateNullSelectorNoCollection',
 			"Instantiate with null selector and without collection:",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -174,7 +168,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateNullSelectorMissingCollection',
 			"Instantiate with null selector and non existant collection:",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -186,7 +180,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateDefaultCollection',
 			"Instantiate with default collection:",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -198,7 +192,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateEdgeCollection',
 			"Instantiate with existing edge collection:",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -210,7 +204,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateDocumentCollection',
 			"Instantiate with existing document collection:",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -223,7 +217,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateMutableImmutableDocument',
 			"Instantiate mutable/immutable document:",
-			TestClass,
+			this.test_classes.base,
 			param.content,
 			true
 		);
@@ -235,7 +229,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateCrossCollectionReference',
 			"Instantiate with cross-collection reference:",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -247,7 +241,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateInvalidReferenceId',
 			"Instantiate with invalid _id reference:",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -259,7 +253,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateNotFoundIdReference',
 			"Instantiate with not found reference:",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -271,7 +265,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateFoundReference',
 			"Instantiate with found reference:",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -283,7 +277,7 @@ class DocumentUnitTest extends UnitTest
 		this.instantiationUnitSet(
 			'instantiateWithContent',
 			"Instantiate with content:",
-			TestClass,
+			this.test_classes.base,
 			param.content,
 			true
 		);
@@ -318,7 +312,7 @@ class DocumentUnitTest extends UnitTest
 		this.contentsUnitSet(
 			'contentsLoadEmptyObject',
 			"Load contents in empty object",
-			TestClass,
+			this.test_classes.base,
 			param.content,
 			true
 		);
@@ -334,7 +328,7 @@ class DocumentUnitTest extends UnitTest
 		this.contentsUnitSet(
 			'contentsLoadFilledObject',
 			"Load filled non persistent object:",
-			TestClass,
+			this.test_classes.base,
 			{ base: param.content, replace: param.replace },
 			true
 		);
@@ -349,7 +343,7 @@ class DocumentUnitTest extends UnitTest
 		this.contentsUnitSet(
 			'contentsLoadPersistentObject',
 			"Load persistent object:",
-			TestClass,
+			this.test_classes.base,
 			{ base: param.content, replace: param.replace },
 			true
 		);
@@ -389,7 +383,7 @@ class DocumentUnitTest extends UnitTest
 		this.insertUnitSet(
 			'insertEmptyObject',
 			"Insert empty object",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -401,7 +395,7 @@ class DocumentUnitTest extends UnitTest
 		this.insertUnitSet(
 			'insertWithoutRequiredFields',
 			"Insert object without required fields",
-			TestClass,
+			this.test_classes.base,
 			param.content,
 			true
 		);
@@ -413,7 +407,7 @@ class DocumentUnitTest extends UnitTest
 		this.insertUnitSet(
 			'insertWithoutSignificantFields',
 			"Insert object without significant fields",
-			TestClass,
+			this.test_classes.base,
 			param.content,
 			true
 		);
@@ -425,7 +419,7 @@ class DocumentUnitTest extends UnitTest
 		this.insertUnitSet(
 			'insertWithContent',
 			"Insert object with content",
-			TestClass,
+			this.test_classes.base,
 			param.content,
 			true
 		);
@@ -437,7 +431,7 @@ class DocumentUnitTest extends UnitTest
 		this.insertUnitSet(
 			'insertDuplicate',
 			"Insert duplicate object",
-			TestClass,
+			this.test_classes.base,
 			param.content,
 			true
 		);
@@ -451,7 +445,7 @@ class DocumentUnitTest extends UnitTest
 		this.insertUnitSet(
 			'insertWithSameContent',
 			"Insert object with same content",
-			TestClass,
+			this.test_classes.base,
 			param.content,
 			true
 		);
@@ -463,7 +457,7 @@ class DocumentUnitTest extends UnitTest
 		this.insertUnitSet(
 			'insertPersistentObject',
 			"Insert persistent object",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -477,7 +471,7 @@ class DocumentUnitTest extends UnitTest
 		this.insertUnitSet(
 			'insertWithoutPersist',
 			"Insert without persist",
-			TestClass,
+			this.test_classes.base,
 			param.replace,
 			true
 		);
@@ -521,7 +515,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolvePersistent',
 			"Resolve persistent document",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -534,7 +528,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolveAmbiguousObject',
 			"Resolve ambiguous document",
-			TestClass,
+			this.test_classes.base,
 			{
 				nid: 'terms/:id',
 				lid: 'LID'
@@ -549,7 +543,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolveNullReference',
 			"Resolve null reference",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -563,7 +557,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolveSignificantField',
 			"Resolve significant field",
-			TestClass,
+			this.test_classes.base,
 			{
 				replace: param.replace,
 				noSig: { name: 'NAME FILLED' },
@@ -595,7 +589,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolveReferenceField',
 			"Resolve reference fields",
-			TestClass,
+			this.test_classes.base,
 			{
 				nid: 'BAD_NID',
 				lid: 'BAD_LID'
@@ -611,7 +605,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolveNoException',
 			"Resolve without raising",
-			TestClass,
+			this.test_classes.base,
 			{
 				correct: {
 					nid: 'terms/:id',
@@ -638,7 +632,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolveChangeLockedField',
 			"Resolve changed locked fields",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -652,7 +646,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolveChangeSignificantField',
 			"Resolve changed significant fields",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -666,7 +660,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolveChangeRequiredField',
 			"Resolve changed required fields",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -680,7 +674,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolveChangeUniqueField',
 			"Resolve changed required fields",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -694,7 +688,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolveChangeLocalField',
 			"Resolve changed local fields",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -708,7 +702,7 @@ class DocumentUnitTest extends UnitTest
 		this.resolveUnitSet(
 			'resolveChangeStandardField',
 			"Resolve changed standard fields",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -744,7 +738,7 @@ class DocumentUnitTest extends UnitTest
 		this.replaceUnitSet(
 			'replaceNonPersistent',
 			"Replace non persistent document",
-			TestClass,
+			this.test_classes.base,
 			param.content,
 			true
 		);
@@ -756,7 +750,7 @@ class DocumentUnitTest extends UnitTest
 		this.replaceUnitSet(
 			'replaceNonExisting',
 			"Replace non existing document",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -769,7 +763,7 @@ class DocumentUnitTest extends UnitTest
 		this.replaceUnitSet(
 			'replacePersistentValue',
 			"Replace persistent values",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -783,7 +777,7 @@ class DocumentUnitTest extends UnitTest
 		this.replaceUnitSet(
 			'replaceContentValue',
 			"Replace content values",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -819,7 +813,7 @@ class DocumentUnitTest extends UnitTest
 		this.removeUnitSet(
 			'removeDocument',
 			"Remove document",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -831,7 +825,7 @@ class DocumentUnitTest extends UnitTest
 		this.removeUnitSet(
 			'removeNonPersistent',
 			"Remove non persistent document",
-			TestClass,
+			this.test_classes.base,
 			param.content,
 			true
 		);
@@ -843,7 +837,7 @@ class DocumentUnitTest extends UnitTest
 		this.removeUnitSet(
 			'removeNonExisting',
 			"Remove non existing document",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -855,7 +849,7 @@ class DocumentUnitTest extends UnitTest
 		this.removeUnitSet(
 			'removeConstrained',
 			"Remove constrained document",
-			TestClass,
+			this.test_classes.base,
 			null,
 			true
 		);
@@ -913,7 +907,7 @@ class DocumentUnitTest extends UnitTest
 		this.staticUnitSet(
 			'staticEdgeCollection',
 			"Check edge collection",
-			TestClass,
+			this.test_classes.base,
 			{
 				edge: param.collection_edge,
 				document: param.collection_document,
@@ -929,7 +923,7 @@ class DocumentUnitTest extends UnitTest
 		this.staticUnitSet(
 			'staticDocumentCollection',
 			"Check document collection",
-			TestClass,
+			this.test_classes.base,
 			{
 				edge: param.collection_edge,
 				document: param.collection_document,
@@ -960,13 +954,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInstantiateNoSelectorNoCollection( TestClass );
+		this.testInstantiateNoSelectorNoCollection( this.test_classes.base );
 		
 		//
 		// Should succeed, because the custom class implements default collection.
 		//
-		if( TestClassCustom !== null )
-			this.testInstantiateNoSelectorNoCollection( TestClassCustom );
+		if( this.test_classes.custom )
+			this.testInstantiateNoSelectorNoCollection( this.test_classes.custom );
 		
 	}	// instantiateNoSelectorNoCollection
 	
@@ -985,14 +979,14 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInstantiateNullSelectorNoCollection( TestClass, theParam );
+		this.testInstantiateNullSelectorNoCollection( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed with custom class: it implements the default collection.
 		//
-		if( TestClassCustom !== null )
+		if( this.test_classes.custom )
 			this.testInstantiateNullSelectorNoCollection(
-				TestClassCustom, theParam
+				this.test_classes.custom, theParam
 			);
 		
 	}	// instantiateNullSelectorNoCollection
@@ -1026,10 +1020,10 @@ class DocumentUnitTest extends UnitTest
 		// Should fail with both classes.
 		//
 		this.testInstantiateNullSelectorMissingCollection(
-			TestClass, test_collection
+			this.test_classes.base, test_collection
 		);
 		this.testInstantiateNullSelectorMissingCollection(
-			TestClassCustom, test_collection
+			this.test_classes.custom, test_collection
 		);
 		
 	}	// instantiateNullSelectorMissingCollection
@@ -1051,13 +1045,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Test class without default collection.
 		//
-		this.testDefaultCollection( TestClass, theParam );
+		this.testDefaultCollection( this.test_classes.base, theParam );
 		
 		//
 		// Test class with default collection.
 		//
-		if( TestClassCustom !== null )
-			this.testDefaultCollection( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testDefaultCollection( this.test_classes.custom, theParam );
 		
 	}	// instantiateDefaultCollection
 	
@@ -1078,14 +1072,14 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInstantiateEdgeSucceed( TestClass, theParam );
+		this.testInstantiateEdgeSucceed( this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
-		if( TestClassCustom !== null )
+		if( this.test_classes.custom )
 			this.testInstantiateEdgeFail(
-				TestClassCustom, theParam
+				this.test_classes.custom, theParam
 			);
 		
 	}	// instantiateEdgeCollection
@@ -1107,14 +1101,14 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInstantiateDocumentSucceed( TestClass, theParam );
+		this.testInstantiateDocumentSucceed( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
-		if( TestClassCustom !== null )
+		if( this.test_classes.custom )
 			this.testInstantiateDocumentSucceed(
-				TestClassCustom, theParam
+				this.test_classes.custom, theParam
 			);
 		
 	}	// instantiateDocumentCollection
@@ -1137,14 +1131,14 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInstantiateMutableImmutable( TestClass, theParam );
+		this.testInstantiateMutableImmutable( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
-		if( TestClassCustom !== null )
+		if( this.test_classes.custom )
 			this.testInstantiateMutableImmutable(
-				TestClassCustom, theParam
+				this.test_classes.custom, theParam
 			);
 		
 	}	// instantiateMutableImmutableDocument
@@ -1164,14 +1158,14 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testInstantiateInvalidIdNoDefaultCollection( TestClass, theParam );
+		this.testInstantiateInvalidIdNoDefaultCollection( this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
-		if( TestClassCustom !== null )
+		if( this.test_classes.custom )
 			this.testInstantiateInvalidIdDefaultCollection(
-				TestClassCustom, theParam
+				this.test_classes.custom, theParam
 			);
 		
 	}	// instantiateInvalidReferenceId
@@ -1193,15 +1187,15 @@ class DocumentUnitTest extends UnitTest
 		// Should fail.
 		//
 		this.testInstantiateCrossCollectionReferenceProvidedCollection(
-			TestClass, theParam
+			this.test_classes.base, theParam
 		);
 		
 		//
 		// Should fail.
 		//
-		if( TestClassCustom !== null )
+		if( this.test_classes.custom )
 			this.testInstantiateCrossCollectionReferenceDefaultCollection(
-				TestClassCustom, theParam
+				this.test_classes.custom, theParam
 			);
 		
 	}	// instantiateCrossCollectionReference
@@ -1222,15 +1216,15 @@ class DocumentUnitTest extends UnitTest
 		// Should fail.
 		//
 		this.testInstantiateNotFoundIdReferenceProvidedCollection(
-			TestClass, theParam
+			this.test_classes.base, theParam
 		);
 		
 		//
 		// Should fail.
 		//
-		if( TestClassCustom !== null )
+		if( this.test_classes.custom )
 			this.testInstantiateNotFoundIdReferenceDefaultCollection(
-				TestClassCustom, theParam
+				this.test_classes.custom, theParam
 			);
 		
 	}	// instantiateCrossCollectionReference
@@ -1251,15 +1245,15 @@ class DocumentUnitTest extends UnitTest
 		// Should succeed.
 		//
 		this.testInstantiateFoundReferenceProvidedCollection(
-			TestClass, theParam
+			this.test_classes.base, theParam
 		);
 		
 		//
 		// Should fail.
 		//
-		if( TestClassCustom !== null )
+		if( this.test_classes.custom )
 			this.testInstantiateFoundReferenceDefaultCollection(
-				TestClassCustom, theParam
+				this.test_classes.custom, theParam
 			);
 		
 	}	// instantiateFoundReference
@@ -1280,15 +1274,15 @@ class DocumentUnitTest extends UnitTest
 		// Should succeed.
 		//
 		this.testInstantiateWithContentProvidedCollection(
-			TestClass, theParam
+			this.test_classes.base, theParam
 		);
 		
 		//
 		// Should fail.
 		//
-		if( TestClassCustom !== null )
+		if( this.test_classes.custom )
 			this.testInstantiateWithContentDefaultCollection(
-				TestClassCustom, theParam
+				this.test_classes.custom, theParam
 			);
 	
 	}	// instantiateWithContent
@@ -1314,13 +1308,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testContentsLoadEmptyObject( TestClass, theParam );
+		this.testContentsLoadEmptyObject( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
-		if( TestClassCustom !== null )
-			this.testContentsLoadEmptyObject( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testContentsLoadEmptyObject( this.test_classes.custom, theParam );
 		
 	}	// contentsLoadEmptyObject
 	
@@ -1340,13 +1334,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testContentsLoadFilledObject( TestClass, theParam );
+		this.testContentsLoadFilledObject( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
-		if( TestClassCustom !== null )
-			this.testContentsLoadFilledObject( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testContentsLoadFilledObject( this.test_classes.custom, theParam );
 		
 	}	// contentsLoadFilledObject
 	
@@ -1366,13 +1360,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testContentsLoadPersistentObject( TestClass, theParam );
+		this.testContentsLoadPersistentObject( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
-		if( TestClassCustom !== null )
-			this.testContentsLoadPersistentObject( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testContentsLoadPersistentObject( this.test_classes.custom, theParam );
 		
 	}	// contentsLoadPersistentObject
 	
@@ -1396,13 +1390,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testInsertEmptyObject( TestClass );
+		this.testInsertEmptyObject( this.test_classes.base );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
-		if( TestClassCustom !== null )
-			this.testInsertEmptyObject( TestClassCustom );
+		if( this.test_classes.custom )
+			this.testInsertEmptyObject( this.test_classes.custom );
 		
 	}	// insertEmptyObject
 	
@@ -1421,13 +1415,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInsertWithoutRequiredFields( TestClass, theParam );
+		this.testInsertWithoutRequiredFields( this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
-		if( TestClassCustom !== null )
-			this.testInsertWithoutRequiredFields( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testInsertWithoutRequiredFields( this.test_classes.custom, theParam );
 		
 	}	// insertWithoutRequiredFields
 	
@@ -1446,13 +1440,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInsertWithoutSignificantFields( TestClass, theParam );
+		this.testInsertWithoutSignificantFields( this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
-		if( TestClassCustom !== null )
-			this.testInsertWithoutSignificantFields( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testInsertWithoutSignificantFields( this.test_classes.custom, theParam );
 		
 	}	// insertWithoutSignificantFields
 	
@@ -1479,13 +1473,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInsertWithContent( TestClass, theParam );
+		this.testInsertWithContent( this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
-		if( TestClassCustom !== null )
-			this.testInsertWithContent( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testInsertWithContent( this.test_classes.custom, theParam );
 		
 		//
 		// Assert cleanup.
@@ -1512,13 +1506,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: duplicate document in collection.
 		//
-		this.testInsertDuplicate( TestClass, theParam );
+		this.testInsertDuplicate( this.test_classes.base, theParam );
 		
 		//
 		// Should raise: duplicate document in collection.
 		//
-		if( TestClassCustom !== null )
-			this.testInsertDuplicate( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testInsertDuplicate( this.test_classes.custom, theParam );
 		
 	}	// insertDuplicate
 	
@@ -1540,13 +1534,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInsertWithSameContentSucceed( TestClass, theParam );
+		this.testInsertWithSameContentSucceed( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
-		if( TestClassCustom !== null )
-			this.testInsertWithSameContentSucceed( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testInsertWithSameContentSucceed( this.test_classes.custom, theParam );
 		
 		//
 		// Assert cleanup.
@@ -1570,13 +1564,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInsertPersistentObject( TestClass, theParam );
+		this.testInsertPersistentObject( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
-		if( TestClassCustom !== null )
-			this.testInsertPersistentObject( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testInsertPersistentObject( this.test_classes.custom, theParam );
 		
 		//
 		// Assert cleanup.
@@ -1600,13 +1594,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInsertWithoutPersist( TestClass, theParam );
+		this.testInsertWithoutPersist( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
-		if( TestClassCustom !== null )
-			this.testInsertWithoutPersist( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testInsertWithoutPersist( this.test_classes.custom, theParam );
 		
 	}	// insertWithoutPersist
 	
@@ -1628,13 +1622,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolvePersistent( TestClass, theParam );
+		this.testResolvePersistent( this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
-		if( TestClassCustom !== null )
-			this.testResolvePersistent( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolvePersistent( this.test_classes.custom, theParam );
 		
 	}	// resolvePersistent
 	
@@ -1651,13 +1645,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveNullReference( TestClass, theParam );
+		this.testResolveNullReference( this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
-		if( TestClassCustom !== null )
-			this.testResolveNullReference( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolveNullReference( this.test_classes.custom, theParam );
 		
 	}	// resolveNullReference
 	
@@ -1675,13 +1669,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveSignificantField( TestClass, theParam );
+		this.testResolveSignificantField( this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
-		if( TestClassCustom !== null )
-			this.testResolveSignificantField( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolveSignificantField( this.test_classes.custom, theParam );
 		
 	}	// resolveSignificantField
 	
@@ -1698,13 +1692,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveReferenceField( TestClass, theParam );
+		this.testResolveReferenceField( this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
-		if( TestClassCustom !== null )
-			this.testResolveReferenceField( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolveReferenceField( this.test_classes.custom, theParam );
 		
 	}	// resolveReferenceField
 	
@@ -1721,13 +1715,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveNoException( TestClass, theParam );
+		this.testResolveNoException( this.test_classes.base, theParam );
 		
 		//
 		// Should not raise.
 		//
-		if( TestClassCustom !== null )
-			this.testResolveNoException( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolveNoException( this.test_classes.custom, theParam );
 		
 	}	// resolveNoException
 	
@@ -1745,13 +1739,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testResolveChangeLockedField( TestClass, theParam );
+		this.testResolveChangeLockedField( this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
-		if( TestClassCustom !== null )
-			this.testResolveChangeLockedField( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolveChangeLockedField( this.test_classes.custom, theParam );
 		
 	}	// resolveChangeLockedField
 	
@@ -1769,13 +1763,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testResolveChangeSignificantField( TestClass, theParam );
+		this.testResolveChangeSignificantField( this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
-		if( TestClassCustom !== null )
-			this.testResolveChangeSignificantField( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolveChangeSignificantField( this.test_classes.custom, theParam );
 		
 	}	// resolveChangeSignificantField
 	
@@ -1793,13 +1787,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testResolveChangeRequiredField( TestClass, theParam );
+		this.testResolveChangeRequiredField( this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
-		if( TestClassCustom !== null )
-			this.testResolveChangeRequiredField( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolveChangeRequiredField( this.test_classes.custom, theParam );
 		
 	}	// resolveChangeRequiredField
 	
@@ -1817,13 +1811,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveChangeUniqueField( TestClass, theParam );
+		this.testResolveChangeUniqueField( this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
-		if( TestClassCustom !== null )
-			this.testResolveChangeUniqueField( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolveChangeUniqueField( this.test_classes.custom, theParam );
 		
 	}	// resolveChangeUniqueField
 	
@@ -1841,13 +1835,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveChangeLocalField( TestClass, theParam );
+		this.testResolveChangeLocalField( this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
-		if( TestClassCustom !== null )
-			this.testResolveChangeLocalField( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolveChangeLocalField( this.test_classes.custom, theParam );
 		
 	}	// resolveChangeLocalField
 	
@@ -1865,13 +1859,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveChangeStandardField( TestClass, theParam );
+		this.testResolveChangeStandardField( this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
-		if( TestClassCustom !== null )
-			this.testResolveChangeStandardField( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolveChangeStandardField( this.test_classes.custom, theParam );
 		
 	}	// resolveChangeStandardField
 	
@@ -1888,13 +1882,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testResolveAmbiguous( TestClass, theParam );
+		this.testResolveAmbiguous( this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
-		if( TestClassCustom !== null )
-			this.testResolveAmbiguous( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testResolveAmbiguous( this.test_classes.custom, theParam );
 		
 	}	// resolveAmbiguousObject
 	
@@ -1916,13 +1910,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise.
 		//
-		this.testReplaceNonPersistent( TestClass, theParam );
+		this.testReplaceNonPersistent( this.test_classes.base, theParam );
 		
 		//
 		// Should raise.
 		//
-		if( TestClassCustom !== null )
-			this.testReplaceNonPersistent( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testReplaceNonPersistent( this.test_classes.custom, theParam );
 		
 	}	// replaceNonPersistent
 	
@@ -1939,13 +1933,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise.
 		//
-		this.testReplaceNonExisting( TestClass, theParam );
+		this.testReplaceNonExisting( this.test_classes.base, theParam );
 		
 		//
 		// Should raise.
 		//
-		if( TestClassCustom !== null )
-			this.testReplaceNonExisting( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testReplaceNonExisting( this.test_classes.custom, theParam );
 		
 	}	// replaceNonExisting
 	
@@ -1962,13 +1956,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise for locked and not for others.
 		//
-		this.testReplacePersistentValue( TestClass, theParam );
+		this.testReplacePersistentValue( this.test_classes.base, theParam );
 		
 		//
 		// Should raise for locked and not for others.
 		//
-		if( TestClassCustom !== null )
-			this.testReplacePersistentValue( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testReplacePersistentValue( this.test_classes.custom, theParam );
 		
 	}	// replacePersistentValue
 	
@@ -1986,13 +1980,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise changing locked and deleting required.
 		//
-		this.testReplaceContentValue( TestClass, theParam );
+		this.testReplaceContentValue( this.test_classes.base, theParam );
 		
 		//
 		// Should raise changing locked and deleting required.
 		//
-		if( TestClassCustom !== null )
-			this.testReplaceContentValue( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testReplaceContentValue( this.test_classes.custom, theParam );
 		
 	}	// replacePersistentValue
 	
@@ -2014,13 +2008,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testRemoveDocument( TestClass, theParam );
+		this.testRemoveDocument( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
-		if( TestClassCustom !== null )
-			this.testRemoveDocument( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testRemoveDocument( this.test_classes.custom, theParam );
 		
 	}	// removeDocument
 	
@@ -2037,13 +2031,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise.
 		//
-		this.testRemoveNonPersistent( TestClass, theParam );
+		this.testRemoveNonPersistent( this.test_classes.base, theParam );
 		
 		//
 		// Should raise.
 		//
-		if( TestClassCustom !== null )
-			this.testRemoveNonPersistent( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testRemoveNonPersistent( this.test_classes.custom, theParam );
 		
 	}	// removeNonPersistent
 	
@@ -2060,13 +2054,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise.
 		//
-		this.testRemoveNonExisting( TestClass, theParam );
+		this.testRemoveNonExisting( this.test_classes.base, theParam );
 		
 		//
 		// Should raise.
 		//
-		if( TestClassCustom !== null )
-			this.testRemoveNonExisting( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testRemoveNonExisting( this.test_classes.custom, theParam );
 		
 	}	// removeNonExisting
 	
@@ -2083,13 +2077,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testRemoveConstrained( TestClass, theParam );
+		this.testRemoveConstrained( this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
-		if( TestClassCustom !== null )
-			this.testRemoveConstrained( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testRemoveConstrained( this.test_classes.custom, theParam );
 		
 	}	// removeConstrained
 	
@@ -2111,13 +2105,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testStaticEdgeCollection( TestClass, theParam );
+		this.testStaticEdgeCollection( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
-		if( TestClassCustom !== null )
-			this.testStaticEdgeCollection( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testStaticEdgeCollection( this.test_classes.custom, theParam );
 		
 	}	// staticEdgeCollection
 	
@@ -2134,13 +2128,13 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testStaticDocumentCollection( TestClass, theParam );
+		this.testStaticDocumentCollection( this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
-		if( TestClassCustom !== null )
-			this.testStaticDocumentCollection( TestClassCustom, theParam );
+		if( this.test_classes.custom )
+			this.testStaticDocumentCollection( this.test_classes.custom, theParam );
 		
 	}	// staticDocumentCollection
 	

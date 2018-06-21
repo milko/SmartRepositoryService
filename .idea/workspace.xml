@@ -2,9 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/test/classes/PersistentUnitTest.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/classes/PersistentUnitTestClass.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/parameters/Persistent.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/test_Persistent.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/Persistent.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Persistent.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/OldTest.js" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/classes/UnitTest.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/classes/UnitTest.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/old_test_Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/old_test_Document.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/old_test_Document.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/parameters/Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/parameters/Document.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/test_Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_Document.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -21,218 +29,89 @@
     <option name="OUTPUT_DIRECTORY" value="$PROJECT_DIR$/exportToHTML" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.7400835">
-      <split-first>
-        <splitter split-orientation="vertical" split-proportion="0.23041998">
-          <split-first>
-            <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-              <file leaf-file-name="UnitTest.js" pinned="false" current-in-tab="true">
-                <entry file="file://$PROJECT_DIR$/test/classes/UnitTest.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="54">
-                      <caret line="531" column="9" lean-forward="true" selection-start-line="531" selection-start-column="9" selection-end-line="531" selection-end-column="9" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="DocumentUnitTestClass.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTestClass.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="101">
-                      <caret line="49" column="57" lean-forward="true" selection-start-line="49" selection-start-column="44" selection-end-line="49" selection-end-column="57" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="DocumentUnitTest.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTest.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="48">
-                      <caret line="930" column="27" selection-start-line="930" selection-start-column="27" selection-end-line="930" selection-end-column="27" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-            </leaf>
-          </split-first>
-          <split-second>
-            <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-              <file leaf-file-name="DocumentUnitTest.js" pinned="false" current-in-tab="true">
-                <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTest.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="297">
-                      <caret line="10699" column="34" lean-forward="true" selection-start-line="10699" selection-start-column="34" selection-end-line="10699" selection-end-column="34" />
-                      <folding>
-                        <element signature="e#3142#6284#0" />
-                        <element signature="e#7007#8136#0" />
-                        <element signature="e#9026#11185#0" />
-                        <element signature="e#12220#17023#0" />
-                        <element signature="e#17657#18449#0" />
-                        <element signature="e#19701#20839#0" />
-                        <element signature="e#21346#22213#0" />
-                        <element signature="e#19085#19397#0" />
-                        <element signature="e#19834#20177#0" />
-                        <element signature="e#20664#21120#0" />
-                        <element signature="e#21656#21917#0" />
-                        <element signature="e#22444#22673#0" />
-                        <element signature="e#23197#23440#0" />
-                        <element signature="e#23930#24175#0" />
-                        <element signature="e#24553#24814#0" />
-                        <element signature="e#25277#25572#0" />
-                        <element signature="e#25983#26268#0" />
-                        <element signature="e#26665#26943#0" />
-                        <element signature="e#27309#27580#0" />
-                        <element signature="e#28210#28440#0" />
-                        <element signature="e#28879#29111#0" />
-                        <element signature="e#29538#29778#0" />
-                        <element signature="e#30332#30575#0" />
-                        <element signature="e#30952#31259#0" />
-                        <element signature="e#31646#31959#0" />
-                        <element signature="e#32310#32960#0" />
-                        <element signature="e#33350#33628#0" />
-                        <element signature="e#34125#34519#0" />
-                        <element signature="e#34808#35190#0" />
-                        <element signature="e#35478#35702#0" />
-                        <element signature="e#36194#36457#0" />
-                        <element signature="e#36733#37002#0" />
-                        <element signature="e#37364#37639#0" />
-                        <element signature="e#37965#38236#0" />
-                        <element signature="e#38546#38770#0" />
-                        <element signature="e#39138#39364#0" />
-                        <element signature="e#39753#39989#0" />
-                        <element signature="e#40374#40604#0" />
-                        <element signature="e#40980#41257#0" />
-                        <element signature="e#41628#41903#0" />
-                        <element signature="e#42282#42563#0" />
-                        <element signature="e#42875#43085#0" />
-                        <element signature="e#43596#43865#0" />
-                        <element signature="e#44156#44421#0" />
-                        <element signature="e#44713#44997#0" />
-                        <element signature="e#45640#45924#0" />
-                        <element signature="e#48059#48271#0" />
-                        <element signature="e#47567#47836#0" />
-                        <element signature="e#48244#48509#0" />
-                        <element signature="e#48910#49124#0" />
-                        <element signature="e#51960#52172#0" />
-                        <element signature="e#53005#53229#0" />
-                        <element signature="e#45656#46415#0" />
-                        <element signature="e#46862#47632#0" />
-                        <element signature="e#48080#48326#0" />
-                        <element signature="e#48710#51807#0" />
-                        <element signature="e#52139#52315#0" />
-                        <element signature="e#52653#52794#0" />
-                        <element signature="e#53143#53323#0" />
-                        <element signature="e#53677#53822#0" />
-                        <element signature="e#54239#57519#0" />
-                        <element signature="e#58034#58195#0" />
-                        <element signature="e#58707#58876#0" />
-                        <element signature="e#59334#59502#0" />
-                        <element signature="e#59975#60176#0" />
-                        <element signature="e#60604#60795#0" />
-                        <element signature="e#61219#61443#0" />
-                        <element signature="e#61903#67215#0" />
-                        <element signature="e#67672#71638#0" />
-                        <element signature="e#72039#75825#0" />
-                        <element signature="e#76207#77052#0" />
-                        <element signature="e#77652#86808#0" />
-                        <element signature="e#87374#97284#0" />
-                        <element signature="e#97844#107555#0" />
-                        <element signature="e#108159#110053#0" />
-                        <element signature="e#110447#113430#0" />
-                        <element signature="e#113834#118232#0" />
-                        <element signature="e#118556#120672#0" />
-                        <element signature="e#121066#122116#0" />
-                        <element signature="e#122530#123010#0" />
-                        <element signature="e#123432#125770#0" />
-                        <element signature="e#126087#127243#0" />
-                        <element signature="e#127603#128816#0" />
-                        <element signature="e#129335#135324#0" />
-                        <element signature="e#135637#136524#0" />
-                        <element signature="e#136835#137383#0" />
-                        <element signature="e#138540#151529#0" />
-                        <element signature="e#152178#158319#0" />
-                        <element signature="e#158709#160966#0" />
-                        <element signature="e#161621#162274#0" />
-                        <element signature="e#162950#163623#0" />
-                        <element signature="e#164295#164951#0" />
-                        <element signature="e#165614#166268#0" />
-                        <element signature="e#166926#167580#0" />
-                        <element signature="e#168246#169266#0" />
-                        <element signature="e#169801#170301#0" />
-                        <element signature="e#170614#171821#0" />
-                        <element signature="e#172234#181809#0" />
-                        <element signature="e#183224#197236#0" />
-                        <element signature="e#204588#207152#0" />
-                        <element signature="e#202584#203084#0" />
-                        <element signature="e#204296#205503#0" />
-                        <element signature="e#207875#210278#0" />
-                        <element signature="e#216377#218473#0" />
-                        <element signature="e#219356#220946#0" />
-                        <element signature="e#187236#190391#0" />
-                        <element signature="e#191429#194192#0" />
-                        <element signature="e#195836#201400#0" />
-                        <element signature="e#203049#208449#0" />
-                        <element signature="e#209609#214079#0" />
-                        <element signature="e#214795#225202#0" />
-                      </folding>
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="Document.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/test/parameters/Document.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="345">
-                      <caret line="23" column="19" selection-start-line="23" selection-start-column="4" selection-end-line="23" selection-end-column="19" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="Document.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/classes/Document.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="354">
-                      <caret line="2363" column="72" selection-start-line="2363" selection-start-column="28" selection-end-line="2363" selection-end-column="72" />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-            </leaf>
-          </split-second>
-        </splitter>
-      </split-first>
-      <split-second>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="test_Document.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/test/test_Document.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="771">
-                  <caret line="134" column="51" selection-start-line="134" selection-start-column="51" selection-end-line="134" selection-end-column="51" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="old_test_Document.js" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/test/old_test_Document.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1419">
-                  <caret line="824" selection-start-line="824" selection-end-line="824" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="OldTest.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/test/OldTest.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="165">
-                  <caret line="11" selection-start-line="6" selection-end-line="11" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-second>
-    </splitter>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="UnitTest.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/classes/UnitTest.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="410">
+              <caret line="150" column="16" selection-start-line="150" selection-start-column="16" selection-end-line="150" selection-end-column="16" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_Document.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/test_Document.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="105">
+              <caret line="7" column="2" lean-forward="true" selection-start-line="7" selection-start-column="2" selection-end-line="7" selection-end-column="2" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_Persistent.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/test/test_Persistent.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="261">
+              <caret line="111" column="18" selection-start-line="111" selection-start-column="18" selection-end-line="111" selection-end-column="18" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DocumentUnitTest.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTest.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="405">
+              <caret line="27" column="2" lean-forward="true" selection-start-line="27" selection-start-column="2" selection-end-line="27" selection-end-column="2" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DocumentUnitTestClass.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTestClass.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="360">
+              <caret line="24" selection-start-line="19" selection-end-line="24" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Persistent.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/parameters/Persistent.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="45">
+              <caret line="3" column="13" selection-start-line="3" selection-start-column="13" selection-end-line="3" selection-end-column="13" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Document.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/classes/Document.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-2335">
+              <caret line="2033" column="8" selection-start-line="2033" selection-start-column="8" selection-end-line="2033" selection-end-column="8" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="PersistentUnitTestClass.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/classes/PersistentUnitTestClass.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="900">
+              <caret line="60" column="4" lean-forward="true" selection-start-line="60" selection-start-column="4" selection-end-line="60" selection-end-column="4" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Persistent.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/classes/Persistent.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="795">
+              <caret line="53" selection-start-line="53" selection-end-line="53" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -243,11 +122,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>testInstantiateFoundReferenceDefaultCollection</find>
-      <find>testInstantiateWithContentDefaultCollection</find>
-      <find>compareContents</find>
-      <find>vompareValues</find>
-      <find>compareValues</find>
       <find>instantiateWithContent</find>
       <find>Instantiate with invalid _id reference</find>
       <find>instantiationUnitSet</find>
@@ -273,11 +147,13 @@
       <find>delete property</find>
       <find>delete</find>
       <find>validateDocumentConstraints</find>
+      <find>UnitTest</find>
+      <find>MILKO</find>
+      <find>TestClass</find>
+      <find>if( TestClassCustom !== null )</find>
+      <find>TestClassCustom</find>
     </findStrings>
     <replaceStrings>
-      <replace>_manages</replace>
-      <replace>managedBy</replace>
-      <replace>NewDocument</replace>
       <replace>Document</replace>
       <replace>Edge</replace>
       <replace>EdgeEdgeAttribute</replace>
@@ -305,6 +181,9 @@
       <replace>compareValues</replace>
       <replace>this.compareValues</replace>
       <replace>expect( doc.persistent, `${message} - ${action}` ).to.equal( true );</replace>
+      <replace>this.test_classes.base</replace>
+      <replace>if( this.test_classes.custom )</replace>
+      <replace>this.test_classes.custom</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -313,11 +192,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/utils/Schema.js" />
-        <option value="$PROJECT_DIR$/classes/Term.js" />
-        <option value="$PROJECT_DIR$/classes/Document.new.js" />
-        <option value="$PROJECT_DIR$/utils/Dictionary.js" />
-        <option value="$PROJECT_DIR$/routes/test/NewDocument.js" />
         <option value="$PROJECT_DIR$/classes/NewEdgeAttribute.js" />
         <option value="$PROJECT_DIR$/classes/NewEdge.js" />
         <option value="$PROJECT_DIR$/classes/NewEdgeBranch.js" />
@@ -350,20 +224,25 @@
         <option value="$PROJECT_DIR$/test/test_Edge.js" />
         <option value="$PROJECT_DIR$/test/paramDocument.js" />
         <option value="$PROJECT_DIR$/test/classDocument.js" />
-        <option value="$PROJECT_DIR$/test/parameters/Document.js" />
         <option value="$PROJECT_DIR$/test/disabled/CopyOfOldDocumentTest.js" />
         <option value="$PROJECT_DIR$/classes/Edge.js" />
         <option value="$PROJECT_DIR$/classes/User.js" />
-        <option value="$PROJECT_DIR$/classes/Persistent.js" />
         <option value="$PROJECT_DIR$/test/classes/DocumentUnitTestClass.js" />
         <option value="$PROJECT_DIR$/data/messages.json" />
         <option value="$PROJECT_DIR$/data/errors.json" />
         <option value="$PROJECT_DIR$/utils/Constants.js" />
         <option value="$PROJECT_DIR$/classes/Document.js" />
         <option value="$PROJECT_DIR$/test/old_test_Document.js" />
-        <option value="$PROJECT_DIR$/test/test_Document.js" />
-        <option value="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" />
+        <option value="$PROJECT_DIR$/test/parameters/Document.js" />
+        <option value="$PROJECT_DIR$/test/parameters/Persistent.js" />
+        <option value="$PROJECT_DIR$/classes/Persistent.js" />
+        <option value="$PROJECT_DIR$/test/classes/PersistentUnitTestClass.js" />
+        <option value="$PROJECT_DIR$/test/classes/PersistentUnitTest.js" />
+        <option value="$PROJECT_DIR$/test/test_MILKO.js" />
         <option value="$PROJECT_DIR$/test/classes/UnitTest.js" />
+        <option value="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" />
+        <option value="$PROJECT_DIR$/test/test_Document.js" />
+        <option value="$PROJECT_DIR$/test/test_Persistent.js" />
       </list>
     </option>
   </component>
@@ -387,10 +266,10 @@
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds">
     <option name="x" value="1280" />
     <option name="y" value="23" />
-    <option name="width" value="1280" />
+    <option name="width" value="1077" />
     <option name="height" value="1001" />
   </component>
   <component name="ProjectView">
@@ -398,6 +277,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -496,7 +376,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -610,6 +489,7 @@
       <workItem from="1529484620460" duration="25913000" />
       <workItem from="1529529789580" duration="497000" />
       <workItem from="1529570056388" duration="14733000" />
+      <workItem from="1529591182228" duration="9092000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring Document unit tests.&#10;Developed functions to make lengthy checks: will not transform functions into classes to make checks inherited and reusable.">
       <created>1528974578541</created>
@@ -643,20 +523,19 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="674953000" />
+    <option name="totallyTimeSpent" value="684045000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
+    <frame x="1280" y="23" width="1077" height="1001" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.45743474" visible="true" weight="0.23907864" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.45629966" visible="true" weight="0.28503788" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.49262202" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.3299923" />
       <window_info anchor="bottom" id="Version Control" order="9" weight="0.3299923" />
-      <window_info active="true" id="Structure" order="1" sideWeight="0.5425653" side_tool="true" visible="true" weight="0.23907864" />
+      <window_info id="Structure" order="1" sideWeight="0.54370034" side_tool="true" visible="true" weight="0.28503788" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -666,6 +545,7 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.49262202" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -693,33 +573,10 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="34" />
+      <option name="time" value="35" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/classes/Edge.js" />
-    <entry file="file://$PROJECT_DIR$/routes/user.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2835">
-          <caret line="189" column="19" lean-forward="true" selection-start-line="189" selection-start-column="19" selection-end-line="189" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js" />
-    <entry file="file://$PROJECT_DIR$/classes/EdgeAttribute.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1530">
-          <caret line="102" selection-start-line="94" selection-end-line="102" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Document.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="372">
-          <caret line="1270" selection-start-line="1261" selection-end-line="1270" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/classes/User.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-5205">
@@ -895,7 +752,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Persistent.js" />
     <entry file="file://$PROJECT_DIR$/data/messages.json">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="564">
@@ -917,165 +773,94 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTestClass.js">
+    <entry file="file://$PROJECT_DIR$/test/parameters/Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="101">
-          <caret line="49" column="57" lean-forward="true" selection-start-line="49" selection-start-column="44" selection-end-line="49" selection-end-column="57" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_Document.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="771">
-          <caret line="134" column="51" selection-start-line="134" selection-start-column="51" selection-end-line="134" selection-end-column="51" />
+        <state>
+          <caret column="11" selection-start-column="11" selection-end-column="11" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/old_test_Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1419">
-          <caret line="824" selection-start-line="824" selection-end-line="824" />
+        <state relative-caret-position="1506">
+          <caret line="807" column="12" selection-start-line="807" selection-start-column="12" selection-end-line="807" selection-end-column="12" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/parameters/Document.js">
+    <entry file="file://$PROJECT_DIR$/test/parameters/Persistent.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="23" column="19" selection-start-line="23" selection-start-column="4" selection-end-line="23" selection-end-column="19" />
+        <state relative-caret-position="45">
+          <caret line="3" column="13" selection-start-line="3" selection-start-column="13" selection-end-line="3" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Persistent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="795">
+          <caret line="53" selection-start-line="53" selection-end-line="53" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="354">
-          <caret line="2363" column="72" selection-start-line="2363" selection-start-column="28" selection-end-line="2363" selection-end-column="72" />
+        <state relative-caret-position="-2335">
+          <caret line="2033" column="8" selection-start-line="2033" selection-start-column="8" selection-end-line="2033" selection-end-column="8" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/classes/UnitTest.js">
+    <entry file="file://$PROJECT_DIR$/test/classes/PersistentUnitTest.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="531" column="9" lean-forward="true" selection-start-line="531" selection-start-column="9" selection-end-line="531" selection-end-column="9" />
+        <state relative-caret-position="495">
+          <caret line="33" column="40" selection-start-line="33" selection-start-column="40" selection-end-line="33" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/classes/PersistentUnitTestClass.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="900">
+          <caret line="60" column="4" lean-forward="true" selection-start-line="60" selection-start-column="4" selection-end-line="60" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTestClass.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="24" selection-start-line="19" selection-end-line="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/test_MILKO.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="786">
+          <caret line="65" selection-start-line="65" selection-end-line="65" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTest.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="297">
-          <caret line="10699" column="34" lean-forward="true" selection-start-line="10699" selection-start-column="34" selection-end-line="10699" selection-end-column="34" />
-          <folding>
-            <element signature="e#3142#6284#0" />
-            <element signature="e#7007#8136#0" />
-            <element signature="e#9026#11185#0" />
-            <element signature="e#12220#17023#0" />
-            <element signature="e#17657#18449#0" />
-            <element signature="e#19701#20839#0" />
-            <element signature="e#21346#22213#0" />
-            <element signature="e#19085#19397#0" />
-            <element signature="e#19834#20177#0" />
-            <element signature="e#20664#21120#0" />
-            <element signature="e#21656#21917#0" />
-            <element signature="e#22444#22673#0" />
-            <element signature="e#23197#23440#0" />
-            <element signature="e#23930#24175#0" />
-            <element signature="e#24553#24814#0" />
-            <element signature="e#25277#25572#0" />
-            <element signature="e#25983#26268#0" />
-            <element signature="e#26665#26943#0" />
-            <element signature="e#27309#27580#0" />
-            <element signature="e#28210#28440#0" />
-            <element signature="e#28879#29111#0" />
-            <element signature="e#29538#29778#0" />
-            <element signature="e#30332#30575#0" />
-            <element signature="e#30952#31259#0" />
-            <element signature="e#31646#31959#0" />
-            <element signature="e#32310#32960#0" />
-            <element signature="e#33350#33628#0" />
-            <element signature="e#34125#34519#0" />
-            <element signature="e#34808#35190#0" />
-            <element signature="e#35478#35702#0" />
-            <element signature="e#36194#36457#0" />
-            <element signature="e#36733#37002#0" />
-            <element signature="e#37364#37639#0" />
-            <element signature="e#37965#38236#0" />
-            <element signature="e#38546#38770#0" />
-            <element signature="e#39138#39364#0" />
-            <element signature="e#39753#39989#0" />
-            <element signature="e#40374#40604#0" />
-            <element signature="e#40980#41257#0" />
-            <element signature="e#41628#41903#0" />
-            <element signature="e#42282#42563#0" />
-            <element signature="e#42875#43085#0" />
-            <element signature="e#43596#43865#0" />
-            <element signature="e#44156#44421#0" />
-            <element signature="e#44713#44997#0" />
-            <element signature="e#45640#45924#0" />
-            <element signature="e#48059#48271#0" />
-            <element signature="e#47567#47836#0" />
-            <element signature="e#48244#48509#0" />
-            <element signature="e#48910#49124#0" />
-            <element signature="e#51960#52172#0" />
-            <element signature="e#53005#53229#0" />
-            <element signature="e#45656#46415#0" />
-            <element signature="e#46862#47632#0" />
-            <element signature="e#48080#48326#0" />
-            <element signature="e#48710#51807#0" />
-            <element signature="e#52139#52315#0" />
-            <element signature="e#52653#52794#0" />
-            <element signature="e#53143#53323#0" />
-            <element signature="e#53677#53822#0" />
-            <element signature="e#54239#57519#0" />
-            <element signature="e#58034#58195#0" />
-            <element signature="e#58707#58876#0" />
-            <element signature="e#59334#59502#0" />
-            <element signature="e#59975#60176#0" />
-            <element signature="e#60604#60795#0" />
-            <element signature="e#61219#61443#0" />
-            <element signature="e#61903#67215#0" />
-            <element signature="e#67672#71638#0" />
-            <element signature="e#72039#75825#0" />
-            <element signature="e#76207#77052#0" />
-            <element signature="e#77652#86808#0" />
-            <element signature="e#87374#97284#0" />
-            <element signature="e#97844#107555#0" />
-            <element signature="e#108159#110053#0" />
-            <element signature="e#110447#113430#0" />
-            <element signature="e#113834#118232#0" />
-            <element signature="e#118556#120672#0" />
-            <element signature="e#121066#122116#0" />
-            <element signature="e#122530#123010#0" />
-            <element signature="e#123432#125770#0" />
-            <element signature="e#126087#127243#0" />
-            <element signature="e#127603#128816#0" />
-            <element signature="e#129335#135324#0" />
-            <element signature="e#135637#136524#0" />
-            <element signature="e#136835#137383#0" />
-            <element signature="e#138540#151529#0" />
-            <element signature="e#152178#158319#0" />
-            <element signature="e#158709#160966#0" />
-            <element signature="e#161621#162274#0" />
-            <element signature="e#162950#163623#0" />
-            <element signature="e#164295#164951#0" />
-            <element signature="e#165614#166268#0" />
-            <element signature="e#166926#167580#0" />
-            <element signature="e#168246#169266#0" />
-            <element signature="e#169801#170301#0" />
-            <element signature="e#170614#171821#0" />
-            <element signature="e#172234#181809#0" />
-            <element signature="e#183224#197236#0" />
-            <element signature="e#204588#207152#0" />
-            <element signature="e#202584#203084#0" />
-            <element signature="e#204296#205503#0" />
-            <element signature="e#207875#210278#0" />
-            <element signature="e#216377#218473#0" />
-            <element signature="e#219356#220946#0" />
-            <element signature="e#187236#190391#0" />
-            <element signature="e#191429#194192#0" />
-            <element signature="e#195836#201400#0" />
-            <element signature="e#203049#208449#0" />
-            <element signature="e#209609#214079#0" />
-            <element signature="e#214795#225202#0" />
-          </folding>
+        <state relative-caret-position="405">
+          <caret line="27" column="2" lean-forward="true" selection-start-line="27" selection-start-column="2" selection-end-line="27" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/classes/UnitTest.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="410">
+          <caret line="150" column="16" selection-start-line="150" selection-start-column="16" selection-end-line="150" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/test_Document.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="2" lean-forward="true" selection-start-line="7" selection-start-column="2" selection-end-line="7" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/test_Persistent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="261">
+          <caret line="111" column="18" selection-start-line="111" selection-start-column="18" selection-end-line="111" selection-end-column="18" />
         </state>
       </provider>
     </entry>

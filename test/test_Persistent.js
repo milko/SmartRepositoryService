@@ -18,18 +18,18 @@ const expect = require('chai').expect;
 //
 // Test classes.
 //
-const TestClass = require( './classes/DocumentUnitTestClass' ).base;
-const TestClassCustom = require( './classes/DocumentUnitTestClass' ).custom;
+const TestClass = require( './classes/PersistentUnitTestClass' ).base;
+const TestClassCustom = require( './classes/PersistentUnitTestClass' ).custom;
 
 //
 // Unit test class.
 //
-const UnitTestClass = require( './classes/DocumentUnitTest' );
+const UnitTestClass = require( './classes/PersistentUnitTest' );
 
 //
 // Test parameters.
 //
-const param = require( './parameters/Document' );
+const param = require( './parameters/Persistent' );
 
 
 /********************************************************************************
@@ -71,17 +71,17 @@ else
  ********************************************************************************/
 
 /**
- * Document class tests
+ * Persistent class tests
  *
- * We test the Document class.
+ * We test the Persistent class.
  */
-describe( "Document class tests:", function ()
+describe( "Persistent class tests:", function ()
 {
 	//
 	// Check base class.
 	//
 	it( "Test class", function () {
-		expect( unitTest.getClassName( 'base' ) ).to.equal( 'Document' );
+		expect( unitTest.getClassName( 'base' ) ).to.equal( 'Persistent' );
 	});
 	
 	//
@@ -139,5 +139,5 @@ describe( "Document class tests:", function ()
 	describe( "Static:", function () {
 		UnitTestClass.unitTestRun(unitTest, 'static' );
 	});
-
+	
 });

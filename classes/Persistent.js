@@ -24,8 +24,7 @@ class Persistent extends Document
 	 *
 	 * This method should load any default properties set when inserting the object.
 	 *
-	 * In this class we set the creation time stamp and remove the eventual
-	 * modification time stamp.
+	 * In this class we set the creation and modification time stamps.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
@@ -39,15 +38,19 @@ class Persistent extends Document
 		if( result === true )
 		{
 			//
-			// Set creation time stamp.
+			// Get time stamp.
 			//
-			this._document[ Dict.descriptor.kCStamp ] = Date.now();
+			const stamp = Date.now();
 			
 			//
-			// Remove eventual modificaton time stamp.
+			// Set creation time stamp.
 			//
-			if( this._document.hasOwnProperty( Dict.descriptor.kMStamp ) )
-				delete this._document[ Dict.descriptor.kMStamp ];
+			this._document[ Dict.descriptor.kCStamp ] = stamp;
+			
+			//
+			// Set modification time stamp.
+			//
+			this._document[ Dict.descriptor.kMStamp ] = stamp;
 			
 			return true;															// ==>
 		}
@@ -119,7 +122,7 @@ class Persistent extends Document
 	 * stripped from the document when resolving its contents with
 	 * resolveDocumentByContent().
 	 *
-	 * In this class we remove _id, _key and _rev.
+	 * In this class we remove the creation and modification time stamps.
 	 *
 	 * @returns {Array}	The list of local fields.
 	 */
