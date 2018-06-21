@@ -595,6 +595,20 @@ class Document
 			}	// Property is locked and document is persistent.
 			
 			//
+			// Handle sealed document.
+			//
+			if( Object.isSealed( this._document ) )
+				throw(
+					new MyError(
+						'CannotChangeProperty',									// Error name.
+						K.error.ObjectIsImmutable,				// Message code.
+						this._request.application.language,		// Language.
+						theField,								// Arguments.
+						409										// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			//
 			// Set value.
 			//
 			if( theValue !== null )
@@ -609,8 +623,11 @@ class Document
 			//
 			else if( value_old !== null )
 			{
-				delete this._document[ theField ];
-				this._modified = true;
+				if( this._document.hasOwnProperty( theField ) )
+				{
+					delete this._document[ theField ];
+					this._modified = true;
+				}
 			}
 			
 		}	// Modify value.

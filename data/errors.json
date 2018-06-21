@@ -270,6 +270,12 @@
     }
   },
   {
+    "_key" : "CannotChangeProperty",
+    "label" : {
+      "ISO:639:3:eng" : "Cannot change property [@arg@] value: "
+    }
+  },
+  {
     "_key" : "UserGroupConflict",
     "label" : {
       "ISO:639:3:eng" : "User group conflict: "
