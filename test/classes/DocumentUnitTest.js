@@ -91,6 +91,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		this.unitsInitReplace();
 		
+		//
+		// Remove tests.
+		//
+		this.unitsInitRemove();
+		
 	}	// unitsInit
 	
 	
@@ -715,7 +720,10 @@ class DocumentUnitTest extends UnitTest
 	 * This set of tests will validate all operations involving resolving the object,
 	 * it will do the following checks:
 	 *
-	 * 	- Resolve persistent document.
+	 * 	- Replace non persistent document.
+	 * 	- Replace non existing document.
+	 * 	- Replace persistent values.
+	 * 	- Replace content values.
 	 */
 	unitsInitReplace()
 	{
@@ -771,6 +779,39 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 	}	// unitsInitReplace
+	
+	/**
+	 * Define remove tests
+	 *
+	 * This method will load the contents tests queue with the desired test
+	 * records, each record has a property:
+	 *
+	 * 	- The name of the method that runs all the 'it' tests, whose value is an
+	 * 	  object structured as follows:
+	 * 		- name:	The test title used in the 'describe'.
+	 * 		- clas:	The class to be used in the tests.
+	 * 		- parm:	The eventual parameters for the test.
+	 *
+	 * This set of tests will validate all operations involving removing the object,
+	 * it will do the following checks:
+	 *
+	 * 	- Remove non persistent document.
+	 */
+	unitsInitRemove()
+	{
+		//
+		// Remove non persistent document.
+		// Assert that removing a non persistent document fails.
+		//
+		this.removeUnitSet(
+			'removeNonPersistent',
+			"Remove non persistent document",
+			TestClass,
+			param.content,
+			true
+		);
+		
+	}	// unitsInitRemove
 	
 	
 	/****************************************************************************
@@ -1746,12 +1787,12 @@ class DocumentUnitTest extends UnitTest
 	replaceNonPersistent( theClass, theParam = null )
 	{
 		//
-		// Should not raise.
+		// Should raise.
 		//
 		this.testReplaceNonPersistent( TestClass, theParam );
 		
 		//
-		// Should fail, because the custom class has required fields.
+		// Should raise.
 		//
 		if( TestClassCustom !== null )
 			this.testReplaceNonPersistent( TestClassCustom, theParam );
@@ -1827,6 +1868,34 @@ class DocumentUnitTest extends UnitTest
 			this.testReplaceContentValue( TestClassCustom, theParam );
 		
 	}	// replacePersistentValue
+	
+	
+	/****************************************************************************
+	 * REMOVE TEST MODULES DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Remove non persistent document
+	 *
+	 * Assert removing non persistent document fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	removeNonPersistent( theClass, theParam = null )
+	{
+		//
+		// Should raise.
+		//
+		this.testRemoveNonPersistent( TestClass, theParam );
+		
+		//
+		// Should raise.
+		//
+		if( TestClassCustom !== null )
+			this.testRemoveNonPersistent( TestClassCustom, theParam );
+		
+	}	// removeNonPersistent
 	
 	
 	/****************************************************************************
@@ -7725,6 +7794,68 @@ class DocumentUnitTest extends UnitTest
 	
 	
 	/****************************************************************************
+	 * REMOVE TEST ROUTINE DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Test removing a non persistent object
+	 *
+	 * Assert that removing a non persistent object fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testRemoveNonPersistent( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let message;
+		
+		//
+		// Instantiate empty object.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Remove.
+		//
+		message = "Remove with fail on";
+		func = () => {
+			result = doc.removeDocument( true );
+		};
+		expect( func, `${message}`
+		).to.throw(
+			MyError,
+			/document is not persistent/
+		);
+		
+		//
+		// Remove.
+		//
+		message = "Remove with fail off";
+		func = () => {
+			result = doc.removeDocument( false );
+		};
+		expect( func, `${message}`
+		).to.throw(
+			MyError,
+			/document is not persistent/
+		);
+		
+	}	// testRemoveNonPersistent
+	
+	
+	/****************************************************************************
 	 * VALIDATION UTILITIES														*
 	 ****************************************************************************/
 	
@@ -9697,6 +9828,45 @@ class DocumentUnitTest extends UnitTest
 	 */
 	replaceUnitDel( theUnit = null ) {
 		return this.unitDel( 'unit_replace', theUnit );							// ==>
+	}
+	
+	/**
+	 * Set remove unit test.
+	 *
+	 * See the unitSet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @param theName		{String}		Unit test title.
+	 * @param theClass		{String}		Unit test class, defaults to TestClass.
+	 * @param theParam		{*}				Eventual parameters for the method.
+	 * @param doNew			{Boolean}		If true, assert the unit doesn't exist.
+	 */
+	removeUnitSet( theUnit, theName, theClass, theParam = null, doNew = false ) {
+		this.unitSet( 'unit_remove', theUnit, theName, theClass, theParam, doNew );
+	}
+	
+	/**
+	 * Get remove unit test(s).
+	 *
+	 * See the unitGet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The record or false /null.
+	 */
+	removeUnitGet( theUnit = null ) {
+		return this.unitGet( 'unit_remove', theUnit );							// ==>
+	}
+	
+	/**
+	 * Delete remove unit test(s).
+	 *
+	 * See the unitDel() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The deleted record or false /null.
+	 */
+	removeUnitDel( theUnit = null ) {
+		return this.unitDel( 'unit_remove', theUnit );							// ==>
 	}
 	
 	

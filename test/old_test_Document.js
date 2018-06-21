@@ -737,17 +737,18 @@ describe( "Document class tests:", function ()
 	let key_insert_empty;
 	let key_insert_filled;
 	let key_insert_same;
+	
 	//
-	// Replace tests.
+	// Remove tests.
 	//
-	describe( "Replace:", function ()
+	describe( "Remove:", function ()
 	{
 		//
-		// Replace with missing required field.
+		// Remove non persistent document.
 		//
 		// Should fail.
 		//
-		it( "Replace with missing required field:", function ()
+		it( "Remove non persistent document:", function ()
 		{
 			let doc;
 			let func;
@@ -755,199 +756,160 @@ describe( "Document class tests:", function ()
 			
 			func = () => {
 				doc =
-					new TestClassRestricted(
+					new TestClass(
+						param.request, null, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(false);
+			
+			func = () => {
+				result = doc.removeDocument( true );
+			};
+			expect( func, "Remove" )
+				.to.throw( MyError, /document is not persistent/ );
+			expect(doc.persistent, "Remove persistent flag").to.equal(false);
+			
+			func = () => {
+				result = doc.removeDocument( false );
+			};
+			expect( func, "Remove" )
+				.to.throw( MyError, /document is not persistent/ );
+			expect(doc.persistent, "Remove persistent flag").to.equal(false);
+		});
+		
+		//
+		// Remove non existing document.
+		//
+		// Should fail according to doFail flag.
+		//
+		it( "Remove non existing document:", function ()
+		{
+			let doc;
+			let func;
+			let result1;
+			let result2;
+			let meta;
+			
+			func = () => {
+				doc =
+					new TestClass(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			const copy = doc.document;
+			
+			db._remove(doc.document._id);
+			func = () => {
+				result1 = doc.removeDocument( false );
+			};
+			expect( func, "Remove" ).not.to.throw();
+			expect(result1, "Remove result").to.equal(false);
+			expect(doc.persistent, "Remove persistent flag").to.equal(false);
+			meta = db._collection(default_collection).insert( copy, {waitForSync: true} );
+			key_insert_filled = meta._key;
+			
+			func = () => {
+				doc =
+					new TestClass(
 						param.request, key_insert_filled, default_collection
 					);
 			};
 			expect( func, "Instantiation" ).not.to.throw();
 			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
 			
-			delete doc.document.var;
+			db._collection(default_collection).remove(doc.document._id);
 			func = () => {
-				result = doc.replaceDocument();
+				result2 = doc.removeDocument( true );
 			};
-			expect( func, "Replace" )
-				.to.throw( MyError, /missing required field/ );
-			expect(doc.persistent, "Replace persistent flag").to.equal(true);
-			expect( result, "Replace result" ).to.equal( undefined );
+			expect( func, "Remove" )
+				.to.throw( MyError, /not found in collection/ );
+			expect(result2, "Remove result").to.equal(undefined);
+			expect(doc.persistent, "Remove persistent flag").to.equal(false);
+			meta = db._collection(default_collection).insert( copy, {waitForSync: true} );
+			key_insert_filled = meta._key;
 		});
 		
-	});	// Replace.
-	
-	//
-	// Remove tests.
-	//
-	describe( "Remove:", function ()
-	{
-		/*
-		 //
-		 // Remove non persistent document.
-		 //
-		 // Should fail.
-		 //
-		 it( "Remove non persistent document:", function ()
-		 {
-		 let doc;
-		 let func;
-		 let result;
-		 
-		 func = () => {
-		 doc =
-		 new TestClass(
-		 param.request, null, default_collection
-		 );
-		 };
-		 expect( func, "Instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Instantiation persistent flag").to.equal(false);
-		 
-		 func = () => {
-		 result = doc.removeDocument( true );
-		 };
-		 expect( func, "Remove" )
-		 .to.throw( MyError, /document is not persistent/ );
-		 expect(doc.persistent, "Remove persistent flag").to.equal(false);
-		 
-		 func = () => {
-		 result = doc.removeDocument( false );
-		 };
-		 expect( func, "Remove" )
-		 .to.throw( MyError, /document is not persistent/ );
-		 expect(doc.persistent, "Remove persistent flag").to.equal(false);
-		 });
-		 
-		 //
-		 // Remove non existing document.
-		 //
-		 // Should fail according to doFail flag.
-		 //
-		 it( "Remove non existing document:", function ()
-		 {
-		 let doc;
-		 let func;
-		 let result1;
-		 let result2;
-		 let meta;
-		 
-		 func = () => {
-		 doc =
-		 new TestClass(
-		 param.request, key_insert_filled, default_collection
-		 );
-		 };
-		 expect( func, "Instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-		 const copy = doc.document;
-		 
-		 db._remove(doc.document._id);
-		 func = () => {
-		 result1 = doc.removeDocument( false );
-		 };
-		 expect( func, "Remove" ).not.to.throw();
-		 expect(result1, "Remove result").to.equal(false);
-		 expect(doc.persistent, "Remove persistent flag").to.equal(false);
-		 meta = db._collection(default_collection).insert( copy, {waitForSync: true} );
-		 key_insert_filled = meta._key;
-		 
-		 func = () => {
-		 doc =
-		 new TestClass(
-		 param.request, key_insert_filled, default_collection
-		 );
-		 };
-		 expect( func, "Instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-		 
-		 db._collection(default_collection).remove(doc.document._id);
-		 func = () => {
-		 result2 = doc.removeDocument( true );
-		 };
-		 expect( func, "Remove" )
-		 .to.throw( MyError, /not found in collection/ );
-		 expect(result2, "Remove result").to.equal(undefined);
-		 expect(doc.persistent, "Remove persistent flag").to.equal(false);
-		 meta = db._collection(default_collection).insert( copy, {waitForSync: true} );
-		 key_insert_filled = meta._key;
-		 });
-		 
-		 //
-		 // Remove constrained document.
-		 //
-		 // Should fail.
-		 //
-		 it( "Remove constrained document:", function ()
-		 {
-		 let doc;
-		 let func;
-		 let result;
-		 
-		 func = () => {
-		 doc =
-		 new TestClassConstrained(
-		 param.request, key_insert_filled, default_collection
-		 );
-		 };
-		 expect( func, "Instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-		 
-		 doc.document.name = "CONSTRAINED";
-		 func = () => {
-		 doc.replaceDocument();
-		 };
-		 expect( func, "Replacing document" ).not.to.throw();
-		 
-		 func = () => {
-		 doc =
-		 new TestClassConstrained(
-		 param.request, key_insert_filled, default_collection
-		 );
-		 };
-		 expect( func, "Instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-		 
-		 func = () => {
-		 result = doc.removeDocument( false );
-		 };
-		 expect( func, "Remove" )
-		 .to.throw( MyError, /has constraints that prevent it from being removed/ );
-		 expect(result, "Remove result").to.equal(undefined);
-		 expect(doc.persistent, "Remove persistent flag").to.equal(true);
-		 
-		 doc.document.name = "NOT CONSTRAINED";
-		 func = () => {
-		 doc.replaceDocument();
-		 };
-		 expect( func, "Replacing document" ).not.to.throw();
-		 });
-		 
-		 //
-		 // Remove document.
-		 //
-		 // Should not fail.
-		 //
-		 it( "Remove document:", function ()
-		 {
-		 let doc;
-		 let func;
-		 let result;
-		 
-		 func = () => {
-		 doc =
-		 new TestClass(
-		 param.request, key_insert_filled, default_collection
-		 );
-		 };
-		 expect( func, "Instantiation" ).not.to.throw();
-		 expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-		 const id = doc.document._id;
-		 
-		 func = () => {
-		 doc.removeDocument( true );
-		 };
-		 expect( func, "Remove" ).not.to.throw();
-		 expect(doc.persistent, "Remove persistent flag").to.equal(false);
-		 expect(db._exists(id), "Still exists").to.equal(false);
-		 });
-		 */
+		//
+		// Remove constrained document.
+		//
+		// Should fail.
+		//
+		it( "Remove constrained document:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new TestClassConstrained(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			
+			doc.document.name = "CONSTRAINED";
+			func = () => {
+				doc.replaceDocument();
+			};
+			expect( func, "Replacing document" ).not.to.throw();
+			
+			func = () => {
+				doc =
+					new TestClassConstrained(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			
+			func = () => {
+				result = doc.removeDocument( false );
+			};
+			expect( func, "Remove" )
+				.to.throw( MyError, /has constraints that prevent it from being removed/ );
+			expect(result, "Remove result").to.equal(undefined);
+			expect(doc.persistent, "Remove persistent flag").to.equal(true);
+			
+			doc.document.name = "NOT CONSTRAINED";
+			func = () => {
+				doc.replaceDocument();
+			};
+			expect( func, "Replacing document" ).not.to.throw();
+		});
+		
+		//
+		// Remove document.
+		//
+		// Should not fail.
+		//
+		it( "Remove document:", function ()
+		{
+			let doc;
+			let func;
+			let result;
+			
+			func = () => {
+				doc =
+					new TestClass(
+						param.request, key_insert_filled, default_collection
+					);
+			};
+			expect( func, "Instantiation" ).not.to.throw();
+			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
+			const id = doc.document._id;
+			
+			func = () => {
+				doc.removeDocument( true );
+			};
+			expect( func, "Remove" ).not.to.throw();
+			expect(doc.persistent, "Remove persistent flag").to.equal(false);
+			expect(db._exists(id), "Still exists").to.equal(false);
+		});
 		
 	});	// Remove.
 	

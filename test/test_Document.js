@@ -113,5 +113,12 @@ describe( "Document class tests:", function ()
 	describe( "Replace:", function () {
 		UnitTestClass.unitTestRun(unitTest, 'replace' );
 	});
+	
+	//
+	// Remove unit tests.
+	//
+	describe( "Remove:", function () {
+		UnitTestClass.unitTestRun(unitTest, 'remove' );
+	});
 
 });
