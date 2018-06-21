@@ -811,6 +811,30 @@ class DocumentUnitTest extends UnitTest
 			true
 		);
 		
+		//
+		// Remove non existing document.
+		// Assert that removing a non existing document fails.
+		//
+		this.removeUnitSet(
+			'removeNonExisting',
+			"Remove non existing document",
+			TestClass,
+			null,
+			true
+		);
+		
+		//
+		// Remove constrained document.
+		// Assert that removing a constrained document fails.
+		//
+		this.removeUnitSet(
+			'removeConstrained',
+			"Remove constrained document",
+			TestClass,
+			null,
+			true
+		);
+		
 	}	// unitsInitRemove
 	
 	
@@ -1810,12 +1834,12 @@ class DocumentUnitTest extends UnitTest
 	replaceNonExisting( theClass, theParam = null )
 	{
 		//
-		// Should not raise.
+		// Should raise.
 		//
 		this.testReplaceNonExisting( TestClass, theParam );
 		
 		//
-		// Should fail, because the custom class has required fields.
+		// Should raise.
 		//
 		if( TestClassCustom !== null )
 			this.testReplaceNonExisting( TestClassCustom, theParam );
@@ -1896,6 +1920,52 @@ class DocumentUnitTest extends UnitTest
 			this.testRemoveNonPersistent( TestClassCustom, theParam );
 		
 	}	// removeNonPersistent
+	
+	/**
+	 * Remove non existing document
+	 *
+	 * Assert removing non existing document fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	removeNonExisting( theClass, theParam = null )
+	{
+		//
+		// Should raise.
+		//
+		this.testRemoveNonExisting( TestClass, theParam );
+		
+		//
+		// Should raise.
+		//
+		if( TestClassCustom !== null )
+			this.testRemoveNonExisting( TestClassCustom, theParam );
+		
+	}	// removeNonExisting
+	
+	/**
+	 * Remove constrained document
+	 *
+	 * Assert removing a constrained document fails.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	removeConstrained( theClass, theParam = null )
+	{
+		//
+		// Should fail.
+		//
+		this.testRemoveConstrained( TestClass, theParam );
+		
+		//
+		// Should fail.
+		//
+		if( TestClassCustom !== null )
+			this.testRemoveConstrained( TestClassCustom, theParam );
+		
+	}	// removeConstrained
 	
 	
 	/****************************************************************************
@@ -6846,7 +6916,7 @@ class DocumentUnitTest extends UnitTest
 	/**
 	 * Test replacing a non existing object
 	 *
-	 * Assert that replacing a non persistent object fails.
+	 * Assert that replacing a non existant object fails.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -7800,7 +7870,7 @@ class DocumentUnitTest extends UnitTest
 	/**
 	 * Test removing a non persistent object
 	 *
-	 * Assert that removing a non persistent object fails.
+	 * Assert that removing a non persistent object raises with fail flag on or off.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -7853,6 +7923,254 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 	}	// testRemoveNonPersistent
+	
+	/**
+	 * Test removing a non existing object
+	 *
+	 * Assert that removing a non existing object raises with fail flag on and fails
+	 * without raising with fail flag off.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testRemoveNonExisting( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Instantiate from existing reference.
+		//
+		message = "Instantiation from existing reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.intermediate_results.key_insert_same,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Persistent";
+		expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+		
+		//
+		// Clone document.
+		//
+		const clone = K.function.clone(doc.document);
+		
+		//
+		// Remove document.
+		//
+		message = "Removing existing document";
+		func = () => {
+			db._remove(doc.document._id);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Remove with fail.
+		//
+		message = "Test remove non existing  with fail flag on";
+		func = () => {
+			result = doc.removeDocument( true );
+		};
+		expect( func, `${message}`
+		).to.throw(
+			MyError,
+			/not found in collection/
+		);
+		action = "Persistent";
+		expect(doc.persistent, `${message} - ${action}`).to.equal(false);
+		
+		//
+		// Restore.
+		//
+		message = "Restore";
+		func = () => {
+			db._collection(this.defaultTestCollection).insert( clone );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Instantiate from existing reference.
+		//
+		message = "Instantiation from existing reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.intermediate_results.key_insert_same,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Persistent";
+		expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+		
+		//
+		// Remove document.
+		//
+		message = "Removing existing document";
+		func = () => {
+			db._remove(doc.document._id);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Remove without fail.
+		//
+		message = "Test remove non existing  with fail flag off";
+		func = () => {
+			result = doc.removeDocument( false );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Persistent";
+		expect(doc.persistent, `${message} - ${action}`).to.equal(false);
+		action = "Result";
+		expect(result, `${message} - ${action}`).to.equal(false);
+		
+		//
+		// Restore.
+		//
+		message = "Restore";
+		func = () => {
+			db._collection(this.defaultTestCollection).insert( clone );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+	}	// testRemoveNonExisting
+	
+	/**
+	 * Test removing a constrained object
+	 *
+	 * Assert that removing a constrained object raises with fail flag on or off.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testRemoveConstrained( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let clone;
+		let result;
+		let action;
+		let message;
+		let unconstrained;
+		
+		//
+		// Clone document.
+		//
+		message = "Cloning document";
+		func = () => {
+			clone =
+				K.function.clone(
+					db._collection(this.defaultTestCollection).document(
+						this.intermediate_results.key_insert_same
+					)
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Set constrained state.
+		//
+		message = "Setting constrained state";
+		func = () => {
+			db._collection(this.defaultTestCollection).update(
+				this.intermediate_results.key_insert_same,
+				{ name: "CONSTRAINED" }
+			);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Instantiate from existing reference.
+		//
+		message = "Instantiate from reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.intermediate_results.key_insert_same,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Persistent";
+		expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+		
+		//
+		// Get constrained status.
+		//
+		message = "Get constrained status";
+		func = () => {
+			unconstrained = doc.validateDocumentConstraints( false );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Handle constrained.
+		//
+		if( unconstrained === false )
+		{
+			//
+			// Remove with fail.
+			//
+			message = "Test remove constrained with fail flag on";
+			func = () => {
+				result = doc.removeDocument( true );
+			};
+			expect( func, `${message}`
+			).to.throw(
+				MyError,
+				/has constraints that prevent it from being removed/
+			);
+			action = "Persistent";
+			expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+			
+			//
+			// Remove without fail.
+			//
+			message = "Test remove constrained with fail flag off";
+			func = () => {
+				result = doc.removeDocument( false );
+			};
+			expect( func, `${message}`
+			).to.throw(
+				MyError,
+				/has constraints that prevent it from being removed/
+			);
+			action = "Persistent";
+			expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+			
+		}	// Document is constrained.
+
+		//
+		// Remove document.
+		//
+		message = "Remove";
+		func = () => {
+			db._collection(this.defaultTestCollection)
+				.remove(this.intermediate_results.key_insert_same);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Restore.
+		//
+		message = "Restore";
+		func = () => {
+			db._collection(this.defaultTestCollection)
+				.insert( clone );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+	}	// testRemoveConstrained
 	
 	
 	/****************************************************************************
