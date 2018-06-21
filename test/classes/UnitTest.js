@@ -521,7 +521,7 @@ class UnitTest
 			//
 			message = `Getter queue [${getter}]`;
 			expect( theUnitTest[ getter ](), message ).to.be.an.object;
-			expect( theUnitTest[ getter ](), message ).not.to.be.empty;
+			// expect( theUnitTest[ getter ](), message ).not.to.be.empty;
 		});
 		
 		//

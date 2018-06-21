@@ -120,5 +120,19 @@ describe( "Document class tests:", function ()
 	describe( "Remove:", function () {
 		UnitTestClass.unitTestRun(unitTest, 'remove' );
 	});
+	
+	//
+	// Custom unit tests.
+	//
+	describe( "Custom:", function () {
+		UnitTestClass.unitTestRun(unitTest, 'custom' );
+	});
+	
+	//
+	// Static unit tests.
+	//
+	describe( "Static:", function () {
+		UnitTestClass.unitTestRun(unitTest, 'static' );
+	});
 
 });

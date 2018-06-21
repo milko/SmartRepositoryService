@@ -96,6 +96,16 @@ class DocumentUnitTest extends UnitTest
 		//
 		this.unitsInitRemove();
 		
+		//
+		// Custom tests.
+		//
+		this.unitsInitCustom();
+		
+		//
+		// Static tests.
+		//
+		this.unitsInitStatic();
+		
 	}	// unitsInit
 	
 	
@@ -349,7 +359,7 @@ class DocumentUnitTest extends UnitTest
 	/**
 	 * Define insert tests
 	 *
-	 * This method will load the contents tests queue with the desired test
+	 * This method will load the insert tests queue with the desired test
 	 * records, each record has a property:
 	 *
 	 * 	- The name of the method that runs all the 'it' tests, whose value is an
@@ -477,7 +487,7 @@ class DocumentUnitTest extends UnitTest
 	/**
 	 * Define resolve tests
 	 *
-	 * This method will load the contents tests queue with the desired test
+	 * This method will load the resolve tests queue with the desired test
 	 * records, each record has a property:
 	 *
 	 * 	- The name of the method that runs all the 'it' tests, whose value is an
@@ -708,7 +718,7 @@ class DocumentUnitTest extends UnitTest
 	/**
 	 * Define replace tests
 	 *
-	 * This method will load the contents tests queue with the desired test
+	 * This method will load the replace tests queue with the desired test
 	 * records, each record has a property:
 	 *
 	 * 	- The name of the method that runs all the 'it' tests, whose value is an
@@ -783,7 +793,7 @@ class DocumentUnitTest extends UnitTest
 	/**
 	 * Define remove tests
 	 *
-	 * This method will load the contents tests queue with the desired test
+	 * This method will load the remove tests queue with the desired test
 	 * records, each record has a property:
 	 *
 	 * 	- The name of the method that runs all the 'it' tests, whose value is an
@@ -795,10 +805,25 @@ class DocumentUnitTest extends UnitTest
 	 * This set of tests will validate all operations involving removing the object,
 	 * it will do the following checks:
 	 *
+	 * 	- Remove document.
 	 * 	- Remove non persistent document.
+	 * 	- Remove non existing document.
+	 * 	- Remove constrained document.
 	 */
 	unitsInitRemove()
 	{
+		//
+		// Remove document.
+		// Assert that removing a document succeeds.
+		//
+		this.removeUnitSet(
+			'removeDocument',
+			"Remove document",
+			TestClass,
+			null,
+			true
+		);
+		
 		//
 		// Remove non persistent document.
 		// Assert that removing a non persistent document fails.
@@ -836,6 +861,84 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 	}	// unitsInitRemove
+	
+	/**
+	 * Define custom tests
+	 *
+	 * This method will load the custom tests queue with the desired test
+	 * records, each record has a property:
+	 *
+	 * 	- The name of the method that runs all the 'it' tests, whose value is an
+	 * 	  object structured as follows:
+	 * 		- name:	The test title used in the 'describe'.
+	 * 		- clas:	The class to be used in the tests.
+	 * 		- parm:	The eventual parameters for the test.
+	 *
+	 * This set of tests will validate all operations involving custom object
+	 * operations.
+	 *
+	 * By default there are no custom operations.
+	 */
+	unitsInitCustom()
+	{
+		//
+		// No custom operations.
+		//
+		
+	}	// unitsInitCustom
+	
+	/**
+	 * Define static tests
+	 *
+	 * This method will load the static tests queue with the desired test
+	 * records, each record has a property:
+	 *
+	 * 	- The name of the method that runs all the 'it' tests, whose value is an
+	 * 	  object structured as follows:
+	 * 		- name:	The test title used in the 'describe'.
+	 * 		- clas:	The class to be used in the tests.
+	 * 		- parm:	The eventual parameters for the test.
+	 *
+	 * This set of tests will validate all static methods of the object,
+	 * it will do the following checks:
+	 *
+	 * 	- Check edge collection.
+	 */
+	unitsInitStatic()
+	{
+		//
+		// Check edge collection.
+		// Assert that it fails on document collection and succeeds on edge collection.
+		//
+		this.staticUnitSet(
+			'staticEdgeCollection',
+			"Check edge collection",
+			TestClass,
+			{
+				edge: param.collection_edge,
+				document: param.collection_document,
+				request: param.request
+			},
+			true
+		);
+		
+		//
+		// Check document collection.
+		// Assert that it fails on edge collection and succeeds on document collection.
+		//
+		this.staticUnitSet(
+			'staticDocumentCollection',
+			"Check document collection",
+			TestClass,
+			{
+				edge: param.collection_edge,
+				document: param.collection_document,
+				request: param.request
+			},
+			true
+		);
+		
+	}	// unitsInitStatic
 	
 	
 	/****************************************************************************
@@ -1899,6 +2002,29 @@ class DocumentUnitTest extends UnitTest
 	 ****************************************************************************/
 	
 	/**
+	 * Remove document
+	 *
+	 * Assert removing a document succeeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	removeDocument( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testRemoveDocument( TestClass, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( TestClassCustom !== null )
+			this.testRemoveDocument( TestClassCustom, theParam );
+		
+	}	// removeDocument
+	
+	/**
 	 * Remove non persistent document
 	 *
 	 * Assert removing non persistent document fails.
@@ -1966,6 +2092,57 @@ class DocumentUnitTest extends UnitTest
 			this.testRemoveConstrained( TestClassCustom, theParam );
 		
 	}	// removeConstrained
+	
+	
+	/****************************************************************************
+	 * STATIC TEST MODULES DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Check edge collection
+	 *
+	 * Assert that it fails on document collection and succeeds on edge collection.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	staticEdgeCollection( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testStaticEdgeCollection( TestClass, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( TestClassCustom !== null )
+			this.testStaticEdgeCollection( TestClassCustom, theParam );
+		
+	}	// staticEdgeCollection
+	
+	/**
+	 * Check document collection
+	 *
+	 * Assert that it fails on edge collection and succeeds on document collection.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	staticDocumentCollection( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testStaticDocumentCollection( TestClass, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( TestClassCustom !== null )
+			this.testStaticDocumentCollection( TestClassCustom, theParam );
+		
+	}	// staticDocumentCollection
 	
 	
 	/****************************************************************************
@@ -7868,6 +8045,109 @@ class DocumentUnitTest extends UnitTest
 	 ****************************************************************************/
 	
 	/**
+	 * Test removing an object
+	 *
+	 * Assert that removing an object succeeds.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testRemoveDocument( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let clone;
+		let result;
+		let action;
+		let message;
+		let unconstrained;
+		
+		//
+		// Instantiate from existing reference.
+		//
+		message = "Instantiate from reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.intermediate_results.key_insert_same,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Persistent";
+		expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+		
+		//
+		// Clone document.
+		//
+		clone = K.function.clone( doc.document );
+		
+		//
+		// Remove with fail.
+		//
+		message = "Test remove constrained with fail flag on";
+		func = () => {
+			result = doc.removeDocument( true );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Result";
+		expect(result, `${message} - ${action}`).to.equal(true);
+		action = "Persistent";
+		expect(doc.persistent, `${message} - ${action}`).to.equal(false);
+		
+		//
+		// Restore.
+		//
+		message = "Restore";
+		func = () => {
+			db._collection(this.defaultTestCollection)
+				.insert( clone );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Instantiate from existing reference.
+		//
+		message = "Instantiate from reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.request,
+					this.intermediate_results.key_insert_same,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Persistent";
+		expect(doc.persistent, `${message} - ${action}`).to.equal(true);
+		
+		//
+		// Remove without fail.
+		//
+		message = "Test remove constrained with fail flag off";
+		func = () => {
+			result = doc.removeDocument( false );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		action = "Result";
+		expect(result, `${message} - ${action}`).to.equal(true);
+		action = "Persistent";
+		expect(doc.persistent, `${message} - ${action}`).to.equal(false);
+		
+		//
+		// Restore.
+		//
+		message = "Restore";
+		func = () => {
+			db._collection(this.defaultTestCollection)
+				.insert( clone );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+	}	// testRemoveDocument
+	
+	/**
 	 * Test removing a non persistent object
 	 *
 	 * Assert that removing a non persistent object raises with fail flag on or off.
@@ -8149,7 +8429,7 @@ class DocumentUnitTest extends UnitTest
 			expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 			
 		}	// Document is constrained.
-
+		
 		//
 		// Remove document.
 		//
@@ -8171,6 +8451,179 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 	}	// testRemoveConstrained
+	
+	
+	/****************************************************************************
+	 * STATIC TEST ROUTINE DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Test edge collection check
+	 *
+	 * Assert that it fails on document collection and succeeds on edge collection.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testStaticEdgeCollection( theClass, theParam = null )
+	{
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Check parameter.
+		//
+		expect( theParam, "Parameter is object" ).to.be.an.object;
+		expect( theParam, "Parameter has edge" ).to.have.property( 'edge' );
+		expect( theParam, "Parameter has document" ).to.have.property( 'document' );
+		expect( theParam, "Parameter has request" ).to.have.property( 'request' );
+		
+		//
+		// Test with fail on.
+		//
+		message = "Test with fail on";
+		action = "Edge collection";
+		func = () => {
+			result =
+				theClass.isEdgeCollection(
+					theParam.request,
+					theParam.edge,
+					true
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.true;
+		
+		action = "Document collection";
+		func = () => {
+			result =
+				theClass.isEdgeCollection(
+					theParam.request,
+					theParam.document,
+					true
+				);
+		};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/to be an edge collection/
+		);
+		
+		//
+		// Test with fail off.
+		//
+		message = "Test with fail off";
+		action = "Edge collection";
+		func = () => {
+			result =
+				theClass.isEdgeCollection(
+					theParam.request,
+					theParam.edge,
+					false
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.true;
+		
+		action = "Document collection";
+		func = () => {
+			result =
+				theClass.isEdgeCollection(
+					theParam.request,
+					theParam.document,
+					false
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.false;
+		
+	}	// testStaticEdgeCollection
+	
+	/**
+	 * Test document collection check
+	 *
+	 * Assert that it fails on edge collection and succeeds on document collection.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testStaticDocumentCollection( theClass, theParam = null )
+	{
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Check parameter.
+		//
+		expect( theParam, "Parameter is object" ).to.be.an.object;
+		expect( theParam, "Parameter has edge" ).to.have.property( 'edge' );
+		expect( theParam, "Parameter has document" ).to.have.property( 'document' );
+		expect( theParam, "Parameter has request" ).to.have.property( 'request' );
+		
+		//
+		// Test with fail on.
+		//
+		message = "Test with fail on";
+		action = "Edge collection";
+		func = () => {
+			result =
+				theClass.isDocumentCollection(
+					theParam.request,
+					theParam.edge,
+					true
+				);
+		};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/to be a document collection/
+		);
+		
+		action = "Document collection";
+		func = () => {
+			result =
+				theClass.isDocumentCollection(
+					theParam.request,
+					theParam.document,
+					true
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.true;
+		
+		//
+		// Test with fail off.
+		//
+		message = "Test with fail off";
+		action = "Edge collection";
+		func = () => {
+			result =
+				theClass.isDocumentCollection(
+					theParam.request,
+					theParam.edge,
+					false
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.false;
+		
+		action = "Document collection";
+		func = () => {
+			result =
+				theClass.isDocumentCollection(
+					theParam.request,
+					theParam.document,
+					false
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.true;
+		
+	}	// testStaticDocumentCollection
 	
 	
 	/****************************************************************************
@@ -10185,6 +10638,84 @@ class DocumentUnitTest extends UnitTest
 	 */
 	removeUnitDel( theUnit = null ) {
 		return this.unitDel( 'unit_remove', theUnit );							// ==>
+	}
+	
+	/**
+	 * Set custom unit test.
+	 *
+	 * See the unitSet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @param theName		{String}		Unit test title.
+	 * @param theClass		{String}		Unit test class, defaults to TestClass.
+	 * @param theParam		{*}				Eventual parameters for the method.
+	 * @param doNew			{Boolean}		If true, assert the unit doesn't exist.
+	 */
+	customUnitSet( theUnit, theName, theClass, theParam = null, doNew = false ) {
+		this.unitSet( 'unit_custom', theUnit, theName, theClass, theParam, doNew );
+	}
+	
+	/**
+	 * Get custom unit test(s).
+	 *
+	 * See the unitGet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The record or false /null.
+	 */
+	customUnitGet( theUnit = null ) {
+		return this.unitGet( 'unit_custom', theUnit );							// ==>
+	}
+	
+	/**
+	 * Delete custom unit test(s).
+	 *
+	 * See the unitDel() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The deleted record or false /null.
+	 */
+	customUnitDel( theUnit = null ) {
+		return this.unitDel( 'unit_custom', theUnit );							// ==>
+	}
+	
+	/**
+	 * Set static unit test.
+	 *
+	 * See the unitSet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @param theName		{String}		Unit test title.
+	 * @param theClass		{String}		Unit test class, defaults to TestClass.
+	 * @param theParam		{*}				Eventual parameters for the method.
+	 * @param doNew			{Boolean}		If true, assert the unit doesn't exist.
+	 */
+	staticUnitSet( theUnit, theName, theClass, theParam = null, doNew = false ) {
+		this.unitSet( 'unit_static', theUnit, theName, theClass, theParam, doNew );
+	}
+	
+	/**
+	 * Get static unit test(s).
+	 *
+	 * See the unitGet() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The record or false /null.
+	 */
+	staticUnitGet( theUnit = null ) {
+		return this.unitGet( 'unit_static', theUnit );							// ==>
+	}
+	
+	/**
+	 * Delete static unit test(s).
+	 *
+	 * See the unitDel() method for a description.
+	 *
+	 * @param theUnit		{String}		Unit test method name.
+	 * @returns {Object}|{false}|{null}		The deleted record or false /null.
+	 */
+	staticUnitDel( theUnit = null ) {
+		return this.unitDel( 'unit_static', theUnit );							// ==>
 	}
 	
 	

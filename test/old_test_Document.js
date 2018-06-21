@@ -739,177 +739,89 @@ describe( "Document class tests:", function ()
 	let key_insert_same;
 	
 	//
-	// Remove tests.
-	//
-	describe( "Remove:", function ()
-	{
-		//
-		// Remove constrained document.
-		//
-		// Should fail.
-		//
-		it( "Remove constrained document:", function ()
-		{
-			let doc;
-			let func;
-			let result;
-			
-			func = () => {
-				doc =
-					new TestClassConstrained(
-						param.request, key_insert_filled, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-			
-			doc.document.name = "CONSTRAINED";
-			func = () => {
-				doc.replaceDocument();
-			};
-			expect( func, "Replacing document" ).not.to.throw();
-			
-			func = () => {
-				doc =
-					new TestClassConstrained(
-						param.request, key_insert_filled, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-			
-			func = () => {
-				result = doc.removeDocument( false );
-			};
-			expect( func, "Remove" )
-				.to.throw( MyError, /has constraints that prevent it from being removed/ );
-			expect(result, "Remove result").to.equal(undefined);
-			expect(doc.persistent, "Remove persistent flag").to.equal(true);
-			
-			doc.document.name = "NOT CONSTRAINED";
-			func = () => {
-				doc.replaceDocument();
-			};
-			expect( func, "Replacing document" ).not.to.throw();
-		});
-		
-		//
-		// Remove document.
-		//
-		// Should not fail.
-		//
-		it( "Remove document:", function ()
-		{
-			let doc;
-			let func;
-			let result;
-			
-			func = () => {
-				doc =
-					new TestClass(
-						param.request, key_insert_filled, default_collection
-					);
-			};
-			expect( func, "Instantiation" ).not.to.throw();
-			expect(doc.persistent, "Instantiation persistent flag").to.equal(true);
-			const id = doc.document._id;
-			
-			func = () => {
-				doc.removeDocument( true );
-			};
-			expect( func, "Remove" ).not.to.throw();
-			expect(doc.persistent, "Remove persistent flag").to.equal(false);
-			expect(db._exists(id), "Still exists").to.equal(false);
-		});
-		
-	});	// Remove.
-	
-	//
 	// Static tests.
 	//
 	describe( "Static:", function ()
 	{
-		/*
-		 //
-		 // Check edge collection type.
-		 //
-		 // Should fail on document collection.
-		 //
-		 it( "Check edge collection type:", function ()
-		 {
-		 let func;
-		 let result;
-		 let failed;
-		 const good = param.collection_edge;
-		 const bad = param.collection_document;
-		 const method = TestClass.isEdgeCollection;
-		 
-		 func = () => {
-		 result = method(param.request, good, false);
-		 };
-		 expect(func, "Method call").not.to.throw();
-		 expect(result).to.equal(true);
-		 
-		 func = () => {
-		 result = method(param.request, good, true);
-		 };
-		 expect(func, "Method call").not.to.throw();
-		 expect(result).to.equal(true);
-		 
-		 func = () => {
-		 result = method(param.request, bad, false);
-		 };
-		 expect(func, "Method call").not.to.throw();
-		 expect(result).to.equal(false);
-		 
-		 func = () => {
-		 failed = method(param.request, bad, true);
-		 };
-		 expect(func, "Method call")
-		 .to.throw( MyError, /to be an edge collection/ );
-		 expect(failed).to.equal(undefined);
-		 });
-		 
-		 //
-		 // Check document collection type.
-		 //
-		 // Should fail on edge collection.
-		 //
-		 it( "Check document collection type:", function ()
-		 {
-		 let func;
-		 let result;
-		 let failed;
-		 const bad = param.collection_edge;
-		 const good = param.collection_document;
-		 const method = TestClass.isDocumentCollection;
-		 
-		 func = () => {
-		 result = method(param.request, good, false);
-		 };
-		 expect(func, "Method call").not.to.throw();
-		 expect(result).to.equal(true);
-		 
-		 func = () => {
-		 result = method(param.request, good, true);
-		 };
-		 expect(func, "Method call").not.to.throw();
-		 expect(result).to.equal(true);
-		 
-		 func = () => {
-		 result = method(param.request, bad, false);
-		 };
-		 expect(func, "Method call").not.to.throw();
-		 expect(result).to.equal(false);
-		 
-		 func = () => {
-		 failed = method(param.request, bad, true);
-		 };
-		 expect(func, "Method call")
-		 .to.throw( MyError, /to be a document collection/ );
-		 expect(failed).to.equal(undefined);
-		 });
-		 */
+		//
+		// Check edge collection type.
+		//
+		// Should fail on document collection.
+		//
+		it( "Check edge collection type:", function ()
+		{
+			let func;
+			let result;
+			let failed;
+			const good = param.collection_edge;
+			const bad = param.collection_document;
+			const method = TestClass.isEdgeCollection;
+			
+			func = () => {
+				result = method(param.request, good, false);
+			};
+			expect(func, "Method call").not.to.throw();
+			expect(result).to.equal(true);
+			
+			func = () => {
+				result = method(param.request, good, true);
+			};
+			expect(func, "Method call").not.to.throw();
+			expect(result).to.equal(true);
+			
+			func = () => {
+				result = method(param.request, bad, false);
+			};
+			expect(func, "Method call").not.to.throw();
+			expect(result).to.equal(false);
+			
+			func = () => {
+				failed = method(param.request, bad, true);
+			};
+			expect(func, "Method call")
+				.to.throw( MyError, /to be an edge collection/ );
+			expect(failed).to.equal(undefined);
+		});
+		
+		//
+		// Check document collection type.
+		//
+		// Should fail on edge collection.
+		//
+		it( "Check document collection type:", function ()
+		{
+			let func;
+			let result;
+			let failed;
+			const bad = param.collection_edge;
+			const good = param.collection_document;
+			const method = TestClass.isDocumentCollection;
+			
+			func = () => {
+				result = method(param.request, good, false);
+			};
+			expect(func, "Method call").not.to.throw();
+			expect(result).to.equal(true);
+			
+			func = () => {
+				result = method(param.request, good, true);
+			};
+			expect(func, "Method call").not.to.throw();
+			expect(result).to.equal(true);
+			
+			func = () => {
+				result = method(param.request, bad, false);
+			};
+			expect(func, "Method call").not.to.throw();
+			expect(result).to.equal(false);
+			
+			func = () => {
+				failed = method(param.request, bad, true);
+			};
+			expect(func, "Method call")
+				.to.throw( MyError, /to be a document collection/ );
+			expect(failed).to.equal(undefined);
+		});
 		
 	});	// Static.
 	
