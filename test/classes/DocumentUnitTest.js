@@ -169,7 +169,7 @@ class DocumentUnitTest extends UnitTest
 			'instantiateNullSelectorMissingCollection',
 			"Instantiate with null selector and non existant collection:",
 			this.test_classes.base,
-			null,
+			'test',
 			true
 		);
 		
@@ -396,7 +396,10 @@ class DocumentUnitTest extends UnitTest
 			'insertWithoutRequiredFields',
 			"Insert object without required fields",
 			this.test_classes.base,
-			param.content,
+			{
+				contents: param.content,
+				excluded: null
+			},
 			true
 		);
 		
@@ -408,7 +411,10 @@ class DocumentUnitTest extends UnitTest
 			'insertWithoutSignificantFields',
 			"Insert object without significant fields",
 			this.test_classes.base,
-			param.content,
+			{
+				contents: param.content,
+				excluded: null
+			},
 			true
 		);
 		
@@ -420,7 +426,10 @@ class DocumentUnitTest extends UnitTest
 			'insertWithContent',
 			"Insert object with content",
 			this.test_classes.base,
-			param.content,
+			{
+				contents: param.content,
+				excluded: null
+			},
 			true
 		);
 		
@@ -446,7 +455,10 @@ class DocumentUnitTest extends UnitTest
 			'insertWithSameContent',
 			"Insert object with same content",
 			this.test_classes.base,
-			param.content,
+			{
+				contents: param.content,
+				excluded: null
+			},
 			true
 		);
 
@@ -954,13 +966,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInstantiateNoSelectorNoCollection( this.test_classes.base );
+		this.testInstantiateNoSelectorNoCollection(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed, because the custom class implements default collection.
 		//
 		if( this.test_classes.custom )
-			this.testInstantiateNoSelectorNoCollection( this.test_classes.custom );
+			this.testInstantiateNoSelectorNoCollection(
+				this.test_classes.custom, theParam );
 		
 	}	// instantiateNoSelectorNoCollection
 	
@@ -979,7 +993,8 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInstantiateNullSelectorNoCollection( this.test_classes.base, theParam );
+		this.testInstantiateNullSelectorNoCollection(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed with custom class: it implements the default collection.
@@ -1005,14 +1020,9 @@ class DocumentUnitTest extends UnitTest
 	instantiateNullSelectorMissingCollection( theClass, theParam = null )
 	{
 		//
-		// Init local storage.
-		//
-		const test_collection = 'test';
-		
-		//
 		// Remove test collection.
 		//
-		const collection = db._collection( test_collection );
+		const collection = db._collection( theParam );
 		if( collection )
 			db._drop( test_collection );
 		
@@ -1020,10 +1030,10 @@ class DocumentUnitTest extends UnitTest
 		// Should fail with both classes.
 		//
 		this.testInstantiateNullSelectorMissingCollection(
-			this.test_classes.base, test_collection
+			this.test_classes.base, theParam
 		);
 		this.testInstantiateNullSelectorMissingCollection(
-			this.test_classes.custom, test_collection
+			this.test_classes.custom, theParam
 		);
 		
 	}	// instantiateNullSelectorMissingCollection
@@ -1045,13 +1055,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Test class without default collection.
 		//
-		this.testDefaultCollection( this.test_classes.base, theParam );
+		this.testDefaultCollection(
+			this.test_classes.base, theParam );
 		
 		//
 		// Test class with default collection.
 		//
 		if( this.test_classes.custom )
-			this.testDefaultCollection( this.test_classes.custom, theParam );
+			this.testDefaultCollection(
+				this.test_classes.custom, theParam );
 		
 	}	// instantiateDefaultCollection
 	
@@ -1072,7 +1084,8 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInstantiateEdgeSucceed( this.test_classes.base, theParam );
+		this.testInstantiateEdgeSucceed(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
@@ -1101,7 +1114,8 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInstantiateDocumentSucceed( this.test_classes.base, theParam );
+		this.testInstantiateDocumentSucceed(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
@@ -1131,7 +1145,8 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInstantiateMutableImmutable( this.test_classes.base, theParam );
+		this.testInstantiateMutableImmutable(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
@@ -1158,7 +1173,8 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testInstantiateInvalidIdNoDefaultCollection( this.test_classes.base, theParam );
+		this.testInstantiateInvalidIdNoDefaultCollection(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
@@ -1308,13 +1324,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testContentsLoadEmptyObject( this.test_classes.base, theParam );
+		this.testContentsLoadEmptyObject(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
 		if( this.test_classes.custom )
-			this.testContentsLoadEmptyObject( this.test_classes.custom, theParam );
+			this.testContentsLoadEmptyObject(
+				this.test_classes.custom, theParam );
 		
 	}	// contentsLoadEmptyObject
 	
@@ -1334,13 +1352,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testContentsLoadFilledObject( this.test_classes.base, theParam );
+		this.testContentsLoadFilledObject(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
 		if( this.test_classes.custom )
-			this.testContentsLoadFilledObject( this.test_classes.custom, theParam );
+			this.testContentsLoadFilledObject(
+				this.test_classes.custom, theParam );
 		
 	}	// contentsLoadFilledObject
 	
@@ -1360,13 +1380,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testContentsLoadPersistentObject( this.test_classes.base, theParam );
+		this.testContentsLoadPersistentObject(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
 		if( this.test_classes.custom )
-			this.testContentsLoadPersistentObject( this.test_classes.custom, theParam );
+			this.testContentsLoadPersistentObject(
+				this.test_classes.custom, theParam );
 		
 	}	// contentsLoadPersistentObject
 	
@@ -1390,13 +1412,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testInsertEmptyObject( this.test_classes.base );
+		this.testInsertEmptyObject(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( this.test_classes.custom )
-			this.testInsertEmptyObject( this.test_classes.custom );
+			this.testInsertEmptyObject(
+				this.test_classes.custom, theParam );
 		
 	}	// insertEmptyObject
 	
@@ -1415,13 +1439,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInsertWithoutRequiredFields( this.test_classes.base, theParam );
+		this.testInsertWithoutRequiredFields(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( this.test_classes.custom )
-			this.testInsertWithoutRequiredFields( this.test_classes.custom, theParam );
+			this.testInsertWithoutRequiredFields(
+				this.test_classes.custom, theParam );
 		
 	}	// insertWithoutRequiredFields
 	
@@ -1440,13 +1466,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInsertWithoutSignificantFields( this.test_classes.base, theParam );
+		this.testInsertWithoutSignificantFields(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( this.test_classes.custom )
-			this.testInsertWithoutSignificantFields( this.test_classes.custom, theParam );
+			this.testInsertWithoutSignificantFields(
+				this.test_classes.custom, theParam );
 		
 	}	// insertWithoutSignificantFields
 	
@@ -1473,13 +1501,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: Missing required parameter.
 		//
-		this.testInsertWithContent( this.test_classes.base, theParam );
+		this.testInsertWithContent(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( this.test_classes.custom )
-			this.testInsertWithContent( this.test_classes.custom, theParam );
+			this.testInsertWithContent(
+				this.test_classes.custom, theParam );
 		
 		//
 		// Assert cleanup.
@@ -1506,13 +1536,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise: duplicate document in collection.
 		//
-		this.testInsertDuplicate( this.test_classes.base, theParam );
+		this.testInsertDuplicate(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should raise: duplicate document in collection.
 		//
 		if( this.test_classes.custom )
-			this.testInsertDuplicate( this.test_classes.custom, theParam );
+			this.testInsertDuplicate(
+				this.test_classes.custom, theParam );
 		
 	}	// insertDuplicate
 	
@@ -1534,13 +1566,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInsertWithSameContentSucceed( this.test_classes.base, theParam );
+		this.testInsertWithSameContentSucceed(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
 		if( this.test_classes.custom )
-			this.testInsertWithSameContentSucceed( this.test_classes.custom, theParam );
+			this.testInsertWithSameContentSucceed(
+				this.test_classes.custom, theParam );
 		
 		//
 		// Assert cleanup.
@@ -1564,13 +1598,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInsertPersistentObject( this.test_classes.base, theParam );
+		this.testInsertPersistentObject(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
 		if( this.test_classes.custom )
-			this.testInsertPersistentObject( this.test_classes.custom, theParam );
+			this.testInsertPersistentObject(
+				this.test_classes.custom, theParam );
 		
 		//
 		// Assert cleanup.
@@ -1594,13 +1630,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInsertWithoutPersist( this.test_classes.base, theParam );
+		this.testInsertWithoutPersist(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
 		if( this.test_classes.custom )
-			this.testInsertWithoutPersist( this.test_classes.custom, theParam );
+			this.testInsertWithoutPersist(
+				this.test_classes.custom, theParam );
 		
 	}	// insertWithoutPersist
 	
@@ -1622,13 +1660,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolvePersistent( this.test_classes.base, theParam );
+		this.testResolvePersistent(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( this.test_classes.custom )
-			this.testResolvePersistent( this.test_classes.custom, theParam );
+			this.testResolvePersistent(
+				this.test_classes.custom, theParam );
 		
 	}	// resolvePersistent
 	
@@ -1645,13 +1685,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveNullReference( this.test_classes.base, theParam );
+		this.testResolveNullReference(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( this.test_classes.custom )
-			this.testResolveNullReference( this.test_classes.custom, theParam );
+			this.testResolveNullReference(
+				this.test_classes.custom, theParam );
 		
 	}	// resolveNullReference
 	
@@ -1669,13 +1711,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveSignificantField( this.test_classes.base, theParam );
+		this.testResolveSignificantField(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( this.test_classes.custom )
-			this.testResolveSignificantField( this.test_classes.custom, theParam );
+			this.testResolveSignificantField(
+				this.test_classes.custom, theParam );
 		
 	}	// resolveSignificantField
 	
@@ -1692,13 +1736,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveReferenceField( this.test_classes.base, theParam );
+		this.testResolveReferenceField(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( this.test_classes.custom )
-			this.testResolveReferenceField( this.test_classes.custom, theParam );
+			this.testResolveReferenceField(
+				this.test_classes.custom, theParam );
 		
 	}	// resolveReferenceField
 	
@@ -1715,13 +1761,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveNoException( this.test_classes.base, theParam );
+		this.testResolveNoException(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should not raise.
 		//
 		if( this.test_classes.custom )
-			this.testResolveNoException( this.test_classes.custom, theParam );
+			this.testResolveNoException(
+				this.test_classes.custom, theParam );
 		
 	}	// resolveNoException
 	
@@ -1739,13 +1787,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testResolveChangeLockedField( this.test_classes.base, theParam );
+		this.testResolveChangeLockedField(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
 		if( this.test_classes.custom )
-			this.testResolveChangeLockedField( this.test_classes.custom, theParam );
+			this.testResolveChangeLockedField(
+				this.test_classes.custom, theParam );
 		
 	}	// resolveChangeLockedField
 	
@@ -1763,13 +1813,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testResolveChangeSignificantField( this.test_classes.base, theParam );
+		this.testResolveChangeSignificantField(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
 		if( this.test_classes.custom )
-			this.testResolveChangeSignificantField( this.test_classes.custom, theParam );
+			this.testResolveChangeSignificantField(
+				this.test_classes.custom, theParam );
 		
 	}	// resolveChangeSignificantField
 	
@@ -1787,13 +1839,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testResolveChangeRequiredField( this.test_classes.base, theParam );
+		this.testResolveChangeRequiredField(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
 		if( this.test_classes.custom )
-			this.testResolveChangeRequiredField( this.test_classes.custom, theParam );
+			this.testResolveChangeRequiredField(
+				this.test_classes.custom, theParam );
 		
 	}	// resolveChangeRequiredField
 	
@@ -1811,13 +1865,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveChangeUniqueField( this.test_classes.base, theParam );
+		this.testResolveChangeUniqueField(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( this.test_classes.custom )
-			this.testResolveChangeUniqueField( this.test_classes.custom, theParam );
+			this.testResolveChangeUniqueField(
+				this.test_classes.custom, theParam );
 		
 	}	// resolveChangeUniqueField
 	
@@ -1835,13 +1891,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveChangeLocalField( this.test_classes.base, theParam );
+		this.testResolveChangeLocalField(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( this.test_classes.custom )
-			this.testResolveChangeLocalField( this.test_classes.custom, theParam );
+			this.testResolveChangeLocalField(
+				this.test_classes.custom, theParam );
 		
 	}	// resolveChangeLocalField
 	
@@ -1859,13 +1917,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should not raise.
 		//
-		this.testResolveChangeStandardField( this.test_classes.base, theParam );
+		this.testResolveChangeStandardField(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail, because the custom class has required fields.
 		//
 		if( this.test_classes.custom )
-			this.testResolveChangeStandardField( this.test_classes.custom, theParam );
+			this.testResolveChangeStandardField(
+				this.test_classes.custom, theParam );
 		
 	}	// resolveChangeStandardField
 	
@@ -1882,13 +1942,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testResolveAmbiguous( this.test_classes.base, theParam );
+		this.testResolveAmbiguous(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
 		if( this.test_classes.custom )
-			this.testResolveAmbiguous( this.test_classes.custom, theParam );
+			this.testResolveAmbiguous(
+				this.test_classes.custom, theParam );
 		
 	}	// resolveAmbiguousObject
 	
@@ -1910,13 +1972,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise.
 		//
-		this.testReplaceNonPersistent( this.test_classes.base, theParam );
+		this.testReplaceNonPersistent(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should raise.
 		//
 		if( this.test_classes.custom )
-			this.testReplaceNonPersistent( this.test_classes.custom, theParam );
+			this.testReplaceNonPersistent(
+				this.test_classes.custom, theParam );
 		
 	}	// replaceNonPersistent
 	
@@ -1933,13 +1997,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise.
 		//
-		this.testReplaceNonExisting( this.test_classes.base, theParam );
+		this.testReplaceNonExisting(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should raise.
 		//
 		if( this.test_classes.custom )
-			this.testReplaceNonExisting( this.test_classes.custom, theParam );
+			this.testReplaceNonExisting(
+				this.test_classes.custom, theParam );
 		
 	}	// replaceNonExisting
 	
@@ -1956,13 +2022,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise for locked and not for others.
 		//
-		this.testReplacePersistentValue( this.test_classes.base, theParam );
+		this.testReplacePersistentValue(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should raise for locked and not for others.
 		//
 		if( this.test_classes.custom )
-			this.testReplacePersistentValue( this.test_classes.custom, theParam );
+			this.testReplacePersistentValue(
+				this.test_classes.custom, theParam );
 		
 	}	// replacePersistentValue
 	
@@ -1980,13 +2048,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise changing locked and deleting required.
 		//
-		this.testReplaceContentValue( this.test_classes.base, theParam );
+		this.testReplaceContentValue(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should raise changing locked and deleting required.
 		//
 		if( this.test_classes.custom )
-			this.testReplaceContentValue( this.test_classes.custom, theParam );
+			this.testReplaceContentValue(
+				this.test_classes.custom, theParam );
 		
 	}	// replacePersistentValue
 	
@@ -2008,13 +2078,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testRemoveDocument( this.test_classes.base, theParam );
+		this.testRemoveDocument(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
 		if( this.test_classes.custom )
-			this.testRemoveDocument( this.test_classes.custom, theParam );
+			this.testRemoveDocument(
+				this.test_classes.custom, theParam );
 		
 	}	// removeDocument
 	
@@ -2031,13 +2103,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise.
 		//
-		this.testRemoveNonPersistent( this.test_classes.base, theParam );
+		this.testRemoveNonPersistent(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should raise.
 		//
 		if( this.test_classes.custom )
-			this.testRemoveNonPersistent( this.test_classes.custom, theParam );
+			this.testRemoveNonPersistent(
+				this.test_classes.custom, theParam );
 		
 	}	// removeNonPersistent
 	
@@ -2054,13 +2128,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should raise.
 		//
-		this.testRemoveNonExisting( this.test_classes.base, theParam );
+		this.testRemoveNonExisting(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should raise.
 		//
 		if( this.test_classes.custom )
-			this.testRemoveNonExisting( this.test_classes.custom, theParam );
+			this.testRemoveNonExisting(
+				this.test_classes.custom, theParam );
 		
 	}	// removeNonExisting
 	
@@ -2077,13 +2153,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testRemoveConstrained( this.test_classes.base, theParam );
+		this.testRemoveConstrained(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
 		if( this.test_classes.custom )
-			this.testRemoveConstrained( this.test_classes.custom, theParam );
+			this.testRemoveConstrained(
+				this.test_classes.custom, theParam );
 		
 	}	// removeConstrained
 	
@@ -2105,13 +2183,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testStaticEdgeCollection( this.test_classes.base, theParam );
+		this.testStaticEdgeCollection(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
 		if( this.test_classes.custom )
-			this.testStaticEdgeCollection( this.test_classes.custom, theParam );
+			this.testStaticEdgeCollection(
+				this.test_classes.custom, theParam );
 		
 	}	// staticEdgeCollection
 	
@@ -2128,13 +2208,15 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testStaticDocumentCollection( this.test_classes.base, theParam );
+		this.testStaticDocumentCollection(
+			this.test_classes.base, theParam );
 		
 		//
 		// Should succeed.
 		//
 		if( this.test_classes.custom )
-			this.testStaticDocumentCollection( this.test_classes.custom, theParam );
+			this.testStaticDocumentCollection(
+				this.test_classes.custom, theParam );
 		
 	}	// staticDocumentCollection
 	
@@ -4538,6 +4620,11 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
+		// Check parameter.
+		//
+		expect( theParam, "Check parameter" ).to.be.an.array;
+		
+		//
 		// Instantiate empty object.
 		//
 		message = "Instantiation";
@@ -4609,13 +4696,11 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Check local fields.
 			//
-			for( const field of doc.localFields )
-			{
-				action = `Has field [${field}]`;
-				expect( doc.document, `${message} - ${action}` ).to.have.property( field );
-				action = `Field [${field}] not empty`;
-				expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
-			}
+			this.validateLocalProperties(
+				message,
+				doc,
+				( Array.isArray( theParam ) ) ? theParam : []
+			);
 			
 			//
 			// Remove document.
@@ -4643,6 +4728,17 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
+		// Check parameter.
+		//
+		expect( theParam, "Parameter type" ).to.be.an.object;
+		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
+		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
+		const param_contents = theParam.contents;
+		const param_excluded = ( Array.isArray( theParam.excluded ) )
+							 ? theParam.excluded
+							 : [];
+		
+		//
 		// ToDo
 		// Note: we need to instantiate the object first, because we need to get the
 		// list of required fields: should make the method static...
@@ -4652,7 +4748,7 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.request,
-					theParam,
+					param_contents,
 					this.defaultTestCollection
 				);
 		};
@@ -4713,7 +4809,7 @@ class DocumentUnitTest extends UnitTest
 					doc =
 						new theClass(
 							this.request,
-							theParam,
+							param_contents,
 							this.defaultTestCollection
 						);
 				};
@@ -4754,13 +4850,11 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Check local fields.
 			//
-			for( const field of doc.localFields )
-			{
-				action = `Has field [${field}]`;
-				expect( doc.document, `${message} - ${action}` ).to.have.property( field );
-				action = `Field [${field}] not empty`;
-				expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
-			}
+			this.validateLocalProperties(
+				message,
+				doc,
+				param_excluded
+			);
 			
 			//
 			// Remove document.
@@ -4789,6 +4883,17 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
+		// Check parameter.
+		//
+		expect( theParam, "Parameter type" ).to.be.an.object;
+		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
+		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
+		const param_contents = theParam.contents;
+		const param_excluded = ( Array.isArray( theParam.excluded ) )
+							   ? theParam.excluded
+							   : [];
+		
+		//
 		// ToDo
 		// Note: we need to instantiate the object first, because we need to get the
 		// list of significant fields: should make the method static...
@@ -4798,7 +4903,7 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.request,
-					theParam,
+					param_contents,
 					this.defaultTestCollection
 				);
 		};
@@ -4884,13 +4989,11 @@ class DocumentUnitTest extends UnitTest
 					//
 					// Check local fields.
 					//
-					for( const field of doc.localFields )
-					{
-						action = `Has field [${field}]`;
-						expect( doc.document, `${message} - ${action}` ).to.have.property( field );
-						action = `Field [${field}] not empty`;
-						expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
-					}
+					this.validateLocalProperties(
+						message,
+						doc,
+						param_excluded
+					);
 					
 					//
 					// Remove document.
@@ -4907,7 +5010,7 @@ class DocumentUnitTest extends UnitTest
 					doc =
 						new theClass(
 							this.request,
-							theParam,
+							param_contents,
 							this.defaultTestCollection
 						);
 				};
@@ -4948,13 +5051,11 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Check local fields.
 			//
-			for( const field of doc.localFields )
-			{
-				action = `Has field [${field}]`;
-				expect( doc.document, `${message} - ${action}` ).to.have.property( field );
-				action = `Field [${field}] not empty`;
-				expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
-			}
+			this.validateLocalProperties(
+				message,
+				doc,
+				param_excluded
+			);
 			
 			//
 			// Remove document.
@@ -4985,9 +5086,20 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
+		// Check parameter.
+		//
+		expect( theParam, "Parameter type" ).to.be.an.object;
+		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
+		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
+		const param_contents = theParam.contents;
+		const param_excluded = ( Array.isArray( theParam.excluded ) )
+							   ? theParam.excluded
+							   : [];
+		
+		//
 		// Clone parameter.
 		//
-		const clone = K.function.clone( theParam );
+		const clone = K.function.clone( param_contents );
 		
 		//
 		// Change name if already saved.
@@ -5030,13 +5142,20 @@ class DocumentUnitTest extends UnitTest
 		action = "Should not be empty";
 		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
 		action = "Has local fields";
-		for( const field of doc.localFields )
-			expect(doc.document, `${message} - ${action}` ).to.have.property(field);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
 		action = "Modified";
 		expect( doc.modified, `${message} - ${action}` ).to.equal(false);
 		this.assertAllProvidedDataInDocument( "Contents", doc, clone );
+		
+		//
+		// Check local fields.
+		//
+		this.validateLocalProperties(
+			message,
+			doc,
+			param_excluded
+		);
 		
 		//
 		// Get ID and clone data.
@@ -5148,6 +5267,14 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
+		// Check parameter.
+		//
+		expect( theParam, "Parameter type" ).to.be.an.object;
+		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
+		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
+		const param_contents = theParam.contents;
+		
+		//
 		// Instantiate.
 		//
 		message = "Instantiation";
@@ -5155,7 +5282,7 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.request,
-					theParam,
+					param_contents,
 					this.defaultTestCollection
 				);
 		};
@@ -5197,9 +5324,20 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
+		// Check parameter.
+		//
+		expect( theParam, "Parameter type" ).to.be.an.object;
+		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
+		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
+		const param_contents = theParam.contents;
+		const param_excluded = ( Array.isArray( theParam.excluded ) )
+							   ? theParam.excluded
+							   : [];
+		
+		//
 		// Clone contents.
 		//
-		const clone = K.function.clone(theParam);
+		const clone = K.function.clone(param_contents);
 		
 		//
 		// Change name if already saved.
@@ -5245,13 +5383,20 @@ class DocumentUnitTest extends UnitTest
 			action = "Should not be empty";
 			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
 			action = "Has local fields";
-			for( const field of doc.localFields )
-				expect(doc.document, `${message} - ${action}` ).to.have.property(field);
 			action = "Persistent";
 			expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
 			action = "Modified";
 			expect( doc.modified, `${message} - ${action}` ).to.equal(false);
 			this.assertAllProvidedDataInDocument( "Contents", doc, clone );
+			
+			//
+			// Check local fields.
+			//
+			this.validateLocalProperties(
+				message,
+				doc,
+				param_excluded
+			);
 			
 			//
 			// Get ID and clone data.
@@ -5433,6 +5578,11 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
+		// Check parameter.
+		//
+		const param_excluded = ( Array.isArray( theParam ) ) ? theParam : [];
+		
+		//
 		// Instantiate empty object.
 		//
 		message = "Instantiation";
@@ -5480,13 +5630,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check local fields.
 		//
-		for( const field of doc.localFields )
-		{
-			action = `Has field [${field}]`;
-			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
-			action = `Field [${field}] not empty`;
-			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
-		}
+		this.validateLocalProperties(
+			message,
+			doc,
+			param_excluded
+		);
 		
 		//
 		// Instantiate empty object.
@@ -5536,13 +5684,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check local fields.
 		//
-		for( const field of doc.localFields )
-		{
-			action = `Has field [${field}]`;
-			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
-			action = `Field [${field}] not empty`;
-			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
-		}
+		this.validateLocalProperties(
+			message,
+			doc,
+			param_excluded
+		);
 		
 		//
 		// Instantiate empty object.
@@ -5592,13 +5738,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check local fields.
 		//
-		for( const field of doc.localFields )
-		{
-			action = `Has field [${field}]`;
-			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
-			action = `Field [${field}] not empty`;
-			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
-		}
+		this.validateLocalProperties(
+			message,
+			doc,
+			param_excluded
+		);
 		
 		//
 		// Instantiate empty object.
@@ -5648,13 +5792,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check local fields.
 		//
-		for( const field of doc.localFields )
-		{
-			action = `Has field [${field}]`;
-			expect( doc.document, `${message} - ${action}` ).to.have.property( field );
-			action = `Field [${field}] not empty`;
-			expect( doc.document[ field ], `${message} - ${action}` ).not.to.be.empty;
-		}
+		this.validateLocalProperties(
+			message,
+			doc,
+			param_excluded
+		);
 		
 	}	// testResolvePersistent
 	
@@ -10394,6 +10536,55 @@ class DocumentUnitTest extends UnitTest
 		}	// Iterating fields with replace flag on.
 		
 	}	// validateResolveChangedContents
+	
+	/**
+	 * Validate local properties
+	 *
+	 * This method can be used to validate the presence of local properties, it
+	 * expects an array parameter, theExcluded, containing the list of excluded
+	 * properties.
+	 *
+	 * The method will iterate through all local properties and assert the property is
+	 * there and not empty. If the property is among the provided excluded properties,
+	 * the method will assert that the property is not there.
+	 *
+	 * The theMessage parameter is used to provide the main error message part.
+	 *
+	 * @param theMessage	{String}	Main error message part.
+	 * @param theObject		{Document}	The object to test.
+	 * @param theExcluded	{Array}		List of excluded properties.
+	 */
+	validateLocalProperties( theMessage, theObject, theExcluded = [] )
+	{
+		let action;
+		
+		//
+		// Iterate local fields.
+		//
+		for( const field of theObject.localFields )
+		{
+			//
+			// Handle exclusions.
+			//
+			if( theExcluded.includes( field ) )
+			{
+				action = `Field [${field}] is not there`;
+				expect( theObject.document, `${theMessage} - ${action}` ).not.to.have.property( field );
+			}
+			
+			//
+			// Handle inclusions.
+			//
+			else
+			{
+				action = `Field [${field}] exists`;
+				expect( theObject.document, `${theMessage} - ${action}` ).to.have.property( field );
+				action = `Field [${field}] is not empty`;
+				expect( theObject.document[ field ], `${theMessage} - ${action}` ).not.to.be.empty;
+			}
+		}
+		
+	}	// validateLocalProperties
 	
 	
 	/****************************************************************************
