@@ -2,12 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/Edge.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Edge.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/classes/EdgeUnitTest.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/classes/EdgeUnitTest.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/disabled/disabled_test_Edge.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/disabled/disabled_test_Edge.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_Edge.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_Edge.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -1522,11 +1517,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Edge.js" pinned="false" current-in-tab="false">
+          <file leaf-file-name="Edge.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/classes/Edge.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="624">
-                  <caret line="263" selection-start-line="263" selection-end-line="263" />
+                <state relative-caret-position="435">
+                  <caret line="29" column="26" selection-start-line="29" selection-start-column="26" selection-end-line="29" selection-end-column="26" />
                 </state>
               </provider>
             </entry>
@@ -1540,7 +1535,7 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="EdgeUnitTest.js" pinned="false" current-in-tab="true">
+          <file leaf-file-name="EdgeUnitTest.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/test/classes/EdgeUnitTest.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="305">
@@ -1718,9 +1713,9 @@
         <option value="$PROJECT_DIR$/test/parameters/Edge.js" />
         <option value="$PROJECT_DIR$/test/disabled/disabled_test_Edge.js" />
         <option value="$PROJECT_DIR$/test/test_Edge.js" />
-        <option value="$PROJECT_DIR$/classes/Edge.js" />
         <option value="$PROJECT_DIR$/test/classes/DocumentUnitTest.js" />
         <option value="$PROJECT_DIR$/test/classes/EdgeUnitTest.js" />
+        <option value="$PROJECT_DIR$/classes/Edge.js" />
       </list>
     </option>
   </component>
@@ -1982,7 +1977,7 @@
       <workItem from="1529653952782" duration="270000" />
       <workItem from="1529656547870" duration="14830000" />
       <workItem from="1529680816353" duration="1660000" />
-      <workItem from="1529687018038" duration="4127000" />
+      <workItem from="1529687018038" duration="4775000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring Document unit tests.&#10;Developed functions to make lengthy checks: will not transform functions into classes to make checks inherited and reusable.">
       <created>1528974578541</created>
@@ -2016,7 +2011,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="711194000" />
+    <option name="totallyTimeSpent" value="711842000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="564" y="23" width="1996" height="1417" extended-state="0" />
@@ -2317,13 +2312,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="554">
           <caret line="125" column="73" lean-forward="true" selection-start-line="125" selection-start-column="73" selection-end-line="125" selection-end-column="73" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Edge.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="624">
-          <caret line="263" selection-start-line="263" selection-end-line="263" />
         </state>
       </provider>
     </entry>
@@ -3823,6 +3811,13 @@
             <element signature="e#26332#26334#0" />
             <element signature="e#26454#26456#0" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Edge.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="435">
+          <caret line="29" column="26" selection-start-line="29" selection-start-column="26" selection-end-line="29" selection-end-column="26" />
         </state>
       </provider>
     </entry>

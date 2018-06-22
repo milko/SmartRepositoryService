@@ -23,6 +23,12 @@ const Persistent = require( './Persistent' );
  *
  * This class implements the default edge object.
  *
+ * The edge class must have ONE significant fields combination, this combination has
+ * all the fields required to compute the document _key. The key is not required and
+ * it is automatically computed before the object persists. This means that missing
+ * significant fields behave as missing required fields, except that the raised error
+ * is of a different type.
+ *
  * The class expects all required collections to exist.
  */
 class Edge extends Persistent
