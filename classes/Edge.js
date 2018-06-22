@@ -23,11 +23,28 @@ const Persistent = require( './Persistent' );
  *
  * This class implements the default edge object.
  *
- * The edge class must have ONE significant fields combination, this combination has
- * all the fields required to compute the document _key. The key is not required and
- * it is automatically computed before the object persists. This means that missing
- * significant fields behave as missing required fields, except that the raised error
- * is of a different type.
+ * The Edge class and its derivatives must have only one significant fields
+ * combination, this combination contains the fields that are used to compute the
+ * _key. These fields are also locked, which means that once the object is persistent
+ * they cannot be changed.
+ *
+ * If one of the significant fields is missing when the _key is computed, the class
+ * will raise an exception, so. in practice, these fields are also required and they
+ * do not need to be included in the required fields.
+ *
+ * For this reason, the significant fields behave like the required fields, but the
+ * raised error is of a different type.
+ *
+ * The class will also raise an exception if the _key is set and if the computed _key
+ * differs, which means that effectively edges cannot have duplicates.
+ *
+ * The other custom behaviour is that edges are only resolved by _key: since there is
+ * only one significant field combination and that combination represents the key
+ * hash, edges are always resolved by reference; this also means that if the object
+ * does not have all its significant fields, resolving the object will fail.
+ *
+ * The class adds a key() getter method that will return the edge _key, or null, if
+ * any of the significant fields is missing.
  *
  * The class expects all required collections to exist.
  */
@@ -248,8 +265,8 @@ class Edge extends Persistent
 	{
 		return [
 			[
-				'_to',						// Relationship destination.
 				'_from',					// Relationship source.
+				'_to',						// Relationship destination.
 				Dict.descriptor.kPredicate	// Relationship predicate.
 			]
 		];																			// ==>
@@ -257,38 +274,19 @@ class Edge extends Persistent
 	}	// significantFields
 	
 	/**
-	 * Return list of required fields
-	 *
-	 * We overload this mathod to add the key and the significant fields.
-	 *
-	 * @returns {Array}	List of required fields.
-	 */
-	get requiredFields()
-	{
-		return super.requiredFields
-			.concat([
-				'_from',					// The source node reference.
-				'_to',						// The destination node reference.
-				Dict.descriptor.kPredicate	// The predicate reference.
-			]);																		// ==>
-		
-	}	// requiredFields
-	
-	/**
 	 * Return list of locked fields
 	 *
-	 * We overload this mathod to add the significant fields.
+	 * We overload this method to add the significant fields to the locked fields,
+	 * since, by default, significant fields should also be lopcked.
 	 *
 	 * @returns {Array}	List of locked fields.
 	 */
 	get lockedFields()
 	{
 		return super.lockedFields
-			.concat([
-				'_to',						// Relationship destination.
-				'_from',					// Relationship source.
-				Dict.descriptor.kPredicate	// Relationship predicate.
-			]);																		// ==>
+			.concat(
+				this.significantFields[ 0 ]
+			);																		// ==>
 		
 	}	// lockedFields
 	

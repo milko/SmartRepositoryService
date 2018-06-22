@@ -1160,14 +1160,14 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testInstantiateInvalidIdNoDefaultCollection(
+		this.testInstantiateInvalidId(
 			this.test_classes.base, theParam );
 		
 		//
 		// Should fail.
 		//
 		if( this.test_classes.custom )
-			this.testInstantiateInvalidIdDefaultCollection(
+			this.testInstantiateInvalidId(
 				this.test_classes.custom, theParam
 			);
 		
@@ -1189,7 +1189,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testInstantiateCrossCollectionReferenceProvidedCollection(
+		this.testInstantiateCrossCollectionReference(
 			this.test_classes.base, theParam
 		);
 		
@@ -1197,7 +1197,7 @@ class DocumentUnitTest extends UnitTest
 		// Should fail.
 		//
 		if( this.test_classes.custom )
-			this.testInstantiateCrossCollectionReferenceDefaultCollection(
+			this.testInstantiateCrossCollectionReference(
 				this.test_classes.custom, theParam
 			);
 		
@@ -1218,7 +1218,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should fail.
 		//
-		this.testInstantiateNotFoundIdReferenceProvidedCollection(
+		this.testInstantiateNotFoundIdReference(
 			this.test_classes.base, theParam
 		);
 		
@@ -1226,7 +1226,7 @@ class DocumentUnitTest extends UnitTest
 		// Should fail.
 		//
 		if( this.test_classes.custom )
-			this.testInstantiateNotFoundIdReferenceDefaultCollection(
+			this.testInstantiateNotFoundIdReference(
 				this.test_classes.custom, theParam
 			);
 		
@@ -1247,7 +1247,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInstantiateFoundReferenceProvidedCollection(
+		this.testInstantiateFoundReference(
 			this.test_classes.base, theParam
 		);
 		
@@ -1255,7 +1255,7 @@ class DocumentUnitTest extends UnitTest
 		// Should fail.
 		//
 		if( this.test_classes.custom )
-			this.testInstantiateFoundReferenceDefaultCollection(
+			this.testInstantiateFoundReference(
 				this.test_classes.custom, theParam
 			);
 		
@@ -2755,61 +2755,96 @@ class DocumentUnitTest extends UnitTest
 	}	// testInstantiateMutableImmutable
 	
 	/**
-	 * Instantiate with invalid _id reference and default collection.
-	 *
-	 * Assert that the provided _id reference is invalid. This test assumes that the
-	 * class implements a default collection: the test will assert that the error is
-	 * of the correct type.
-	 *
-	 * Should always fail.
-	 *
-	 * @param theClass		{Function}	The class to test.
-	 * @param theParam		{Object}	The object contents.
-	 */
-	testInstantiateInvalidIdDefaultCollection( theClass, theParam = null )
-	{
-		expect( () => {
-			const tmp =
-				new theClass(
-					this.parameters.request,
-					`XXXXXXXX`
-				);
-		}).to.throw(
-			MyError,
-			/not found in collection/
-		);
-		
-	}	// testInstantiateInvalidIdDefaultCollection
-	
-	/**
 	 * Instantiate with invalid _id reference.
 	 *
-	 * Assert that the provided _id reference is invalid. This test assumes that the
-	 * class does not implement a default collection: the test will assert that the
-	 * error is of the correct type.
+	 * Assert that the provided _id reference is invalid.
 	 *
 	 * Should always fail.
 	 *
 	 * @param theClass		{Function}	The class to test.
 	 * @param theParam		{Object}	The object contents.
 	 */
-	testInstantiateInvalidIdNoDefaultCollection( theClass, theParam = null )
+	testInstantiateInvalidId( theClass, theParam = null )
 	{
-		expect( () => {
-			const tmp =
+		let doc;
+		let func;
+		let message;
+		
+		//
+		// Instantiate a document.
+		// ToDo.
+		// Need to implement defaultCollection() call as static.
+		//
+		message = "Instantiate document";
+		func = () => {
+			doc =
 				new theClass(
 					this.parameters.request,
-					`XXXXXXXX`
+					null,
+					this.defaultTestCollection
 				);
-		}).to.throw(
-			MyError,
-			/invalid object reference handle/
-		);
+		};
+		expect( func, `${message}` ).not.to.throw();
 		
-	}	// testInstantiateInvalidIdNoDefaultCollection
+		//
+		// Determine whether it has a default collection.
+		//
+		const default_collection = doc.defaultCollection;
+		
+		//
+		// Fail with default collection.
+		//
+		if( default_collection !== null )
+			expect( () => {
+				const tmp =
+					new theClass(
+						this.parameters.request,
+						`XXXXXXXX`
+					);
+			}).to.throw(
+				MyError,
+				/not found in collection/
+			);
+		
+		//
+		// Fail with provided collection.
+		//
+		else
+		{
+			//
+			// Expect an _id reference.
+			//
+			expect( () => {
+				const tmp =
+					new theClass(
+						this.parameters.request,
+						`XXXXXXXX`
+					);
+			}).to.throw(
+				MyError,
+				/invalid object reference handle/
+			);
+			
+			//
+			// Expect a _key reference.
+			//
+			expect( () => {
+				const tmp =
+					new theClass(
+						this.parameters.request,
+						`XXXXXXXX`,
+						this.defaultTestCollection
+					);
+			}).to.throw(
+				MyError,
+				/not found in collection/
+			);
+		}
+		
+	}	// testInstantiateInvalidId
 	
 	/**
-	 * Instantiate with cross-collection reference and default collection.
+	 * Instantiate with cross-collection reference.
 	 *
 	 * Assert that the provided _id reference belongs to the same declared or implicit
 	 * collection.
@@ -2819,50 +2854,68 @@ class DocumentUnitTest extends UnitTest
 	 * @param theClass		{Function}	The class to test.
 	 * @param theParam		{Object}	The object contents.
 	 */
-	testInstantiateCrossCollectionReferenceDefaultCollection( theClass, theParam = null )
+	testInstantiateCrossCollectionReference( theClass, theParam = null )
 	{
-		expect( () => {
-			const tmp =
-				new theClass(
-					this.parameters.request,
-					this.example_id
-				);
-		}).to.throw(
-			MyError,
-			/cross-collection reference/
-		);
+		let doc;
+		let func;
+		let message;
 		
-	}	// testInstantiateCrossCollectionReferenceDefaultCollection
-	
-	/**
-	 * Instantiate with cross-collection reference and provided collection.
-	 *
-	 * Assert that the provided _id reference belongs to the same declared or implicit
-	 * collection.
-	 *
-	 * Should always fail.
-	 *
-	 * @param theClass		{Function}	The class to test.
-	 * @param theParam		{Object}	The object contents.
-	 */
-	testInstantiateCrossCollectionReferenceProvidedCollection( theClass, theParam = null )
-	{
-		expect( () => {
-			const tmp =
+		//
+		// Instantiate a document.
+		// ToDo.
+		// Need to implement defaultCollection() call as static.
+		//
+		message = "Instantiate document";
+		func = () => {
+			doc =
 				new theClass(
 					this.parameters.request,
-					this.example_id,
+					null,
 					this.defaultTestCollection
 				);
-		}).to.throw(
-			MyError,
-			/cross-collection reference/
-		);
+		};
+		expect( func, `${message}` ).not.to.throw();
 		
-	}	// testInstantiateCrossCollectionReferenceProvidedCollection
+		//
+		// Determine whether it has a default collection.
+		//
+		const default_collection = doc.defaultCollection;
+		
+		//
+		// Fail with default collection.
+		//
+		if( default_collection !== null )
+			expect( () => {
+				const tmp =
+					new theClass(
+						this.parameters.request,
+						this.example_id
+					);
+			}).to.throw(
+				MyError,
+				/cross-collection reference/
+			);
+		
+		//
+		// Fail with provided collection.
+		//
+		else
+			expect( () => {
+				const tmp =
+					new theClass(
+						this.parameters.request,
+						this.example_id,
+						this.defaultTestCollection
+					);
+			}).to.throw(
+				MyError,
+				/cross-collection reference/
+			);
+		
+	}	// testInstantiateCrossCollectionReference
 	
 	/**
-	 * Instantiate with not found _id reference and default collection.
+	 * Instantiate with not found _id reference.
 	 *
 	 * Assert that the test raises an error of the not found type.
 	 *
@@ -2871,46 +2924,65 @@ class DocumentUnitTest extends UnitTest
 	 * @param theClass		{Function}	The class to test.
 	 * @param theParam		{Object}	The object contents.
 	 */
-	testInstantiateNotFoundIdReferenceDefaultCollection( theClass, theParam = null )
+	testInstantiateNotFoundIdReference( theClass, theParam = null )
 	{
-		expect( () => {
-			const tmp =
-				new theClass(
-					this.parameters.request,
-					`${this.defaultTestCollection}/XXXXXXXX`
-				);
-		}).to.throw(
-			MyError,
-			/not found in collection/
-		);
+		let doc;
+		let func;
+		let message;
 		
-	}	// testInstantiateNotFoundIdReferenceDefaultCollection
-	
-	/**
-	 * Instantiate with not found _id reference and provided collection.
-	 *
-	 * Assert that the test raises an error of the not found type.
-	 *
-	 * Should always fail.
-	 *
-	 * @param theClass		{Function}	The class to test.
-	 * @param theParam		{Object}	The object contents.
-	 */
-	testInstantiateNotFoundIdReferenceProvidedCollection( theClass, theParam = null )
-	{
-		expect( () => {
-			const tmp =
+		//
+		// Instantiate a document.
+		// ToDo.
+		// Need to implement defaultCollection() call as static.
+		//
+		message = "Instantiate document";
+		func = () => {
+			doc =
 				new theClass(
 					this.parameters.request,
-					`${this.defaultTestCollection}/XXXXXXXX`,
+					null,
 					this.defaultTestCollection
 				);
-		}).to.throw(
-			MyError,
-			/not found in collection/
-		);
+		};
+		expect( func, `${message}` ).not.to.throw();
 		
-	}	// testInstantiateNotFoundIdReferenceProvidedCollection
+		//
+		// Determine whether it has a default collection.
+		//
+		const default_collection = doc.defaultCollection;
+		
+		//
+		// Fail with default collection.
+		//
+		if( default_collection !== null )
+			expect( () => {
+				const tmp =
+					new theClass(
+						this.parameters.request,
+						`${this.defaultTestCollection}/XXXXXXXX`
+					);
+			}).to.throw(
+				MyError,
+				/not found in collection/
+			);
+		
+		//
+		// Fail with provided collection.
+		//
+		else
+			expect( () => {
+				const tmp =
+					new theClass(
+						this.parameters.request,
+						`${this.defaultTestCollection}/XXXXXXXX`,
+						this.defaultTestCollection
+					);
+			}).to.throw(
+				MyError,
+				/not found in collection/
+			);
+		
+	}	// testInstantiateNotFoundIdReference
 	
 	/**
 	 * Instantiate with found reference and default collection.
@@ -2923,12 +2995,15 @@ class DocumentUnitTest extends UnitTest
 	 * @param theClass		{Function}	The class to test.
 	 * @param theParam		{Object}	The object contents.
 	 */
-	testInstantiateFoundReferenceDefaultCollection( theClass, theParam = null )
+	testInstantiateFoundReference( theClass, theParam = null )
 	{
 		let doc;
 		let func;
-		let message;
+		let meta;
+		let result;
 		let action;
+		let message;
+		let collection;
 		
 		//
 		// Check parameter.
@@ -2937,19 +3012,50 @@ class DocumentUnitTest extends UnitTest
 		expect( theParam, message ).to.be.an.object;
 		
 		//
+		// Instantiate a document.
+		// ToDo.
+		// Need to implement defaultCollection() call as static.
+		//
+		message = "Instantiate document";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Determine whether it has a default collection.
+		//
+		const default_collection = doc.defaultCollection;
+		
+		//
 		// Test instantiation with reference collection different than default collection.
 		// Should fail: the provided _id is of a different collection than the default
 		// collection.
 		//
 		message = "Reference collection different than default collection";
 		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					this.example_id
-				);
-		};
+		if( default_collection !== null )
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						this.example_id
+					);
+			};
+		else
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						this.example_id,
+						this.defaultTestCollection
+					);
+			};
 		expect( func, `${message} - ${action}`
 		).to.throw(
 			MyError,
@@ -2978,7 +3084,7 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 		//
-		// Test instantiation with reference collection same as provided collection.
+		// Test instantiation with inferred collection same as provided collection.
 		// Should succeed.
 		//
 		message = "Reference collection same as provided collection";
@@ -3006,20 +3112,57 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
-		// Insert test document.
+		// Instantiate sample document.
 		//
-		const collection = doc.defaultCollection;
-		const meta =
-			db._collection( collection )
-				.insert( theParam );
+		message = "Reference sample document";
+		action = "Instantiation";
+		if( default_collection !== null )
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						theParam
+					);
+			};
+		else
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						theParam,
+						this.defaultTestCollection
+					);
+			};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Prepare document for insert.
+		//
+		action = "Prepare for insert";
+		func = () => {
+			result = doc.insertDocument( false );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.true;
+		
+		//
+		// Insert sample document.
+		//
+		action = "Insert in collection";
+		collection = doc.collection;
+		func = () => {
+			meta =
+				db._collection( collection )
+					.insert( doc.document );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
 		
 		//
 		// Test instantiation with reference inferred collection same as default
 		// collection.
 		// Should succeed.
 		//
-		message = "Reference collection inferred and same as default collection";
-		action = "Instantiation";
+		message = "Reference by _id with inferred collection";
 		func = () => {
 			doc =
 				new theClass(
@@ -3027,7 +3170,7 @@ class DocumentUnitTest extends UnitTest
 					meta._id
 				);
 		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( func, `${message}` ).not.to.throw();
 		
 		//
 		// Check object status.
@@ -3035,7 +3178,7 @@ class DocumentUnitTest extends UnitTest
 		action = "Contents";
 		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
 		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
@@ -3046,7 +3189,7 @@ class DocumentUnitTest extends UnitTest
 		// collection.
 		// Should succeed.
 		//
-		message = "Reference collection inferred and same as provided collection";
+		message = "Reference by _id with provided collection";
 		action = "Instantiation";
 		func = () => {
 			doc =
@@ -3064,7 +3207,7 @@ class DocumentUnitTest extends UnitTest
 		action = "Contents";
 		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
 		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
@@ -3074,215 +3217,25 @@ class DocumentUnitTest extends UnitTest
 		// Test instantiation with key reference and default collection.
 		// Should succeed.
 		//
-		message = "Key reference and default collection";
+		message = "Reference by _key";
 		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._key
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Test instantiation with key reference and provided collection.
-		// Should succeed.
-		//
-		message = "Key reference and default collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._key,
-					collection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Remove test document.
-		//
-		db._remove(meta._id);
-		
-	}	// testInstantiateFoundReferenceDefaultCollection
-	
-	/**
-	 * Instantiate with found reference and provided collection.
-	 *
-	 * Assert that the test raises an error only if the provided reference doesn't
-	 * match the provided collection.
-	 *
-	 * Should always fail.
-	 *
-	 * @param theClass		{Function}	The class to test.
-	 * @param theParam		{Object}	The object contents.
-	 */
-	testInstantiateFoundReferenceProvidedCollection( theClass, theParam = null )
-	{
-		let doc;
-		let func;
-		let message;
-		let action;
-		
-		//
-		// Check parameter.
-		//
-		message = "Check parameter";
-		expect( theParam, message ).to.be.an.object;
-		
-		//
-		// Test instantiation with reference collection different than provided collection.
-		// Should fail: the provided _id is of a different collection than the provided
-		// collection.
-		//
-		message = "Reference collection different than provided collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					this.example_id,
-					this.compatible_collection
-				);
-		};
-		expect( func, `${message} - ${action}`
-		).to.throw(
-			MyError,
-			/cross-collection reference/
-		);
-		
-		//
-		// Test instantiation with reference collection same as provided collection.
-		// Should succeed.
-		//
-		message = "Reference collection same as provided collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					this.example_id,
-					this.example_collection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.example_collection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Insert test document.
-		//
-		const collection = this.defaultTestCollection;
-		const meta =
-			db._collection( collection )
-				.insert( theParam );
-		
-		//
-		// Test instantiation with reference inferred collection.
-		// Should succeed.
-		//
-		message = "Reference infers collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._id
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Test instantiation with reference collection inferred and same as provided
-		// collection.
-		// Should succeed.
-		//
-		message = "Reference collection inferred and same as provided collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._id,
-					collection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Test instantiation with key reference and provided collection.
-		// Should succeed.
-		//
-		message = "Key reference and default collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._key,
-					collection
-				);
-		};
+		if( default_collection !== null )
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						meta._key
+					);
+			};
+		else
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						meta._key,
+						collection
+					);
+			};
 		expect( func, `${message} - ${action}` ).not.to.throw();
 		
 		//
@@ -3302,7 +3255,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		db._remove(meta._id);
 		
-	}	// testInstantiateFoundReferenceProvidedCollection
+	}	// testInstantiateFoundReference
 	
 	/**
 	 * Instantiate with content and default collection.
@@ -4698,7 +4651,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Check local fields.
 			//
-			this.validateLocalProperties(
+			this.checkLocalProperties(
 				message,
 				doc,
 				( Array.isArray( theParam ) ) ? theParam : []
@@ -4852,7 +4805,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Check local fields.
 			//
-			this.validateLocalProperties(
+			this.checkLocalProperties(
 				message,
 				doc,
 				param_excluded
@@ -4991,7 +4944,7 @@ class DocumentUnitTest extends UnitTest
 					//
 					// Check local fields.
 					//
-					this.validateLocalProperties(
+					this.checkLocalProperties(
 						message,
 						doc,
 						param_excluded
@@ -5053,7 +5006,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Check local fields.
 			//
-			this.validateLocalProperties(
+			this.checkLocalProperties(
 				message,
 				doc,
 				param_excluded
@@ -5153,7 +5106,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check local fields.
 		//
-		this.validateLocalProperties(
+		this.checkLocalProperties(
 			message,
 			doc,
 			param_excluded
@@ -5394,7 +5347,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Check local fields.
 			//
-			this.validateLocalProperties(
+			this.checkLocalProperties(
 				message,
 				doc,
 				param_excluded
@@ -5632,7 +5585,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check local fields.
 		//
-		this.validateLocalProperties(
+		this.checkLocalProperties(
 			message,
 			doc,
 			param_excluded
@@ -5686,7 +5639,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check local fields.
 		//
-		this.validateLocalProperties(
+		this.checkLocalProperties(
 			message,
 			doc,
 			param_excluded
@@ -5740,7 +5693,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check local fields.
 		//
-		this.validateLocalProperties(
+		this.checkLocalProperties(
 			message,
 			doc,
 			param_excluded
@@ -5794,7 +5747,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check local fields.
 		//
-		this.validateLocalProperties(
+		this.checkLocalProperties(
 			message,
 			doc,
 			param_excluded
@@ -6907,7 +6860,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Perforn test.
 		//
-		this.validateResolveChangedContents(
+		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
 			doc.lockedFields								// List of test fields.
@@ -6957,7 +6910,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Perforn test.
 		//
-		this.validateResolveChangedContents(
+		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
 			K.function.flatten(doc.significantFields)		// List of test fields.
@@ -7007,7 +6960,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Perforn test.
 		//
-		this.validateResolveChangedContents(
+		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
 			doc.requiredFields								// List of test fields.
@@ -7057,7 +7010,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Perforn test.
 		//
-		this.validateResolveChangedContents(
+		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
 			doc.uniqueFields								// List of test fields.
@@ -7107,7 +7060,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Perforn test.
 		//
-		this.validateResolveChangedContents(
+		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
 			doc.lockedFields								// List of test fields.
@@ -7171,7 +7124,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Perforn test.
 		//
-		this.validateResolveChangedContents(
+		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
 			fields											// List of test fields.
@@ -8589,6 +8542,511 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 	}	// testRemoveConstrained
+	
+	
+	/****************************************************************************
+	 * COMMON TEST ROUTINE DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Validate resolve changed contents
+	 *
+	 * This method expects a list of fields and for each field it will resolve the
+	 * object, change the field in the background and resolve the object again: it
+	 * expects the operation to fail, if the revision changed, or the field not to be
+	 * changed if the revision is the same.
+	 *
+	 * Updates and test documents are expected to be found in the collection
+	 * this.defaultTestCollection.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theReference	{String}	The test object _key.
+	 * @param theFields		{Array}		The list of fields to test.
+	 */
+	checkChangedContents( theClass, theReference, theFields )
+	{
+		let doc;
+		let tmp;
+		let func;
+		let result;
+		let action;
+		let message;
+		let selector;
+		let revision;
+		
+		//
+		// Resolve document by reference.
+		//
+		message = "Instantiate with saved reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					theReference,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Assert document state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Save original contents and test fields list.
+		//
+		const original = K.function.clone( doc.document );
+		
+		//
+		// Try fields with replace flag off.
+		//
+		message = "Replace flag off";
+		for( const field of theFields )
+		{
+			//
+			// Do test if the document has it.
+			//
+			if( doc.document.hasOwnProperty( field ) )
+			{
+				//
+				// Resolve document by reference.
+				//
+				action = "Instantiate with reference";
+				func = () => {
+					doc =
+						new theClass(
+							this.parameters.request,
+							theReference,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Save current revision.
+				//
+				revision = doc.document._rev;
+				
+				//
+				// Change field value.
+				//
+				action = "Change value";
+				selector = {};
+				selector[ field ] = "I_CHANGED_IT";
+				func = () => {
+					db._collection(this.defaultTestCollection)
+						.update(
+							theReference,
+							selector,
+							{waitForSync: true}
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Catch revision change.
+				//
+				func = () => {
+					tmp = db._collection(this.defaultTestCollection)
+						.document(theReference);
+				};
+				action = `Getting revision with changed field [${field}]`;
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Resolve document.
+				//
+				func = () => {
+					result = doc.resolveDocument( false, true );
+				};
+				if( revision !== tmp._rev )
+				{
+					action = `Catch revision change with changed field [${field}]`;
+					expect( func, `${message} - ${action}`
+					).to.throw(
+						MyError,
+						/Ambiguous document reference/
+					);
+				}
+				else
+				{
+					action = `Resolve with changed field [${field}]`;
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					action = `Check field [${field}] value`;
+					expect( doc.document[ field ], `${message} - ${action}` )
+						.to.equal( original[ field ] );
+				}
+				
+				//
+				// Check removing field if not reference.
+				//
+				if( (field !== '_id')
+					&& (field !== '_key')
+					&& (field !== '_rev') )
+				{
+					//
+					// Restore field value.
+					//
+					action = `Restore field [${field}]`;
+					selector = {};
+					selector[ field ] = original[ field ];
+					func = () => {
+						db._collection(this.defaultTestCollection)
+							.update(
+								theReference,
+								selector,
+								{waitForSync: true}
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Resolve document by reference.
+					//
+					action = "Instantiate with reference";
+					func = () => {
+						doc =
+							new theClass(
+								this.parameters.request,
+								theReference,
+								this.defaultTestCollection
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Save current revision.
+					//
+					revision = doc.document._rev;
+					
+					//
+					// Remove field.
+					//
+					action = `Remove field [${field}]`;
+					selector = {};
+					selector[ field ] = null;
+					func = () => {
+						db._collection(this.defaultTestCollection)
+							.update(
+								theReference,
+								selector,
+								{waitForSync: true, keepNull: false}
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Catch revision change.
+					//
+					func = () => {
+						tmp = db._collection(this.defaultTestCollection)
+							.document(theReference);
+					};
+					action = `Getting revision with deleted field [${field}]`;
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Resolve document.
+					//
+					func = () => {
+						result = doc.resolveDocument( false, true );
+					};
+					if( revision !== tmp._rev )
+					{
+						action = `Catch revision change with deleted field [${field}]`;
+						expect( func, `${message} - ${action}`
+						).to.throw(
+							MyError,
+							/Ambiguous document reference/
+						);
+					}
+					else
+					{
+						action = `Resolve with deleted field [${field}]`;
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						action = `Check field [${field}] value`;
+						expect( doc.document[ field ], `${message} - ${action}` )
+							.to.equal( original[ field ] );
+					}
+					
+				}	// Not a reference field.
+				
+				//
+				// Restore field value.
+				//
+				action = `Restore field [${field}]`;
+				selector = {};
+				selector[ field ] = original[ field ];
+				func = () => {
+					db._collection(this.defaultTestCollection)
+						.update(
+							theReference,
+							selector,
+							{waitForSync: true}
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+			}	// Document has property.
+			
+		}	// Iterating fields with replace flag off.
+		
+		//
+		// Try fields with replace flag off.
+		//
+		message = "Replace flag on";
+		for( const field of theFields )
+		{
+			//
+			// Do test if the document has it.
+			//
+			if( doc.document.hasOwnProperty( field ) )
+			{
+				//
+				// Resolve document by reference.
+				//
+				action = "Instantiate with reference";
+				func = () => {
+					doc =
+						new theClass(
+							this.parameters.request,
+							theReference,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Save current revision.
+				//
+				revision = doc.document._rev;
+				
+				//
+				// Change field value.
+				//
+				action = "Change value";
+				selector = {};
+				selector[ field ] = "I_CHANGED_IT";
+				func = () => {
+					db._collection(this.defaultTestCollection)
+						.update(
+							theReference,
+							selector,
+							{waitForSync: true}
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Catch revision change.
+				//
+				func = () => {
+					tmp = db._collection(this.defaultTestCollection)
+						.document(theReference);
+				};
+				action = `Getting revision with changed field [${field}]`;
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Resolve document.
+				//
+				func = () => {
+					result = doc.resolveDocument( true, true );
+				};
+				if( revision !== tmp._rev )
+				{
+					action = `Catch revision change with changed field [${field}]`;
+					expect( func, `${message} - ${action}`
+					).to.throw(
+						MyError,
+						/Ambiguous document reference/
+					);
+				}
+				else
+				{
+					action = `Resolve with changed field [${field}]`;
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					action = `Check field [${field}] value`;
+					if( field === '_rev')
+						expect( doc.document[ field ], `${message} - ${action}` )
+							.to.equal( revision );
+					else
+						expect( doc.document[ field ], `${message} - ${action}` )
+							.to.equal( original[ field ] );
+				}
+				
+				//
+				// Check removing field if not reference.
+				//
+				if( (field !== '_id')
+					&& (field !== '_key')
+					&& (field !== '_rev') )
+				{
+					//
+					// Restore field value.
+					//
+					action = `Restore field [${field}]`;
+					selector = {};
+					selector[ field ] = original[ field ];
+					func = () => {
+						db._collection(this.defaultTestCollection)
+							.update(
+								theReference,
+								selector,
+								{waitForSync: true}
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Resolve document by reference.
+					//
+					action = "Instantiate with reference";
+					func = () => {
+						doc =
+							new theClass(
+								this.parameters.request,
+								theReference,
+								this.defaultTestCollection
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Save current revision.
+					//
+					revision = doc.document._rev;
+					
+					//
+					// Remove field.
+					//
+					action = `Remove field [${field}]`;
+					selector = {};
+					selector[ field ] = null;
+					func = () => {
+						db._collection(this.defaultTestCollection)
+							.update(
+								theReference,
+								selector,
+								{waitForSync: true, keepNull: false}
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Catch revision change.
+					//
+					func = () => {
+						tmp = db._collection(this.defaultTestCollection)
+							.document(theReference);
+					};
+					action = `Getting revision with changed field [${field}]`;
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Resolve document.
+					//
+					func = () => {
+						result = doc.resolveDocument( false, true );
+					};
+					if( revision !== tmp._rev )
+					{
+						action = `Catch revision change with changed field [${field}]`;
+						expect( func, `${message} - ${action}`
+						).to.throw(
+							MyError,
+							/Ambiguous document reference/
+						);
+					}
+					else
+					{
+						action = `Resolve with changed field [${field}]`;
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						action = `Check field [${field}] value`;
+						expect( doc.document[ field ], `${message} - ${action}` )
+							.to.equal( original[ field ] );
+					}
+					
+				}	// Not a reference field.
+				
+				//
+				// Restore field value.
+				//
+				action = `Restore field [${field}]`;
+				selector = {};
+				selector[ field ] = original[ field ];
+				func = () => {
+					db._collection(this.defaultTestCollection)
+						.update(
+							theReference,
+							selector,
+							{waitForSync: true}
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+			}	// Document has property.
+			
+		}	// Iterating fields with replace flag on.
+		
+	}	// checkChangedContents
+	
+	/**
+	 * Validate local properties
+	 *
+	 * This method can be used to validate the presence of local properties, it
+	 * expects an array parameter, theExcluded, containing the list of excluded
+	 * properties.
+	 *
+	 * The method will iterate through all local properties and assert the property is
+	 * there and not empty. If the property is among the provided excluded properties,
+	 * the method will assert that the property is not there.
+	 *
+	 * The theMessage parameter is used to provide the main error message part.
+	 *
+	 * @param theMessage	{String}	Main error message part.
+	 * @param theObject		{Document}	The object to test.
+	 * @param theExcluded	{Array}		List of excluded properties.
+	 */
+	checkLocalProperties( theMessage, theObject, theExcluded = [] )
+	{
+		let action;
+		
+		//
+		// Iterate local fields.
+		//
+		for( const field of theObject.localFields )
+		{
+			//
+			// Handle exclusions.
+			//
+			if( theExcluded.includes( field ) )
+			{
+				action = `Field [${field}] is not there`;
+				expect( theObject.document, `${theMessage} - ${action}` ).not.to.have.property( field );
+			}
+			
+			//
+			// Handle inclusions.
+			//
+			else
+			{
+				action = `Field [${field}] exists`;
+				expect( theObject.document, `${theMessage} - ${action}` ).to.have.property( field );
+				action = `Field [${field}] is not empty`;
+				expect( theObject.document[ field ], `${theMessage} - ${action}` ).not.to.be.empty;
+			}
+		}
+		
+	}	// checkLocalProperties
 	
 	
 	/****************************************************************************
@@ -10166,506 +10624,6 @@ class DocumentUnitTest extends UnitTest
 		}	// Iterating object properties.
 		
 	}	// validateResolvedContents
-	
-	/**
-	 * Validate resolve changed contents
-	 *
-	 * This method expects a list of fields and for each field it will resolve the
-	 * object, change the field in the background and resolve the object again: it
-	 * expects the operation to fail, if the revision changed, or the field not to be
-	 * changed if the revision is the same.
-	 *
-	 * Updates and test documents are expected to be found in the collection
-	 * this.defaultTestCollection.
-	 *
-	 * @param theClass		{Function}	The class to test.
-	 * @param theReference	{String}	The test object _key.
-	 * @param theFields		{Array}		The list of fields to test.
-	 */
-	validateResolveChangedContents( theClass, theReference, theFields )
-	{
-		let doc;
-		let tmp;
-		let func;
-		let result;
-		let action;
-		let message;
-		let selector;
-		let revision;
-		
-		//
-		// Resolve document by reference.
-		//
-		message = "Instantiate with saved reference";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					theReference,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Assert document state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Save original contents and test fields list.
-		//
-		const original = K.function.clone( doc.document );
-		
-		//
-		// Try fields with replace flag off.
-		//
-		message = "Replace flag off";
-		for( const field of theFields )
-		{
-			//
-			// Do test if the document has it.
-			//
-			if( doc.document.hasOwnProperty( field ) )
-			{
-				//
-				// Resolve document by reference.
-				//
-				action = "Instantiate with reference";
-				func = () => {
-					doc =
-						new theClass(
-							this.parameters.request,
-							theReference,
-							this.defaultTestCollection
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Save current revision.
-				//
-				revision = doc.document._rev;
-				
-				//
-				// Change field value.
-				//
-				action = "Change value";
-				selector = {};
-				selector[ field ] = "I_CHANGED_IT";
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							theReference,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Catch revision change.
-				//
-				func = () => {
-					tmp = db._collection(this.defaultTestCollection)
-						.document(theReference);
-				};
-				action = `Getting revision with changed field [${field}]`;
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Resolve document.
-				//
-				func = () => {
-					result = doc.resolveDocument( false, true );
-				};
-				if( revision !== tmp._rev )
-				{
-					action = `Catch revision change with changed field [${field}]`;
-					expect( func, `${message} - ${action}`
-					).to.throw(
-						MyError,
-						/Ambiguous document reference/
-					);
-				}
-				else
-				{
-					action = `Resolve with changed field [${field}]`;
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					action = `Check field [${field}] value`;
-					expect( doc.document[ field ], `${message} - ${action}` )
-						.to.equal( original[ field ] );
-				}
-				
-				//
-				// Check removing field if not reference.
-				//
-				if( (field !== '_id')
-					&& (field !== '_key')
-					&& (field !== '_rev') )
-				{
-					//
-					// Restore field value.
-					//
-					action = `Restore field [${field}]`;
-					selector = {};
-					selector[ field ] = original[ field ];
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								theReference,
-								selector,
-								{waitForSync: true}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document by reference.
-					//
-					action = "Instantiate with reference";
-					func = () => {
-						doc =
-							new theClass(
-								this.parameters.request,
-								theReference,
-								this.defaultTestCollection
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Save current revision.
-					//
-					revision = doc.document._rev;
-					
-					//
-					// Remove field.
-					//
-					action = `Remove field [${field}]`;
-					selector = {};
-					selector[ field ] = null;
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								theReference,
-								selector,
-								{waitForSync: true, keepNull: false}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Catch revision change.
-					//
-					func = () => {
-						tmp = db._collection(this.defaultTestCollection)
-							.document(theReference);
-					};
-					action = `Getting revision with deleted field [${field}]`;
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document.
-					//
-					func = () => {
-						result = doc.resolveDocument( false, true );
-					};
-					if( revision !== tmp._rev )
-					{
-						action = `Catch revision change with deleted field [${field}]`;
-						expect( func, `${message} - ${action}`
-						).to.throw(
-							MyError,
-							/Ambiguous document reference/
-						);
-					}
-					else
-					{
-						action = `Resolve with deleted field [${field}]`;
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						action = `Check field [${field}] value`;
-						expect( doc.document[ field ], `${message} - ${action}` )
-							.to.equal( original[ field ] );
-					}
-					
-				}	// Not a reference field.
-				
-				//
-				// Restore field value.
-				//
-				action = `Restore field [${field}]`;
-				selector = {};
-				selector[ field ] = original[ field ];
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							theReference,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-			}	// Document has property.
-			
-		}	// Iterating fields with replace flag off.
-		
-		//
-		// Try fields with replace flag off.
-		//
-		message = "Replace flag on";
-		for( const field of theFields )
-		{
-			//
-			// Do test if the document has it.
-			//
-			if( doc.document.hasOwnProperty( field ) )
-			{
-				//
-				// Resolve document by reference.
-				//
-				action = "Instantiate with reference";
-				func = () => {
-					doc =
-						new theClass(
-							this.parameters.request,
-							theReference,
-							this.defaultTestCollection
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Save current revision.
-				//
-				revision = doc.document._rev;
-				
-				//
-				// Change field value.
-				//
-				action = "Change value";
-				selector = {};
-				selector[ field ] = "I_CHANGED_IT";
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							theReference,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Catch revision change.
-				//
-				func = () => {
-					tmp = db._collection(this.defaultTestCollection)
-						.document(theReference);
-				};
-				action = `Getting revision with changed field [${field}]`;
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Resolve document.
-				//
-				func = () => {
-					result = doc.resolveDocument( true, true );
-				};
-				if( revision !== tmp._rev )
-				{
-					action = `Catch revision change with changed field [${field}]`;
-					expect( func, `${message} - ${action}`
-					).to.throw(
-						MyError,
-						/Ambiguous document reference/
-					);
-				}
-				else
-				{
-					action = `Resolve with changed field [${field}]`;
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					action = `Check field [${field}] value`;
-					if( field === '_rev')
-						expect( doc.document[ field ], `${message} - ${action}` )
-							.to.equal( revision );
-					else
-						expect( doc.document[ field ], `${message} - ${action}` )
-							.to.equal( original[ field ] );
-				}
-				
-				//
-				// Check removing field if not reference.
-				//
-				if( (field !== '_id')
-					&& (field !== '_key')
-					&& (field !== '_rev') )
-				{
-					//
-					// Restore field value.
-					//
-					action = `Restore field [${field}]`;
-					selector = {};
-					selector[ field ] = original[ field ];
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								theReference,
-								selector,
-								{waitForSync: true}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document by reference.
-					//
-					action = "Instantiate with reference";
-					func = () => {
-						doc =
-							new theClass(
-								this.parameters.request,
-								theReference,
-								this.defaultTestCollection
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Save current revision.
-					//
-					revision = doc.document._rev;
-					
-					//
-					// Remove field.
-					//
-					action = `Remove field [${field}]`;
-					selector = {};
-					selector[ field ] = null;
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								theReference,
-								selector,
-								{waitForSync: true, keepNull: false}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Catch revision change.
-					//
-					func = () => {
-						tmp = db._collection(this.defaultTestCollection)
-							.document(theReference);
-					};
-					action = `Getting revision with changed field [${field}]`;
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document.
-					//
-					func = () => {
-						result = doc.resolveDocument( false, true );
-					};
-					if( revision !== tmp._rev )
-					{
-						action = `Catch revision change with changed field [${field}]`;
-						expect( func, `${message} - ${action}`
-						).to.throw(
-							MyError,
-							/Ambiguous document reference/
-						);
-					}
-					else
-					{
-						action = `Resolve with changed field [${field}]`;
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						action = `Check field [${field}] value`;
-						expect( doc.document[ field ], `${message} - ${action}` )
-							.to.equal( original[ field ] );
-					}
-					
-				}	// Not a reference field.
-				
-				//
-				// Restore field value.
-				//
-				action = `Restore field [${field}]`;
-				selector = {};
-				selector[ field ] = original[ field ];
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							theReference,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-			}	// Document has property.
-			
-		}	// Iterating fields with replace flag on.
-		
-	}	// validateResolveChangedContents
-	
-	/**
-	 * Validate local properties
-	 *
-	 * This method can be used to validate the presence of local properties, it
-	 * expects an array parameter, theExcluded, containing the list of excluded
-	 * properties.
-	 *
-	 * The method will iterate through all local properties and assert the property is
-	 * there and not empty. If the property is among the provided excluded properties,
-	 * the method will assert that the property is not there.
-	 *
-	 * The theMessage parameter is used to provide the main error message part.
-	 *
-	 * @param theMessage	{String}	Main error message part.
-	 * @param theObject		{Document}	The object to test.
-	 * @param theExcluded	{Array}		List of excluded properties.
-	 */
-	validateLocalProperties( theMessage, theObject, theExcluded = [] )
-	{
-		let action;
-		
-		//
-		// Iterate local fields.
-		//
-		for( const field of theObject.localFields )
-		{
-			//
-			// Handle exclusions.
-			//
-			if( theExcluded.includes( field ) )
-			{
-				action = `Field [${field}] is not there`;
-				expect( theObject.document, `${theMessage} - ${action}` ).not.to.have.property( field );
-			}
-			
-			//
-			// Handle inclusions.
-			//
-			else
-			{
-				action = `Field [${field}] exists`;
-				expect( theObject.document, `${theMessage} - ${action}` ).to.have.property( field );
-				action = `Field [${field}] is not empty`;
-				expect( theObject.document[ field ], `${theMessage} - ${action}` ).not.to.be.empty;
-			}
-		}
-		
-	}	// validateLocalProperties
 	
 	
 	/****************************************************************************

@@ -56,7 +56,7 @@ class EdgeUnitTest extends PersistentUnitTest
 			this.test_classes.base, theParam );
 		
 		//
-		// Should fail.
+		// Should succeed.
 		//
 		if( this.test_classes.custom )
 			this.testInstantiateEdgeSucceed(
@@ -76,13 +76,13 @@ class EdgeUnitTest extends PersistentUnitTest
 	instantiateDocumentCollection( theClass, theParam = null )
 	{
 		//
-		// Should succeed.
+		// Should fail.
 		//
 		this.testInstantiateDocumentFail(
 			this.test_classes.base, theParam );
 		
 		//
-		// Should succeed.
+		// Should fail.
 		//
 		if( this.test_classes.custom )
 			this.testInstantiateDocumentFail(
@@ -93,514 +93,13 @@ class EdgeUnitTest extends PersistentUnitTest
 	
 	
 	/****************************************************************************
-	 * INSTANTIATION TEST ROUTINE DEFINITIONS									*
-	 ****************************************************************************/
-	
-	/**
-	 * Instantiate with found reference and default collection.
-	 *
-	 * We override this test because edges enforce computed key, so we need to
-	 * instantiate the sample object with the class to have the correct key; we also
-	 * check that resolving an incorrect reference raises an exception..
-	 *
-	 * @param theClass		{Function}	The class to test.
-	 * @param theParam		{Object}	The object contents.
-	 */
-	testInstantiateFoundReferenceDefaultCollection( theClass, theParam = null )
-	{
-		let doc;
-		let func;
-		let meta;
-		let result;
-		let message;
-		let action;
-		
-		//
-		// Check parameter.
-		//
-		message = "Check parameter";
-		expect( theParam, message ).to.be.an.object;
-		
-		//
-		// Test instantiation with reference collection different than default collection.
-		// Should fail: the provided _id is of a different collection than the default
-		// collection.
-		//
-		message = "Reference collection different than default collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					this.example_id
-				);
-		};
-		expect( func, `${message} - ${action}`
-		).to.throw(
-			MyError,
-			/cross-collection reference/
-		);
-		
-		//
-		// Test instantiation with reference collection different than provided collection.
-		// Should fail: the provided _id is of a different collection than the provided
-		// collection.
-		//
-		message = "Reference collection different than provided collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					this.example_id,
-					this.compatible_collection
-				);
-		};
-		expect( func, `${message} - ${action}`
-		).to.throw(
-			MyError,
-			/cross-collection reference/
-		);
-		
-		//
-		// Test instantiation with reference collection same as provided collection.
-		// Should succeed.
-		//
-		message = "Reference collection same as provided collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					this.example_id,
-					this.example_collection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.example_collection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Insert sample document with non computed key.
-		//
-		const collection = this.defaultTestCollection;
-		meta =
-			db._collection( collection )
-				.insert( theParam );
-		
-		//
-		// Test instantiation with reference inferred collection.
-		// Should fail, because edges enforce computed key references.
-		//
-		message = "Reference is not computed key";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._id
-				);
-		};
-		expect( func, `${message} - ${action}`
-		).to.throw(
-			MyError,
-			/_key field mismatch/
-		);
-		
-		//
-		// Instantiate with sample contents.
-		//
-		message = "Reference is computed key";
-		action = "Instantiate with sample contents";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					theParam
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Insert without saving.
-		//
-		action = "Insert without saving";
-		func = () => {
-			result = doc.insertDocument( false );
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		expect( result, `${message} - ${action} result` ).to.be.true;
-		
-		//
-		// Insert sample document with computed key.
-		//
-		meta =
-			db._collection( collection )
-				.insert( doc.document );
-		
-		//
-		// Test instantiation with reference inferred collection.
-		// Should fail, because key in edges is computed.
-		//
-		message = "Reference infers collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._id
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Test instantiation with reference collection inferred and same as provided
-		// collection.
-		// Should succeed.
-		//
-		message = "Reference collection inferred and same as provided collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._id,
-					collection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Test instantiation with key reference and default collection.
-		// Should succeed.
-		//
-		message = "Key reference and default collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._key
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Test instantiation with key reference and provided collection.
-		// Should succeed.
-		//
-		message = "Key reference and default collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._key,
-					collection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Remove test document.
-		//
-		db._remove(meta._id);
-		
-	}	// testInstantiateFoundReferenceDefaultCollection
-	
-	/**
-	 * Instantiate with found reference and provided collection.
-	 *
-	 * Assert that the test raises an error only if the provided reference doesn't
-	 * match the provided collection.
-	 *
-	 * Should always fail.
-	 *
-	 * @param theClass		{Function}	The class to test.
-	 * @param theParam		{Object}	The object contents.
-	 */
-	testInstantiateFoundReferenceProvidedCollection( theClass, theParam = null )
-	{
-		let doc;
-		let func;
-		let meta;
-		let result;
-		let action;
-		let message;
-		
-		//
-		// Check parameter.
-		//
-		message = "Check parameter";
-		expect( theParam, message ).to.be.an.object;
-		
-		//
-		// Test instantiation with reference collection different than provided collection.
-		// Should fail: the provided _id is of a different collection than the provided
-		// collection.
-		//
-		message = "Reference collection different than provided collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					this.example_id,
-					this.compatible_collection
-				);
-		};
-		expect( func, `${message} - ${action}`
-		).to.throw(
-			MyError,
-			/cross-collection reference/
-		);
-		
-		//
-		// Test instantiation with reference collection same as provided collection.
-		// Should succeed.
-		//
-		message = "Reference collection same as provided collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					this.example_id,
-					this.example_collection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.example_collection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Insert sample document with non computed key.
-		//
-		const collection = this.defaultTestCollection;
-		meta =
-			db._collection( collection )
-				.insert( theParam );
-		
-		//
-		// Test instantiation with reference inferred collection.
-		// Should fail, because edges enforce computed key references.
-		//
-		message = "Reference is not computed key";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._id
-				);
-		};
-		expect( func, `${message} - ${action}`
-		).to.throw(
-			MyError,
-			/_key field mismatch/
-		);
-		
-		//
-		// Instantiate with sample contents.
-		//
-		message = "Reference is computed key";
-		action = "Instantiate with sample contents";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					theParam,
-					collection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Insert without saving.
-		//
-		action = "Insert without saving";
-		func = () => {
-			result = doc.insertDocument( false );
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		expect( result, `${message} - ${action} result` ).to.be.true;
-		
-		//
-		// Insert sample document with computed key.
-		//
-		meta =
-			db._collection( collection )
-				.insert( doc.document );
-		
-		//
-		// Test instantiation with reference inferred collection.
-		// Should fail, because key in edges is computed.
-		//
-		message = "Reference infers collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._id
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Test instantiation with reference collection inferred and same as provided
-		// collection.
-		// Should succeed.
-		//
-		message = "Reference collection inferred and same as provided collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._id,
-					collection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Test instantiation with key reference and provided collection.
-		// Should succeed.
-		//
-		message = "Key reference and default collection";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					meta._key,
-					collection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object status.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Remove test document.
-		//
-		db._remove(meta._id);
-		
-	}	// testInstantiateFoundReferenceProvidedCollection
-	
-	
-	/****************************************************************************
 	 * INSERT TEST ROUTINE DEFINITIONS											*
 	 ****************************************************************************/
 	
 	/**
 	 * Test inserting empty object
 	 *
-	 * We override this method to handle errors raised because of missing proprties
-	 * required to compute key.
+	 * We override this method to handle missing significant properties errors.
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
@@ -633,9 +132,9 @@ class EdgeUnitTest extends PersistentUnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
-		// Handle required fields.
+		// Handle significant fields.
 		//
-		if( doc.requiredFields.length > 0 )
+		if( K.function.flatten(doc.significantFields).length > 0 )
 		{
 			//
 			// Insert object.
@@ -656,233 +155,12 @@ class EdgeUnitTest extends PersistentUnitTest
 		}
 		
 		//
-		// Handle no required fields.
+		// Handle no significant fields: call parent test.
 		//
 		else
-		{
-			//
-			// Insert object.
-			//
-			action = "Insertion";
-			func = () => {
-				result = doc.insertDocument();
-			};
-			
-			//
-			// Assert no exception.
-			//
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Check object persistent state.
-			//
-			action = "Insertion result";
-			expect( result, `${message} - ${action}` ).to.be.true;
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-			
-			//
-			// Check local fields.
-			//
-			this.validateLocalProperties(
-				message,
-				doc,
-				( Array.isArray( theParam ) ) ? theParam : []
-			);
-			
-			//
-			// Remove document.
-			//
-			db._remove( doc.document._id );
-		}
+			super.testInsertEmptyObject( theClass, theParam );
 		
 	}	// testInsertEmptyObject
-	
-	/**
-	 * Test inserting document without required fields
-	 *
-	 * We override this method to handle errors raised because of missing proprties
-	 * required to compute key and to handle the _key which is re-computed before the
-	 * document is persisted.
-	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
-	testInsertWithoutRequiredFields( theClass, theParam = null )
-	{
-		let doc;
-		let func;
-		let result;
-		let action;
-		let message;
-		
-		//
-		// Check parameter.
-		//
-		expect( theParam, "Parameter type" ).to.be.an.object;
-		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
-		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
-		const param_contents = theParam.contents;
-		const param_excluded = ( Array.isArray( theParam.excluded ) )
-							   ? theParam.excluded
-							   : [];
-		
-		//
-		// ToDo
-		// Note: we need to instantiate the object first, because we need to get the
-		// list of required fields: should make the method static...
-		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					param_contents,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Collect required fields.
-		//
-		const required = doc.requiredFields;
-		
-		//
-		// Handle document with required fields.
-		//
-		if( required.length > 0 )
-		{
-			//
-			// Init local storage.
-			//
-			const significant = K.function.flatten( doc.significantFields );
-			
-			//
-			// Iterate required fields.
-			//
-			for( const field of required )
-			{
-				//
-				// Remove from current document.
-				//
-				if( doc.document.hasOwnProperty( field ) )
-				{
-					//
-					// Remove field.
-					//
-					const data = {};
-					data[ field ] = null;
-					message = `Remove [${field}]`;
-					func = () => {
-						doc.setDocumentProperties( data, true );
-					};
-					expect( func, `${message}` ).not.to.throw();
-					expect( doc.document, message ).not.to.have.property( field );
-					
-				}	// Removed existing field.
-				
-				//
-				// Insert.
-				//
-				message = `Insert without [${field}]`;
-				func = () => {
-					result = doc.insertDocument();
-				};
-				
-				//
-				// Handle significant field.
-				// Edges have one significant field combination that returns all
-				// fields required for computing the key, in that case the error will
-				// be that a field required for computing the key is missing.
-				//
-				if( significant.includes( field ) )
-					expect( func, `${message}`
-					).to.throw(
-						MyError,
-						/missing fields required to compute edge key/
-					);
-				
-				//
-				// Handle all other required fields.
-				// Other required fields behave in a standaqrd way.
-				//
-				else
-					expect( func, `${message}`
-					).to.throw(
-						MyError,
-						/missing required field/
-					);
-				
-				//
-				// Restore the full object.
-				//
-				message = "Instantiate full object";
-				func = () => {
-					doc =
-						new theClass(
-							this.parameters.request,
-							param_contents,
-							this.defaultTestCollection
-						);
-				};
-				expect( func, `${message}` ).not.to.throw();
-				
-			}	// Iterating featured required fields.
-			
-		}	// Features required fields.
-		
-		//
-		// Handle no required fields.
-		//
-		else
-		{
-			//
-			// Insert object.
-			//
-			message = "Insertion without required fields";
-			func = () => {
-				result = doc.insertDocument();
-			};
-			expect( func, `${message}` ).not.to.throw();
-			
-			//
-			// Check object persistent state.
-			//
-			action = "Insertion result";
-			expect( result, `${message} - ${action}` ).to.be.true;
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-			
-			//
-			// Check local fields.
-			//
-			this.validateLocalProperties(
-				message,
-				doc,
-				param_excluded
-			);
-			
-			//
-			// Remove document.
-			//
-			db._remove( doc.document._id );
-			
-		} // Has no required fields.
-		
-	}	// testInsertWithoutRequiredFields
 	
 	/**
 	 * Test inserting document without significant fields
@@ -929,114 +207,458 @@ class EdgeUnitTest extends PersistentUnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
-		// Collect significant fields.
+		// Iterate significant fields.
+		// We know edges have significant fields.
 		//
-		const significant = K.function.flatten( doc.significantFields );
-		
-		//
-		// Handle document with significant fields.
-		//
-		if( significant.length > 0 )
+		for( const field of K.function.flatten( doc.significantFields ) )
 		{
 			//
-			// Iterate significant fields.
+			// Remove from current document.
 			//
-			for( const field of significant )
-			{
+			if( doc.document.hasOwnProperty( field ) ) {
 				//
-				// Remove from current document.
+				// Remove field.
 				//
-				if( doc.document.hasOwnProperty( field ) ) {
-					//
-					// Remove field.
-					//
-					const data = {};
-					data[ field ] = null;
-					message = `Remove [${field}]`;
-					func = () => {
-						doc.setDocumentProperties( data, true );
-					};
-					expect( func, `${message}` ).not.to.throw();
-					expect( doc.document, message ).not.to.have.property( field );
-					
-				}	// Removed existing field.
-				
-				//
-				// Insert function.
-				//
-				message = `Insert without [${field}]`;
+				const data = {};
+				data[ field ] = null;
+				message = `Remove [${field}]`;
 				func = () => {
-					result = doc.insertDocument();
-				};
-				expect( func, `${message}`
-				).to.throw(
-					MyError,
-					/missing fields required to compute edge key/
-				);
-				
-				//
-				// Restore the full object.
-				//
-				message = "Instantiate full object";
-				func = () => {
-					doc =
-						new theClass(
-							this.parameters.request,
-							param_contents,
-							this.defaultTestCollection
-						);
+					doc.setDocumentProperties( data, true );
 				};
 				expect( func, `${message}` ).not.to.throw();
+				expect( doc.document, message ).not.to.have.property( field );
 				
-			}	// Iterating featured significant fields.
+			}	// Removed existing field.
 			
-		}	// Features significant fields.
-		
-		//
-		// Handle no significant fields.
-		//
-		else
-		{
 			//
-			// Insert object.
+			// Insert function.
 			//
-			message = "Insertion without significant fields";
+			message = `Insert without [${field}]`;
 			func = () => {
 				result = doc.insertDocument();
 			};
-			expect( func, `${message}` ).not.to.throw();
-			
-			//
-			// Check object persistent state.
-			//
-			action = "Insertion result";
-			expect( result, `${message} - ${action}` ).to.be.true;
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-			
-			//
-			// Check local fields.
-			//
-			this.validateLocalProperties(
-				message,
-				doc,
-				param_excluded
+			expect( func, `${message}`
+			).to.throw(
+				MyError,
+				/missing fields required to compute edge key/
 			);
 			
 			//
-			// Remove document.
+			// Restore the full object.
 			//
-			db._remove( doc.document._id );
+			message = "Instantiate full object";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						param_contents,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message}` ).not.to.throw();
 			
-		} // Has no significant fields.
+		}	// Iterating significant fields.
 		
 	}	// testInsertWithoutSignificantFields
+	
+	/**
+	 * Test inserting document with content
+	 *
+	 * We overload this method because we need to change the edge nodes, since edges
+	 * cannot be duplicated.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithContent( theClass, theParam = null )
+	{
+		let id;
+		let key;
+		let doc;
+		let data;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Check parameter.
+		//
+		expect( theParam, "Parameter type" ).to.be.an.object;
+		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
+		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
+		const param_contents = theParam.contents;
+		const param_excluded = ( Array.isArray( theParam.excluded ) )
+							   ? theParam.excluded
+							   : [];
+		
+		//
+		// Clone parameter.
+		//
+		const clone = K.function.clone( param_contents );
+		
+		//
+		// Change node to create a unique edge.
+		//
+		if( this.intermediate_results.hasOwnProperty( 'key_insert_filled' ) )
+		{
+			clone._to = 'test_Document/NODE2';
+			clone[ Dict.descriptor.kName ] = 'NAME FILLED';
+			clone[ Dict.descriptor.kLID ] = 'LID_FILLED';
+		}
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					clone,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Insert.
+		//
+		message = "Insert";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Assert document persistent state.
+		//
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.equal( true );
+		action = "Should not be empty";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Has local fields";
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal(false);
+		this.assertAllProvidedDataInDocument( "Contents", doc, clone );
+		
+		//
+		// Check local fields.
+		//
+		this.checkLocalProperties(
+			message,
+			doc,
+			param_excluded
+		);
+		
+		//
+		// Get ID and clone data.
+		//
+		id = doc.document._id;
+		key = doc.document._key;
+		data = K.function.clone( doc.document );
+		
+		//
+		// Save inserted ID in current object.
+		//
+		this.intermediate_results.key_insert_filled = key;
+		expect(this.intermediate_results).to.have.property("key_insert_filled");
+		expect(this.intermediate_results.key_insert_filled).to.equal(key);
+		
+		//
+		// Retrieve.
+		//
+		message = "Retrieve";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		this.assertAllProvidedDataInDocument( "Contents", doc, data );
+		
+	}	// testInsertWithContent
+	
+	/**
+	 * Test inserting document with same content
+	 *
+	 * We override this method because edges cannot be duplicate by definition, we
+	 * should get an ambiguous document error instead.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertDuplicate( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let message;
+		let selector;
+		
+		//
+		// Check persistent document.
+		//
+		message = "Check parameter";
+		expect(this, message).to.have.property('intermediate_results');
+		expect(this.intermediate_results, message).to.have.property('key_insert_filled');
+		expect(this.intermediate_results.key_insert_filled, message).to.be.a.string;
+		db._collection( this.defaultTestCollection )
+			.document( this.intermediate_results.key_insert_filled );
+		
+		//
+		// Create selector.
+		//
+		selector = K.function.clone( theParam );
+		selector._key = this.intermediate_results.key_insert_filled;
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					selector,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Insert.
+		//
+		message = "Insert";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, message
+		).to.throw(
+			MyError,
+			/_key field mismatch/
+		);
+		
+	}	// testInsertDuplicate
+	
+	/**
+	 * Test inserting document with same content fails
+	 *
+	 * Assert that inserting an object with same contents fails, this should occur if
+	 * the document _key is computed from the document contents.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithSameContentFail( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
+		let message;
+		
+		//
+		// Check parameter.
+		//
+		expect( theParam, "Parameter type" ).to.be.an.object;
+		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
+		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
+		const param_contents = theParam.contents;
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					param_contents,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Insert.
+		//
+		message = "Insert";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, message
+		).to.throw(
+			MyError,
+			/duplicate document in collection/
+		);
+		
+	}	// testInsertWithSameContentFail
+	
+	/**
+	 * Test inserting document with same content succeeds
+	 *
+	 * We override this method because we need to change the nodes in order to succeed.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithSameContentSucceed( theClass, theParam = null )
+	{
+		let id;
+		let key;
+		let doc;
+		let data;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Check parameter.
+		//
+		expect( theParam, "Parameter type" ).to.be.an.object;
+		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
+		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
+		const param_contents = theParam.contents;
+		const param_excluded = ( Array.isArray( theParam.excluded ) )
+							   ? theParam.excluded
+							   : [];
+		
+		//
+		// Clone contents.
+		//
+		const clone = K.function.clone(param_contents);
+		
+		//
+		// Change nodes.
+		//
+		if( this.intermediate_results.hasOwnProperty( 'key_insert_same' ) )
+		{
+			clone._from  = 'test_Document/NODE1';
+			clone._to  = 'test_Document/NODE0';
+			clone[ Dict.descriptor.kName ] = "NAME SAME CONTENTS";
+		}
+		else
+		{
+			clone._from  = 'test_Document/NODE2';
+			clone._to  = 'test_Document/NODE0';
+		}
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					clone,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Insert.
+		//
+		message = "Insert";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Assert persistent document state.
+		//
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.equal( true );
+		action = "Should not be empty";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Has local fields";
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal(false);
+		this.assertAllProvidedDataInDocument( "Contents", doc, clone );
+		
+		//
+		// Check local fields.
+		//
+		this.checkLocalProperties(
+			message,
+			doc,
+			param_excluded
+		);
+		
+		//
+		// Save inserted ID in current object.
+		//
+		this.intermediate_results.key_insert_same = doc.document._key;
+		
+	}	// testInsertWithSameContentSucceed
+	
+	/**
+	 * Test inserting without persisting
+	 *
+	 * We override this method because the _key will be computed..
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInsertWithoutPersist( theClass, theParam = null )
+	{
+		let id;
+		let key;
+		let doc;
+		let data;
+		let func;
+		let result;
+		let action;
+		let message;
+		let selector;
+		
+		//
+		// Instantiate.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					theParam,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, message ).not.to.throw();
+		
+		//
+		// Insert.
+		//
+		message = "Insert";
+		func = () => {
+			result = doc.insertDocument( false );
+		};
+		expect( func, message ).not.to.throw();
+		action = "Result";
+		expect( result, `${message} - ${action}` ).to.equal( true );
+		action = "Should not be empty";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Has reference fields";
+		expect(doc.document, `${message} - ${action}` ).not.to.have.property('_id');
+		// expect(doc.document, `${message} - ${action}` ).not.to.have.property('_key');
+		expect(doc.document, `${message} - ${action}` ).not.to.have.property('_rev');
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal(false);
+		this.assertAllProvidedDataInDocument( "Contents", doc, theParam );
+		
+	}	// testInsertWithoutPersist
 
 
 	/****************************************************************************

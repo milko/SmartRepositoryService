@@ -62,7 +62,8 @@ module.exports = {
 	// Sample contents.
 	//
 	sample : {
-		name: "PIPPO"
+		name: "PIPPO",
+		var: "VARIABLE"
 	},
 	
 	//
