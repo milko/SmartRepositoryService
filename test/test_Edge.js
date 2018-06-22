@@ -133,7 +133,6 @@ describe( "Edge class tests:", function ()
 		UnitTestClass.unitTestRun(unitTest, 'instantiation' );
 	});
 	
-	/*
 	//
 	// Contents unit tests.
 	//
@@ -141,6 +140,7 @@ describe( "Edge class tests:", function ()
 		UnitTestClass.unitTestRun(unitTest, 'contents' );
 	});
 	
+	/*
 	//
 	// Insert unit tests.
 	//
