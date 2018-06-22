@@ -6,17 +6,9 @@
 //
 
 //
-// Tests.
-//
-const should = require('chai').should();
-const expect = require('chai').expect;
-
-//
 // Application.
 //
-const K = require( '../../utils/Constants' );
 const Dict = require( '../../dictionary/Dict' );
-const MyError = require( '../../utils/MyError' );
 
 //
 // Test parameters.
@@ -46,8 +38,8 @@ class TestClassCustom extends TestClass
 	{
 		const result = super.validateDocumentConstraints(doAssert);
 		if( result === true )
-			return (! ( this._document.hasOwnProperty('name')
-				&& (this._document.name === "CONSTRAINED") ));
+			return (! ( this._document.hasOwnProperty(Dict.descriptor.kName)
+				&& (this._document[ Dict.descriptor.kName ] === "CONSTRAINED") ));
 		return result;
 	}
 	
@@ -56,23 +48,28 @@ class TestClassCustom extends TestClass
 	}
 	
 	get significantFields()	{
-		return super.significantFields.concat([ ['nid', 'lid'] ]);
+		return super.significantFields.concat([
+			[
+				Dict.descriptor.kNID,
+				Dict.descriptor.kLID
+			]
+		]);
 	}
 	
 	get requiredFields() {
-		return super.requiredFields.concat(['var']);
+		return super.requiredFields.concat([Dict.descriptor.kVariable]);
 	}
 	
 	get uniqueFields() {
-		return super.uniqueFields.concat(['gid']);
+		return super.uniqueFields.concat([Dict.descriptor.kGID]);
 	}
 	
 	get lockedFields() {
-		return super.lockedFields.concat(['sym']);
+		return super.lockedFields.concat([Dict.descriptor.kSymbol]);
 	}
 	
 	get restrictedFields() {
-		return super.restrictedFields.concat(['password']);
+		return super.restrictedFields.concat([Dict.descriptor.kPassword]);
 	}
 	
 }	// TestClassCustom

@@ -11,28 +11,9 @@
 const db = require('@arangodb').db;
 
 //
-// Tests.
-//
-const should = require('chai').should();
-const expect = require('chai').expect;
-
-//
 // Application.
 //
-const K = require( '../../utils/Constants' );
 const Dict = require( '../../dictionary/Dict' );
-const MyError = require( '../../utils/MyError' );
-
-//
-// Test parameters.
-//
-const param = require( '../parameters/Persistent' );
-
-//
-// Test classes.
-//
-const TestClass = require( './PersistentUnitTestClass' ).base;
-const TestClassCustom = require( './PersistentUnitTestClass' ).custom;
 
 //
 // Parent class.
@@ -91,7 +72,7 @@ class PersistentUnitTest extends DocumentUnitTest
 			"Insert object without required fields",
 			this.test_classes.base,
 			{
-				contents: param.content,
+				contents: this.parameters.content,
 				excluded: [ Dict.descriptor.kMStamp ]
 			},
 			false
@@ -106,7 +87,7 @@ class PersistentUnitTest extends DocumentUnitTest
 			"Insert object without significant fields",
 			this.test_classes.base,
 			{
-				contents: param.content,
+				contents: this.parameters.content,
 				excluded: [ Dict.descriptor.kMStamp ]
 			},
 			false
@@ -121,7 +102,7 @@ class PersistentUnitTest extends DocumentUnitTest
 			"Insert object with content",
 			this.test_classes.base,
 			{
-				contents: param.content,
+				contents: this.parameters.content,
 				excluded: [ Dict.descriptor.kMStamp ]
 			},
 			false
@@ -138,7 +119,7 @@ class PersistentUnitTest extends DocumentUnitTest
 			"Insert object with same content",
 			this.test_classes.base,
 			{
-				contents: param.content,
+				contents: this.parameters.content,
 				excluded: [ Dict.descriptor.kMStamp ]
 			},
 			false

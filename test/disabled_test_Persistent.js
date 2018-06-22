@@ -41,11 +41,9 @@ const param = require( './parameters/Persistent' );
 //
 const unitTest =
 	new UnitTestClass(
-		param.request,
+		param,
 		'descriptors/name',
 		'descriptors',
-		param.collection_edge,
-		param.collection_document,
 		'terms',
 		{
 			base: TestClass,
@@ -81,7 +79,8 @@ describe( "Persistent class tests:", function ()
 	// Check base class.
 	//
 	it( "Test class", function () {
-		expect( unitTest.getClassName( 'base' ) ).to.equal( 'Persistent' );
+		expect( unitTest.getClassName( 'base' ), "Class" ).to.equal( 'Persistent' );
+		expect( unitTest.currentClass, "Parameters" ).to.equal( 'Persistent' );
 	});
 	
 	//

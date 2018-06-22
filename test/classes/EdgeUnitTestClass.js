@@ -13,27 +13,18 @@ const Dict = require( '../../dictionary/Dict' );
 //
 // Test parameters.
 //
-const param = require( '../parameters/Persistent' );
+const param = require( '../parameters/Edge' );
 
 //
 // Base class.
 //
-const TestClass = require( '../../classes/Persistent' );
+const TestClass = require( '../../classes/Edge' );
 
 //
 // Base class with restrictions.
 //
 class TestClassCustom extends TestClass
 {
-	validateCollectionType( theCollection, doAssert = true )
-	{
-		return TestClass.isDocumentCollection(
-			this._request,
-			theCollection,
-			doAssert
-		);
-	}
-	
 	validateDocumentConstraints( doAssert = true )
 	{
 		const result = super.validateDocumentConstraints(doAssert);
@@ -44,16 +35,7 @@ class TestClassCustom extends TestClass
 	}
 	
 	get defaultCollection()	{
-		return param.collection_document;
-	}
-	
-	get significantFields()	{
-		return super.significantFields.concat([
-			[
-				Dict.descriptor.kNID,
-				Dict.descriptor.kLID
-			]
-		]);
+		return param.collection_edge;
 	}
 	
 	get requiredFields() {

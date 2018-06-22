@@ -15,7 +15,7 @@ const MyError = require( '../utils/MyError' );
 //
 // Parent.
 //
-const Document = require( './Document' );
+const Persistent = require( './Persistent' );
 
 
 /**
@@ -25,7 +25,7 @@ const Document = require( './Document' );
  *
  * The class expects all required collections to exist.
  */
-class Edge extends Document
+class Edge extends Persistent
 {
 	/**
 	 * Init document properties
@@ -153,7 +153,7 @@ class Edge extends Document
 	 */
 	validateCollectionType( theCollection, doAssert = true )
 	{
-		return Document.isEdgeCollection(
+		return Edge.isEdgeCollection(
 								this._request,
 								theCollection,
 								doAssert

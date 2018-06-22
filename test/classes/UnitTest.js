@@ -8,7 +8,6 @@
 //
 // Tests.
 //
-const should = require('chai').should();
 const expect = require('chai').expect;
 
 //
@@ -37,34 +36,24 @@ class UnitTest
 	 *
 	 * Other property names can be set and used in a custom way.
 	 *
-	 * @param theRequest				{Object}	The current request.
+	 * @param theParameters				{Object}	The test parameters.
 	 * @param theExampleId				{String}	The example document _id.
 	 * @param theExampleCollection		{String}	The example document collection.
-	 * @param theEdgeCollection			{String}	The default edge collection.
-	 * @param theDocumentCollection		{String}	The default document collection.
 	 * @param theCompatibleCollection	{String}	The compatible collection.
 	 * @param theTestClasses			{Object}	The test classes.
 	 */
 	constructor(
-		theRequest,
+		theParameters,
 		theExampleId,
 		theExampleCollection,
-		theEdgeCollection,
-		theDocumentCollection,
 		theCompatibleCollection,
 		theTestClasses
 	)
 	{
 		//
-		// Set current request.
+		// Set parameters.
 		//
-		this.current_request = theRequest;
-		
-		//
-		// Set working collections.
-		//
-		this.edge_collection = theEdgeCollection;
-		this.document_collection = theDocumentCollection;
+		this.parameters = theParameters;
 		
 		//
 		// Set example objects.
@@ -498,21 +487,28 @@ class UnitTest
 	 *
 	 * @return {Object}
 	 */
-	get request()				{	return this.current_request;	}
+	get request()				{	return this.parameters.request;	}
+	
+	/**
+	 * Return current class name.
+	 *
+	 * @return {String}
+	 */
+	get currentClass()			{	return this.parameters.class;	}
 	
 	/**
 	 * Return default edge collection.
 	 *
 	 * @return {String}
 	 */
-	get edgeCollection()		{	return this.edge_collection;	}
+	get edgeCollection()		{	return this.parameters.collection_edge;	}
 	
 	/**
 	 * Return default document collection.
 	 *
 	 * @return {String}
 	 */
-	get documentCollection()	{	return this.document_collection;	}
+	get documentCollection()	{	return this.parameters.collection_document;	}
 	
 	/**
 	 * Return default compatible collection.
@@ -534,6 +530,13 @@ class UnitTest
 	 * @return {String}
 	 */
 	get exampleCollection()		{	return this.example_collection;	}
+	
+	/**
+	 * Return test classes.
+	 *
+	 * @return {Object}
+	 */
+	get testClasses()			{	return this.test_classes;	}
 	
 	
 	/****************************************************************************

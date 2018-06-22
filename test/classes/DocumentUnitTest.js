@@ -13,7 +13,6 @@ const db = require('@arangodb').db;
 //
 // Tests.
 //
-const should = require('chai').should();
 const expect = require('chai').expect;
 
 //
@@ -22,11 +21,6 @@ const expect = require('chai').expect;
 const K = require( '../../utils/Constants' );
 const Dict = require( '../../dictionary/Dict' );
 const MyError = require( '../../utils/MyError' );
-
-//
-// Test parameters.
-//
-const param = require( '../parameters/Document' );
 
 //
 // Parent class.
@@ -218,7 +212,7 @@ class DocumentUnitTest extends UnitTest
 			'instantiateMutableImmutableDocument',
 			"Instantiate mutable/immutable document:",
 			this.test_classes.base,
-			param.content,
+			this.parameters.content,
 			true
 		);
 		
@@ -266,7 +260,7 @@ class DocumentUnitTest extends UnitTest
 			'instantiateFoundReference',
 			"Instantiate with found reference:",
 			this.test_classes.base,
-			null,
+			this.parameters.sample,
 			true
 		);
 		
@@ -278,7 +272,7 @@ class DocumentUnitTest extends UnitTest
 			'instantiateWithContent',
 			"Instantiate with content:",
 			this.test_classes.base,
-			param.content,
+			this.parameters.content,
 			true
 		);
 		
@@ -313,7 +307,7 @@ class DocumentUnitTest extends UnitTest
 			'contentsLoadEmptyObject',
 			"Load contents in empty object",
 			this.test_classes.base,
-			param.content,
+			this.parameters.content,
 			true
 		);
 		
@@ -329,7 +323,7 @@ class DocumentUnitTest extends UnitTest
 			'contentsLoadFilledObject',
 			"Load filled non persistent object:",
 			this.test_classes.base,
-			{ base: param.content, replace: param.replace },
+			{ base: this.parameters.content, replace: this.parameters.replace },
 			true
 		);
 		
@@ -344,7 +338,7 @@ class DocumentUnitTest extends UnitTest
 			'contentsLoadPersistentObject',
 			"Load persistent object:",
 			this.test_classes.base,
-			{ base: param.content, replace: param.replace },
+			{ base: this.parameters.content, replace: this.parameters.replace },
 			true
 		);
 		
@@ -397,7 +391,7 @@ class DocumentUnitTest extends UnitTest
 			"Insert object without required fields",
 			this.test_classes.base,
 			{
-				contents: param.content,
+				contents: this.parameters.content,
 				excluded: null
 			},
 			true
@@ -412,7 +406,7 @@ class DocumentUnitTest extends UnitTest
 			"Insert object without significant fields",
 			this.test_classes.base,
 			{
-				contents: param.content,
+				contents: this.parameters.content,
 				excluded: null
 			},
 			true
@@ -427,7 +421,7 @@ class DocumentUnitTest extends UnitTest
 			"Insert object with content",
 			this.test_classes.base,
 			{
-				contents: param.content,
+				contents: this.parameters.content,
 				excluded: null
 			},
 			true
@@ -441,7 +435,7 @@ class DocumentUnitTest extends UnitTest
 			'insertDuplicate',
 			"Insert duplicate object",
 			this.test_classes.base,
-			param.content,
+			this.parameters.content,
 			true
 		);
 		
@@ -456,7 +450,7 @@ class DocumentUnitTest extends UnitTest
 			"Insert object with same content",
 			this.test_classes.base,
 			{
-				contents: param.content,
+				contents: this.parameters.content,
 				excluded: null
 			},
 			true
@@ -484,7 +478,7 @@ class DocumentUnitTest extends UnitTest
 			'insertWithoutPersist',
 			"Insert without persist",
 			this.test_classes.base,
-			param.replace,
+			this.parameters.replace,
 			true
 		);
 	
@@ -520,6 +514,8 @@ class DocumentUnitTest extends UnitTest
 	 */
 	unitsInitResolve()
 	{
+		let tmp;
+		
 		//
 		// Resolve persistent document.
 		// Assert that resolving an existing unique document succeeds.
@@ -537,14 +533,14 @@ class DocumentUnitTest extends UnitTest
 		// Assert that resolving a document with more than one match will raise an
 		// exception.
 		//
+		tmp = {};
+		tmp[ Dict.descriptor.kNID ] = 'terms/:id';
+		tmp[ Dict.descriptor.kLID ] = 'LID';
 		this.resolveUnitSet(
 			'resolveAmbiguousObject',
 			"Resolve ambiguous document",
 			this.test_classes.base,
-			{
-				nid: 'terms/:id',
-				lid: 'LID'
-			},
+			tmp,
 			true
 		);
 		
@@ -566,28 +562,25 @@ class DocumentUnitTest extends UnitTest
 		// will be required when resolving; if the document has no significant fields,
 		// the document will be resolved using all its current contents.
 		//
+		tmp = { sigFind: {}, sigOne: {}, sigAmbig: {}, sigNoFind: {} };
+		tmp.sigFind[ Dict.descriptor.kNID ] = 'terms/:id';
+		tmp.sigFind[ Dict.descriptor.kLID ] = 'LID_FILLED';
+		tmp.sigOne[ Dict.descriptor.kLID ] = 'LID_FILLED';
+		tmp.sigAmbig[ Dict.descriptor.kNID ] = 'terms/:id';
+		tmp.sigAmbig[ Dict.descriptor.kLID ] = 'LID';
+		tmp.sigNoFind[ Dict.descriptor.kNID ] = 'UNKNOWN';
+		tmp.sigNoFind[ Dict.descriptor.kLID ] = 'LID';
 		this.resolveUnitSet(
 			'resolveSignificantField',
 			"Resolve significant field",
 			this.test_classes.base,
 			{
-				replace: param.replace,
+				replace: this.parameters.replace,
 				noSig: { name: 'NAME FILLED' },
-				sigFind: {
-					nid: 'terms/:id',
-					lid: 'LID_FILLED'
-				},
-				sigOne: {
-					lid: 'LID_FILLED'
-				},
-				sigAmbig: {
-					nid: 'terms/:id',
-					lid: 'LID'
-				},
-				sigNoFind: {
-					nid: 'UNKNOWN',
-					lid: 'LID'
-				}
+				sigFind: tmp.sigFind,
+				sigOne: tmp.sigOne,
+				sigAmbig: tmp.sigAmbig,
+				sigNoFind: tmp.sigNoFind
 			},
 			true
 		);
@@ -598,14 +591,14 @@ class DocumentUnitTest extends UnitTest
 		// contains a reference, this will take precedence over significant field
 		// combunations.
 		//
+		tmp = {};
+		tmp[ Dict.descriptor.kNID ] = 'BAD_NID';
+		tmp[ Dict.descriptor.kLID ] = 'BAD_LID';
 		this.resolveUnitSet(
 			'resolveReferenceField',
 			"Resolve reference fields",
 			this.test_classes.base,
-			{
-				nid: 'BAD_NID',
-				lid: 'BAD_LID'
-			},
+			tmp,
 			true
 		);
 		
@@ -614,24 +607,18 @@ class DocumentUnitTest extends UnitTest
 		// This test will assert that setting the doRaise flag to off prevents exceptions
 		// from being raised only in case the document was not found.
 		//
+		tmp = { correct: {}, duplicate: {}, incorrect: {} };
+		tmp.correct[ Dict.descriptor.kNID ] = 'terms/:id';
+		tmp.correct[ Dict.descriptor.kLID ] = 'LID_FILLED';
+		tmp.duplicate[ Dict.descriptor.kNID ] = 'terms/:id';
+		tmp.duplicate[ Dict.descriptor.kLID ] = 'LID';
+		tmp.incorrect[ Dict.descriptor.kNID ] = 'UNKNOWN';
+		tmp.incorrect[ Dict.descriptor.kLID ] = 'UNKNOWN';
 		this.resolveUnitSet(
 			'resolveNoException',
 			"Resolve without raising",
 			this.test_classes.base,
-			{
-				correct: {
-					nid: 'terms/:id',
-					lid: 'LID_FILLED'
-				},
-				duplicate: {
-					nid: 'terms/:id',
-					lid: 'LID'
-				},
-				incorrect: {
-					nid: 'UNKNOWN',
-					lid: 'UNKNOWN'
-				}
-			},
+			tmp,
 			true
 		);
 		
@@ -751,7 +738,7 @@ class DocumentUnitTest extends UnitTest
 			'replaceNonPersistent',
 			"Replace non persistent document",
 			this.test_classes.base,
-			param.content,
+			this.parameters.content,
 			true
 		);
 		
@@ -838,7 +825,7 @@ class DocumentUnitTest extends UnitTest
 			'removeNonPersistent',
 			"Remove non persistent document",
 			this.test_classes.base,
-			param.content,
+			this.parameters.content,
 			true
 		);
 		
@@ -921,9 +908,9 @@ class DocumentUnitTest extends UnitTest
 			"Check edge collection",
 			this.test_classes.base,
 			{
-				edge: param.collection_edge,
-				document: param.collection_document,
-				request: param.request
+				edge: this.parameters.collection_edge,
+				document: this.parameters.collection_document,
+				request: this.request
 			},
 			true
 		);
@@ -937,9 +924,9 @@ class DocumentUnitTest extends UnitTest
 			"Check document collection",
 			this.test_classes.base,
 			{
-				edge: param.collection_edge,
-				document: param.collection_document,
-				request: param.request
+				edge: this.parameters.collection_edge,
+				document: this.parameters.collection_document,
+				request: this.request
 			},
 			true
 		);
@@ -2249,7 +2236,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		doc =
 			new theClass(
-				this.request,
+				this.parameters.request,
 				null,
 				this.defaultTestCollection
 			);
@@ -2265,7 +2252,7 @@ class DocumentUnitTest extends UnitTest
 		const func = () => {
 			doc =
 				new theClass(
-					this.request
+					this.parameters.request
 				);
 		};
 		
@@ -2311,7 +2298,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		doc =
 			new theClass(
-				this.request,
+				this.parameters.request,
 				null,
 				this.defaultTestCollection
 			);
@@ -2327,7 +2314,7 @@ class DocumentUnitTest extends UnitTest
 		const func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null
 				);
 		};
@@ -2367,7 +2354,7 @@ class DocumentUnitTest extends UnitTest
 		expect( () => {
 			const tmp =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					theParam
 				);
@@ -2402,7 +2389,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		doc =
 			new theClass(
-				this.request,
+				this.parameters.request,
 				null,
 				this.defaultTestCollection
 			);
@@ -2420,7 +2407,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request
+					this.parameters.request
 				);
 		};
 		if( default_collection === null )
@@ -2456,9 +2443,9 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
-					this.compatibleCollection
+					this.compatible_collection
 				);
 		};
 		
@@ -2479,7 +2466,7 @@ class DocumentUnitTest extends UnitTest
 		// Collection should match provided one.
 		//
 		expect( doc.collection, `${message} - ${action}` )
-			.to.equal( this.compatibleCollection );
+			.to.equal( this.compatible_collection );
 		
 		//
 		// Instantiate with existing reference and missing collection.
@@ -2491,8 +2478,8 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
-					this.exampleId
+					this.parameters.request,
+					this.example_id
 				);
 		};
 		
@@ -2514,7 +2501,7 @@ class DocumentUnitTest extends UnitTest
 			expect( func, `${message} - ${action}` ).not.to.throw();
 			action = "Collection name";
 			expect( doc.collection, `${message} - ${action}` )
-				.to.equal( this.exampleId.split('/')[ 0 ] );
+				.to.equal( this.example_id.split('/')[ 0 ] );
 		}
 		else
 		{
@@ -2543,9 +2530,9 @@ class DocumentUnitTest extends UnitTest
 		expect( () => {
 			const tmp =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
-					this.edgeCollection
+					this.parameters.collection_edge
 				);
 		}).to.throw(
 			MyError,
@@ -2567,9 +2554,9 @@ class DocumentUnitTest extends UnitTest
 		expect( () => {
 			const tmp =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
-					this.edgeCollection
+					this.parameters.collection_edge
 				);
 		}).not.to.throw();
 		
@@ -2588,9 +2575,9 @@ class DocumentUnitTest extends UnitTest
 		expect( () => {
 			const tmp =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
-					this.documentCollection
+					this.parameters.collection_document
 				);
 		}).to.throw(
 			MyError,
@@ -2612,9 +2599,9 @@ class DocumentUnitTest extends UnitTest
 		expect( () => {
 			const tmp =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
-					this.documentCollection
+					this.parameters.collection_document
 				);
 		}).not.to.throw();
 		
@@ -2653,7 +2640,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection,
 					false
@@ -2673,7 +2660,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection,
 					true
@@ -2693,7 +2680,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam,
 					this.defaultTestCollection,
 					false
@@ -2713,7 +2700,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam,
 					this.defaultTestCollection,
 					true
@@ -2733,9 +2720,9 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
-					this.exampleId,
-					this.exampleCollection,
+					this.parameters.request,
+					this.example_id,
+					this.example_collection,
 					false
 				);
 		};
@@ -2753,9 +2740,9 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
-					this.exampleId,
-					this.exampleCollection,
+					this.parameters.request,
+					this.example_id,
+					this.example_collection,
 					true
 				);
 		};
@@ -2784,7 +2771,7 @@ class DocumentUnitTest extends UnitTest
 		expect( () => {
 			const tmp =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					`XXXXXXXX`
 				);
 		}).to.throw(
@@ -2811,7 +2798,7 @@ class DocumentUnitTest extends UnitTest
 		expect( () => {
 			const tmp =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					`XXXXXXXX`
 				);
 		}).to.throw(
@@ -2837,8 +2824,8 @@ class DocumentUnitTest extends UnitTest
 		expect( () => {
 			const tmp =
 				new theClass(
-					this.request,
-					this.exampleId
+					this.parameters.request,
+					this.example_id
 				);
 		}).to.throw(
 			MyError,
@@ -2863,8 +2850,8 @@ class DocumentUnitTest extends UnitTest
 		expect( () => {
 			const tmp =
 				new theClass(
-					this.request,
-					this.exampleId,
+					this.parameters.request,
+					this.example_id,
 					this.defaultTestCollection
 				);
 		}).to.throw(
@@ -2889,7 +2876,7 @@ class DocumentUnitTest extends UnitTest
 		expect( () => {
 			const tmp =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					`${this.defaultTestCollection}/XXXXXXXX`
 				);
 		}).to.throw(
@@ -2914,7 +2901,7 @@ class DocumentUnitTest extends UnitTest
 		expect( () => {
 			const tmp =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					`${this.defaultTestCollection}/XXXXXXXX`,
 					this.defaultTestCollection
 				);
@@ -2944,6 +2931,12 @@ class DocumentUnitTest extends UnitTest
 		let action;
 		
 		//
+		// Check parameter.
+		//
+		message = "Check parameter";
+		expect( theParam, message ).to.be.an.object;
+		
+		//
 		// Test instantiation with reference collection different than default collection.
 		// Should fail: the provided _id is of a different collection than the default
 		// collection.
@@ -2953,8 +2946,8 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
-					this.exampleId
+					this.parameters.request,
+					this.example_id
 				);
 		};
 		expect( func, `${message} - ${action}`
@@ -2973,9 +2966,9 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
-					this.exampleId,
-					this.compatibleCollection
+					this.parameters.request,
+					this.example_id,
+					this.compatible_collection
 				);
 		};
 		expect( func, `${message} - ${action}`
@@ -2993,9 +2986,9 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
-					this.exampleId,
-					this.exampleCollection
+					this.parameters.request,
+					this.example_id,
+					this.example_collection
 				);
 		};
 		expect( func, `${message} - ${action}` ).not.to.throw();
@@ -3006,7 +2999,7 @@ class DocumentUnitTest extends UnitTest
 		action = "Contents";
 		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
 		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.exampleCollection);
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.example_collection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
@@ -3018,9 +3011,7 @@ class DocumentUnitTest extends UnitTest
 		const collection = doc.defaultCollection;
 		const meta =
 			db._collection( collection )
-				.insert({
-					name: "PIPPO"
-				});
+				.insert( theParam );
 		
 		//
 		// Test instantiation with reference inferred collection same as default
@@ -3032,7 +3023,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					meta._id
 				);
 		};
@@ -3060,7 +3051,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					meta._id,
 					collection
 				);
@@ -3088,7 +3079,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					meta._key
 				);
 		};
@@ -3115,7 +3106,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					meta._key,
 					collection
 				);
@@ -3160,6 +3151,12 @@ class DocumentUnitTest extends UnitTest
 		let action;
 		
 		//
+		// Check parameter.
+		//
+		message = "Check parameter";
+		expect( theParam, message ).to.be.an.object;
+		
+		//
 		// Test instantiation with reference collection different than provided collection.
 		// Should fail: the provided _id is of a different collection than the provided
 		// collection.
@@ -3169,9 +3166,9 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
-					this.exampleId,
-					this.compatibleCollection
+					this.parameters.request,
+					this.example_id,
+					this.compatible_collection
 				);
 		};
 		expect( func, `${message} - ${action}`
@@ -3189,9 +3186,9 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
-					this.exampleId,
-					this.exampleCollection
+					this.parameters.request,
+					this.example_id,
+					this.example_collection
 				);
 		};
 		expect( func, `${message} - ${action}` ).not.to.throw();
@@ -3202,7 +3199,7 @@ class DocumentUnitTest extends UnitTest
 		action = "Contents";
 		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
 		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.exampleCollection);
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.example_collection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
@@ -3214,9 +3211,7 @@ class DocumentUnitTest extends UnitTest
 		const collection = this.defaultTestCollection;
 		const meta =
 			db._collection( collection )
-				.insert({
-					name: "PIPPO"
-				});
+				.insert( theParam );
 		
 		//
 		// Test instantiation with reference inferred collection.
@@ -3227,7 +3222,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					meta._id
 				);
 		};
@@ -3255,7 +3250,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					meta._id,
 					collection
 				);
@@ -3283,7 +3278,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					meta._key,
 					collection
 				);
@@ -3340,7 +3335,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam
 				);
 		};
@@ -3373,7 +3368,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					contents
 				);
 		};
@@ -3403,7 +3398,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam,
 					this.defaultTestCollection
 				);
@@ -3435,7 +3430,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					contents,
 					this.defaultTestCollection
 				);
@@ -3485,7 +3480,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam,
 					this.defaultTestCollection
 				);
@@ -3545,7 +3540,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -3601,7 +3596,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -3655,7 +3650,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -3716,7 +3711,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -3772,7 +3767,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -3826,7 +3821,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -3921,7 +3916,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					base_data,
 					this.defaultTestCollection
 				);
@@ -3970,7 +3965,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					base_data,
 					this.defaultTestCollection
 				);
@@ -4022,7 +4017,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					base_data,
 					this.defaultTestCollection
 				);
@@ -4079,7 +4074,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					base_data,
 					this.defaultTestCollection
 				);
@@ -4128,7 +4123,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					base_data,
 					this.defaultTestCollection
 				);
@@ -4180,7 +4175,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					base_data,
 					this.defaultTestCollection
 				);
@@ -4269,7 +4264,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					base_data,
 					this.defaultTestCollection
 				);
@@ -4318,7 +4313,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					id,
 					this.defaultTestCollection
 				);
@@ -4373,7 +4368,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					id,
 					this.defaultTestCollection
 				);
@@ -4414,7 +4409,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					id,
 					this.defaultTestCollection
 				);
@@ -4460,7 +4455,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					id,
 					this.defaultTestCollection
 				);
@@ -4515,7 +4510,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					id,
 					this.defaultTestCollection
 				);
@@ -4556,7 +4551,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					id,
 					this.defaultTestCollection
 				);
@@ -4631,7 +4626,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -4747,7 +4742,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					param_contents,
 					this.defaultTestCollection
 				);
@@ -4808,7 +4803,7 @@ class DocumentUnitTest extends UnitTest
 				func = () => {
 					doc =
 						new theClass(
-							this.request,
+							this.parameters.request,
 							param_contents,
 							this.defaultTestCollection
 						);
@@ -4902,7 +4897,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					param_contents,
 					this.defaultTestCollection
 				);
@@ -5009,7 +5004,7 @@ class DocumentUnitTest extends UnitTest
 				func = () => {
 					doc =
 						new theClass(
-							this.request,
+							this.parameters.request,
 							param_contents,
 							this.defaultTestCollection
 						);
@@ -5107,8 +5102,8 @@ class DocumentUnitTest extends UnitTest
 		//
 		if( this.intermediate_results.hasOwnProperty( 'key_insert_filled' ) )
 		{
-			clone.name = 'NAME FILLED';
-			clone.lid = 'LID_FILLED';
+			clone[ Dict.descriptor.kName ] = 'NAME FILLED';
+			clone[ Dict.descriptor.kLID ] = 'LID_FILLED';
 		}
 		
 		//
@@ -5118,7 +5113,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					clone,
 					this.defaultTestCollection
 				);
@@ -5178,7 +5173,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					id,
 					this.defaultTestCollection
 				);
@@ -5228,7 +5223,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					selector,
 					this.defaultTestCollection
 				);
@@ -5281,7 +5276,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					param_contents,
 					this.defaultTestCollection
 				);
@@ -5344,7 +5339,7 @@ class DocumentUnitTest extends UnitTest
 		// To ensure resolving by name doesn't raise an ambiguous document error.
 		//
 		if( this.intermediate_results.hasOwnProperty( 'key_insert_same' ) )
-			clone.name = "NAME SAME CONTENTS";
+			clone[ Dict.descriptor.kName ] = "NAME SAME CONTENTS";
 		
 		//
 		// Instantiate.
@@ -5353,7 +5348,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					clone,
 					this.defaultTestCollection
 				);
@@ -5419,7 +5414,7 @@ class DocumentUnitTest extends UnitTest
 			func = () => {
 				doc =
 					new theClass(
-						this.request,
+						this.parameters.request,
 						id,
 						this.defaultTestCollection
 					);
@@ -5473,7 +5468,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					id,
 					this.defaultTestCollection
 				);
@@ -5525,7 +5520,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam,
 					this.defaultTestCollection
 				);
@@ -5589,7 +5584,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -5643,7 +5638,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -5697,7 +5692,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -5751,7 +5746,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -5823,7 +5818,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam,
 					this.defaultTestCollection
 				);
@@ -5881,7 +5876,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					null,
 					this.defaultTestCollection
 				);
@@ -5959,7 +5954,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam.sigFind,
 					this.defaultTestCollection
 				);
@@ -6017,7 +6012,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam.sigFind,
 					this.defaultTestCollection
 				);
@@ -6070,7 +6065,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam.sigOne,
 					this.defaultTestCollection
 				);
@@ -6147,7 +6142,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam.noSig,
 					this.defaultTestCollection
 				);
@@ -6224,7 +6219,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam.sigAmbig,
 					this.defaultTestCollection
 				);
@@ -6256,7 +6251,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam.sigNoFind,
 					this.defaultTestCollection
 				);
@@ -6301,7 +6296,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					selector,
 					this.defaultTestCollection
 				);
@@ -6391,7 +6386,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					selector,
 					this.defaultTestCollection
 				);
@@ -6509,7 +6504,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_filled,
 					this.defaultTestCollection
 				);
@@ -6521,8 +6516,8 @@ class DocumentUnitTest extends UnitTest
 		//
 		const ref_id = doc.document._id;
 		const ref_key = doc.document._key;
-		const nid = doc.document.nid;
-		const lid = doc.document.lid;
+		const nid = doc.document[ Dict.descriptor.kNID ];
+		const lid = doc.document[ Dict.descriptor.kLID ];
 		const original = K.function.clone( doc.document );
 		
 		//
@@ -6543,7 +6538,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					selector,
 					this.defaultTestCollection
 				);
@@ -6594,7 +6589,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					selector,
 					this.defaultTestCollection
 				);
@@ -6651,7 +6646,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					selector,
 					this.defaultTestCollection
 				);
@@ -6702,7 +6697,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					selector,
 					this.defaultTestCollection
 				);
@@ -6782,7 +6777,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam.correct,
 					this.defaultTestCollection
 				);
@@ -6810,7 +6805,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam.incorrect,
 					this.defaultTestCollection
 				);
@@ -6840,7 +6835,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam.duplicate,
 					this.defaultTestCollection
 				);
@@ -6895,7 +6890,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_filled,
 					this.defaultTestCollection
 				);
@@ -6945,7 +6940,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_filled,
 					this.defaultTestCollection
 				);
@@ -6995,7 +6990,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_filled,
 					this.defaultTestCollection
 				);
@@ -7045,7 +7040,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_filled,
 					this.defaultTestCollection
 				);
@@ -7095,7 +7090,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_filled,
 					this.defaultTestCollection
 				);
@@ -7145,7 +7140,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_filled,
 					this.defaultTestCollection
 				);
@@ -7204,7 +7199,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam,
 					this.defaultTestCollection
 				);
@@ -7249,7 +7244,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_same,
 					this.defaultTestCollection
 				);
@@ -7356,7 +7351,7 @@ class DocumentUnitTest extends UnitTest
 				func = () => {
 					doc =
 						new theClass(
-							this.request,
+							this.parameters.request,
 							this.intermediate_results.key_insert_filled,
 							this.defaultTestCollection,
 							false
@@ -7662,7 +7657,7 @@ class DocumentUnitTest extends UnitTest
 			if( (field !== '_id')
 			 && (field !== '_key')
 			 && (field !== '_rev')
-			 && (field !== 'nid') )
+			 && (field !== Dict.descriptor.kNID) )
 			{
 				//
 				// Instantiate from existing reference.
@@ -7671,7 +7666,7 @@ class DocumentUnitTest extends UnitTest
 				func = () => {
 					doc =
 						new theClass(
-							this.request,
+							this.parameters.request,
 							this.intermediate_results.key_insert_filled,
 							this.defaultTestCollection
 						);
@@ -7903,7 +7898,7 @@ class DocumentUnitTest extends UnitTest
 				func = () => {
 					doc =
 						new theClass(
-							this.request,
+							this.parameters.request,
 							this.intermediate_results.key_insert_filled,
 							this.defaultTestCollection
 						);
@@ -8205,7 +8200,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_same,
 					this.defaultTestCollection
 				);
@@ -8249,7 +8244,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_same,
 					this.defaultTestCollection
 				);
@@ -8305,7 +8300,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theParam,
 					this.defaultTestCollection
 				);
@@ -8364,7 +8359,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_same,
 					this.defaultTestCollection
 				);
@@ -8418,7 +8413,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_same,
 					this.defaultTestCollection
 				);
@@ -8511,7 +8506,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					this.intermediate_results.key_insert_same,
 					this.defaultTestCollection
 				);
@@ -10119,7 +10114,7 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			doc =
 				new theClass(
-					this.request,
+					this.parameters.request,
 					theReference,
 					this.defaultTestCollection
 				);
@@ -10161,7 +10156,7 @@ class DocumentUnitTest extends UnitTest
 				func = () => {
 					doc =
 						new theClass(
-							this.request,
+							this.parameters.request,
 							theReference,
 							this.defaultTestCollection
 						);
@@ -10253,7 +10248,7 @@ class DocumentUnitTest extends UnitTest
 					func = () => {
 						doc =
 							new theClass(
-								this.request,
+								this.parameters.request,
 								theReference,
 								this.defaultTestCollection
 							);
@@ -10355,7 +10350,7 @@ class DocumentUnitTest extends UnitTest
 				func = () => {
 					doc =
 						new theClass(
-							this.request,
+							this.parameters.request,
 							theReference,
 							this.defaultTestCollection
 						);
@@ -10451,7 +10446,7 @@ class DocumentUnitTest extends UnitTest
 					func = () => {
 						doc =
 							new theClass(
-								this.request,
+								this.parameters.request,
 								theReference,
 								this.defaultTestCollection
 							);
@@ -10913,7 +10908,7 @@ class DocumentUnitTest extends UnitTest
 	 *
 	 * @return {String}
 	 */
-	get defaultTestCollection()	{	return this.document_collection;	}
+	get defaultTestCollection()	{	return this.parameters.collection_document;	}
 	
 }	// DocumentUnitTest.
 

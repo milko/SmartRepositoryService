@@ -19,6 +19,11 @@
 module.exports = {
 	
 	//
+	// Test class identification.
+	//
+	class			: 'Document',
+	
+	//
 	// Test collections.
 	//
 	collection_edge		: 'test_Edge',
@@ -51,6 +56,13 @@ module.exports = {
 		name: "NAME",
 		order: 1,
 		username: "USERNAME"
+	},
+	
+	//
+	// Sample contents.
+	//
+	sample : {
+		name: "PIPPO"
 	},
 	
 	//
