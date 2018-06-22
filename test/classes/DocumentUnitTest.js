@@ -4914,7 +4914,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Collect significant fields.
 		//
-		const significant = doc.significantFields;
+		const significant = K.function.flatten( doc.significantFields );
 		
 		//
 		// Handle document with significant fields.
@@ -4986,7 +4986,7 @@ class DocumentUnitTest extends UnitTest
 					action = "Persistent";
 					expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 					action = "Modified";
-					expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+					expect( doc.modified, `${message} - ${action}` ).to.equal( true );
 					
 					//
 					// Check local fields.

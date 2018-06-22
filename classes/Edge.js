@@ -261,7 +261,6 @@ class Edge extends Persistent
 	{
 		return super.requiredFields
 			.concat([
-				'_key',						// The edge key.
 				'_from',					// The source node reference.
 				'_to',						// The destination node reference.
 				Dict.descriptor.kPredicate	// The predicate reference.
