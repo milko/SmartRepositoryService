@@ -92,7 +92,8 @@ module.exports = {
 	sample : {
 		_from: 'test_Document/NODE0',
 		_to: 'test_Document/NODE1',
-		predicate: `terms/${Dict.term.kPredicateEnumOf}`
+		predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+		var: "SAMPLE"
 	},
 	
 	//
