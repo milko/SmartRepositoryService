@@ -4156,6 +4156,10 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 		//
+		// MILKO
+		//
+		
+		//
 		// Check object loaded state.
 		//
 		action = "Contents";
@@ -8804,11 +8808,23 @@ class DocumentUnitTest extends UnitTest
 		{
 			//
 			// Set action.
+			// Note: order is important:
+			//
+			// 1.) Restricted.
+			// 2.) Locked.
+			// 3.) Significant.
+			// 4.) Required.
+			// 5.) Unique.
 			//
 			if( theObject.restrictedFields.includes( field ) )
 			{
 				status = 'R';
 				action = `Restricted field [${field}]`;
+			}
+			else if( theObject.lockedFields.includes( field ) )
+			{
+				status = 'L';
+				action = `Locked field [${field}]`;
 			}
 			else if( significant.includes( field ) )
 			{
@@ -8824,11 +8840,6 @@ class DocumentUnitTest extends UnitTest
 			{
 				status = 'U';
 				action = `Unique field [${field}]`;
-			}
-			else if( theObject.lockedFields.includes( field ) )
-			{
-				status = 'L';
-				action = `Locked field [${field}]`;
 			}
 			else
 			{
@@ -9000,6 +9011,13 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Replace properties.
+		// Note: order is important:
+		//
+		// 1.) Restricted.
+		// 2.) Locked.
+		// 3.) Significant.
+		// 4.) Required.
+		// 5.) Unique.
 		//
 		for( const field in newData )
 		{
@@ -9033,6 +9051,25 @@ class DocumentUnitTest extends UnitTest
 			}
 			
 			//
+			// Replace locked field,
+			// and set new data to original data if the replace raises an exception.
+			//
+			else if( theObject.lockedFields.includes( field ) )
+			{
+				action = `${op} locked [${field}]`;
+				expect( func, `${theMessage} - ${action}`
+				).to.throw(
+					MyError,
+					/Property is locked/
+				);
+				
+				if( oldData.hasOwnProperty( field ) )
+					newData[ field ] = oldData[ field ];
+				else
+					delete newData[ field ];
+			}
+			
+			//
 			// Replace significant field.
 			//
 			else if( significant.includes( field ) )
@@ -9057,25 +9094,6 @@ class DocumentUnitTest extends UnitTest
 			{
 				action = `${op} unique [${field}]`;
 				expect( func, `${theMessage} - ${action}`).not.to.throw();
-			}
-			
-			//
-			// Replace locked field,
-			// and set new data to original data if the replace raises an exception.
-			//
-			else if( theObject.lockedFields.includes( field ) )
-			{
-				action = `${op} locked [${field}]`;
-				expect( func, `${theMessage} - ${action}`
-				).to.throw(
-					MyError,
-					/Property is locked/
-				);
-				
-				if( oldData.hasOwnProperty( field ) )
-					newData[ field ] = oldData[ field ];
-				else
-					delete newData[ field ];
 			}
 			
 			//
@@ -9152,6 +9170,13 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Replace properties.
+		// Note: order is important:
+		//
+		// 1.) Restricted.
+		// 2.) Locked.
+		// 3.) Significant.
+		// 4.) Required.
+		// 5.) Unique.
 		//
 		for( const field in theNewData )
 		{
@@ -9186,6 +9211,16 @@ class DocumentUnitTest extends UnitTest
 			}
 			
 			//
+			// Replace locked field.
+			// Should succeed.
+			//
+			else if( theObject.lockedFields.includes( field ) )
+			{
+				action = `${op} unique [${field}]`;
+				expect( func, `${theMessage} - ${action}`).not.to.throw();
+			}
+			
+			//
 			// Replace significant field.
 			// Should succeed.
 			//
@@ -9210,16 +9245,6 @@ class DocumentUnitTest extends UnitTest
 			// Should succeed.
 			//
 			else if( theObject.uniqueFields.includes( field ) )
-			{
-				action = `${op} unique [${field}]`;
-				expect( func, `${theMessage} - ${action}`).not.to.throw();
-			}
-			
-			//
-			// Replace locked field.
-			// Should succeed.
-			//
-			else if( theObject.lockedFields.includes( field ) )
 			{
 				action = `${op} unique [${field}]`;
 				expect( func, `${theMessage} - ${action}`).not.to.throw();
@@ -9306,6 +9331,13 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Iterate provided replacement properties.
+		// Note: order is important:
+		//
+		// 1.) Restricted.
+		// 2.) Locked.
+		// 3.) Significant.
+		// 4.) Required.
+		// 5.) Unique.
 		//
 		for( const field in theReplaced )
 		{
@@ -9316,6 +9348,11 @@ class DocumentUnitTest extends UnitTest
 			{
 				status = 'R';
 				action = `Restricted field [${field}]`;
+			}
+			else if( theLocked.includes( field ) )
+			{
+				status = 'L';
+				action = `Locked field [${field}]`;
 			}
 			else if( significant.includes( field ) )
 			{
@@ -9331,11 +9368,6 @@ class DocumentUnitTest extends UnitTest
 			{
 				status = 'U';
 				action = `Unique field [${field}]`;
-			}
-			else if( theLocked.includes( field ) )
-			{
-				status = 'L';
-				action = `Locked field [${field}]`;
 			}
 			else
 			{
@@ -9367,6 +9399,13 @@ class DocumentUnitTest extends UnitTest
 					{
 						//
 						// Parse by descriptor status.
+						// Note: order is important:
+						//
+						// 1.) Restricted.
+						// 2.) Locked.
+						// 3.) Significant.
+						// 4.) Required.
+						// 5.) Unique.
 						//
 						switch( status )
 						{
@@ -9441,6 +9480,13 @@ class DocumentUnitTest extends UnitTest
 					
 					//
 					// Handle false replace flag.
+					// Note: order is important:
+					//
+					// 1.) Restricted.
+					// 2.) Locked.
+					// 3.) Significant.
+					// 4.) Required.
+					// 5.) Unique.
 					//
 					else
 					{
@@ -9599,6 +9645,13 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Iterate provided replacement properties.
+		// Note: order is important:
+		//
+		// 1.) Restricted.
+		// 2.) Locked.
+		// 3.) Significant.
+		// 4.) Required.
+		// 5.) Unique.
 		//
 		for( const field in theReplaced )
 		{
@@ -9609,6 +9662,11 @@ class DocumentUnitTest extends UnitTest
 			{
 				status = 'R';
 				action = `Restricted field [${field}]`;
+			}
+			else if( theLocked.includes( field ) )
+			{
+				status = 'L';
+				action = `Locked field [${field}]`;
 			}
 			else if( significant.includes( field ) )
 			{
@@ -9624,11 +9682,6 @@ class DocumentUnitTest extends UnitTest
 			{
 				status = 'U';
 				action = `Unique field [${field}]`;
-			}
-			else if( theLocked.includes( field ) )
-			{
-				status = 'L';
-				action = `Locked field [${field}]`;
 			}
 			else
 			{
@@ -9660,6 +9713,13 @@ class DocumentUnitTest extends UnitTest
 					{
 						//
 						// Parse by descriptor status.
+						// Note: order is important:
+						//
+						// 1.) Restricted.
+						// 2.) Locked.
+						// 3.) Significant.
+						// 4.) Required.
+						// 5.) Unique.
 						//
 						switch( status )
 						{
@@ -9739,6 +9799,13 @@ class DocumentUnitTest extends UnitTest
 					{
 						//
 						// Parse by descriptor status.
+						// Note: order is important:
+						//
+						// 1.) Restricted.
+						// 2.) Locked.
+						// 3.) Significant.
+						// 4.) Required.
+						// 5.) Unique.
 						//
 						switch( status )
 						{
@@ -9889,6 +9956,14 @@ class DocumentUnitTest extends UnitTest
 		
 		//
 		// Iterate object properties.
+		// Note: order is important:
+		//
+		// 1.) Restricted.
+		// 2.) Local.
+		// 3.) Locked.
+		// 4.) Significant.
+		// 5.) Required.
+		// 6.) Unique.
 		//
 		for( const field in theObject.document )
 		{
@@ -9905,6 +9980,11 @@ class DocumentUnitTest extends UnitTest
 				status = 'C';
 				action = `Local field [${field}]`;
 			}
+			else if( locked.includes( field ) )
+			{
+				status = 'L';
+				action = `Locked field [${field}]`;
+			}
 			else if( significant.includes( field ) )
 			{
 				status = 'S';
@@ -9920,11 +10000,6 @@ class DocumentUnitTest extends UnitTest
 				status = 'U';
 				action = `Unique field [${field}]`;
 			}
-			else if( locked.includes( field ) )
-			{
-				status = 'L';
-				action = `Locked field [${field}]`;
-			}
 			else
 			{
 				status = null;
@@ -9939,6 +10014,14 @@ class DocumentUnitTest extends UnitTest
 			
 			//
 			// Parse by field type.
+			// Note: order is important:
+			//
+			// 1.) Restricted.
+			// 2.) Local.
+			// 3.) Locked.
+			// 4.) Significant.
+			// 5.) Required.
+			// 6.) Unique.
 			//
 			switch( status )
 			{
@@ -9956,6 +10039,20 @@ class DocumentUnitTest extends UnitTest
 				// Always match persistent data.
 				//
 				case 'C':
+					if( in_persistent )
+						this.compareValues(
+							theObject.document[ field ],
+							thePersistent[ field ],
+							theMessage,
+							action
+						);
+					break;
+				
+				//
+				// Handle locked.
+				// Locked fields must match the persistent copy.
+				//
+				case 'L':
 					if( in_persistent )
 						this.compareValues(
 							theObject.document[ field ],
@@ -9984,20 +10081,6 @@ class DocumentUnitTest extends UnitTest
 						this.compareValues(
 							theObject.document[ field ],
 							theSelection[ field ],
-							theMessage,
-							action
-						);
-					break;
-				
-				//
-				// Handle locked.
-				// Locked fields must match the persistent copy.
-				//
-				case 'L':
-					if( in_persistent )
-						this.compareValues(
-							theObject.document[ field ],
-							thePersistent[ field ],
 							theMessage,
 							action
 						);
