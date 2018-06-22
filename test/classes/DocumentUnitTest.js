@@ -3873,7 +3873,7 @@ class DocumentUnitTest extends UnitTest
 	}	// testContentsLoadEmptyObject
 	
 	/**
-	 * Succeed loading contents in filled object
+	 * Load contents in filled object
 	 *
 	 * Assert that loading contents in a filled non persistent object works for all fields
 	 * except restricted fields, the following checks will be performed:
@@ -4156,14 +4156,17 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 		//
-		// MILKO
+		// Check deleted contents.
 		//
+		for( const item in data )
+		{
+			action = `Has field [${item}]`;
+			expect( doc.document, `${message} - ${action}` ).not.to.have.property( item );
+		}
 		
 		//
 		// Check object loaded state.
 		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).to.be.empty;
 		action = "Collection";
 		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
@@ -4223,11 +4226,11 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
 		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-	
+		
 	}	// testContentsLoadFilledObject
 	
 	/**
-	 * Succeed loading contents in persistent object
+	 * Load contents in persistent object
 	 *
 	 * Assert that loading contents in a persistent object works for all fields
 	 * except restricted fields, the following checks will be performed:
