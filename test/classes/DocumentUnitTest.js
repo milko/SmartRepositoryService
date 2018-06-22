@@ -7359,7 +7359,7 @@ class DocumentUnitTest extends UnitTest
 							this.request,
 							this.intermediate_results.key_insert_filled,
 							this.defaultTestCollection,
-							true
+							false
 						);
 				};
 				expect( func, `${message}` ).not.to.throw();
