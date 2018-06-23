@@ -154,7 +154,6 @@ describe( "Edge class tests:", function ()
 		UnitTestClass.unitTestRun(unitTest, 'resolve' );
 	});
 	
-	/*
 	//
 	// Replace unit tests.
 	//
@@ -162,6 +161,7 @@ describe( "Edge class tests:", function ()
 		UnitTestClass.unitTestRun(unitTest, 'replace' );
 	});
 	
+	/*
 	//
 	// Remove unit tests.
 	//

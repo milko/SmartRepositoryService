@@ -42,30 +42,13 @@ class EdgeUnitTest extends PersistentUnitTest
 	/**
 	 * Define resolve tests
 	 *
-	 * This method will load the resolve tests queue with the desired test
-	 * records, each record has a property:
+	 * We overload this method to make the following changes:
 	 *
-	 * 	- The name of the method that runs all the 'it' tests, whose value is an
-	 * 	  object structured as follows:
-	 * 		- name:	The test title used in the 'describe'.
-	 * 		- clas:	The class to be used in the tests.
-	 * 		- parm:	The eventual parameters for the test.
-	 *
-	 * This set of tests will validate all operations involving resolving the object,
-	 * it will do the following checks:
-	 *
-	 * 	- Resolve persistent document.
-	 * 	- Resolve ambiguous document.
-	 * 	- Resolve null reference.
-	 * 	- Resolve significant fields.
-	 * 	- Resolve reference fields.
-	 * 	- Resolve without raising.
-	 * 	- Resolve changed locked fields.
-	 * 	- Resolve changed significant fields.
-	 * 	- Resolve changed required fields.
-	 * 	- Resolve changed unique fields.
-	 * 	- Resolve changed local fields.
-	 * 	- Resolve changed standard fields.
+	 * 	- Remove resolveAmbiguousObject().
+	 * 	- Change resolveSignificantField() parameters.
+	 * 	- Change resolveReferenceField() parameters.
+	 * 	- Change resolveNoException() parameters.
+	 * 	- Remove resolveChangeSignificantField().
 	 */
 	unitsInitResolve()
 	{
@@ -239,6 +222,95 @@ class EdgeUnitTest extends PersistentUnitTest
 			);
 		
 	}	// instantiateDocumentCollection
+	
+	
+	/****************************************************************************
+	 * REPLACE TEST MODULES DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Replace persistent values
+	 *
+	 * We overload this method to exclude significant fields from the test.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	replacePersistentValue( theClass, theParam = null )
+	{
+		//
+		// Instantiate object to get significant fields.
+		//
+		const tmp = new this.test_classes.base(
+			this.parameters.request,
+			this.intermediate_results.key_insert_filled,
+			this.defaultTestCollection
+		);
+		
+		//
+		// Should raise for locked and not for others.
+		//
+		this.testReplacePersistentValue(
+			this.test_classes.base, K.function.flatten(tmp.significantFields) );
+		
+		//
+		// Should raise for locked and not for others.
+		//
+		if( this.test_classes.custom )
+		{
+			const tmp = new this.test_classes.base(
+				this.parameters.request,
+				this.intermediate_results.key_insert_filled,
+				this.defaultTestCollection
+			);
+			
+			this.testReplacePersistentValue(
+				this.test_classes.custom, K.function.flatten(tmp.significantFields) );
+		}
+		
+	}	// replacePersistentValue
+	
+	/**
+	 * Replace content values
+	 *
+	 * We overload this method to exclude significant fields from the test.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	replaceContentValue( theClass, theParam = null )
+	{
+		//
+		// Instantiate object to get significant fields.
+		//
+		const tmp = new this.test_classes.base(
+			this.parameters.request,
+			this.intermediate_results.key_insert_filled,
+			this.defaultTestCollection
+		);
+		
+		//
+		// Should raise changing locked and deleting required.
+		//
+		this.testReplaceContentValue(
+			this.test_classes.base, K.function.flatten(tmp.significantFields) );
+		
+		//
+		// Should raise changing locked and deleting required.
+		//
+		if( this.test_classes.custom )
+		{
+			const tmp = new this.test_classes.base(
+				this.parameters.request,
+				this.intermediate_results.key_insert_filled,
+				this.defaultTestCollection
+			);
+			
+			this.testReplaceContentValue(
+				this.test_classes.custom, K.function.flatten(tmp.significantFields) );
+		}
+		
+	}	// replacePersistentValue
 	
 	
 	/****************************************************************************

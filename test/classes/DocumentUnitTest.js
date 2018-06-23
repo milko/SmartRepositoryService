@@ -7537,6 +7537,8 @@ class DocumentUnitTest extends UnitTest
 	 * Resolve document, update the value in the background and assert that replacing
 	 * the document will fail when modifying locked fields and not for others.
 	 *
+	 * The parameter contains either null, or an array of fields to exclude from the test.
+	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
@@ -7571,6 +7573,11 @@ class DocumentUnitTest extends UnitTest
 		const clone = K.function.clone(tmp);
 		
 		//
+		// Get excluded fields.
+		//
+		const excluded = ( Array.isArray( theParam ) ) ? theParam : [];
+		
+		//
 		// Iterate document properties.
 		//
 		for( const field in clone )
@@ -7580,7 +7587,8 @@ class DocumentUnitTest extends UnitTest
 			//
 			if( (field !== '_id')
 			 && (field !== '_key')
-			 && (field !== '_rev') )
+			 && (field !== '_rev')
+			 && (! excluded.includes( field )) )
 			{
 				//
 				// Instantiate from existing reference.
@@ -7885,17 +7893,23 @@ class DocumentUnitTest extends UnitTest
 		const clone = K.function.clone(tmp);
 		
 		//
+		// Get excluded fields.
+		//
+		const excluded = ( Array.isArray( theParam ) ) ? theParam : [];
+		
+		//
 		// Iterate document properties.
 		//
 		for( const field in clone )
 		{
 			//
-			// Skip references and revision.
+			// Skip references, revision and excluded fields.
 			//
 			if( (field !== '_id')
 			 && (field !== '_key')
 			 && (field !== '_rev')
-			 && (field !== Dict.descriptor.kNID) )
+			 && (field !== Dict.descriptor.kNID)
+			 && (! excluded.includes( field )) )
 			{
 				//
 				// Instantiate from existing reference.
