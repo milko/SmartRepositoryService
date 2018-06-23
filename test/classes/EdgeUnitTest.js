@@ -36,6 +36,159 @@ const PersistentUnitTest = require( './PersistentUnitTest' );
 class EdgeUnitTest extends PersistentUnitTest
 {
 	/****************************************************************************
+	 * DEFAULT TEST MODULES DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Define resolve tests
+	 *
+	 * This method will load the resolve tests queue with the desired test
+	 * records, each record has a property:
+	 *
+	 * 	- The name of the method that runs all the 'it' tests, whose value is an
+	 * 	  object structured as follows:
+	 * 		- name:	The test title used in the 'describe'.
+	 * 		- clas:	The class to be used in the tests.
+	 * 		- parm:	The eventual parameters for the test.
+	 *
+	 * This set of tests will validate all operations involving resolving the object,
+	 * it will do the following checks:
+	 *
+	 * 	- Resolve persistent document.
+	 * 	- Resolve ambiguous document.
+	 * 	- Resolve null reference.
+	 * 	- Resolve significant fields.
+	 * 	- Resolve reference fields.
+	 * 	- Resolve without raising.
+	 * 	- Resolve changed locked fields.
+	 * 	- Resolve changed significant fields.
+	 * 	- Resolve changed required fields.
+	 * 	- Resolve changed unique fields.
+	 * 	- Resolve changed local fields.
+	 * 	- Resolve changed standard fields.
+	 */
+	unitsInitResolve()
+	{
+		let tmp;
+		
+		//
+		// Call parent method.
+		//
+		super.unitsInitResolve();
+		
+		//
+		// Remove ambiguous document resolve.
+		// Edges cannot have ambiguoug documents.
+		//
+		this.resolveUnitDel( 'resolveAmbiguousObject' );
+		
+		//
+		// Set resolve significant fields.
+		// We need to set the edge nodes in order to make this test..
+		//
+		// The provided elements are as follows:
+		//	- noSig:		Has all significant fields missing.
+		//	- sigOne:		Has one significant field missing.
+		//	- sigFind:		Has all significant fields.
+		//	- sigAmbig:		Should result in an ambiguous document.
+		//	- sigNoFind:	Should not match any document.
+		//
+		// Properties 'replace' and 'sigFind' must be there.
+		//
+		tmp = {
+			noSig: {},
+			sigOne: {},
+			sigFind: {},
+			sigNoFind: {}
+		};
+		
+		tmp.noSig[ Dict.descriptor.kName ] = 'NAME FILLED';
+		
+		tmp.sigOne._from = 'test_Document/NODE0';
+		tmp.sigOne._to = 'test_Document/NODE1';
+		tmp.sigOne[ Dict.descriptor.kLID ] = 'LID_FILLED';
+		
+		tmp.sigFind._from = 'test_Document/NODE0';
+		tmp.sigFind._to = 'test_Document/NODE1';
+		tmp.sigFind[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateEnumOf}`;
+		tmp.sigFind[ Dict.descriptor.kNID ] = 'terms/:id';
+		tmp.sigFind[ Dict.descriptor.kLID ] = 'LID_FILLED';
+		
+		tmp.sigNoFind._from = 'test_Document/NODE2';
+		tmp.sigNoFind._to = 'test_Document/NODE1';
+		tmp.sigNoFind[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateEnumOf}`;
+		tmp.sigNoFind[ Dict.descriptor.kNID ] = 'UNKNOWN';
+		tmp.sigNoFind[ Dict.descriptor.kLID ] = 'LID';
+		
+		this.resolveUnitSet(
+			'resolveSignificantField',
+			"Resolve significant field",
+			this.test_classes.base,
+			{
+				replace: this.parameters.replace,
+				noSig: tmp.noSig,
+				sigFind: tmp.sigFind,
+				sigOne: tmp.sigOne,
+				sigNoFind: tmp.sigNoFind
+			},
+			false
+		);
+		
+		//
+		// Resolve reference fields.
+		// We change the provided parameters to provide a valid but nor matched selector.
+		//
+		tmp = {};
+		tmp._from = 'test_Document/NODE2';
+		tmp._to = 'test_Document/NODE1';
+		tmp[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateEnumOf}`;
+		this.resolveUnitSet(
+			'resolveReferenceField',
+			"Resolve reference fields",
+			this.test_classes.base,
+			tmp,
+			false
+		);
+		
+		//
+		// Resolve without raising.
+		// This test will assert that setting the doRaise flag to off prevents exceptions
+		// from being raised only in case the document was not found.
+		//
+		tmp = { correct: {}, incorrect: {} };
+		
+		tmp.correct._from = 'test_Document/NODE0';
+		tmp.correct._to = 'test_Document/NODE1';
+		tmp.correct[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateEnumOf}`;
+		
+		tmp.incorrect._from = 'test_Document/NODE2';
+		tmp.incorrect._to = 'test_Document/NODE1';
+		tmp.incorrect[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateEnumOf}`;
+
+		this.resolveUnitSet(
+			'resolveNoException',
+			"Resolve without raising",
+			this.test_classes.base,
+			tmp,
+			false
+		);
+		
+		//
+		// Resolve changed significant fields.
+		// We override this test because we need to set a document _id reference as value.
+		//
+		this.resolveUnitSet(
+			'resolveChangeSignificantField',
+			"Resolve changed significant fields",
+			this.test_classes.base,
+			`descriptors/${Dict.descriptor.kName}`,
+			false
+		);
+	
+	}	// unitsInitResolve
+	
+
+	/****************************************************************************
 	 * INSTANTIATION TEST MODULES DEFINITIONS									*
 	 ****************************************************************************/
 	
