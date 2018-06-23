@@ -812,6 +812,54 @@ class EdgeUnitTest extends PersistentUnitTest
 		this.assertAllProvidedDataInDocument( "Contents", doc, theParam );
 		
 	}	// testInsertWithoutPersist
+	
+	
+	/****************************************************************************
+	 * RESOLVE TEST ROUTINE DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Resolve changed significant fields
+	 *
+	 * We overload this test because significant fields are by default locked fields,
+	 * so we make specific tests here.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testResolveChangeSignificantField( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		
+		//
+		// ToDo:
+		// Should make special fields list a static method.
+		//
+		// Instantiate from reference.
+		//
+		message = "Instantiate with saved reference";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					this.intermediate_results.key_insert_filled,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Iterate significant fields.
+		//
+		for( const field of K.function.flatten(doc.significantFields) )
+		{
+			// MILKO.
+			
+		}	// Iterating significant fields.
+		
+	}	// testResolveChangeSignificantField
 
 
 	/****************************************************************************
