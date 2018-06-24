@@ -47,9 +47,6 @@ const param = require( './parameters/Edge' );
 const unitTest =
 	new UnitTestClass(
 		param,
-		'schemas/3e3d5e71d9654933b0454fb23fa14cb3',
-		'schemas',
-		'edges',
 		{
 			base: TestClass,
 			custom: TestClassCustom

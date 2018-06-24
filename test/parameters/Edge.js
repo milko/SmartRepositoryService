@@ -34,6 +34,18 @@ module.exports = {
 	collection_document	: 'test_Document',
 	
 	//
+	// Example references.
+	//
+	example_id			: 'schemas/3e3d5e71d9654933b0454fb23fa14cb3',
+	example_collection	: 'schemas',
+	
+	//
+	// Other references.
+	//
+	other_id			: null,
+	other_collection	: 'edges',
+	
+	//
 	// Nodes.
 	//
 	nodes : [
