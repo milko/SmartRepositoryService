@@ -67,7 +67,7 @@ class EdgeUnitTest extends PersistentUnitTest
 		
 		//
 		// Set resolve significant fields.
-		// We need to set the edge nodes in order to make this test..
+		// We need to set the edge nodes in order to make this test.
 		//
 		// The provided elements are as follows:
 		//	- noSig:		Has all significant fields missing.

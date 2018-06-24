@@ -238,6 +238,7 @@ class UnitTest
 	 *
 	 * 	- name:	The unit test title, will be used for the 'describe'.
 	 * 	- clas:	The class to test.
+	 * 	- parm:	The test parameter.
 	 *
 	 * The method expects the following parameters:
 	 *
@@ -293,6 +294,7 @@ class UnitTest
 	 * 	- unit:	The method name of the test, it contains an object:
 	 * 		- name:	The unit test title, will be used for the 'describe'.
 	 * 		- clas:	The class to test.
+	 * 		- parm:	The test parameter.
 	 *
 	 * If you provide a string, the method will return the matching unit object which
 	 * contains the name and class; if you omit the parameter, the method will return
@@ -351,11 +353,12 @@ class UnitTest
 	 * If you omit the parameter, or pass null, the method will delete all the
 	 * records, but keep the data member: be careful when calling this method.
 	 *
-	 * The unit test records are structured as follors:
+	 * The unit test records are structured as follows:
 	 *
 	 * 	- unit:	The method name of the test, it contains an object:
 	 * 		- name:	The unit test title, will be used for the 'describe'.
 	 * 		- clas:	The class to test.
+	 * 		- parm:	The test parameter.
 	 *
 	 * The method expects the following parameters:
 	 *
