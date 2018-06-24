@@ -1,7 +1,12 @@
 'use strict';
 
+//
+// Application.
+//
+const Dict = require( '../../dictionary/Dict' );
+
 /**
- * Persistent test parameters.
+ * Edge test parameters.
  *
  * The object implements the default parameters to the unit tests, it provides:
  *
@@ -9,7 +14,6 @@
  * 	- The edge collection (collection_edge).
  * 	- The document collection (collection_document).
  *
- * 	- Significant fields: [nid, lid].
  * 	- Required fields: var.
  * 	- Unique fields: gid.
  * 	- Locked fields: sym.
@@ -21,7 +25,7 @@ module.exports = {
 	//
 	// Test class identification.
 	//
-	class			: 'Persistent',
+	class			: 'Edge',
 	
 	//
 	// Test collections.
@@ -30,12 +34,41 @@ module.exports = {
 	collection_document	: 'test_Document',
 	
 	//
+	// Nodes.
+	//
+	nodes : [
+		{
+			_key: 'NODE0',
+			var: 'FROM',
+			name: "Origin node",
+			order: 0
+		},
+		{
+			_key: 'NODE1',
+			var: 'TO',
+			name: "Destination node",
+			order: 1
+		},
+		{
+			_key: 'NODE2',
+			var: 'OTHER',
+			name: "Other node",
+			order: 2
+		}
+	],
+	
+	//
 	// Document contents.
 	//
 	content : {
-		nid: 'terms/:id',
-		lid: 'LID',
-		gid: 'terms/:id:LID',
+		_from: 'test_Document/NODE0',
+		_to: 'test_Document/NODE1',
+		predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+		attributes: [
+			':class:descriptor:iaddr',
+			':class:descriptor:any',
+			':class:descriptor:txt'
+		],
 		sym: 'SYMBOL',
 		var: 'VAR',
 		password: 'XXX',
@@ -47,9 +80,14 @@ module.exports = {
 	// Replace contents.
 	//
 	replace : {
-		nid: 'terms/:def',
-		lid: 'LID_REPLACED',
-		gid: 'terms/:def:LID_REPLACED',
+		_from: 'test_Document/NODE1',
+		_to: 'test_Document/NODE2',
+		predicate: `terms/${Dict.term.kPredicateManagedBy}`,
+		attributes: [
+			':class:descriptor:iaddr',
+			':class:descriptor:any',
+			':class:descriptor:txt'
+		],
 		sym: 'SYMBOL_replaced',
 		var: 'VAR_REPLACED',
 		password: 'XXX',
@@ -62,8 +100,15 @@ module.exports = {
 	// Sample contents.
 	//
 	sample : {
-		name: "PIPPO",
-		var: "VARIABLE"
+		_from: 'test_Document/NODE0',
+		_to: 'test_Document/NODE1',
+		predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+		attributes: [
+			':class:descriptor:iaddr',
+			':class:descriptor:any',
+			':class:descriptor:txt'
+		],
+		var: "SAMPLE"
 	},
 	
 	//

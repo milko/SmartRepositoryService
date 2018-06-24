@@ -18,18 +18,23 @@ const expect = require('chai').expect;
 //
 // Test classes.
 //
-const TestClass = require( './classes/DocumentUnitTestClass' ).base;
-const TestClassCustom = require( './classes/DocumentUnitTestClass' ).custom;
+const TestClass = require( './classes/EdgeAttributeUnitTestClass' ).base;
+const TestClassCustom = require( './classes/EdgeAttributeUnitTestClass' ).custom;
+
+//
+// Node class.
+//
+const NodeClass = require( '../classes/Persistent' );
 
 //
 // Unit test class.
 //
-const UnitTestClass = require( './classes/DocumentUnitTest' );
+const UnitTestClass = require( './classes/EdgeAttributeUnitTest' );
 
 //
 // Test parameters.
 //
-const param = require( './parameters/Document' );
+const param = require( './parameters/EdgeAttribute' );
 
 
 /********************************************************************************
@@ -42,6 +47,9 @@ const param = require( './parameters/Document' );
 const unitTest =
 	new UnitTestClass(
 		param,
+		'schemas/3e3d5e71d9654933b0454fb23fa14cb3',
+		'schemas',
+		'edges',
 		{
 			base: TestClass,
 			custom: TestClassCustom
@@ -66,18 +74,56 @@ else
  ********************************************************************************/
 
 /**
- * Document class tests
+ * Edge class tests
  *
- * We test the Document class.
+ * We test the Edge class.
  */
-describe( "Document class tests:", function ()
+describe( "Edge class tests:", function ()
 {
+	//
+	// Create test nodes.
+	//
+	it( "Create test nodes", function ()
+	{
+		let doc;
+		let func;
+		let result;
+		
+		//
+		// Iterate nodes in parameters.
+		//
+		for( const node of param.nodes )
+		{
+			//
+			// Instantiate node.
+			//
+			func = () => {
+				doc =
+					new NodeClass(
+						param.request,
+						node,
+						param.collection_document
+					);
+			};
+			expect( func, `Instantiate node` ).not.to.throw();
+			
+			//
+			// Insert node.
+			//
+			func = () => {
+				result = doc.insertDocument();
+			};
+			expect( func, `Insert node` ).not.to.throw();
+			expect( result, "Insert result" ).to.be.true;
+		}
+	});
+	
 	//
 	// Check base class.
 	//
 	it( "Test class", function () {
-		expect( unitTest.getClassName( 'base' ), "Class" ).to.equal( 'Document' );
-		expect( unitTest.currentClass, "Parameters" ).to.equal( 'Document' );
+		expect( unitTest.getClassName( 'base' ), "Class" ).to.equal( 'Edge' );
+		expect( unitTest.currentClass, "Parameters" ).to.equal( 'Edge' );
 	});
 	
 	//
@@ -135,5 +181,5 @@ describe( "Document class tests:", function ()
 	describe( "Static:", function () {
 		UnitTestClass.unitTestRun(unitTest, 'static' );
 	});
-
+	
 });

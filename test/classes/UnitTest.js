@@ -26,9 +26,8 @@ class UnitTest
 	/**
 	 * Constructor
 	 *
-	 * We instantiate the class by providing the example references, the default edge
-	 * and document collections, the compatible collection and the list of test
-	 * classes as an object where the property name is used as the class selector:
+	 * We instantiate the class by providing the test parameters and the test classes
+	 * that should be an object structured as follows:
 	 *
 	 * 	- 'base':	This property must contain the default test class.
 	 * 	- 'custom':	This property should contain the customised test class, if
@@ -37,16 +36,10 @@ class UnitTest
 	 * Other property names can be set and used in a custom way.
 	 *
 	 * @param theParameters				{Object}	The test parameters.
-	 * @param theExampleId				{String}	The example document _id.
-	 * @param theExampleCollection		{String}	The example document collection.
-	 * @param theCompatibleCollection	{String}	The compatible collection.
 	 * @param theTestClasses			{Object}	The test classes.
 	 */
 	constructor(
 		theParameters,
-		theExampleId,
-		theExampleCollection,
-		theCompatibleCollection,
 		theTestClasses
 	)
 	{
@@ -54,17 +47,6 @@ class UnitTest
 		// Set parameters.
 		//
 		this.parameters = theParameters;
-		
-		//
-		// Set example objects.
-		//
-		this.example_id = theExampleId;
-		this.example_collection = theExampleCollection;
-		
-		//
-		// Set compatible collection.
-		//
-		this.compatible_collection = theCompatibleCollection;
 		
 		//
 		// Set test classes.
@@ -511,25 +493,32 @@ class UnitTest
 	get documentCollection()	{	return this.parameters.collection_document;	}
 	
 	/**
-	 * Return default compatible collection.
-	 *
-	 * @return {String}
-	 */
-	get compatibleCollection()	{	return this.compatible_collection;	}
-	
-	/**
 	 * Return example document _id.
 	 *
 	 * @return {String}
 	 */
-	get exampleId()				{	return this.example_id;	}
+	get exampleId()				{	return this.parameters.example_id;	}
 	
 	/**
 	 * Return example document collection.
 	 *
 	 * @return {String}
 	 */
-	get exampleCollection()		{	return this.example_collection;	}
+	get exampleCollection()		{	return this.parameters.example_collection;	}
+	
+	/**
+	 * Return other document _id.
+	 *
+	 * @return {String}
+	 */
+	get otherId()				{	return this.parameters.other_id;	}
+	
+	/**
+	 * Return default other collection.
+	 *
+	 * @return {String}
+	 */
+	get otherCollection()	{	return this.parameters.other_collection;	}
 	
 	/**
 	 * Return test classes.

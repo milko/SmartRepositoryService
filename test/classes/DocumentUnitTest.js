@@ -2474,7 +2474,7 @@ class DocumentUnitTest extends UnitTest
 				new theClass(
 					this.parameters.request,
 					null,
-					this.compatible_collection
+					this.parameters.other_collection
 				);
 		};
 		
@@ -2495,7 +2495,7 @@ class DocumentUnitTest extends UnitTest
 		// Collection should match provided one.
 		//
 		expect( doc.collection, `${message} - ${action}` )
-			.to.equal( this.compatible_collection );
+			.to.equal( this.parameters.other_collection );
 		
 		//
 		// Instantiate with existing reference and missing collection.
@@ -2508,7 +2508,7 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					this.example_id
+					this.parameters.example_id
 				);
 		};
 		
@@ -2530,7 +2530,7 @@ class DocumentUnitTest extends UnitTest
 			expect( func, `${message} - ${action}` ).not.to.throw();
 			action = "Collection name";
 			expect( doc.collection, `${message} - ${action}` )
-				.to.equal( this.example_id.split('/')[ 0 ] );
+				.to.equal( this.parameters.example_id.split('/')[ 0 ] );
 		}
 		else
 		{
@@ -2750,8 +2750,8 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					this.example_id,
-					this.example_collection,
+					this.parameters.example_id,
+					this.parameters.example_collection,
 					false
 				);
 		};
@@ -2770,8 +2770,8 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					this.example_id,
-					this.example_collection,
+					this.parameters.example_id,
+					this.parameters.example_collection,
 					true
 				);
 		};
@@ -2918,7 +2918,7 @@ class DocumentUnitTest extends UnitTest
 				const tmp =
 					new theClass(
 						this.parameters.request,
-						this.example_id
+						this.parameters.example_id
 					);
 			}).to.throw(
 				MyError,
@@ -2933,7 +2933,7 @@ class DocumentUnitTest extends UnitTest
 				const tmp =
 					new theClass(
 						this.parameters.request,
-						this.example_id,
+						this.parameters.example_id,
 						this.defaultTestCollection
 					);
 			}).to.throw(
@@ -3073,7 +3073,7 @@ class DocumentUnitTest extends UnitTest
 				doc =
 					new theClass(
 						this.parameters.request,
-						this.example_id
+						this.parameters.example_id
 					);
 			};
 		else
@@ -3081,7 +3081,7 @@ class DocumentUnitTest extends UnitTest
 				doc =
 					new theClass(
 						this.parameters.request,
-						this.example_id,
+						this.parameters.example_id,
 						this.defaultTestCollection
 					);
 			};
@@ -3102,8 +3102,8 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					this.example_id,
-					this.compatible_collection
+					this.parameters.example_id,
+					this.parameters.other_collection
 				);
 		};
 		expect( func, `${message} - ${action}`
@@ -3122,8 +3122,8 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					this.example_id,
-					this.example_collection
+					this.parameters.example_id,
+					this.parameters.example_collection
 				);
 		};
 		expect( func, `${message} - ${action}` ).not.to.throw();
@@ -3134,7 +3134,7 @@ class DocumentUnitTest extends UnitTest
 		action = "Contents";
 		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
 		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.example_collection);
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.parameters.example_collection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
 		action = "Modified";
@@ -8294,109 +8294,6 @@ class DocumentUnitTest extends UnitTest
 						break;
 				}
 				action = state;
-
-				
-				
-				
-/*
-				//
-				// Update revision.
-				// Or it would always raise an exception.
-				//
-				if( doc.document._rev !== meta._rev )
-					doc.document._rev = meta._rev;
-				
-				//
-				// Delete field.
-				//
-				selector = {};
-				selector[ field ] = null;
-				message = `Delete persistent value`;
-				func = () => {
-					meta = db._collection(this.defaultTestCollection)
-						.update(
-							this.intermediate_results.key_insert_filled,
-							selector,
-							{waitForSync: true, keepNull: false}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Update revision.
-				// Or it would always raise an exception.
-				//
-				if( doc.document._rev !== meta._rev )
-					doc.document._rev = meta._rev;
-				
-				//
-				// Replace.
-				//
-				message = "Replace";
-				action = state;
-				func = () => {
-					result = doc.replaceDocument();
-				};
-				switch( status )
-				{
-					case 'R':
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						expect( doc.document, `${message} - ${action}` ).not.to.have.property( field );
-						action += " is persistent";
-						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
-						break;
-					
-					case 'L':
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
-						action += " is persistent";
-						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
-						expect( func_get, "resolving persistent copy" ).not.to.throw();
-						action = state + " matches persistent";
-						expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
-						break;
-					
-					case 'S':
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
-						action += " is persistent";
-						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
-						expect( func_get, "resolving persistent copy" ).not.to.throw();
-						action = state + " matches persistent";
-						expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
-						break;
-					
-					case 'Q':
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
-						action += " is persistent";
-						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
-						expect( func_get, "resolving persistent copy" ).not.to.throw();
-						action = state + " matches persistent";
-						expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
-						break;
-					
-					case 'U':
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
-						action += " is persistent";
-						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
-						expect( func_get, "resolving persistent copy" ).not.to.throw();
-						action = state + " matches persistent";
-						expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
-						break;
-					
-					default:
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
-						action += " is persistent";
-						expect(doc.persistent, `${message} - ${action}`).to.equal(true);
-						expect( func_get, "resolving persistent copy" ).not.to.throw();
-						action = state + " matches persistent";
-						expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
-						break;
-				}
-*/
 			
 			}	// Not reference or revision.
 			
