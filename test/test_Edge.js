@@ -161,7 +161,6 @@ describe( "Edge class tests:", function ()
 		UnitTestClass.unitTestRun(unitTest, 'replace' );
 	});
 	
-	/*
 	//
 	// Remove unit tests.
 	//
@@ -182,6 +181,5 @@ describe( "Edge class tests:", function ()
 	describe( "Static:", function () {
 		UnitTestClass.unitTestRun(unitTest, 'static' );
 	});
-*/
 
 });
