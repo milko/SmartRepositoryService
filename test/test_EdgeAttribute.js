@@ -19,7 +19,9 @@ const expect = require('chai').expect;
 // Test classes.
 //
 const TestClass = require( './classes/EdgeAttributeUnitTestClass' ).base;
-const TestClassCustom = require( './classes/EdgeAttributeUnitTestClass' ).custom;
+const ParentClass = require( './classes/EdgeAttributeUnitTestClass' ).parent;
+// const TestClassCustom = require( './classes/EdgeAttributeUnitTestClass' ).custom;
+const TestClassCustom = require( './classes/EdgeAttributeUnitTestClass' ).base;
 
 //
 // Node class.
@@ -47,12 +49,10 @@ const param = require( './parameters/EdgeAttribute' );
 const unitTest =
 	new UnitTestClass(
 		param,
-		'schemas/3e3d5e71d9654933b0454fb23fa14cb3',
-		'schemas',
-		'edges',
 		{
 			base: TestClass,
-			custom: TestClassCustom
+			custom: TestClassCustom,
+			parent: ParentClass
 		}
 	);
 
@@ -74,11 +74,11 @@ else
  ********************************************************************************/
 
 /**
- * Edge class tests
+ * Edge attribute class tests
  *
- * We test the Edge class.
+ * We test the EdgeAttribute class.
  */
-describe( "Edge class tests:", function ()
+describe( "EdgeAttribute class tests:", function ()
 {
 	//
 	// Create test nodes.
@@ -122,8 +122,8 @@ describe( "Edge class tests:", function ()
 	// Check base class.
 	//
 	it( "Test class", function () {
-		expect( unitTest.getClassName( 'base' ), "Class" ).to.equal( 'Edge' );
-		expect( unitTest.currentClass, "Parameters" ).to.equal( 'Edge' );
+		expect( unitTest.getClassName( 'base' ), "Class" ).to.equal( 'EdgeAttribute' );
+		expect( unitTest.currentClass, "Parameters" ).to.equal( 'EdgeAttribute' );
 	});
 	
 	//
@@ -154,6 +154,7 @@ describe( "Edge class tests:", function ()
 		UnitTestClass.unitTestRun(unitTest, 'resolve' );
 	});
 	
+/*
 	//
 	// Replace unit tests.
 	//
@@ -181,5 +182,6 @@ describe( "Edge class tests:", function ()
 	describe( "Static:", function () {
 		UnitTestClass.unitTestRun(unitTest, 'static' );
 	});
-	
+*/
+
 });

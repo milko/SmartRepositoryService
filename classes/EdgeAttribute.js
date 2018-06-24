@@ -185,24 +185,6 @@ class EdgeAttribute extends Edge
 			]);																		// ==>
 		
 	}	// significantFields
-/*
-	
-	/!**
-	 * Return list of required fields
-	 *
-	 * We overload the parent method to add the attributes property.
-	 *
-	 * @returns {Array}	List of required fields.
-	 *!/
-	get requiredFields()
-	{
-		return super.requiredFields
-			.concat([
-				Dict.descriptor.kAttributes	// The attributes list.
-			]);																		// ==>
-		
-	}	// requiredFields
-*/
 	
 	/**
 	 * Return list of locked fields

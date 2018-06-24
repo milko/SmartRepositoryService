@@ -479,7 +479,7 @@ class Term extends Document
 					'IncompleteObject',					// Error name.
 					K.error.MissingToResolve,			// Message code.
 					this._request.application.language,	// Language.
-					null,								// Arguments.
+					missing.join(', '),					// Arguments.
 					412									// HTTP error code.
 				)
 			);																	// !@! ==>

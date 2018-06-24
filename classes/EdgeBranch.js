@@ -674,7 +674,7 @@ class EdgeBranch extends Edge
 							'MissingRequiredParameter',			// Error name.
 							K.error.MissingToResolve,			// Message code.
 							theRequest.application.language,	// Language.
-							missing.join( ', ' ),				// Error value.
+							missing.join(', '),					// Arguments.
 							400									// HTTP error code.
 						)
 					);															// !@! ==>

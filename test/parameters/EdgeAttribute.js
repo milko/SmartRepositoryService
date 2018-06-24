@@ -25,13 +25,25 @@ module.exports = {
 	//
 	// Test class identification.
 	//
-	class			: 'Edge',
+	class			: 'EdgeAttribute',
 	
 	//
 	// Test collections.
 	//
 	collection_edge		: 'test_Edge',
 	collection_document	: 'test_Document',
+	
+	//
+	// Example references.
+	//
+	example_id			: 'edges/86ec2630408d3b6ef1073c4e8dfb5eeb',
+	example_collection	: 'edges',
+	
+	//
+	// Other references.
+	//
+	other_id			: 'schemas/3e3d5e71d9654933b0454fb23fa14cb3',
+	other_collection	: 'schemas',
 	
 	//
 	// Nodes.
@@ -85,7 +97,7 @@ module.exports = {
 		predicate: `terms/${Dict.term.kPredicateManagedBy}`,
 		attributes: [
 			':class:descriptor:iaddr',
-			':class:descriptor:any',
+			// ':class:descriptor:any',
 			':class:descriptor:txt'
 		],
 		sym: 'SYMBOL_replaced',

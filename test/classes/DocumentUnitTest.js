@@ -1043,14 +1043,19 @@ class DocumentUnitTest extends UnitTest
 			db._drop( test_collection );
 		
 		//
-		// Should fail with both classes.
+		// Should fail.
 		//
 		this.testInstantiateNullSelectorMissingCollection(
 			this.test_classes.base, theParam
 		);
-		this.testInstantiateNullSelectorMissingCollection(
-			this.test_classes.custom, theParam
-		);
+		
+		//
+		// Should fail.
+		//
+		if( this.test_classes.custom )
+			this.testInstantiateNullSelectorMissingCollection(
+				this.test_classes.custom, theParam
+			);
 		
 	}	// instantiateNullSelectorMissingCollection
 	
@@ -1305,7 +1310,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Should succeed.
 		//
-		this.testInstantiateWithContentProvidedCollection(
+		this.testInstantiateWithContent(
 			this.test_classes.base, theParam
 		);
 		
@@ -1313,7 +1318,7 @@ class DocumentUnitTest extends UnitTest
 		// Should fail.
 		//
 		if( this.test_classes.custom )
-			this.testInstantiateWithContentDefaultCollection(
+			this.testInstantiateWithContent(
 				this.test_classes.custom, theParam
 			);
 	
@@ -3296,7 +3301,7 @@ class DocumentUnitTest extends UnitTest
 	 * @param theClass		{Function}	The class to test.
 	 * @param theParam		{Object}	The object contents.
 	 */
-	testInstantiateWithContentDefaultCollection( theClass, theParam = null )
+	testInstantiateWithContent( theClass, theParam = null )
 	{
 		let doc;
 		let func;
@@ -3311,16 +3316,44 @@ class DocumentUnitTest extends UnitTest
 		expect( theParam, `${message} - ${action}` ).not.to.be.empty;
 		
 		//
-		// Instantiate with default collection.
+		// Instantiate example object to get default collection.
 		//
-		message = "Instantiation with default collection";
+		message = "Instantiate example document";
 		func = () => {
 			doc =
 				new theClass(
 					this.parameters.request,
-					theParam
+					this.parameters.example_id,
+					this.parameters.example_collection
 				);
 		};
+		expect( func, `${message}` ).not.to.throw();
+		const default_collection = doc.defaultCollection;
+		
+		//
+		// Handle default collection.
+		//
+		if( default_collection !== null )
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						theParam
+					);
+			};
+		
+		//
+		// Handle provided collection.
+		//
+		else
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						theParam,
+						this.defaultTestCollection
+					);
+			};
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
@@ -3329,7 +3362,10 @@ class DocumentUnitTest extends UnitTest
 		action = "Contents";
 		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
 		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		if( default_collection !== null )
+			expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		else
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
@@ -3346,14 +3382,28 @@ class DocumentUnitTest extends UnitTest
 		//
 		const contents = K.function.clone( theParam );
 		contents[ "UNKNOWN" ] = "Should not be there";
-			message = "Instantiation with default collection and invalid property";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					contents
-				);
-		};
+		message = "Instantiation with default collection and invalid property";
+		if( default_collection !== null )
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						contents
+					);
+			};
+		
+		//
+		// Handle provided collection.
+		//
+		else
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						contents,
+						this.defaultTestCollection
+					);
+			};
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
@@ -3362,7 +3412,10 @@ class DocumentUnitTest extends UnitTest
 		action = "Contents";
 		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
 		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		if( default_collection !== null )
+			expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		else
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
 		action = "Modified";
@@ -3374,7 +3427,7 @@ class DocumentUnitTest extends UnitTest
 		this.assertAllProvidedDataInDocument( "Check contents", doc, contents );
 		
 		//
-		// Instantiate with provided.
+		// Instantiate with provided collection.
 		//
 		message = "Instantiation with provided collection";
 		func = () => {
@@ -3436,57 +3489,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		this.assertAllProvidedDataInDocument( "Check contents", doc, contents );
 		
-	}	// testInstantiateWithContentDefaultCollection
-	
-	/**
-	 * Instantiate with content and provided collection.
-	 *
-	 * Assert that the test succeeds with collection.
-	 *
-	 * Should always succeed.
-	 *
-	 * @param theClass		{Function}	The class to test.
-	 * @param theParam		{Object}	The object contents.
-	 */
-	testInstantiateWithContentProvidedCollection( theClass, theParam = null )
-	{
-		let doc;
-		let func;
-		let message;
-		let action;
-		
-		//
-		// Instantiate with provided.
-		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					theParam,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Check object state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check content.
-		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
-		
-	}	// testInstantiateWithContentProvidedCollection
+	}	// testInstantiateWithContent
 	
 	
 	/****************************************************************************

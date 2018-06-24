@@ -224,7 +224,7 @@ class Edge extends Persistent
 			// Prepare exception arguments.
 			//
 			const missing = [];
-			for( const field of this.significantFields )
+			for( const field of K.function.flatten(this.significantFields) )
 			{
 				if( ! this._document.hasOwnProperty( field ) )
 					missing.push( field );
@@ -238,7 +238,7 @@ class Edge extends Persistent
 					'IncompleteObject',					// Error name.
 					K.error.MissingToResolve,			// Message code.
 					this._request.application.language,	// Language.
-					missing.join( ', ' ),				// Arguments.
+					missing.join(', '),					// Arguments.
 					412									// HTTP error code.
 				)
 			);																	// !@! ==>
