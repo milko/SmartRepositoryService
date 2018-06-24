@@ -433,7 +433,8 @@ class EdgeBranch extends Edge
 		
 	}	// requiredFields
 	
-	/**
+/*
+	/!**
 	 * Return true if branched or not yet persistent
 	 *
 	 * This method serves the purpose of asserting whether the current edge is
@@ -445,7 +446,7 @@ class EdgeBranch extends Edge
 	 * you can check its value even after adding the branches.
 	 *
 	 * @returns {Boolean}|{null}	True branched, false not, null not persistent.
-	 */
+	 *!/
 	get branched()
 	{
 		//
@@ -458,6 +459,7 @@ class EdgeBranch extends Edge
 		return null;																// ==>
 		
 	}	// branched
+*/
 	
 	/**
 	 * Return current branches

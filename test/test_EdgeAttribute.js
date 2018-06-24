@@ -20,7 +20,6 @@ const expect = require('chai').expect;
 //
 const TestClass = require( './classes/EdgeAttributeUnitTestClass' ).base;
 const ParentClass = require( './classes/EdgeAttributeUnitTestClass' ).parent;
-// const TestClassCustom = require( './classes/EdgeAttributeUnitTestClass' ).custom;
 const TestClassCustom = require( './classes/EdgeAttributeUnitTestClass' ).base;
 
 //
