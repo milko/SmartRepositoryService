@@ -42,9 +42,6 @@ const param = require( './parameters/Persistent' );
 const unitTest =
 	new UnitTestClass(
 		param,
-		'descriptors/name',
-		'descriptors',
-		'terms',
 		{
 			base: TestClass,
 			custom: TestClassCustom

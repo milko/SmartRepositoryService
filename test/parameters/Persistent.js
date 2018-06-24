@@ -30,6 +30,18 @@ module.exports = {
 	collection_document	: 'test_Document',
 	
 	//
+	// Example references.
+	//
+	example_id			: 'descriptors/name',
+	example_collection	: 'descriptors',
+	
+	//
+	// Other references.
+	//
+	other_id			: null,
+	other_collection	: 'terms',
+	
+	//
 	// Document contents.
 	//
 	content : {
