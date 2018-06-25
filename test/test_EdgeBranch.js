@@ -20,7 +20,7 @@ const expect = require('chai').expect;
 //
 const TestClass = require( './classes/EdgeBranchUnitTestClass' ).base;
 const ParentClass = require( './classes/EdgeBranchUnitTestClass' ).parent;
-const TestClassCustom = require( './classes/EdgeBranchUnitTestClass' ).base;
+const TestClassCustom = require( './classes/EdgeBranchUnitTestClass' ).custom;
 
 //
 // Node class.
@@ -89,6 +89,11 @@ describe( "EdgeBranch class tests:", function ()
 		let result;
 		
 		//
+		// Expect there to be three nodes.
+		//
+		expect( param.nodes.length ).to.equal(3);
+		
+		//
 		// Iterate nodes in parameters.
 		//
 		for( const node of param.nodes )
@@ -132,6 +137,7 @@ describe( "EdgeBranch class tests:", function ()
 		UnitTestClass.unitTestRun(unitTest, 'instantiation' );
 	});
 	
+/*
 	//
 	// Contents unit tests.
 	//
@@ -180,5 +186,6 @@ describe( "EdgeBranch class tests:", function ()
 	describe( "Static:", function () {
 		UnitTestClass.unitTestRun(unitTest, 'static' );
 	});
-	
+*/
+
 });

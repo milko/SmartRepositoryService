@@ -188,17 +188,17 @@ class UnitTest
 				//
 				expect(
 					theDestination,
-					`${theMessage} - Field [${field}] - Has property [${member}]`
+					`${theMessage} - ${theAction} - Has property [${member}]`
 				).to.have.property(member);
 				
 				//
 				// Check contents.
 				//
-				compareContents(
+				this.compareValues(
 					theSource[ member ],
 					theDestination[ member ],
 					theMessage,
-					`Field [${field}] - With property [${member}]`
+					`${theAction} - With property [${member}]`
 				);
 			}
 		}
@@ -222,7 +222,7 @@ class UnitTest
 				expect( theDestination, `${theMessage} - ${theAction}` ).to.equal( theSource );
 		}
 		
-	}	// compareContents
+	}	// compareValues
 	
 	
 	/****************************************************************************

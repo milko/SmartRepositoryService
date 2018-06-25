@@ -35,290 +35,635 @@ const EdgeUnitTest = require( './EdgeUnitTest' );
  */
 class EdgeBranchUnitTest extends EdgeUnitTest
 {
-/*
-	/!****************************************************************************
-	 * DEFAULT TEST MODULES DEFINITIONS											*
-	 ****************************************************************************!/
-	
-	/!**
-	 * Define instantiation tests
-	 *
-	 * We overload this method to add a test where we instantiate an edge of the
-	 * incorrect type:
-	 *
-	 * 	- Instantiate with wrong type of edge.
-	 *!/
-	unitsInitInstantiation()
-	{
-		//
-		// Call parent method.
-		//
-		super.unitsInitInstantiation();
-		
-		//
-		// Instantiate with wrong type of edge.
-		// Assert it fails.
-		//
-		this.instantiationUnitSet(
-			'instantiateWrongEdgeType',
-			"Instantiate class with wrong edge type selector:",
-			this.test_classes.base,
-			null,
-			true
-		);
-		
-	}	// unitsInitInstantiation
-	
-	/!**
-	 * Define resolve tests
-	 *
-	 * We overload this method to make the following changes:
-	 *
-	 * 	- Remove resolveAmbiguousObject().
-	 * 	- Change resolveSignificantField() parameters.
-	 * 	- Change resolveReferenceField() parameters.
-	 * 	- Change resolveNoException() parameters.
-	 * 	- Remove resolveChangeSignificantField().
-	 *!/
-	unitsInitResolve()
-	{
-		let tmp;
-		let params;
-		
-		//
-		// Call parent method.
-		//
-		super.unitsInitResolve();
-		
-		//
-		// Set resolve significant fields.
-		// We need to add the attributes to the significant fields.
-		//
-		// Properties 'replace' and 'sigFind' must be there.
-		//
-		tmp = this.resolveUnitGet( 'resolveSignificantField' );
-		params = K.function.clone( tmp.parm );
-		params.sigOne[ Dict.descriptor.kAttributes ] =
-			[
-				':class:descriptor:iaddr',
-				':class:descriptor:any',
-				':class:descriptor:txt'
-			];
-		params.sigFind[ Dict.descriptor.kAttributes ] =
-			[
-				':class:descriptor:iaddr',
-				':class:descriptor:any',
-				':class:descriptor:txt'
-			];
-		params.sigNoFind[ Dict.descriptor.kAttributes ] =
-			[
-				':class:descriptor:iaddr',
-				':class:descriptor:any',
-				':class:descriptor:txt'
-			];
-		
-		this.resolveUnitSet(
-			'resolveSignificantField',
-			"Resolve significant field",
-			this.test_classes.base,
-			params,
-			false
-		);
-		
-		//
-		// Resolve reference fields.
-		// We need to add the attributes to the significant fields.
-		//
-		tmp = this.resolveUnitGet( 'resolveReferenceField' );
-		params = K.function.clone( tmp.parm );
-		params[ Dict.descriptor.kAttributes ] =
-			[
-				':class:descriptor:iaddr',
-				':class:descriptor:any',
-				':class:descriptor:txt'
-			];
-		
-		this.resolveUnitSet(
-			'resolveReferenceField',
-			"Resolve reference fields",
-			this.test_classes.base,
-			params,
-			false
-		);
-		
-		//
-		// Resolve without raising.
-		// We need to add the attributes to the significant fields.
-		//
-		tmp = this.resolveUnitGet( 'resolveNoException' );
-		params = K.function.clone( tmp.parm );
-		params.correct[ Dict.descriptor.kAttributes ] =
-			[
-				':class:descriptor:iaddr',
-				':class:descriptor:any',
-				':class:descriptor:txt'
-			];
-		params.incorrect[ Dict.descriptor.kAttributes ] =
-			[
-				':class:descriptor:iaddr',
-				':class:descriptor:any',
-				':class:descriptor:txt'
-			];
-		
-		this.resolveUnitSet(
-			'resolveNoException',
-			"Resolve without raising",
-			this.test_classes.base,
-			params,
-			false
-		);
-		
-	}	// unitsInitResolve
-	
-	
-	/!****************************************************************************
+	/****************************************************************************
 	 * INSTANTIATION TEST MODULES DEFINITIONS									*
-	 ****************************************************************************!/
+	 ****************************************************************************/
 	
-	/!**
-	 * Instantiate class with wrong edge type selector
+	/**
+	 * Instantiate mutable/immutable document.
 	 *
-	 * Assert instantiating the class with a resolved selector that is not an
-	 * EdgeAttribute instance raises an exception.
+	 * We overload this method to strip the provided content from the reserved
+	 * branches and modifiers properties, we let the parent class handle it.
 	 *
-	 * Should fail with base class and custom classes.
+	 * Should succeed for both the base and custom classes.
 	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 *!/
-	instantiateWrongEdgeType( theClass, theParam = null )
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	instantiateMutableImmutableDocument( theClass, theParam = null )
 	{
 		//
-		// Should fail.
+		// Clone parameter.
 		//
-		this.testInstantiateWrongEdgeType(
-			this.test_classes.base, theParam );
+		const param = K.function.clone( theParam );
+		if( param.hasOwnProperty( Dict.descriptor.kBranches ) )
+			delete param[ Dict.descriptor.kBranches ];
+		if( param.hasOwnProperty( Dict.descriptor.kModifiers ) )
+			delete param[ Dict.descriptor.kModifiers ];
 		
 		//
-		// Should fail.
+		// Should succeed.
+		//
+		this.testInstantiateMutableImmutable(
+			this.test_classes.base, param );
+		
+		//
+		// Should succeed.
 		//
 		if( this.test_classes.custom )
-			this.testInstantiateWrongEdgeType(
-				this.test_classes.custom, theParam );
+			this.testInstantiateMutableImmutable(
+				this.test_classes.custom, param
+			);
 		
-	}	// instantiateNoSelectorNoCollection
+	}	// instantiateMutableImmutableDocument
 	
 	
-	/!****************************************************************************
+	/****************************************************************************
 	 * INSTANTIATION TEST ROUTINE DEFINITIONS									*
-	 ****************************************************************************!/
+	 ****************************************************************************/
 	
-	/!**
-	 * Test instantiate class with wrong edge type selector
+	/**
+	 * Instantiate with found reference and default collection.
 	 *
-	 * Assert instantiating the class with a resolved selector that is not an
-	 * EdgeAttribute instance raises an exception.
+	 * We overload this method to handle the reserved branches and modifiers fields
+	 * which can only be set through a dedicated interface.
 	 *
-	 * Perform test with _id reference and content selector.
-	 *
-	 * @param theClass	{Function}	The class to test.
-	 * @param theParam	{*}			Eventual parameters for the method.
-	 *!/
-	testInstantiateWrongEdgeType( theClass, theParam = null )
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateFoundReference( theClass, theParam = null )
 	{
-		//
-		// Init local storage.
-		//
 		let doc;
 		let func;
+		let meta;
+		let result;
+		let action;
+		let message;
+		let collection;
+		
+		//
+		// Check parameter.
+		//
+		message = "Check parameter";
+		expect( theParam, message ).to.be.an.object;
+		
+		//
+		// Clone parameter.
+		//
+		const param = K.function.clone(theParam);
+		
+		//
+		// Save branches and modifiers from parameter,
+		// and remove them from the parameter.
+		//
+		const branches = param[ Dict.descriptor.kBranches ];
+		delete param[ Dict.descriptor.kBranches ];
+		const modifiers = ( param.hasOwnProperty( Dict.descriptor.kModifiers ) )
+						? K.function.clone(param[ Dict.descriptor.kModifiers ])
+						: null;
+		if( modifiers !== null )
+			delete param[ Dict.descriptor.kModifiers ];
+
+		//
+		// Instantiate a document.
+		// ToDo.
+		// Need to implement defaultCollection() call as static.
+		//
+		message = "Instantiate document";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Determine whether it has a default collection.
+		//
+		const default_collection = doc.defaultCollection;
+		
+		//
+		// Test instantiation with reference collection different than default collection.
+		// Should fail: the provided _id is of a different collection than the default
+		// collection.
+		//
+		message = "Reference collection different than default collection";
+		action = "Instantiation";
+		if( default_collection !== null )
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						this.parameters.example_id
+					);
+			};
+		else
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						this.parameters.example_id,
+						this.defaultTestCollection
+					);
+			};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/cross-collection reference/
+		);
+		
+		//
+		// Test instantiation with reference collection different than provided collection.
+		// Should fail: the provided _id is of a different collection than the provided
+		// collection.
+		//
+		message = "Reference collection different than provided collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					this.parameters.example_id,
+					this.parameters.other_collection
+				);
+		};
+		expect( func, `${message} - ${action}`
+		).to.throw(
+			MyError,
+			/cross-collection reference/
+		);
+		
+		//
+		// Test instantiation with inferred collection same as provided collection.
+		// Should succeed.
+		//
+		message = "Reference collection same as provided collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					this.parameters.example_id,
+					this.parameters.example_collection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.parameters.example_collection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Instantiate sample document.
+		//
+		message = "Instantiate sample document";
+		action = "Instantiation";
+		if( default_collection !== null )
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						param
+					);
+			};
+		else
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						param,
+						this.defaultTestCollection
+					);
+			};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( db._collection(doc.collection).count(), `${message} - ${action} collection` )
+			.to.equal(0);
+		
+		//
+		// Load branches.
+		//
+		action = "Add branches";
+		func = () => {
+			result = doc.branchSet( branches, true );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.an.array;
+		expect( result, `${message} - ${action} result` ).not.to.be.empty;
+		expect( doc.document, `${message} - ${action} branches` )
+			.to.have.property( Dict.descriptor.kBranches );
+		action = "Check branches";
+		for( const branch of doc.document[ Dict.descriptor.kBranches ] )
+			expect( branch, `${message} - ${action} branch value` ).to.be.a.string;
+		
+		//
+		// Load modifiers.
+		//
+		if( modifiers !== null )
+		{
+			action = "Add modifiers";
+			func = () => {
+				result = doc.modifierSet( modifiers, true );
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			expect( result, `${message} - ${action} result` ).to.be.an.object;
+			expect( doc.document, `${message} - ${action} modifiers` )
+				.to.have.property( Dict.descriptor.kModifiers );
+			action = "Check modifiers";
+			for( const modifier in doc.document[ Dict.descriptor.kModifiers ] )
+			{
+				expect( modifier, `${message} - ${action} modifier property` ).to.be.a.string;
+				expect( modifier, `${message} - ${action} modifier value` ).to.be.an.object;
+			}
+		}
+		
+		//
+		// Prepare document for insert.
+		//
+		action = "Prepare for insert";
+		func = () => {
+			result = doc.insertDocument( false );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.true;
+		expect( doc.document, `${message} - ${action} _id` ).not.to.have.property('_id');
+		expect( doc.document, `${message} - ${action} _key` ).to.have.property('_key');
+		
+		//
+		// Insert sample document.
+		//
+		action = "Insert in collection";
+		collection = doc.collection;
+		func = () => {
+			meta =
+				db._collection( collection )
+					.insert( doc.document );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+
+		//
+		// Test instantiation with reference inferred collection same as default
+		// collection.
+		// Should succeed.
+		//
+		message = "Reference by _id with inferred collection";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					meta._id
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Test instantiation with reference collection inferred and same as provided
+		// collection.
+		// Should succeed.
+		//
+		message = "Reference by _id with provided collection";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					meta._id,
+					collection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Test instantiation with key reference and default collection.
+		// Should succeed.
+		//
+		message = "Reference by _key";
+		action = "Instantiation";
+		if( default_collection !== null )
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						meta._key
+					);
+			};
+		else
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						meta._key,
+						collection
+					);
+			};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object status.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(collection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Remove test document.
+		//
+		db._remove(meta._id);
+	
+	}	// testInstantiateFoundReference
+	
+	/**
+	 * Instantiate with content and default collection.
+	 *
+	 * We overload this method to handle the reserved branches and modifiers fields
+	 * which can only be set through a dedicated interface.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateWithContent( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let result;
 		let action;
 		let message;
 		
 		//
-		// Instantiate class with parent class.
+		// Check provided parameter.
 		//
-		message = "Instantiate test edge with parent class";
+		expect( theParam, "Parameter not null").not.to.be.null;
+		expect( theParam, "Parameter not an object").to.be.an.object;
+		expect( theParam, `${message} - ${action}` ).not.to.be.empty;
+		
+		//
+		// Instantiate example object to get default collection.
+		//
+		message = "Instantiate example document";
 		func = () => {
 			doc =
-				new this.test_classes.parent(
+				new theClass(
 					this.parameters.request,
-					this.parameters.other_id
+					this.parameters.example_id,
+					this.parameters.example_collection
 				);
 		};
 		expect( func, `${message}` ).not.to.throw();
-		expect( doc.persistent, `${message}` ).be.true;
-		expect( doc.document, `${message}` ).not.be.empty;
+		const default_collection = doc.defaultCollection;
 		
 		//
-		// Save other edge references.
+		// Clone parameter.
 		//
-		const id = doc.document._id;
-		const key = doc.document._key;
-		const selector = {};
-		for( const field of K.function.flatten(doc.significantFields) )
-			selector[ field ] = doc.document[ field ];
-		message = "Parent class selector";
-		expect(selector, message).not.to.be.empty;
+		const param = K.function.clone(theParam);
 		
 		//
-		// Instantioate with _id.
+		// Save branches and modifiers from parameter,
+		// and remove them from the parameter.
 		//
-		message = "Instantiate with _id";
+		const branches = param[ Dict.descriptor.kBranches ];
+		delete param[ Dict.descriptor.kBranches ];
+		const modifiers = ( param.hasOwnProperty( Dict.descriptor.kModifiers ) )
+						  ? K.function.clone(param[ Dict.descriptor.kModifiers ])
+						  : null;
+		if( modifiers !== null )
+			delete param[ Dict.descriptor.kModifiers ];
+		
+		//
+		// Handle default collection.
+		//
+		if( default_collection !== null )
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						param
+					);
+			};
+		
+		//
+		// Handle provided collection.
+		//
+		else
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						param,
+						this.defaultTestCollection
+					);
+			};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Check object state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		if( default_collection !== null )
+			expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		else
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Load modifiers.
+		//
+		if( modifiers !== null )
+		{
+			action = "Add modifiers";
+			func = () => {
+				result = doc.modifierSet( modifiers, true );
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			expect( result, `${message} - ${action} result` ).to.be.an.object;
+			expect( doc.document, `${message} - ${action} modifiers` )
+				.to.have.property( Dict.descriptor.kModifiers );
+			action = "Check modifiers";
+			for( const modifier in doc.document[ Dict.descriptor.kModifiers ] )
+			{
+				expect( modifier, `${message} - ${action} modifier property` ).to.be.a.string;
+				expect( modifier, `${message} - ${action} modifier value` ).to.be.an.object;
+			}
+		}
+		
+		//
+		// Prepare document for insert.
+		//
+		action = "Prepare for insert";
 		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					id
-				);
+			result = doc.insertDocument( false );
 		};
-		expect( func, `${message}`
-		).to.throw(
-			MyError,
-			/Constraint violation/
-		);
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.true;
+		expect( doc.document, `${message} - ${action} _id` ).not.to.have.property('_id');
+		expect( doc.document, `${message} - ${action} _key` ).to.have.property('_key');
 		
 		//
-		// Instantioate with _key.
+		// Check content.
 		//
-		message = "Instantiate with _key";
+		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
+		
+		//
+		// MILKO
+		//
+		
+		//
+		// Instantiate with default collection and invalid property.
+		// Should not fail, it will be caught before persisting.
+		//
+		const contents = K.function.clone( theParam );
+		contents[ "UNKNOWN" ] = "Should not be there";
+		message = "Instantiation with default collection and invalid property";
+		if( default_collection !== null )
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						contents
+					);
+			};
+		
+		//
+		// Handle provided collection.
+		//
+		else
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						contents,
+						this.defaultTestCollection
+					);
+			};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Check object state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		if( default_collection !== null )
+			expect( doc.collection, `${message} - ${action}` ).to.equal(doc.defaultCollection);
+		else
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, contents );
+		
+		//
+		// Instantiate with provided collection.
+		//
+		message = "Instantiation with provided collection";
 		func = () => {
 			doc =
 				new theClass(
 					this.parameters.request,
-					key,
-					this.parameters.other_collection
-				);
-		};
-		expect( func, `${message}`
-		).to.throw(
-			MyError,
-			/Constraint violation/
-		);
-		
-		//
-		// Instantioate with selector.
-		//
-		message = "Instantiate with selector";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					selector,
-					this.parameters.other_collection
+					theParam,
+					this.defaultTestCollection
 				);
 		};
 		expect( func, `${message}` ).not.to.throw();
-		func = () => {
-			doc.resolveDocument();
-		};
-		expect( func, `${message}`
-		).to.throw(
-			MyError,
-			/missing required fields/
-		);
 		
-	}	// testInstantiateWrongEdgeType
-*/
+		//
+		// Check object state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
+		
+		//
+		// Instantiate with provided collection and invalid property.
+		// Should not fail, it will be caught before persisting.
+		//
+		message = "Instantiation with default collection and invalid property";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					contents,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Check object state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, contents );
+		
+	}	// testInstantiateWithContent
 
 }	// EdgeBranchUnitTest.
 

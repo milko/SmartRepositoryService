@@ -887,12 +887,20 @@ router.post
 			let insert = null;
 			if( request.body.insert )
 			{
-				insert = document.insertDocument();
+				insert = document.insertDocument( true );
 				if( insert )
 				{
-					if( ! db._exists( document.document ) )
-						theResponse.throw( 500, "Document not inserted." );
+					if( document.document.hasOwnProperty( '_id' ) )
+					{
+						if( ! db._exists( document.document._id ) )
+							response.throw( 500,
+								"Document not inserted in database." );
+					}
+					else
+						response.throw( 500, "Insert didn't return document _id." );
 				}
+				else
+					response.throw( 500, "Unable to insert document." );
 			}
 			
 			//

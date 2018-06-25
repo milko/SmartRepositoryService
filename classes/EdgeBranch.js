@@ -206,27 +206,6 @@ class EdgeBranch extends Edge
 		 && (Object.keys( this._document[ Dict.descriptor.kModifiers ] ).length === 0) )
 			delete this._document[ Dict.descriptor.kModifiers ];
 		
-/*
-		//
-		// Assert branches are there in persistent object.
-		//
-		if( this._persistent
-		 && (! this._document.hasOwnProperty( Dict.descriptor.kBranches )) )
-			throw(
-				new MyError(
-					'ConstraintViolated',				// Error name.
-					K.error.NotBranchedEdge,			// Message code.
-					this._request.application.language,	// Language.
-					[
-						this._document._from,
-						this._document[ Dict.descriptor.kPredicate ],
-						this._document._to
-					],
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-*/
-		
 		//
 		// Call parent method.
 		//
@@ -425,34 +404,6 @@ class EdgeBranch extends Edge
 		
 	}	// requiredFields
 	
-/*
-	/!**
-	 * Return true if branched or not yet persistent
-	 *
-	 * This method serves the purpose of asserting whether the current edge is
-	 * branched: it will return true if the object is persistent and has branches,
-	 * false if the resolved object did not have branches and null, if the object is
-	 * not yet persistent.
-	 *
-	 * Note that this value is set once the edge has been resolved, which means that
-	 * you can check its value even after adding the branches.
-	 *
-	 * @returns {Boolean}|{null}	True branched, false not, null not persistent.
-	 *!/
-	get branched()
-	{
-		//
-		// Check object member.
-		// Note that if the member exists it means the object is persistent.
-		//
-		if( this.hasOwnProperty( '_branched' ) )
-			return this._branched;													// ==>
-		
-		return null;																// ==>
-		
-	}	// branched
-*/
-	
 	/**
 	 * Return current branches
 	 *
@@ -460,14 +411,14 @@ class EdgeBranch extends Edge
 	 *
 	 * @returns {Array}|{null}	Branches list or null if no branches.
 	 */
-	get branches()
+	get branchList()
 	{
 		if( this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
 			return this._document[ Dict.descriptor.kBranches ];						// ==>
 		
 		return null;																// ==>
 		
-	}	// branches
+	}	// branchList
 	
 	/**
 	 * Return current modifiers
@@ -476,14 +427,14 @@ class EdgeBranch extends Edge
 	 *
 	 * @returns {Object}|{null}	Modifier records or null if no modifiers.
 	 */
-	get modifiers()
+	get modifierList()
 	{
 		if( this._document.hasOwnProperty( Dict.descriptor.kModifiers ) )
 			return this._document[ Dict.descriptor.kModifiers ];					// ==>
 		
 		return null;																// ==>
 		
-	}	// modifiers
+	}	// modifierList
 	
 	
 	/************************************************************************************
@@ -856,13 +807,13 @@ class EdgeBranch extends Edge
 	 * This method can be used to add or remove branches, it expects the following
 	 * parameters:
 	 *
-	 * 	- theObject:	The object containing the branches and the modifiers.
+	 * 	- theObject:	The edge object.
 	 * 	- theBranch:	Either a string or an array of strings representing the
 	 * 					branches to add or remove.
 	 * 	- doAdd:		A boolean flag indicating whether we intend to add the
 	 * 					branches, true, or remove them, false.
 	 *
-	 * The method will return the updated list ov branches, if the list becomes empty,
+	 * The method will return the updated list of branches, if the list becomes empty,
 	 * the method will remove the property and return null.
 	 *
 	 * If you provide an empty array, the method will simply return the existing value.
@@ -886,15 +837,16 @@ class EdgeBranch extends Edge
 		const bprop = Dict.descriptor.kBranches;
 		
 		//
-		// Convert to array.
+		// Clone parameter.
 		//
-		if( ! Array.isArray( theBranch ) )
-			theBranch = [ theBranch ];
+		const branch = ( Array.isArray( theBranch ) )
+					 ? K.function.clone( theBranch )
+					 : [ theBranch ];
 		
 		//
 		// Skip empty array.
 		//
-		if( theBranch.length > 0 )
+		if( branch.length > 0 )
 		{
 			//
 			// Init local storage.
@@ -911,7 +863,7 @@ class EdgeBranch extends Edge
 				// Create property.
 				//
 				if( ! has_branches )
-					theObject[ bprop ] = theBranch;
+					theObject[ bprop ] = branch;
 				
 				//
 				// Update property.
@@ -921,7 +873,7 @@ class EdgeBranch extends Edge
 					//
 					// Add branches.
 					//
-					for( const item of theBranch )
+					for( const item of branch )
 					{
 						if( ! theObject[ bprop ].includes( item ) )
 							theObject[ bprop ].push( item );
@@ -951,7 +903,7 @@ class EdgeBranch extends Edge
 							//
 							// Determine match.
 							//
-							const match = (! theBranch.includes( item ));
+							const match = (! branch.includes( item ));
 							
 							//
 							// Remove modifiers.
@@ -1083,7 +1035,7 @@ class EdgeBranch extends Edge
 						// Add branch.
 						//
 						if( (! has_branches)
-							|| (! theObject[ bprop ].includes( reference )) )
+						 || (! theObject[ bprop ].includes( reference )) )
 						{
 							//
 							// Init branches.

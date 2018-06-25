@@ -79,6 +79,11 @@ module.exports = {
 		branches: [
 			'terms/:type:domain'
 		],
+		modifiers: {
+			'terms/:type:domain': {
+				name: "Pippo"
+			}
+		},
 		sym: 'SYMBOL',
 		var: 'VAR',
 		password: 'XXX',
@@ -97,6 +102,14 @@ module.exports = {
 			'terms/:type:domain',
 			'terms/:type:value'
 		],
+		modifiers: {
+			'terms/:type:domain': {
+				name: "Pappa"
+			},
+			'terms/:type:value': {
+				name: "Pippo"
+			}
+		},
 		sym: 'SYMBOL_replaced',
 		var: 'VAR_REPLACED',
 		password: 'XXX',
@@ -115,6 +128,11 @@ module.exports = {
 		branches: [
 			'terms/:type:domain'
 		],
+		modifiers: {
+			'terms/:type:domain': {
+				name: "Pippo"
+			}
+		},
 		var: "SAMPLE"
 	},
 	
