@@ -126,9 +126,12 @@ class EdgeBranch extends Edge
 	/**
 	 * Set document property
 	 *
-	 * We overload this method to handle the branches and modifiers: these two
-	 * properties are reserved, if we are resolving, we allow changes, if not we raise
-	 * an exception.
+	 * We overload this method to prevent managing the branches and modifiers fields
+	 * if the current operation is not a resolve.
+	 *
+	 * Branches and modifiers are reserved properties, they can either be managed
+	 * using the dedicated static interface, or automatically set when resolving the
+	 * object.
 	 *
 	 * @param theField		{String}	The property descriptor _key.
 	 * @param theValue		{*}			The property value.
@@ -138,28 +141,27 @@ class EdgeBranch extends Edge
 	setDocumentProperty( theField, theValue, isLocked, isResolving )
 	{
 		//
-		// Call parent method for all properties other than branches,
-		// or if we are resolving the document.
+		// Intercept branches and modifiers when not resolving.
 		//
-		if( isResolving
-		 || (! [ Dict.descriptor.kBranches,
-				 Dict.descriptor.kModifiers ].includes( theField )) )
-			return super.setDocumentProperty(
-				theField,
-				theValue,
-				isLocked,
-				isResolving
-			);																		// ==>
+		if( (! isResolving)
+		 && ( (theField === Dict.descriptor.kBranches)
+		   || (theField === Dict.descriptor.kModifiers) ) )
+			throw(
+				new MyError(
+					'ReservedProperty',					// Error name.
+					K.error.CannotManageBranches,		// Message code.
+					this._request.application.language,	// Language.
+					null,								// Arguments.
+					412									// HTTP error code.
+				)
+			);																	// !@! ==>
 		
-		throw(
-			new MyError(
-				'ReservedProperty',					// Error name.
-				K.error.CannotManageBranches,		// Message code.
-				this._request.application.language,	// Language.
-				null,								// Arguments.
-				412									// HTTP error code.
-			)
-		);																		// !@! ==>
+		return super.setDocumentProperty(
+			theField,
+			theValue,
+			isLocked,
+			isResolving
+		);																			// ==>
 		
 	}	// setDocumentProperty
 	
@@ -191,21 +193,22 @@ class EdgeBranch extends Edge
 	normaliseDocumentProperties( doAssert = true )
 	{
 		//
-		// Check branches.
+		// Delete branches if empty.
 		//
 		if( this._document.hasOwnProperty( Dict.descriptor.kBranches )
 		 && (this._document[ Dict.descriptor.kBranches ] === 0) )
 			delete this._document[ Dict.descriptor.kBranches ];
 		
 		//
-		// Check modifiers.
+		// Delete modifiers if empty.
 		//
 		if( this._document.hasOwnProperty( Dict.descriptor.kModifiers )
 		 && (Object.keys( this._document[ Dict.descriptor.kModifiers ] ).length === 0) )
 			delete this._document[ Dict.descriptor.kModifiers ];
 		
+/*
 		//
-		// Assert branches in persistent object.
+		// Assert branches are there in persistent object.
 		//
 		if( this._persistent
 		 && (! this._document.hasOwnProperty( Dict.descriptor.kBranches )) )
@@ -222,6 +225,7 @@ class EdgeBranch extends Edge
 					412									// HTTP error code.
 				)
 			);																	// !@! ==>
+*/
 		
 		//
 		// Call parent method.
@@ -238,14 +242,12 @@ class EdgeBranch extends Edge
 	/**
 	 * replaceDocument
 	 *
-	 * We overload this method to handle branches: if after updating the list of
-	 * branches, the list becomes empty, the branches property will be deleted. This
-	 * means that no paths traverse the current edge, so instead of replacing the edge
-	 * we remove it. In this case the method returns the result of removeDocument().
+	 * We overload this method to handle the presence or absence of the branches
+	 * field: if the branches field is missing, it means no paths use this edge, which
+	 * implies the edge should not be there, and the edge will be removed.
 	 *
-	 * Note that the operation will only perform if the current object is persistent,
-	 * you must always remember to resolve the object, if not already done, before
-	 * calling this method.
+	 * The method will return the result of whatever method was called: replace or
+	 * remove, which means true is success.
 	 *
 	 * @param doRevision	{Boolean}	If true, check revision (default).
 	 * @returns {Boolean}|{null}		True if replaced or null if not persistent.
@@ -264,64 +266,54 @@ class EdgeBranch extends Edge
 			if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
 				return this.removeDocument();										// ==>
 			
-			//
-			// Call parent method.
-			//
-			return super.replaceDocument();											// ==>
-			
 		}	// Document is persistent.
 		
-		throw(
-			new MyError(
-				'ReplaceDocument',					// Error name.
-				K.error.IsNotPersistent,			// Message code.
-				this._request.application.language,	// Language.
-				null,								// Arguments.
-				409									// HTTP error code.
-			)
-		);																		// !@! ==>
+		//
+		// Call parent method.
+		//
+		return super.replaceDocument();												// ==>
 		
 	}	// replaceDocument
 	
-	/**
-	 * Remove document
-	 *
-	 * We overload this method to reset the branched flag data member.
-	 *
-	 * @param doFail	{Boolean}	If false, don't fail on document not found (default).
-	 * @returns {Boolean}	True removed, false not found, null not persistent.
-	 */
-	removeDocument( doFail = false )
-	{
-		//
-		// Prevent replacing non persistent objects.
-		// We check this here to catch eventual blunders.
-		//
-		if( this._persistent )
-		{
-			//
-			// Call parent method.
-			// Parent returns the persistent status.
-			//
-			const result = super.removeDocument( doFail );
-			if( result === true )
-				delete this._branched;
-			
-			return result;															// ==>
-			
-		}	// Document is persistent.
-		
-		throw(
-			new MyError(
-				'RemoveDocument',					// Error name.
-				K.error.IsNotPersistent,			// Message code.
-				this._request.application.language,	// Language.
-				null,								// Arguments.
-				409									// HTTP error code.
-			)
-		);																		// !@! ==>
-		
-	}	// removeDocument
+	// /**
+	//  * Remove document
+	//  *
+	//  * We overload this method to reset the branched flag data member.
+	//  *
+	//  * @param doFail	{Boolean}	If false, don't fail on document not found (default).
+	//  * @returns {Boolean}	True removed, false not found, null not persistent.
+	//  */
+	// removeDocument( doFail = false )
+	// {
+	// 	//
+	// 	// Prevent replacing non persistent objects.
+	// 	// We check this here to catch eventual blunders.
+	// 	//
+	// 	if( this._persistent )
+	// 	{
+	// 		//
+	// 		// Call parent method.
+	// 		// Parent returns the persistent status.
+	// 		//
+	// 		const result = super.removeDocument( doFail );
+	// 		if( result === true )
+	// 			delete this._branched;
+	//
+	// 		return result;															// ==>
+	//
+	// 	}	// Document is persistent.
+	//
+	// 	throw(
+	// 		new MyError(
+	// 			'RemoveDocument',					// Error name.
+	// 			K.error.IsNotPersistent,			// Message code.
+	// 			this._request.application.language,	// Language.
+	// 			null,								// Arguments.
+	// 			409									// HTTP error code.
+	// 		)
+	// 	);																		// !@! ==>
+	//
+	// }	// removeDocument
 	
 	
 	/************************************************************************************
