@@ -33,20 +33,21 @@ const EdgeUnitTest = require( './EdgeUnitTest' );
  *
  * This class defines the classes used in tests and implements common test patterns.
  */
-class EdgeAttributeUnitTest extends EdgeUnitTest
+class EdgeBranchUnitTest extends EdgeUnitTest
 {
-	/****************************************************************************
+/*
+	/!****************************************************************************
 	 * DEFAULT TEST MODULES DEFINITIONS											*
-	 ****************************************************************************/
+	 ****************************************************************************!/
 	
-	/**
+	/!**
 	 * Define instantiation tests
 	 *
 	 * We overload this method to add a test where we instantiate an edge of the
 	 * incorrect type:
 	 *
 	 * 	- Instantiate with wrong type of edge.
-	 */
+	 *!/
 	unitsInitInstantiation()
 	{
 		//
@@ -68,7 +69,7 @@ class EdgeAttributeUnitTest extends EdgeUnitTest
 		
 	}	// unitsInitInstantiation
 	
-	/**
+	/!**
 	 * Define resolve tests
 	 *
 	 * We overload this method to make the following changes:
@@ -78,7 +79,7 @@ class EdgeAttributeUnitTest extends EdgeUnitTest
 	 * 	- Change resolveReferenceField() parameters.
 	 * 	- Change resolveNoException() parameters.
 	 * 	- Remove resolveChangeSignificantField().
-	 */
+	 *!/
 	unitsInitResolve()
 	{
 		let tmp;
@@ -136,7 +137,7 @@ class EdgeAttributeUnitTest extends EdgeUnitTest
 				':class:descriptor:any',
 				':class:descriptor:txt'
 			];
-
+		
 		this.resolveUnitSet(
 			'resolveReferenceField',
 			"Resolve reference fields",
@@ -175,11 +176,11 @@ class EdgeAttributeUnitTest extends EdgeUnitTest
 	}	// unitsInitResolve
 	
 	
-	/****************************************************************************
+	/!****************************************************************************
 	 * INSTANTIATION TEST MODULES DEFINITIONS									*
-	 ****************************************************************************/
+	 ****************************************************************************!/
 	
-	/**
+	/!**
 	 * Instantiate class with wrong edge type selector
 	 *
 	 * Assert instantiating the class with a resolved selector that is not an
@@ -189,7 +190,7 @@ class EdgeAttributeUnitTest extends EdgeUnitTest
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
+	 *!/
 	instantiateWrongEdgeType( theClass, theParam = null )
 	{
 		//
@@ -208,11 +209,11 @@ class EdgeAttributeUnitTest extends EdgeUnitTest
 	}	// instantiateNoSelectorNoCollection
 	
 	
-	/****************************************************************************
+	/!****************************************************************************
 	 * INSTANTIATION TEST ROUTINE DEFINITIONS									*
-	 ****************************************************************************/
+	 ****************************************************************************!/
 	
-	/**
+	/!**
 	 * Test instantiate class with wrong edge type selector
 	 *
 	 * Assert instantiating the class with a resolved selector that is not an
@@ -222,7 +223,7 @@ class EdgeAttributeUnitTest extends EdgeUnitTest
 	 *
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
-	 */
+	 *!/
 	testInstantiateWrongEdgeType( theClass, theParam = null )
 	{
 		//
@@ -315,12 +316,13 @@ class EdgeAttributeUnitTest extends EdgeUnitTest
 			MyError,
 			/missing required fields/
 		);
-	
+		
 	}	// testInstantiateWrongEdgeType
-	
-}	// EdgeAttributeUnitTest.
+*/
+
+}	// EdgeBranchUnitTest.
 
 /**
  * Module exports
  */
-module.exports = EdgeAttributeUnitTest;
+module.exports = EdgeBranchUnitTest;

@@ -30,12 +30,12 @@ const NodeClass = require( '../classes/Persistent' );
 //
 // Unit test class.
 //
-const UnitTestClass = require( './classes/EdgeAttributeUnitTest' );
+const UnitTestClass = require( './classes/EdgeBranchUnitTest' );
 
 //
 // Test parameters.
 //
-const param = require( './parameters/EdgeAttribute' );
+const param = require( './parameters/EdgeBranch' );
 
 
 /********************************************************************************
@@ -73,11 +73,11 @@ else
  ********************************************************************************/
 
 /**
- * Edge attribute class tests
+ * Edge branch class tests
  *
- * We test the EdgeAttribute class.
+ * We test the EdgeBranch class.
  */
-describe( "EdgeAttribute class tests:", function ()
+describe( "EdgeBranch class tests:", function ()
 {
 	//
 	// Create test nodes.
@@ -121,8 +121,8 @@ describe( "EdgeAttribute class tests:", function ()
 	// Check base class.
 	//
 	it( "Test class", function () {
-		expect( unitTest.getClassName( 'base' ), "Class" ).to.equal( 'EdgeAttribute' );
-		expect( unitTest.currentClass, "Parameters" ).to.equal( 'EdgeAttribute' );
+		expect( unitTest.getClassName( 'base' ), "Class" ).to.equal( 'EdgeBranch' );
+		expect( unitTest.currentClass, "Parameters" ).to.equal( 'EdgeBranch' );
 	});
 	
 	//

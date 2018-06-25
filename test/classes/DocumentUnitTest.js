@@ -6082,7 +6082,7 @@ class DocumentUnitTest extends UnitTest
 				expect( func, `${message} - ${action}`
 				).to.throw(
 					MyError,
-					/missing required fields to resolve object/
+					/missing required fields/
 				);
 			}
 			
@@ -6159,7 +6159,7 @@ class DocumentUnitTest extends UnitTest
 				expect( func, `${message} - ${action}`
 				).to.throw(
 					MyError,
-					/missing required fields to resolve object/
+					/missing required fields/
 				);
 			}
 			
@@ -6243,7 +6243,7 @@ class DocumentUnitTest extends UnitTest
 				expect( func, `${message} - ${action}`
 				).to.throw(
 					MyError,
-					/missing required fields to resolve object/
+					/missing required fields/
 				);
 			}
 			
@@ -6320,7 +6320,7 @@ class DocumentUnitTest extends UnitTest
 				expect( func, `${message} - ${action}`
 				).to.throw(
 					MyError,
-					/missing required fields to resolve object/
+					/missing required fields/
 				);
 			}
 			
