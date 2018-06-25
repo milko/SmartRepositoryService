@@ -3,16 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/EdgeBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/EdgeBranch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/documents/PDF/Untitled.pages" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/test/Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/test/Document.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/classes/EdgeBranchUnitTest.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/classes/EdgeBranchUnitTest.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/classes/UnitTest.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/classes/UnitTest.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/parameters/EdgeBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/parameters/EdgeBranch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_EdgeAttribute.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/disabled_test_EdgeAttribute.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_EdgeBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_EdgeBranch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/Schema.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/Schema.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dictionary/Dict.js" beforeDir="false" afterPath="$PROJECT_DIR$/dictionary/Dict.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -28,42 +19,28 @@
     <option name="OUTPUT_DIRECTORY" value="$PROJECT_DIR$/exportToHTML" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.61608964">
+    <splitter split-orientation="horizontal" split-proportion="0.49341142">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="UnitTest.js" pinned="false" current-in-tab="false">
+          <file leaf-file-name="UnitTest.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/test/classes/UnitTest.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="386">
-                  <caret line="202" column="13" lean-forward="true" selection-start-line="202" selection-start-column="13" selection-end-line="202" selection-end-column="13" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="EdgeBranchUnitTest.js" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/test/classes/EdgeBranchUnitTest.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="429">
-                  <caret line="551" column="8" selection-start-line="551" selection-start-column="8" selection-end-line="551" selection-end-column="8" />
-                  <folding>
-                    <element signature="n#!!block;n#testInstantiateFoundReference#0;n#EdgeBranchUnitTest#0" />
-                  </folding>
+                <state relative-caret-position="495">
+                  <caret line="234" column="56" lean-forward="true" selection-start-line="234" selection-start-column="56" selection-end-line="234" selection-end-column="56" />
                 </state>
               </provider>
             </entry>
           </file>
           <file leaf-file-name="EdgeAttribute.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/test/parameters/EdgeAttribute.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-1138" />
-              </provider>
+              <provider selected="true" editor-type-id="text-editor" />
             </entry>
           </file>
           <file leaf-file-name="Edge.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/classes/Edge.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="127">
-                  <caret line="15" column="10" lean-forward="true" selection-start-line="15" selection-start-column="10" selection-end-line="15" selection-end-column="10" />
+                <state relative-caret-position="225">
+                  <caret line="15" column="10" selection-start-line="15" selection-start-column="10" selection-end-line="15" selection-end-column="10" />
                 </state>
               </provider>
             </entry>
@@ -72,7 +49,7 @@
             <entry file="file://$PROJECT_DIR$/test/parameters/EdgeBranch.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="1875">
-                  <caret line="125" column="32" selection-start-line="125" selection-start-column="32" selection-end-line="125" selection-end-column="32" />
+                  <caret line="143" column="29" selection-start-line="143" selection-start-column="29" selection-end-line="143" selection-end-column="29" />
                 </state>
               </provider>
             </entry>
@@ -86,20 +63,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="disabled_test_EdgeAttribute.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/test/disabled_test_EdgeAttribute.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="56">
-                  <caret line="27" column="53" selection-start-line="27" selection-start-column="53" selection-end-line="27" selection-end-column="53" />
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file leaf-file-name="Edge.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/test/parameters/Edge.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="305">
-                  <caret line="57" column="9" lean-forward="true" selection-start-line="57" selection-start-column="9" selection-end-line="57" selection-end-column="9" />
+                <state relative-caret-position="855">
+                  <caret line="57" column="9" selection-start-line="57" selection-start-column="9" selection-end-line="57" selection-end-column="9" />
                 </state>
               </provider>
             </entry>
@@ -107,8 +75,8 @@
           <file leaf-file-name="EdgeUnitTest.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/test/classes/EdgeUnitTest.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="584">
-                  <caret line="55" column="8" lean-forward="true" selection-start-line="55" selection-start-column="8" selection-end-line="55" selection-end-column="8" />
+                <state relative-caret-position="825">
+                  <caret line="55" column="8" selection-start-line="55" selection-start-column="8" selection-end-line="55" selection-end-column="8" />
                 </state>
               </provider>
             </entry>
@@ -135,7 +103,7 @@
             <entry file="file://$PROJECT_DIR$/test/classes/EdgeAttributeUnitTest.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="3450">
-                  <caret line="230" column="16" lean-forward="true" selection-start-line="230" selection-start-column="16" selection-end-line="230" selection-end-column="16" />
+                  <caret line="230" column="16" selection-start-line="230" selection-start-column="16" selection-end-line="230" selection-end-column="16" />
                 </state>
               </provider>
             </entry>
@@ -152,8 +120,8 @@
           <file leaf-file-name="test_EdgeBranch.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/test/test_EdgeBranch.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="326">
-                  <caret line="30" column="19" lean-forward="true" selection-start-line="30" selection-start-column="19" selection-end-line="30" selection-end-column="19" />
+                <state relative-caret-position="450">
+                  <caret line="30" column="19" selection-start-line="30" selection-start-column="19" selection-end-line="30" selection-end-column="19" />
                 </state>
               </provider>
             </entry>
@@ -166,8 +134,8 @@
           <file leaf-file-name="EdgeBranch.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="455">
-                  <caret line="196" column="10" lean-forward="true" selection-start-line="196" selection-start-column="10" selection-end-line="196" selection-end-column="10" />
+                <state relative-caret-position="2940">
+                  <caret line="196" column="10" selection-start-line="196" selection-start-column="10" selection-end-line="196" selection-end-column="10" />
                 </state>
               </provider>
             </entry>
@@ -175,7 +143,7 @@
           <file leaf-file-name="messages.json" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/data/messages.json">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="267">
+                <state relative-caret-position="9330">
                   <caret line="622" column="34" selection-start-line="622" selection-start-column="25" selection-end-line="622" selection-end-column="34" />
                 </state>
               </provider>
@@ -184,8 +152,8 @@
           <file leaf-file-name="Constants.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/utils/Constants.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="585">
-                  <caret line="366" column="38" lean-forward="true" selection-start-line="366" selection-start-column="38" selection-end-line="366" selection-end-column="38" />
+                <state relative-caret-position="5490">
+                  <caret line="366" column="38" selection-start-line="366" selection-start-column="38" selection-end-line="366" selection-end-column="38" />
                 </state>
               </provider>
             </entry>
@@ -193,7 +161,7 @@
           <file leaf-file-name="Validation.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/utils/Validation.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-2121">
+                <state relative-caret-position="7800">
                   <caret line="520" column="11" selection-start-line="520" selection-start-column="11" selection-end-line="520" selection-end-column="11" />
                 </state>
               </provider>
@@ -202,8 +170,8 @@
           <file leaf-file-name="Document.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/routes/test/Document.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="205">
-                  <caret line="883" column="14" lean-forward="true" selection-start-line="883" selection-start-column="14" selection-end-line="883" selection-end-column="14" />
+                <state relative-caret-position="13245">
+                  <caret line="883" column="14" selection-start-line="883" selection-start-column="14" selection-end-line="883" selection-end-column="14" />
                 </state>
               </provider>
             </entry>
@@ -365,11 +333,10 @@
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1280" />
+  <component name="ProjectFrameBounds">
     <option name="y" value="23" />
-    <option name="width" value="1280" />
-    <option name="height" value="1001" />
+    <option name="width" value="1755" />
+    <option name="height" value="1177" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -605,6 +572,7 @@
       <workItem from="1529838013026" duration="13999000" />
       <workItem from="1529864992725" duration="3391000" />
       <workItem from="1529914092209" duration="12074000" />
+      <workItem from="1529949596621" duration="624000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring Document unit tests.&#10;Developed functions to make lengthy checks: will not transform functions into classes to make checks inherited and reusable.">
       <created>1528974578541</created>
@@ -638,29 +606,28 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="764953000" />
+    <option name="totallyTimeSpent" value="765577000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
-    <editor active="true" />
+    <frame x="0" y="23" width="1755" height="1177" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4449489" visible="true" weight="0.22001588" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4437086" visible="true" weight="0.15282583" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.49148694" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.3299923" />
       <window_info anchor="bottom" id="Version Control" order="9" weight="0.3299923" />
-      <window_info id="Structure" order="1" sideWeight="0.5550511" side_tool="true" visible="true" weight="0.22001588" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.3299923" />
+      <window_info id="Structure" order="1" sideWeight="0.5562914" side_tool="true" visible="true" weight="0.15282583" />
       <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.49148694" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -750,13 +717,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test/old_test_Document.js" />
     <entry file="file://$PROJECT_DIR$/test/test_MILKO.js" />
-    <entry file="file://$PROJECT_DIR$/test/disabled/paramEdge.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="740">
-          <caret line="50" selection-start-line="26" selection-end-line="50" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/test/disabled/paramEdge.js" />
     <entry file="file://$PROJECT_DIR$/classes/Persistent.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="150">
@@ -764,13 +725,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/disabled/disabled_test_Edge.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="122" column="20" lean-forward="true" selection-start-line="122" selection-start-column="20" selection-end-line="122" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/test/disabled/disabled_test_Edge.js" />
     <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTestClass.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="555">
@@ -778,13 +733,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/disabled/paramEdgeAttribute.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1125">
-          <caret line="75" selection-start-line="70" selection-end-line="75" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/test/disabled/paramEdgeAttribute.js" />
     <entry file="file://$PROJECT_DIR$/test/classes/PersistentUnitTestClass.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
@@ -816,13 +765,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/disabled/disabled_test_EdgeAttribute.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1098">
-          <caret line="92" lean-forward="true" selection-start-line="92" selection-end-line="92" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/test/disabled/disabled_test_EdgeAttribute.js" />
     <entry file="file://$PROJECT_DIR$/classes/EdgeAttribute.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="570">
@@ -842,57 +785,57 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="455">
-          <caret line="196" column="10" lean-forward="true" selection-start-line="196" selection-start-column="10" selection-end-line="196" selection-end-column="10" />
+        <state relative-caret-position="2940">
+          <caret line="196" column="10" selection-start-line="196" selection-start-column="10" selection-end-line="196" selection-end-column="10" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/data/messages.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="267">
+        <state relative-caret-position="9330">
           <caret line="622" column="34" selection-start-line="622" selection-start-column="25" selection-end-line="622" selection-end-column="34" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/Constants.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="585">
-          <caret line="366" column="38" lean-forward="true" selection-start-line="366" selection-start-column="38" selection-end-line="366" selection-end-column="38" />
+        <state relative-caret-position="5490">
+          <caret line="366" column="38" selection-start-line="366" selection-start-column="38" selection-end-line="366" selection-end-column="38" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/Validation.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2121">
+        <state relative-caret-position="7800">
           <caret line="520" column="11" selection-start-line="520" selection-start-column="11" selection-end-line="520" selection-end-column="11" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/routes/test/Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="205">
-          <caret line="883" column="14" lean-forward="true" selection-start-line="883" selection-start-column="14" selection-end-line="883" selection-end-column="14" />
+        <state relative-caret-position="13245">
+          <caret line="883" column="14" selection-start-line="883" selection-start-column="14" selection-end-line="883" selection-end-column="14" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/classes/EdgeUnitTest.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="584">
-          <caret line="55" column="8" lean-forward="true" selection-start-line="55" selection-start-column="8" selection-end-line="55" selection-end-column="8" />
+        <state relative-caret-position="825">
+          <caret line="55" column="8" selection-start-line="55" selection-start-column="8" selection-end-line="55" selection-end-column="8" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/parameters/Edge.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="305">
-          <caret line="57" column="9" lean-forward="true" selection-start-line="57" selection-start-column="9" selection-end-line="57" selection-end-column="9" />
+        <state relative-caret-position="855">
+          <caret line="57" column="9" selection-start-line="57" selection-start-column="9" selection-end-line="57" selection-end-column="9" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/test_EdgeBranch.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="326">
-          <caret line="30" column="19" lean-forward="true" selection-start-line="30" selection-start-column="19" selection-end-line="30" selection-end-column="19" />
+        <state relative-caret-position="450">
+          <caret line="30" column="19" selection-start-line="30" selection-start-column="19" selection-end-line="30" selection-end-column="19" />
         </state>
       </provider>
     </entry>
@@ -906,13 +849,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/disabled_test_EdgeAttribute.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="56">
-          <caret line="27" column="53" selection-start-line="27" selection-start-column="53" selection-end-line="27" selection-end-column="53" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/test/disabled_test_EdgeAttribute.js" />
     <entry file="file://$PROJECT_DIR$/test/classes/EdgeBranchUnitTestClass.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="375">
@@ -923,28 +860,26 @@
     <entry file="file://$PROJECT_DIR$/test/parameters/EdgeBranch.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1875">
-          <caret line="125" column="32" selection-start-line="125" selection-start-column="32" selection-end-line="125" selection-end-column="32" />
+          <caret line="143" column="29" selection-start-line="143" selection-start-column="29" selection-end-line="143" selection-end-column="29" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/Edge.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="127">
-          <caret line="15" column="10" lean-forward="true" selection-start-line="15" selection-start-column="10" selection-end-line="15" selection-end-column="10" />
+        <state relative-caret-position="225">
+          <caret line="15" column="10" selection-start-line="15" selection-start-column="10" selection-end-line="15" selection-end-column="10" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/classes/EdgeAttributeUnitTest.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3450">
-          <caret line="230" column="16" lean-forward="true" selection-start-line="230" selection-start-column="16" selection-end-line="230" selection-end-column="16" />
+          <caret line="230" column="16" selection-start-line="230" selection-start-column="16" selection-end-line="230" selection-end-column="16" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/parameters/EdgeAttribute.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1138" />
-      </provider>
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/test/classes/DocumentUnitTest.js">
       <provider selected="true" editor-type-id="text-editor">
@@ -953,20 +888,11 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/test/classes/EdgeBranchUnitTest.js" />
     <entry file="file://$PROJECT_DIR$/test/classes/UnitTest.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="386">
-          <caret line="202" column="13" lean-forward="true" selection-start-line="202" selection-start-column="13" selection-end-line="202" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/classes/EdgeBranchUnitTest.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="429">
-          <caret line="551" column="8" selection-start-line="551" selection-start-column="8" selection-end-line="551" selection-end-column="8" />
-          <folding>
-            <element signature="n#!!block;n#testInstantiateFoundReference#0;n#EdgeBranchUnitTest#0" />
-          </folding>
+        <state relative-caret-position="495">
+          <caret line="234" column="56" lean-forward="true" selection-start-line="234" selection-start-column="56" selection-end-line="234" selection-end-column="56" />
         </state>
       </provider>
     </entry>
