@@ -525,6 +525,9 @@ class Document
 	 * The method will raise an exception if the provided and existing values do not
 	 * match, the current document is persistent and the property is locked.
 	 *
+	 * It will also raise an exception if the field is reserved and this method was
+	 * not called while resolving the object.
+	 *
 	 * The last parameter determines the type of exception: true means we are
 	 * resolving the document, which means that there is a mismatch between reserved
 	 * properties in the current and persistent documents; false means that we are
@@ -605,6 +608,21 @@ class Document
 						this._request.application.language,		// Language.
 						theField,								// Arguments.
 						409										// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			//
+			// Handle reserved fields when not resolving.
+			//
+			if( (! isResolving)
+			 && this.reservedFields.includes( theField ) )
+				throw(
+					new MyError(
+						'ReservedProperty',						// Error name.
+						K.error.FieldIsReserved,				// Message code.
+						this._request.application.language,		// Language.
+						theField,								// Arguments.
+						412										// HTTP error code.
 					)
 				);																// !@! ==>
 			
@@ -2228,6 +2246,22 @@ class Document
 		];																			// ==>
 		
 	}	// lockedFields
+	
+	/**
+	 * Return list of reserved fields
+	 *
+	 * This method should return the list of fields that cannot be changed using the
+	 * setDocumentProperties() method, these fields will be set wither when resolving
+	 * the object, or using a dedicated interface. Any attempt to change their value
+	 * with the above mentioned method should raise an exception.
+	 *
+	 * @returns {Array}	List of reserved fields.
+	 */
+	get reservedFields()
+	{
+		return [];																	// ==>
+		
+	}	// reservedFields
 	
 	/**
 	 * Return list of significant fields

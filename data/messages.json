@@ -590,7 +590,7 @@
   {
     "_key" : "e99",
     "label" : {
-      "ISO:639:3:eng" : "the branches list cannot be managed by clients."
+      "ISO:639:3:eng" : "the field “@arg@‘ is reserved and cannot be modified."
     }
   },
   {

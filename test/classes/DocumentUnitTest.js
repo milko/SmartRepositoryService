@@ -229,6 +229,18 @@ class DocumentUnitTest extends UnitTest
 		);
 		
 		//
+		// Instantiate with reserved contents.
+		// Assert that it fails.
+		//
+		this.instantiationUnitSet(
+			'instantiateReservedContent',
+			"Instantiate with reserved contents:",
+			this.test_classes.base,
+			this.parameters.content,
+			true
+		);
+		
+		//
 		// Instantiate with invalid _id reference.
 		// Assert that it fails.
 		//
@@ -1180,34 +1192,6 @@ class DocumentUnitTest extends UnitTest
 	}	// instantiateMutableImmutableDocument
 	
 	/**
-	 * Instantiate with invalid _id reference.
-	 *
-	 * Assert that the provided _id reference is valid.
-	 *
-	 * Should fail for both the base and custom classes.
-	 *
-	 * @param theClass		{Function}	The class to test.
-	 * @param theParam		{Object}	The object contents.
-	 */
-	instantiateInvalidReferenceId( theClass, theParam = null )
-	{
-		//
-		// Should fail.
-		//
-		this.testInstantiateInvalidId(
-			this.test_classes.base, theParam );
-		
-		//
-		// Should fail.
-		//
-		if( this.test_classes.custom )
-			this.testInstantiateInvalidId(
-				this.test_classes.custom, theParam
-			);
-		
-	}	// instantiateInvalidReferenceId
-	
-	/**
 	 * Instantiate with cross-collection reference.
 	 *
 	 * Assert that it fails if the provided reference is not of the same collection as
@@ -1236,6 +1220,63 @@ class DocumentUnitTest extends UnitTest
 			);
 		
 	}	// instantiateCrossCollectionReference
+	
+	/**
+	 * Instantiate with reserved content.
+	 *
+	 * Assert that instantiating a document with contents having reserved fields fails.
+	 *
+	 * Should fail for classes featuring reserved contents.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	instantiateReservedContent( theClass, theParam = null )
+	{
+		//
+		// Should suceed.
+		//
+		this.testInstantiateReservedContent(
+			this.test_classes.base, theParam
+		);
+		
+		//
+		// Should fail.
+		//
+		if( this.test_classes.custom )
+			this.testInstantiateReservedContent(
+				this.test_classes.custom, theParam
+			);
+		
+	}	// instantiateReservedContent
+	
+	/**
+	 * Instantiate with invalid _id reference.
+	 *
+	 * Assert that the provided _id reference is valid.
+	 *
+	 * Should fail for both the base and custom classes.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	instantiateInvalidReferenceId( theClass, theParam = null )
+	{
+		//
+		// Should fail.
+		//
+		this.testInstantiateInvalidId(
+			this.test_classes.base, theParam );
+		
+		//
+		// Should fail.
+		//
+		if( this.test_classes.custom )
+			this.testInstantiateInvalidId(
+				this.test_classes.custom, theParam
+			);
+		
+	}	// instantiateInvalidReferenceId
 	
 	/**
 	 * Instantiate with not found _id reference.
@@ -2707,6 +2748,16 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.modified, `${message} - ${action}` ).to.be.false;
 		
 		//
+		// Clone and strip reserved fields from parameter.
+		//
+		const no_reserved = K.function.clone( theParam );
+		for( const field of doc.reservedFields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+				delete no_reserved[ field ];
+		}
+		
+		//
 		// Filled mutable document.
 		//
 		message = "Filled mutable document";
@@ -2715,7 +2766,7 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					theParam,
+					no_reserved,
 					this.defaultTestCollection,
 					false
 				);
@@ -2735,7 +2786,7 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					theParam,
+					no_reserved,
 					this.defaultTestCollection,
 					true
 				);
@@ -2787,6 +2838,178 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.modified, `${message} - ${action}` ).to.be.false;
 		
 	}	// testInstantiateMutableImmutable
+	
+	/**
+	 * Instantiate with cross-collection reference.
+	 *
+	 * Assert that the provided _id reference belongs to the same declared or implicit
+	 * collection.
+	 *
+	 * Should always fail.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateCrossCollectionReference( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let message;
+		
+		//
+		// Instantiate a document.
+		// ToDo.
+		// Need to implement defaultCollection() call as static.
+		//
+		message = "Instantiate document";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Determine whether it has a default collection.
+		//
+		const default_collection = doc.defaultCollection;
+		
+		//
+		// Fail with default collection.
+		//
+		if( default_collection !== null )
+			expect( () => {
+				const tmp =
+					new theClass(
+						this.parameters.request,
+						this.parameters.example_id
+					);
+			}).to.throw(
+				MyError,
+				/cross-collection reference/
+			);
+		
+		//
+		// Fail with provided collection.
+		//
+		else
+			expect( () => {
+				const tmp =
+					new theClass(
+						this.parameters.request,
+						this.parameters.example_id,
+						this.defaultTestCollection
+					);
+			}).to.throw(
+				MyError,
+				/cross-collection reference/
+			);
+		
+	}	// testInstantiateCrossCollectionReference
+	
+	/**
+	 * Instantiate with reserved content.
+	 *
+	 * Assert that instantiating with reserved contents raises an exception.
+	 *
+	 * Should always fail if document features reserved content.
+	 *
+	 * @param theClass		{Function}	The class to test.
+	 * @param theParam		{Object}	The object contents.
+	 */
+	testInstantiateReservedContent( theClass, theParam = null )
+	{
+		let doc;
+		let func;
+		let action;
+		let message;
+		
+		//
+		// Instantiate a document.
+		// ToDo.
+		// Need to implement defaultCollection() call as static.
+		//
+		message = "Instantiate document";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Handle reserved content.
+		//
+		const reserved_fields = doc.reservedFields;
+		if( reserved_fields.length )
+		{
+			//
+			// Strip reserved fields from parameter
+			// and save their values.
+			//
+			const reserved_values = {};
+			const no_reserved = K.function.clone( theParam );
+			for( const field of reserved_fields )
+			{
+				if( no_reserved.hasOwnProperty( field ) )
+				{
+					reserved_values[ field ] = no_reserved[ field ];
+					delete no_reserved[ field ];
+				}
+			}
+			
+			//
+			// Iterate reserved fields.
+			//
+			for( const field in reserved_values )
+			{
+				const param = K.function.clone( no_reserved );
+				param[ field ] = reserved_values[ field ];
+				message = "Instantiate with reserved field";
+				func = () => {
+					doc =
+						new theClass(
+							this.parameters.request,
+							param,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message} [${field}]`
+				).to.throw(
+					MyError,
+					/Property is reserved/
+				);
+			}
+		}
+		
+		//
+		// Handle without reserved contents.
+		//
+		else
+		{
+			//
+			// Instantiate document with full contents.
+			//
+			message = "Instantiate with full contents";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						theParam,
+						this.defaultTestCollection
+					);
+			};
+			action = "Document has no reserved fields";
+			expect( func, `${message} - ${action}` ).not.to.throw();
+		}
+		
+	}	// nstantiatereservedContent
 	
 	/**
 	 * Instantiate with invalid _id reference.
@@ -2876,77 +3099,6 @@ class DocumentUnitTest extends UnitTest
 		}
 		
 	}	// testInstantiateInvalidId
-	
-	/**
-	 * Instantiate with cross-collection reference.
-	 *
-	 * Assert that the provided _id reference belongs to the same declared or implicit
-	 * collection.
-	 *
-	 * Should always fail.
-	 *
-	 * @param theClass		{Function}	The class to test.
-	 * @param theParam		{Object}	The object contents.
-	 */
-	testInstantiateCrossCollectionReference( theClass, theParam = null )
-	{
-		let doc;
-		let func;
-		let message;
-		
-		//
-		// Instantiate a document.
-		// ToDo.
-		// Need to implement defaultCollection() call as static.
-		//
-		message = "Instantiate document";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					null,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Determine whether it has a default collection.
-		//
-		const default_collection = doc.defaultCollection;
-		
-		//
-		// Fail with default collection.
-		//
-		if( default_collection !== null )
-			expect( () => {
-				const tmp =
-					new theClass(
-						this.parameters.request,
-						this.parameters.example_id
-					);
-			}).to.throw(
-				MyError,
-				/cross-collection reference/
-			);
-		
-		//
-		// Fail with provided collection.
-		//
-		else
-			expect( () => {
-				const tmp =
-					new theClass(
-						this.parameters.request,
-						this.parameters.example_id,
-						this.defaultTestCollection
-					);
-			}).to.throw(
-				MyError,
-				/cross-collection reference/
-			);
-		
-	}	// testInstantiateCrossCollectionReference
 	
 	/**
 	 * Instantiate with not found _id reference.
@@ -3146,6 +3298,19 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
+		// Collect reserved fields.
+		//
+		const no_reserved = {};
+		const reserved_values = {};
+		for( const field in theParam )
+		{
+			if( doc.reservedFields.includes( field ) )
+				reserved_values[ field ] = theParam[ field ];
+			else
+				no_reserved[ field ] = theParam[ field ];
+		}
+		
+		//
 		// Instantiate sample document.
 		//
 		message = "Reference sample document";
@@ -3155,7 +3320,7 @@ class DocumentUnitTest extends UnitTest
 				doc =
 					new theClass(
 						this.parameters.request,
-						theParam
+						no_reserved
 					);
 			};
 		else
@@ -3163,11 +3328,16 @@ class DocumentUnitTest extends UnitTest
 				doc =
 					new theClass(
 						this.parameters.request,
-						theParam,
+						no_reserved,
 						this.defaultTestCollection
 					);
 			};
 		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Set reserved fields.
+		//
+		this.setReservedProperties( doc, reserved_values );
 		
 		//
 		// Prepare document for insert.
@@ -3305,8 +3475,9 @@ class DocumentUnitTest extends UnitTest
 	{
 		let doc;
 		let func;
-		let message;
 		let action;
+		let invalid;
+		let message;
 		
 		//
 		// Check provided parameter.
@@ -3331,6 +3502,20 @@ class DocumentUnitTest extends UnitTest
 		const default_collection = doc.defaultCollection;
 		
 		//
+		// Clone and strip reserved fields from parameter.
+		//
+		const reserved_values = {};
+		const no_reserved = K.function.clone( theParam );
+		for( const field of doc.reservedFields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+			}
+		}
+		
+		//
 		// Handle default collection.
 		//
 		if( default_collection !== null )
@@ -3338,7 +3523,7 @@ class DocumentUnitTest extends UnitTest
 				doc =
 					new theClass(
 						this.parameters.request,
-						theParam
+						no_reserved
 					);
 			};
 		
@@ -3350,7 +3535,7 @@ class DocumentUnitTest extends UnitTest
 				doc =
 					new theClass(
 						this.parameters.request,
-						theParam,
+						no_reserved,
 						this.defaultTestCollection
 					);
 			};
@@ -3374,21 +3559,21 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check content.
 		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
+		this.assertAllProvidedDataInDocument( "Check contents", doc, no_reserved );
 		
 		//
 		// Instantiate with default collection and invalid property.
 		// Should not fail, it will be caught before persisting.
 		//
-		const contents = K.function.clone( theParam );
-		contents[ "UNKNOWN" ] = "Should not be there";
+		invalid = K.function.clone( no_reserved );
+		invalid[ "UNKNOWN" ] = "Should not be there";
 		message = "Instantiation with default collection and invalid property";
 		if( default_collection !== null )
 			func = () => {
 				doc =
 					new theClass(
 						this.parameters.request,
-						contents
+						invalid
 					);
 			};
 		
@@ -3400,7 +3585,7 @@ class DocumentUnitTest extends UnitTest
 				doc =
 					new theClass(
 						this.parameters.request,
-						contents,
+						invalid,
 						this.defaultTestCollection
 					);
 			};
@@ -3424,7 +3609,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check content.
 		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, contents );
+		this.assertAllProvidedDataInDocument( "Check contents", doc, invalid );
 		
 		//
 		// Instantiate with provided collection.
@@ -3434,7 +3619,7 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					theParam,
+					no_reserved,
 					this.defaultTestCollection
 				);
 		};
@@ -3455,7 +3640,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check content.
 		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
+		this.assertAllProvidedDataInDocument( "Check contents", doc, no_reserved );
 		
 		//
 		// Instantiate with provided collection and invalid property.
@@ -3466,7 +3651,7 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					contents,
+					invalid,
 					this.defaultTestCollection
 				);
 		};
@@ -3487,7 +3672,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check content.
 		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, contents );
+		this.assertAllProvidedDataInDocument( "Check contents", doc, invalid );
 		
 	}	// testInstantiateWithContent
 	
@@ -3514,14 +3699,9 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
-		// REPLACE FLAG FALSE
+		// Instantiate to get reserved fields.
 		//
-		
-		//
-		// Instantiate for false replace flag test.
-		//
-		message = "Replace flag is false";
-		action = "Instantiation";
+		message = "Instantiate to get reserved fields";
 		func = () => {
 			doc =
 				new theClass(
@@ -3530,330 +3710,271 @@ class DocumentUnitTest extends UnitTest
 					this.defaultTestCollection
 				);
 		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( func, `${message}` ).not.to.throw();
 		
 		//
-		// Check object empty state.
+		// Handle reserved content.
 		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		let has_reserved = false;
+		const reserved_values = {};
+		const reserved_fields = doc.reservedFields;
+		const no_reserved = K.function.clone( theParam );
+		for( const field in no_reserved )
+		{
+			if( reserved_fields.includes( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+				has_reserved = true;
+			}
+		}
 		
 		//
-		// Load data.
+		// Iterate replace flag values.
 		//
-		action = "Set document properties filled";
-		func = () => {
-			doc.setDocumentProperties(
-				theParam,
-				false
-			);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check content.
-		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
-		
-		//
-		// Instantiate for false replace flag test.
-		//
-		message = "Replace flag is false";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					null,
-					this.defaultTestCollection
+		for( const flag of [ false, true ] )
+		{
+			//
+			// Instantiate for false replace flag test.
+			//
+			message = `Replace flag is ${flag}`;
+			action = "Instantiation";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						null,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object empty state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Load data.
+			//
+			action = "Set document properties filled";
+			func = () => {
+				doc.setDocumentProperties(
+					no_reserved,
+					flag
 				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object empty state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Load data.
-		//
-		data = K.function.clone( theParam );
-		for( const item in data )
-			data[ item ] = null;
-		action = "Set document properties delete";
-		func = () => {
-			doc.setDocumentProperties(
-				data,
-				false
-			);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Instantiate for false replace flag test.
-		//
-		message = "Replace flag is false";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					null,
-					this.defaultTestCollection
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object loaded state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Check content.
+			//
+			this.assertAllProvidedDataInDocument( "Check contents", doc, no_reserved );
+			
+			//
+			// Handle reserved fields.
+			//
+			if( has_reserved )
+			{
+				//
+				// Instantiate for reserved test.
+				//
+				action = "Instantiation for reserved test";
+				func = () => {
+					doc =
+						new theClass(
+							this.parameters.request,
+							null,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Load data.
+				//
+				action = "Set document properties reserved";
+				func = () => {
+					doc.setDocumentProperties(
+						theParam,
+						flag
+					);
+				};
+				expect( func, `${message} - ${action}`
+				).to.throw(
+					MyError,
+					/Property is reserved/
 				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object empty state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Load data.
-		//
-		action = "Set invalid document property";
-		data = { "UNKNOWN" : "CONTENT" };
-		func = () => {
-			doc.setDocumentProperties(
-				data,
-				false
-			);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check content.
-		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, data );
-		
-		//
-		// REPLACE FLAG TRUE
-		//
-		
-		//
-		// Instantiate for true replace flag test.
-		//
-		message = "Replace flag is true";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					null,
-					this.defaultTestCollection
+			}
+			
+			//
+			// Instantiate for delete data test.
+			//
+			action = "Instantiation for delete test";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						null,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object empty state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Load data.
+			//
+			data = K.function.clone( no_reserved );
+			for( const item in data )
+				data[ item ] = null;
+			action = "Delete document properties";
+			func = () => {
+				doc.setDocumentProperties(
+					data,
+					flag
 				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object empty state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Load data.
-		//
-		action = "Set document properties filled";
-		func = () => {
-			doc.setDocumentProperties(
-				theParam,
-				true
-			);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check content.
-		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
-		
-		//
-		// Instantiate for true replace flag test.
-		//
-		message = "Replace flag is true";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					null,
-					this.defaultTestCollection
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Handle reserved fields.
+			//
+			if( has_reserved )
+			{
+				//
+				// Instantiate for false replace flag test.
+				//
+				action = "Instantiation for reserved test";
+				func = () => {
+					doc =
+						new theClass(
+							this.parameters.request,
+							null,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Load data.
+				//
+				data = K.function.clone( theParam );
+				for( const item in data )
+					data[ item ] = null;
+				action = "Delete reserved document properties";
+				func = () => {
+					doc.setDocumentProperties(
+						data,
+						flag
+					);
+				};
+				//
+				// This should not fail, since the property will not be deleted,
+				// because it is not there in the first place.
+				//
+				expect( func, `${message} - ${action}` ).not.to.throw();
+			}
+			
+			//
+			// Check object loaded state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Instantiate for false replace flag test.
+			//
+			action = "Instantiation for invalid property test";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						null,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object empty state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Load data.
+			//
+			action = "Set invalid document property";
+			data = { "UNKNOWN" : "CONTENT" };
+			func = () => {
+				doc.setDocumentProperties(
+					data,
+					flag
 				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object empty state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Load data.
-		//
-		data = K.function.clone( theParam );
-		for( const item in data )
-			data[ item ] = null;
-		action = "Set document properties delete";
-		func = () => {
-			doc.setDocumentProperties(
-				data,
-				true
-			);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Instantiate for true replace flag test.
-		//
-		message = "Replace flag is true";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					null,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object empty state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Load data.
-		//
-		action = "Set invalid document property";
-		data = { "UNKNOWN" : "CONTENT" };
-		func = () => {
-			doc.setDocumentProperties(
-				data,
-				true
-			);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check content.
-		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, data );
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object loaded state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Check content.
+			//
+			this.assertAllProvidedDataInDocument( "Check contents", doc, data );
+			
+		}	// Iterating replace flag values.
 	
 	}	// testContentsLoadEmptyObject
 	
@@ -3886,332 +4007,222 @@ class DocumentUnitTest extends UnitTest
 		expect( theParam, message ).to.have.property( 'base' );
 		expect( theParam, message ).to.have.property( 'replace' );
 		
+		//
+		// Get parameter data.
+		//
 		const base_data = theParam[ 'base' ];
 		const replace_data = theParam[ 'replace' ];
 		
 		//
-		// REPLACE FLAG FALSE
+		// Instantiate to get reserved fields.
 		//
-		
-		//
-		// Instantiate for false replace flag test.
-		//
-		message = "Replace flag is false";
-		action = "Instantiation";
+		message = "Instantiate to get reserved fields";
 		func = () => {
 			doc =
 				new theClass(
 					this.parameters.request,
-					base_data,
+					null,
 					this.defaultTestCollection
 				);
 		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( func, `${message}` ).not.to.throw();
 		
 		//
-		// Check object empty state.
+		// Handle reserved content.
 		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Replace and check contents.
-		//
-		this.validateNonPersistentReplace(
-			`${message} - replace with contents`,	// Error message.
-			false,									// Replace flag.
-			doc,									// The document object.
-			replace_data							// The replacement data.
-		);
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Instantiate for false replace flag test.
-		//
-		message = "Replace flag is false";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					base_data,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object empty state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Replace and check contents.
-		//
-		data = K.function.clone( replace_data );
-		for( const item in data )
-			data[ item ] = null;
-		this.validateNonPersistentReplace(
-			`${message} - replace with delete contents`,	// Error message.
-			false,											// Replace flag.
-			doc,											// The document object.
-			data											// The replacement data.
-		);
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Instantiate for false replace flag test.
-		//
-		message = "Replace flag is false";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					base_data,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object empty state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Replace and check contents.
-		//
-		data = { "UNKNOWN" : "CONTENT" };
-		this.validateNonPersistentReplace(
-			`${message} - replace with invalid contents`,	// Error message.
-			false,											// Replace flag.
-			doc,											// The document object.
-			data											// The replacement data.
-		);
-		action = "Has invalid field";
-		expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
-		expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// REPLACE FLAG TRUE
-		//
-		
-		//
-		// Instantiate for false replace flag test.
-		//
-		message = "Replace flag is true";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					base_data,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object empty state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Replace and check contents.
-		//
-		this.validateNonPersistentReplace(
-			`${message} - replace with contents`,	// Error message.
-			true,									// Replace flag.
-			doc,									// The document object.
-			replace_data							// The replacement data.
-		);
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Instantiate for true replace flag test.
-		//
-		message = "Replace flag is true";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					base_data,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object empty state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Replace and check contents.
-		//
-		data = K.function.clone( replace_data );
-		for( const item in data )
-			data[ item ] = null;
-		this.validateNonPersistentReplace(
-			`${message} - replace with delete contents`,	// Error message.
-			true,											// Replace flag.
-			doc,											// The document object.
-			data											// The replacement data.
-		);
-		
-		//
-		// Check deleted contents.
-		//
-		for( const item in data )
+		let base_has_reserved = false;
+		let replace_has_reserved = false;
+		const base_reserved_values = {};
+		const replace_reserved_values = {};
+		const reserved_fields = doc.reservedFields;
+		const base_no_reserved = K.function.clone( base_data );
+		for( const field in base_no_reserved )
 		{
-			action = `Has field [${item}]`;
-			expect( doc.document, `${message} - ${action}` ).not.to.have.property( item );
+			if( reserved_fields.includes( field ) )
+			{
+				base_reserved_values[ field ] = base_no_reserved[ field ];
+				delete base_no_reserved[ field ];
+				base_has_reserved = true;
+			}
+		}
+		const replace_no_reserved = K.function.clone( replace_data );
+		for( const field in replace_no_reserved )
+		{
+			if( reserved_fields.includes( field ) )
+			{
+				replace_reserved_values[ field ] = replace_no_reserved[ field ];
+				delete replace_no_reserved[ field ];
+				replace_has_reserved = true;
+			}
 		}
 		
 		//
-		// Check object loaded state.
+		// Iterate by replace flag value.
 		//
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Instantiate for true replace flag test.
-		//
-		message = "Replace flag is true";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					base_data,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object empty state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Replace and check contents.
-		//
-		data = { "UNKNOWN" : "CONTENT" };
-		this.validateNonPersistentReplace(
-			`${message} - replace with invalid contents`,	// Error message.
-			true,											// Replace flag.
-			doc,											// The document object.
-			data											// The replacement data.
-		);
-		action = "Has invalid field";
-		expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
-		expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
+		for( const flag of [ false, true ] )
+		{
+			//
+			// SET PROPERTIES
+			//
+			
+			//
+			// Instantiate for set test.
+			//
+			message = `Rplace flag is ${flag}`;
+			action = "Instantiation for setting data";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						base_no_reserved,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object empty state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Replace and check contents.
+			//
+			this.validateNonPersistentReplace(
+				`${message} - replace with contents`,	// Error message.
+				flag,									// Replace flag.
+				doc,									// The document object.
+				replace_data							// The replacement data.
+			);
+			
+			//
+			// Check object loaded state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// DELETE PROPERTIES
+			//
+			
+			//
+			// Instantiate for delete test.
+			//
+			action = "Instantiation for deleting data";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						base_no_reserved,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object empty state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Delete and check contents.
+			//
+			data = K.function.clone( replace_data );
+			for( const item in data )
+				data[ item ] = null;
+			this.validateNonPersistentReplace(
+				`${message} - replace with delete contents`,	// Error message.
+				flag,											// Replace flag.
+				doc,											// The document object.
+				data											// The replacement data.
+			);
+			
+			//
+			// Check object loaded state.
+			//
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// SET INVALID PROPERTIES
+			//
+			
+			//
+			// Instantiate for false replace flag test.
+			//
+			action = "Instantiation for setting invalid contents";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						base_no_reserved,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object empty state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Replace and check contents.
+			//
+			data = { "UNKNOWN" : "CONTENT" };
+			this.validateNonPersistentReplace(
+				`${message} - replace with invalid contents`,	// Error message.
+				flag,											// Replace flag.
+				doc,											// The document object.
+				data											// The replacement data.
+			);
+			action = "Has invalid field";
+			expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
+			expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
+			
+			//
+			// Check object loaded state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+		}	// Iterating by flag value.
+	
 	}	// testContentsLoadFilledObject
 	
 	/**
@@ -4245,8 +4256,54 @@ class DocumentUnitTest extends UnitTest
 		expect( theParam, message ).to.have.property( 'base' );
 		expect( theParam, message ).to.have.property( 'replace' );
 		
+		//
+		// Get parameter data.
+		//
 		const base_data = theParam[ 'base' ];
 		const replace_data = theParam[ 'replace' ];
+		
+		//
+		// Instantiate to get reserved fields.
+		//
+		message = "Instantiate to get reserved fields";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Handle reserved content.
+		//
+		let base_has_reserved = false;
+		let replace_has_reserved = false;
+		const base_reserved_values = {};
+		const replace_reserved_values = {};
+		const reserved_fields = doc.reservedFields;
+		const base_no_reserved = K.function.clone( base_data );
+		for( const field in base_no_reserved )
+		{
+			if( reserved_fields.includes( field ) )
+			{
+				base_reserved_values[ field ] = base_no_reserved[ field ];
+				delete base_no_reserved[ field ];
+				base_has_reserved = true;
+			}
+		}
+		const replace_no_reserved = K.function.clone( replace_data );
+		for( const field in replace_no_reserved )
+		{
+			if( reserved_fields.includes( field ) )
+			{
+				replace_reserved_values[ field ] = replace_no_reserved[ field ];
+				delete replace_no_reserved[ field ];
+				replace_has_reserved = true;
+			}
+		}
 		
 		//
 		// Instantiate object for inserting.
@@ -4257,7 +4314,7 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					base_data,
+					base_no_reserved,
 					this.defaultTestCollection
 				);
 		};
@@ -4294,294 +4351,182 @@ class DocumentUnitTest extends UnitTest
 		id = doc.document._id;
 		
 		//
-		// REPLACE FLAG FALSE
+		// Iterate by replace flag value.
 		//
-		
-		//
-		// Instantiate from reference.
-		//
-		message = "Resolving from reference";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					id,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object persistent state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check content.
-		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, base_data );
-		
-		//
-		// Replace and check contents.
-		//
-		message = "Replace value and flag is off";
-		this.validatePersistentReplace(
-			message,								// Error message.
-			false,									// Replace flag.
-			doc,									// The document object.
-			replace_data							// The replacement data.
-		);
-		
-		//
-		// Check object replaced state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Instantiate from reference.
-		//
-		message = "Resolving from reference";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					id,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Replace and check contents.
-		//
-		data = K.function.clone( replace_data );
-		for( const item in data )
-			data[ item ] = null;
-		message = "Replace value and flag is off";
-		this.validatePersistentReplace(
-			`${message} - replace with delete contents`,	// Error message.
-			false,											// Replace flag.
-			doc,											// The document object.
-			data											// The replacement data.
-		);
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Instantiate from reference.
-		//
-		message = "Resolving from reference";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					id,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Replace and check contents.
-		//
-		data = { "UNKNOWN" : "CONTENT" };
-		message = "Replace value and flag is off";
-		this.validatePersistentReplace(
-			`${message} - replace with invalid contents`,	// Error message.
-			false,											// Replace flag.
-			doc,											// The document object.
-			data											// The replacement data.
-		);
-		action = "Has invalid field";
-		expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
-		expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// REPLACE FLAG TRUE
-		//
-		
-		//
-		// Instantiate from reference.
-		//
-		message = "Resolving from reference";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					id,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Check object persistent state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check content.
-		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, base_data );
-		
-		//
-		// Replace and check contents.
-		//
-		message = "Replace value and flag is on";
-		this.validatePersistentReplace(
-			message,								// Error message.
-			true,									// Replace flag.
-			doc,									// The document object.
-			replace_data							// The replacement data.
-		);
-		
-		//
-		// Check object replaced state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Instantiate from reference.
-		//
-		message = "Resolving from reference";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					id,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Replace and check contents.
-		//
-		data = K.function.clone( replace_data );
-		for( const item in data )
-			data[ item ] = null;
-		message = "Replace value and flag is on";
-		this.validatePersistentReplace(
-			`${message} - replace with delete contents`,	// Error message.
-			true,											// Replace flag.
-			doc,											// The document object.
-			data											// The replacement data.
-		);
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Instantiate from reference.
-		//
-		message = "Resolving from reference";
-		action = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					id,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Replace and check contents.
-		//
-		data = { "UNKNOWN" : "CONTENT" };
-		message = "Replace value and flag is on";
-		this.validatePersistentReplace(
-			`${message} - replace with invalid contents`,	// Error message.
-			true,											// Replace flag.
-			doc,											// The document object.
-			data											// The replacement data.
-		);
-		action = "Has invalid field";
-		expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
-		expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
-		
-		//
-		// Check object loaded state.
-		//
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		for( const flag of [ false, true ] )
+		{
+			//
+			// SET PROPERTIES
+			//
+			
+			//
+			// Instantiate from reference.
+			//
+			message = `Replace flag is ${flag}`;
+			action = "Instantiation from reference";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						id,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object persistent state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Check content.
+			//
+			this.assertAllProvidedDataInDocument( "Check contents", doc, base_no_reserved );
+			
+			//
+			// Replace and check contents.
+			//
+			this.validatePersistentReplace(
+				`${message} - replace with contents`,	// Error message.
+				flag,									// Replace flag.
+				doc,									// The document object.
+				replace_data							// The replacement data.
+			);
+			
+			//
+			// Check object replaced state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// DELETE PROPERTIES
+			//
+			
+			//
+			// Instantiate from reference.
+			//
+			action = "Instantiation from reference";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						id,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object persistent state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Delete and check contents.
+			//
+			data = K.function.clone( replace_data );
+			for( const item in data )
+				data[ item ] = null;
+			this.validatePersistentReplace(
+				`${message} - replace with delete contents`,	// Error message.
+				flag,											// Replace flag.
+				doc,											// The document object.
+				data											// The replacement data.
+			);
+			
+			//
+			// Check object loaded state.
+			//
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			
+			//
+			// SET INVALID PROPERTIES
+			//
+			
+			//
+			// Instantiate for false replace flag test.
+			//
+			action = "Instantiation from reference";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						id,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Check object persistent state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Replace and check contents.
+			//
+			data = { "UNKNOWN" : "CONTENT" };
+			this.validatePersistentReplace(
+				`${message} - replace with invalid contents`,	// Error message.
+				flag,											// Replace flag.
+				doc,											// The document object.
+				data											// The replacement data.
+			);
+			action = "Has invalid field";
+			expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
+			expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
+			
+			//
+			// Check object loaded state.
+			//
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+		}	// Iterating by flag value.
 		
 		//
 		// Remove document.
 		//
 		db._remove( id );
-	
+
 	}	// testContentsLoadPersistentObject
 	
 	
@@ -4720,22 +4665,24 @@ class DocumentUnitTest extends UnitTest
 		expect( theParam, "Parameter type" ).to.be.an.object;
 		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
 		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
+		
+		//
+		// Get parameter data.
+		//
 		const param_contents = theParam.contents;
 		const param_excluded = ( Array.isArray( theParam.excluded ) )
 							 ? theParam.excluded
 							 : [];
 		
 		//
-		// ToDo
-		// Note: we need to instantiate the object first, because we need to get the
-		// list of required fields: should make the method static...
+		// Instantiate to get reserved fields.
 		//
-		message = "Instantiation";
+		message = "Instantiate to get reserved fields";
 		func = () => {
 			doc =
 				new theClass(
 					this.parameters.request,
-					param_contents,
+					null,
 					this.defaultTestCollection
 				);
 		};
@@ -4745,6 +4692,39 @@ class DocumentUnitTest extends UnitTest
 		// Collect required fields.
 		//
 		const required = doc.requiredFields;
+		
+		//
+		// Clone and strip reserved fields from parameter.
+		//
+		const reserved_values = {};
+		const no_reserved = K.function.clone( param_contents );
+		for( const field of doc.reservedFields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+			}
+		}
+		
+		//
+		// Instantiate object with contents.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					no_reserved,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Set reserved values.
+		//
+		this.setReservedProperties( doc, reserved_values );
 		
 		//
 		// Handle document with required fields.
@@ -4796,11 +4776,16 @@ class DocumentUnitTest extends UnitTest
 					doc =
 						new theClass(
 							this.parameters.request,
-							param_contents,
+							no_reserved,
 							this.defaultTestCollection
 						);
 				};
 				expect( func, `${message}` ).not.to.throw();
+				
+				//
+				// Set reserved values.
+				//
+				this.setReservedProperties( doc, reserved_values );
 				
 			}	// Iterating featured required fields.
 			
@@ -4875,22 +4860,24 @@ class DocumentUnitTest extends UnitTest
 		expect( theParam, "Parameter type" ).to.be.an.object;
 		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
 		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
+		
+		//
+		// Get parameter data.
+		//
 		const param_contents = theParam.contents;
 		const param_excluded = ( Array.isArray( theParam.excluded ) )
 							   ? theParam.excluded
 							   : [];
 		
 		//
-		// ToDo
-		// Note: we need to instantiate the object first, because we need to get the
-		// list of significant fields: should make the method static...
+		// Instantiate to get reserved fields.
 		//
-		message = "Instantiation";
+		message = "Instantiate to get reserved fields";
 		func = () => {
 			doc =
 				new theClass(
 					this.parameters.request,
-					param_contents,
+					null,
 					this.defaultTestCollection
 				);
 		};
@@ -4900,6 +4887,39 @@ class DocumentUnitTest extends UnitTest
 		// Collect significant fields.
 		//
 		const significant = K.function.flatten( doc.significantFields );
+		
+		//
+		// Clone and strip reserved fields from parameter.
+		//
+		const reserved_values = {};
+		const no_reserved = K.function.clone( param_contents );
+		for( const field of doc.reservedFields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+			}
+		}
+		
+		//
+		// Instantiate object with contents.
+		//
+		message = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					no_reserved,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Set reserved values.
+		//
+		this.setReservedProperties( doc, reserved_values );
 		
 		//
 		// Handle document with significant fields.
@@ -4914,7 +4934,8 @@ class DocumentUnitTest extends UnitTest
 				//
 				// Remove from current document.
 				//
-				if( doc.document.hasOwnProperty( field ) ) {
+				if( doc.document.hasOwnProperty( field ) )
+				{
 					//
 					// Remove field.
 					//
@@ -4997,11 +5018,16 @@ class DocumentUnitTest extends UnitTest
 					doc =
 						new theClass(
 							this.parameters.request,
-							param_contents,
+							no_reserved,
 							this.defaultTestCollection
 						);
 				};
 				expect( func, `${message}` ).not.to.throw();
+				
+				//
+				// Set reserved values.
+				//
+				this.setReservedProperties( doc, reserved_values );
 				
 			}	// Iterating featured significant fields.
 			
@@ -5078,6 +5104,10 @@ class DocumentUnitTest extends UnitTest
 		expect( theParam, "Parameter type" ).to.be.an.object;
 		expect( theParam, "Parameter contents" ).to.have.property( 'contents' );
 		expect( theParam, "Parameter contents" ).to.have.property( 'excluded' );
+		
+		//
+		// Get parameter data.
+		//
 		const param_contents = theParam.contents;
 		const param_excluded = ( Array.isArray( theParam.excluded ) )
 							   ? theParam.excluded
@@ -5099,6 +5129,34 @@ class DocumentUnitTest extends UnitTest
 		}
 		
 		//
+		// Instantiate to get reserved fields.
+		//
+		message = "Instantiate to get reserved fields";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Clone and strip reserved fields from parameter.
+		//
+		const reserved_values = {};
+		const no_reserved = K.function.clone( clone );
+		for( const field of doc.reservedFields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+			}
+		}
+		
+		//
 		// Instantiate.
 		//
 		message = "Instantiation";
@@ -5106,11 +5164,16 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					clone,
+					no_reserved,
 					this.defaultTestCollection
 				);
 		};
 		expect( func, message ).not.to.throw();
+		
+		//
+		// Set reserved values.
+		//
+		this.setReservedProperties( doc, reserved_values );
 		
 		//
 		// Insert.
@@ -5133,6 +5196,10 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
 		action = "Modified";
 		expect( doc.modified, `${message} - ${action}` ).to.equal(false);
+		
+		//
+		// Assert all data is in document.
+		//
 		this.assertAllProvidedDataInDocument( "Contents", doc, clone );
 		
 		//
@@ -5152,7 +5219,7 @@ class DocumentUnitTest extends UnitTest
 		data = K.function.clone( doc.document );
 		
 		//
-		// Save inserted ID in current object.
+		// Save inserted ID in unit test object.
 		//
 		this.intermediate_results.key_insert_filled = key;
 		expect(this.intermediate_results).to.have.property("key_insert_filled");
@@ -5171,6 +5238,10 @@ class DocumentUnitTest extends UnitTest
 				);
 		};
 		expect( func, message ).not.to.throw();
+		
+		//
+		// Assert all data is in document.
+		//
 		this.assertAllProvidedDataInDocument( "Contents", doc, data );
 		
 	}	// testInsertWithContent
@@ -5203,9 +5274,37 @@ class DocumentUnitTest extends UnitTest
 			.document( this.intermediate_results.key_insert_filled );
 		
 		//
+		// Instantiate to get reserved fields.
+		//
+		message = "Instantiate to get reserved fields";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Clone and strip reserved fields from parameter.
+		//
+		const reserved_values = {};
+		const no_reserved = K.function.clone( theParam );
+		for( const field of doc.reservedFields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+			}
+		}
+		
+		//
 		// Create selector.
 		//
-		selector = K.function.clone( theParam );
+		selector = K.function.clone( no_reserved );
 		selector._key = this.intermediate_results.key_insert_filled;
 		
 		//
@@ -5221,6 +5320,11 @@ class DocumentUnitTest extends UnitTest
 				);
 		};
 		expect( func, message ).not.to.throw();
+		
+		//
+		// Set reserved fields.
+		//
+		this.setReservedProperties( doc, reserved_values );
 		
 		//
 		// Insert.
@@ -5262,6 +5366,34 @@ class DocumentUnitTest extends UnitTest
 		const param_contents = theParam.contents;
 		
 		//
+		// Instantiate to get reserved fields.
+		//
+		message = "Instantiate to get reserved fields";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Clone and strip reserved fields from parameter.
+		//
+		const reserved_values = {};
+		const no_reserved = K.function.clone( param_contents );
+		for( const field of doc.reservedFields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+			}
+		}
+		
+		//
 		// Instantiate.
 		//
 		message = "Instantiation";
@@ -5269,11 +5401,16 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					param_contents,
+					no_reserved,
 					this.defaultTestCollection
 				);
 		};
 		expect( func, message ).not.to.throw();
+		
+		//
+		// Set reserved fields.
+		//
+		this.setReservedProperties( doc, reserved_values );
 		
 		//
 		// Insert.
@@ -5334,6 +5471,34 @@ class DocumentUnitTest extends UnitTest
 			clone[ Dict.descriptor.kName ] = "NAME SAME CONTENTS";
 		
 		//
+		// Instantiate to get reserved fields.
+		//
+		message = "Instantiate to get reserved fields";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Clone and strip reserved fields from parameter.
+		//
+		const reserved_values = {};
+		const no_reserved = K.function.clone( clone );
+		for( const field of doc.reservedFields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+			}
+		}
+		
+		//
 		// Instantiate.
 		//
 		message = "Instantiation";
@@ -5341,11 +5506,16 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					clone,
+					no_reserved,
 					this.defaultTestCollection
 				);
 		};
 		expect( func, message ).not.to.throw();
+		
+		//
+		// Set reserved fields.
+		//
+		this.setReservedProperties( doc, reserved_values );
 		
 		//
 		// Perform test only if _key is not required.
@@ -5374,6 +5544,10 @@ class DocumentUnitTest extends UnitTest
 			expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
 			action = "Modified";
 			expect( doc.modified, `${message} - ${action}` ).to.equal(false);
+			
+			//
+			// Assert all provided data is there.
+			//
 			this.assertAllProvidedDataInDocument( "Contents", doc, clone );
 			
 			//
@@ -5393,7 +5567,7 @@ class DocumentUnitTest extends UnitTest
 			data = K.function.clone( doc.document );
 			
 			//
-			// Save inserted ID in current object.
+			// Save inserted ID in unit test object.
 			//
 			this.intermediate_results.key_insert_same = key;
 			expect(this.intermediate_results).to.have.property("key_insert_same");
@@ -5412,6 +5586,10 @@ class DocumentUnitTest extends UnitTest
 					);
 			};
 			expect( func, message ).not.to.throw();
+			
+			//
+			// Assert all data is there.
+			//
 			this.assertAllProvidedDataInDocument( "Contents", doc, data );
 			
 		}	// _key is not required.
@@ -5506,6 +5684,34 @@ class DocumentUnitTest extends UnitTest
 		let selector;
 		
 		//
+		// Instantiate to get reserved fields.
+		//
+		message = "Instantiate to get reserved fields";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Clone and strip reserved fields from parameter.
+		//
+		const reserved_values = {};
+		const no_reserved = K.function.clone( theParam );
+		for( const field of doc.reservedFields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+			}
+		}
+		
+		//
 		// Instantiate.
 		//
 		message = "Instantiation";
@@ -5513,11 +5719,16 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					theParam,
+					no_reserved,
 					this.defaultTestCollection
 				);
 		};
 		expect( func, message ).not.to.throw();
+		
+		//
+		// Set reserved fields.
+		//
+		this.setReservedProperties( doc, reserved_values );
 		
 		//
 		// Insert.
@@ -5539,6 +5750,10 @@ class DocumentUnitTest extends UnitTest
 		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
 		action = "Modified";
 		expect( doc.modified, `${message} - ${action}` ).to.equal(false);
+		
+		//
+		// Assert all data is there.
+		//
 		this.assertAllProvidedDataInDocument( "Contents", doc, theParam );
 		
 	}	// testInsertWithoutPersist
@@ -5570,220 +5785,119 @@ class DocumentUnitTest extends UnitTest
 		const param_excluded = ( Array.isArray( theParam ) ) ? theParam : [];
 		
 		//
-		// Instantiate empty object.
+		// Iterate replace flag values.
 		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					null,
-					this.defaultTestCollection
+		for( const flag of [ false, true ] )
+		{
+			//
+			// Instantiate empty object.
+			//
+			message = "Instantiation";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						null,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Set _id.
+			//
+			message = "Set _id";
+			func = () => {
+				doc.setDocumentProperties(
+					{ _id: `${this.defaultTestCollection}/${this.intermediate_results.key_insert_filled}` },
+					true
 				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Set _id.
-		//
-		message = "Set _id";
-		func = () => {
-			doc.setDocumentProperties(
-				{ _id: `${this.defaultTestCollection}/${this.intermediate_results.key_insert_filled}` },
-				true
+			};
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Resolve object.
+			//
+			message = `Resolve by _id with replace flag ${flag}`;
+			func = () => {
+				result = doc.resolveDocument( flag, true );
+			};
+			expect( func, `${message}` ).not.to.throw();
+			action = "Result";
+			expect( result, `${message} - ${action}` ).to.be.true;
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Check local fields.
+			//
+			this.checkLocalProperties(
+				message,
+				doc,
+				param_excluded
 			);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Resolve object.
-		//
-		message = "Resolve by _id with replace flag off";
-		func = () => {
-			result = doc.resolveDocument( false, true );
-		};
-		expect( func, `${message}` ).not.to.throw();
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check local fields.
-		//
-		this.checkLocalProperties(
-			message,
-			doc,
-			param_excluded
-		);
-		
-		//
-		// Instantiate empty object.
-		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					null,
-					this.defaultTestCollection
+			
+			//
+			// Instantiate empty object.
+			//
+			message = "Instantiation";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						null,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Set _key.
+			//
+			message = "Set _key";
+			func = () => {
+				doc.setDocumentProperties(
+					{ _key: `${this.intermediate_results.key_insert_filled}` },
+					true
 				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Set _id.
-		//
-		message = "Set _id";
-		func = () => {
-			doc.setDocumentProperties(
-				{ _id: `${this.defaultTestCollection}/${this.intermediate_results.key_insert_filled}` },
-				true
+			};
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Resolve object.
+			//
+			message = `Resolve by _key with replace flag ${flag}`;
+			func = () => {
+				result = doc.resolveDocument( flag, true );
+			};
+			expect( func, `${message}` ).not.to.throw();
+			action = "Result";
+			expect( result, `${message} - ${action}` ).to.be.true;
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Check local fields.
+			//
+			this.checkLocalProperties(
+				message,
+				doc,
+				param_excluded
 			);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Resolve object.
-		//
-		message = "Resolve by _id with replace flag on";
-		func = () => {
-			result = doc.resolveDocument( true, true );
-		};
-		expect( func, `${message}` ).not.to.throw();
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check local fields.
-		//
-		this.checkLocalProperties(
-			message,
-			doc,
-			param_excluded
-		);
-		
-		//
-		// Instantiate empty object.
-		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					null,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Set _key.
-		//
-		message = "Set _key";
-		func = () => {
-			doc.setDocumentProperties(
-				{ _key: `${this.intermediate_results.key_insert_filled}` },
-				true
-			);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Resolve object.
-		//
-		message = "Resolve by _key with replace flag off";
-		func = () => {
-			result = doc.resolveDocument( false, true );
-		};
-		expect( func, `${message}` ).not.to.throw();
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check local fields.
-		//
-		this.checkLocalProperties(
-			message,
-			doc,
-			param_excluded
-		);
-		
-		//
-		// Instantiate empty object.
-		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					null,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Set _key.
-		//
-		message = "Set _key";
-		func = () => {
-			doc.setDocumentProperties(
-				{ _key: `${this.intermediate_results.key_insert_filled}` },
-				true
-			);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Resolve object.
-		//
-		message = "Resolve by _key with replace flag on";
-		func = () => {
-			result = doc.resolveDocument( true, true );
-		};
-		expect( func, `${message}` ).not.to.throw();
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Check local fields.
-		//
-		this.checkLocalProperties(
-			message,
-			doc,
-			param_excluded
-		);
+			
+		}	// Iterating replace flag values.
 		
 	}	// testResolvePersistent
 	
@@ -5849,6 +5963,34 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
+		// Instantiate to get reserved fields.
+		//
+		message = "Instantiate to get reserved fields";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Clone and strip reserved fields from parameter.
+		//
+		const reserved_values = {};
+		const no_reserved = K.function.clone( theParam );
+		for( const field of doc.reservedFields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+			}
+		}
+		
+		//
 		// Instantiate object with selector.
 		//
 		message = "Instantiate object with selector";
@@ -5856,11 +5998,16 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					theParam,
+					no_reserved,
 					this.defaultTestCollection
 				);
 		};
 		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Set reserved fields.
+		//
+		this.setReservedProperties( doc, reserved_values );
 		
 		//
 		// Resolve document with replace flag off.
@@ -5922,6 +6069,8 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		let original;
 		let selector;
+		let no_reserved;
+		let reserved_values;
 		
 		//
 		// Check parameter.
@@ -5932,627 +6081,74 @@ class DocumentUnitTest extends UnitTest
 		expect( theParam, message ).to.have.property( 'sigFind' );
 		
 		//
-		// RESOLVE WITH SIGNIFICANT FIELDS AND REPLACE FLAG ON.
+		// Instantiate to get reserved fields.
 		//
-		
-		//
-		// Resolve object.
-		//
-		message = "Resolve with all significant fields and replace flag on";
-		action = "Instantiate";
+		message = "Instantiate to get reserved fields";
 		func = () => {
 			doc =
 				new theClass(
 					this.parameters.request,
-					theParam.sigFind,
+					null,
 					this.defaultTestCollection
 				);
 		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( func, `${message}` ).not.to.throw();
 		
 		//
-		// Resolve.
+		// Save reserved fields.
 		//
-		action = "Resolve";
-		func = () => {
-			result = doc.resolveDocument( true, true );
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
+		const reserved_fields = doc.reservedFields;
 		
 		//
-		// Assert document state.
+		// Iterate by replace flag value.
 		//
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Save persistent contents.
-		//
-		original = K.function.clone( doc.document );
-		
-		//
-		// Match document contents.
-		//
-		this.validateResolvedContents(
-			true,				// Replace flag.
-			message,			// Error message.
-			doc,				// The object to test.
-			original,			// The persistent contents.
-			theParam.sigFind	// The selection contents.
-		);
-		
-		//
-		// RESOLVE WITH SIGNIFICANT FIELDS AND REPLACE FLAG OFF.
-		//
-		
-		//
-		// Instantiate with all significant fields.
-		//
-		message = "Resolve with all significant fields and replace flag off";
-		action = "Instantiate";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					theParam.sigFind,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Resolve.
-		//
-		action = "Resolve";
-		func = () => {
-			result = doc.resolveDocument( false, true );
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Assert document state.
-		//
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-		
-		//
-		// Match document contents.
-		//
-		this.validateResolvedContents(
-			false,				// Replace flag.
-			message,			// Error message.
-			doc,				// The object to test.
-			original,			// The persistent contents.
-			theParam.sigFind	// The selection contents.
-		);
-		
-		//
-		// Instantiate with one significant field missing.
-		//
-		if( theParam.hasOwnProperty( 'sigOne' ) )
+		for( const flag of [ false, true ] )
 		{
 			//
-			// RESOLVE WITH ONE SIGNIFICANT FIELD MISSING AND REPLACE FLAG ON.
+			// RESOLVE WITH SIGNIFICANT FIELDS.
 			//
 			
 			//
-			// Instantiate with all significant fields.
+			// Clone and strip reserved fields from parameter.
 			//
-			message = "Resolve with one significant field missing and replace flag on";
+			reserved_values = {};
+			no_reserved = K.function.clone( theParam.sigFind );
+			for( const field of reserved_fields )
+			{
+				if( no_reserved.hasOwnProperty( field ) )
+				{
+					reserved_values[ field ] = no_reserved[ field ];
+					delete no_reserved[ field ];
+				}
+			}
+			
+			//
+			// Instantiate object.
+			//
+			message = "Resolve with all significant fields and replace flag on";
 			action = "Instantiate";
 			func = () => {
 				doc =
 					new theClass(
 						this.parameters.request,
-						theParam.sigOne,
+						no_reserved,
 						this.defaultTestCollection
 					);
 			};
 			expect( func, `${message} - ${action}` ).not.to.throw();
 			
 			//
-			// Resolve function.
+			// Set reserved fields.
 			//
-			func = () => {
-				result = doc.resolveDocument( true, true );
-			};
+			this.setReservedProperties( doc, reserved_values );
 			
 			//
-			// Handle document with significant fields.
-			//
-			if( doc.significantFields.length > 0 )
-			{
-				action = "Resolve and has significant fields";
-				expect( func, `${message} - ${action}`
-				).to.throw(
-					MyError,
-					/missing required fields/
-				);
-			}
-			
-			//
-			// Handle document without significant fields.
-			// Should find the document matching the provided field.
-			//
-			else
-			{
-				//
-				// Resolve.
-				//
-				action = "Resolve and has not significant fields";
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Assert document state.
-				//
-				action = "Result";
-				expect( result, `${message} - ${action}` ).to.be.true;
-				action = "Contents";
-				expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-				action = "Collection";
-				expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-				action = "Persistent";
-				expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-				action = "Modified";
-				expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-				
-				//
-				// Match document contents.
-				//
-				this.validateResolvedContents(
-					false,				// Replace flag.
-					message,			// Error message.
-					doc,				// The object to test.
-					original,			// The persistent contents.
-					theParam.sigOne		// The selection contents.
-				);
-			}
-			
-			//
-			// RESOLVE WITH ONE SIGNIFICANT FIELD MISSING AND REPLACE FLAG OFF.
-			//
-			
-			//
-			// Instantiate with all significant fields.
-			//
-			message = "Resolve with one significant field missing and replace flag off";
-			action = "Instantiate";
-			func = () => {
-				doc =
-					new theClass(
-						this.parameters.request,
-						theParam.sigOne,
-						this.defaultTestCollection
-					);
-			};
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Resolve function.
-			//
-			func = () => {
-				result = doc.resolveDocument( false, true );
-			};
-			
-			//
-			// Handle document with significant fields.
-			//
-			if( doc.significantFields.length > 0 )
-			{
-				action = "Resolve and has significant fields";
-				expect( func, `${message} - ${action}`
-				).to.throw(
-					MyError,
-					/missing required fields/
-				);
-			}
-			
-			//
-			// Handle document without significant fields.
-			// Should find the document matching the provided field.
-			//
-			else
-			{
-				//
-				// Resolve.
-				//
-				action = "Resolve and has not significant fields"
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Assert document state.
-				//
-				action = "Result";
-				expect( result, `${message} - ${action}` ).to.be.true;
-				action = "Contents";
-				expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-				action = "Collection";
-				expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-				action = "Persistent";
-				expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-				action = "Modified";
-				expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-				
-				//
-				// Match document contents.
-				//
-				this.validateResolvedContents(
-					false,				// Replace flag.
-					message,			// Error message.
-					doc,				// The object to test.
-					original,			// The persistent contents.
-					theParam.sigOne		// The selection contents.
-				);
-			}
-			
-		}	// Has sigOne.
-		
-		//
-		// Instantiate with one significant field missing.
-		//
-		if( theParam.hasOwnProperty( 'noSig' ) )
-		{
-			//
-			// RESOLVE WITHOUT SIGNIFICANT FIELD AND REPLACE FLAG ON.
-			//
-			
-			//
-			// Instantiate without significant fields.
-			//
-			message = "Resolve with no significant fields and replace flag on";
-			action = "Instantiate";
-			func = () => {
-				doc =
-					new theClass(
-						this.parameters.request,
-						theParam.noSig,
-						this.defaultTestCollection
-					);
-			};
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Resolve function.
-			//
-			func = () => {
-				result = doc.resolveDocument( true, true );
-			};
-			
-			//
-			// Handle document with significant fields.
-			//
-			if( doc.significantFields.length > 0 )
-			{
-				action = "Resolve and has significant fields";
-				expect( func, `${message} - ${action}`
-				).to.throw(
-					MyError,
-					/missing required fields/
-				);
-			}
-			
-			//
-			// Handle document without significant fields.
-			// Should find the document matching the provided field.
-			//
-			else
-			{
-				//
-				// Resolve.
-				//
-				action = "Resolve and has not significant fields";
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Assert document state.
-				//
-				action = "Result";
-				expect( result, `${message} - ${action}` ).to.be.true;
-				action = "Contents";
-				expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-				action = "Collection";
-				expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-				action = "Persistent";
-				expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-				action = "Modified";
-				expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-				
-				//
-				// Match document contents.
-				//
-				this.validateResolvedContents(
-					false,				// Replace flag.
-					message,			// Error message.
-					doc,				// The object to test.
-					original,			// The persistent contents.
-					theParam.noSig		// The selection contents.
-				);
-			}
-			
-			//
-			// RESOLVE WITHOUT SIGNIFICANT FIELD AND REPLACE FLAG OFF.
-			//
-			
-			//
-			// Instantiate without significant fields.
-			//
-			message = "Resolve with no significant fields and replace flag off";
-			action = "Instantiate";
-			func = () => {
-				doc =
-					new theClass(
-						this.parameters.request,
-						theParam.noSig,
-						this.defaultTestCollection
-					);
-			};
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Resolve function.
-			//
-			func = () => {
-				result = doc.resolveDocument( false, true );
-			};
-			
-			//
-			// Handle document with significant fields.
-			//
-			if( doc.significantFields.length > 0 )
-			{
-				action = "Resolve and has significant fields";
-				expect( func, `${message} - ${action}`
-				).to.throw(
-					MyError,
-					/missing required fields/
-				);
-			}
-			
-			//
-			// Handle document without significant fields.
-			// Should find the document matching the provided field.
-			//
-			else
-			{
-				//
-				// Resolve.
-				//
-				action = "Resolve and has not significant fields";
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Assert document state.
-				//
-				action = "Result";
-				expect( result, `${message} - ${action}` ).to.be.true;
-				action = "Contents";
-				expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-				action = "Collection";
-				expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-				action = "Persistent";
-				expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-				action = "Modified";
-				expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-				
-				//
-				// Match document contents.
-				//
-				this.validateResolvedContents(
-					false,				// Replace flag.
-					message,			// Error message.
-					doc,				// The object to test.
-					original,			// The persistent contents.
-					theParam.noSig		// The selection contents.
-				);
-			}
-			
-		}	// Has noSig.
-		
-		//
-		// Instantiate with ambiguous significant fields.
-		//
-		if( theParam.hasOwnProperty( 'sigAmbig' ) )
-		{
-			//
-			// RESOLVE WITH AMBIGUOUS SIGNIFICANT FIELD AND REPLACE FLAG ON.
-			//
-			
-			//
-			// Instantiate with ambiguous significant field.
-			//
-			message = "Resolve with ambiguous significant fields and replace flag on";
-			action = "Instantiate";
-			func = () => {
-				doc =
-					new theClass(
-						this.parameters.request,
-						theParam.sigAmbig,
-						this.defaultTestCollection
-					);
-			};
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Resolve function.
+			// Resolve.
 			//
 			action = "Resolve";
 			func = () => {
-				result = doc.resolveDocument( true, true );
+				result = doc.resolveDocument( flag, true );
 			};
-			expect( func, `${message} - ${action}`
-			).to.throw(
-				MyError,
-				/Ambiguous document reference/
-			);
-			
-			//
-			// RESOLVE WITH AMBIGUOUS SIGNIFICANT FIELD AND REPLACE FLAG OFF.
-			//
-			
-			//
-			// Instantiate with ambiguous significant field.
-			//
-			message = "Resolve with ambiguous significant fields and replace flag off";
-			action = "Instantiate";
-			func = () => {
-				doc =
-					new theClass(
-						this.parameters.request,
-						theParam.sigAmbig,
-						this.defaultTestCollection
-					);
-			};
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Resolve function.
-			//
-			action = "Resolve";
-			func = () => {
-				result = doc.resolveDocument( false, true );
-			};
-			expect( func, `${message} - ${action}`
-			).to.throw(
-				MyError,
-				/Ambiguous document reference/
-			);
-			
-		}	// Has sigAmbig.
-		
-		//
-		// Instantiate with unmatches significant fields.
-		//
-		if( theParam.hasOwnProperty( 'sigNoFind' ) )
-		{
-			//
-			// RESOLVE WITH UNMATCHED SIGNIFICANT FIELD AND REPLACE FLAG ON.
-			//
-			
-			//
-			// Instantiate with unmatches significant field.
-			//
-			message = "Resolve with unmatched significant field and replace flag on";
-			action = "Instantiate";
-			func = () => {
-				doc =
-					new theClass(
-						this.parameters.request,
-						theParam.sigNoFind,
-						this.defaultTestCollection
-					);
-			};
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Resolve function.
-			//
-			action = "Resolve";
-			func = () => {
-				result = doc.resolveDocument( true, true );
-			};
-			expect( func, `${message} - ${action}`
-			).to.throw(
-				MyError,
-				/not found in collection/
-			);
-			
-			//
-			// RESOLVE WITH UNMATCHED SIGNIFICANT FIELD AND REPLACE FLAG OFF.
-			//
-			
-			//
-			// Instantiate with unmatches significant field.
-			//
-			message = "Resolve with unmatched significant field and replace flag off";
-			action = "Instantiate";
-			func = () => {
-				doc =
-					new theClass(
-						this.parameters.request,
-						theParam.sigNoFind,
-						this.defaultTestCollection
-					);
-			};
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Resolve function.
-			//
-			action = "Resolve";
-			func = () => {
-				result = doc.resolveDocument( true, true );
-			};
-			expect( func, `${message} - ${action}`
-			).to.throw(
-				MyError,
-				/not found in collection/
-			);
-			
-		}	// Has sigNoFind.
-		
-		//
-		// Change all fields except significant.
-		//
-		selector = K.function.clone( theParam.replace );
-		for( const field in theParam.sigFind )
-			selector[ field ] = theParam.sigFind[ field ];
-		delete selector._id;
-		delete selector._key;
-		delete selector._rev;
-		
-		//
-		// RESOLVE WITH MATCHING SIGNIFICANT FIELD AND DIFFERENT CONTENT.
-		// REPLACE FLAG OFF.
-		//
-		
-		//
-		// Instantiate with matching significant field and changed content.
-		//
-		message = "Matching significant field, changed content and replace flag off";
-		action = "Instantiate";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					selector,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Resolve.
-		//
-		func = () => {
-			result = doc.resolveDocument( false, true );
-		};
-		
-		//
-		// Handle document with significant fields.
-		// Should succeed, because it will use significant fields first.
-		//
-		action = "Resolve";
-		if( doc.significantFields.length > 0 )
-		{
-			//
-			// Succeed.
-			//
 			expect( func, `${message} - ${action}` ).not.to.throw();
 			
 			//
@@ -6566,126 +6162,455 @@ class DocumentUnitTest extends UnitTest
 			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 			action = "Persistent";
 			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			
-			//
-			// Match document contents.
-			//
-			this.validateResolvedContents(
-				false,				// Replace flag.
-				message,			// Error message.
-				doc,				// The object to test.
-				original,			// The persistent contents.
-				selector			// The selection contents.
-			);
-		
-		}	// Has significant fields.
-		
-		//
-		// Handle document without significant fields.
-		// Should fail, because it will use all contents.
-		//
-		else
-		{
-			//
-			// Fail.
-			//
-			expect( func, `${message} - ${action}`
-			).to.throw(
-				MyError,
-				/not found in collection/
-			);
-		
-		}	// Has no significant fields.
-		
-		//
-		// RESOLVE WITH MATCHING SIGNIFICANT FIELD AND DIFFERENT CONTENT.
-		// REPLACE FLAG ON.
-		//
-		
-		//
-		// Instantiate with matching significant field and changed content.
-		//
-		message = "Matching significant field, changed content and replace flag on";
-		action = "Instantiate";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					selector,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Resolve.
-		//
-		func = () => {
-			result = doc.resolveDocument( true, true );
-		};
-		
-		//
-		// Handle document with significant fields.
-		// Should succeed, because it will use significant fields first.
-		//
-		action = "Resolve";
-		if( doc.significantFields.length > 0 )
-		{
-			//
-			// Succeed.
-			//
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Assert document state.
-			//
-			action = "Result";
-			expect( result, `${message} - ${action}` ).to.be.true;
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			
-			//
-			// Handle modified.
-			//
 			action = "Modified";
-			if( doc.lockedFields.length > 0 )
-				expect( doc.modified, `${message} - ${action}` ).to.equal( true );
-			else
-				expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			
+			//
+			// Save persistent contents.
+			//
+			original = K.function.clone( doc.document );
 			
 			//
 			// Match document contents.
 			//
 			this.validateResolvedContents(
-				true,				// Replace flag.
+				flag,				// Replace flag.
 				message,			// Error message.
 				doc,				// The object to test.
 				original,			// The persistent contents.
-				selector			// The selection contents.
+				theParam.sigFind	// The selection contents.
 			);
 			
-		}	// Has significant fields.
-		
-		//
-		// Handle document without significant fields.
-		// Should fail, because it will use all contents.
-		//
-		else
-		{
 			//
-			// Fail.
+			// RESOLVE WITH ONE SIGNIFICANT FIELD.
 			//
-			expect( func, `${message} - ${action}`
-			).to.throw(
-				MyError,
-				/not found in collection/
-			);
 			
-		}	// Has no significant fields.
+			//
+			// Instantiate with one significant field missing.
+			//
+			if( theParam.hasOwnProperty( 'sigOne' ) ) {
+				//
+				// Clone and strip reserved fields from parameter.
+				//
+				reserved_values = {};
+				no_reserved = K.function.clone( theParam.sigOne );
+				for( const field of reserved_fields ) {
+					if( no_reserved.hasOwnProperty( field ) ) {
+						reserved_values[ field ] = no_reserved[ field ];
+						delete no_reserved[ field ];
+					}
+				}
+				
+				//
+				// Instantiate with all significant fields.
+				//
+				message = `Resolve with one significant field missing and replace flag ${flag}`;
+				action = "Instantiate";
+				func = () => {
+					doc =
+						new theClass(
+							this.parameters.request,
+							no_reserved,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Set reserved fields.
+				//
+				this.setReservedProperties( doc, reserved_values );
+				
+				//
+				// Resolve function.
+				//
+				func = () => {
+					result = doc.resolveDocument( flag, true );
+				};
+				
+				//
+				// Handle document with significant fields.
+				//
+				if( doc.significantFields.length > 0 )
+				{
+					action = "Resolve and has significant fields";
+					expect( func, `${message} - ${action}`
+					).to.throw(
+						MyError,
+						/missing required fields/
+					);
+				}
+				
+				//
+				// Handle document without significant fields.
+				// Should find the document matching the provided field.
+				//
+				else
+				{
+					//
+					// Resolve.
+					//
+					action = "Resolve and has not significant fields";
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Assert document state.
+					//
+					action = "Result";
+					expect( result, `${message} - ${action}` ).to.be.true;
+					action = "Contents";
+					expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+					action = "Collection";
+					expect( doc.collection, `${message} - ${action}` ).to.equal(
+						this.defaultTestCollection );
+					action = "Persistent";
+					expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+					action = "Modified";
+					expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+					
+					//
+					// Match document contents.
+					//
+					this.validateResolvedContents(
+						flag,				// Replace flag.
+						message,			// Error message.
+						doc,				// The object to test.
+						original,			// The persistent contents.
+						theParam.sigOne		// The selection contents.
+					);
+				}
+			
+			}	// Has sigOne.
+			
+			//
+			// RESOLVE WITHOUT SIGNIFICANT FIELDS.
+			//
+			
+			//
+			// Instantiate with all significant fields missing.
+			//
+			if( theParam.hasOwnProperty( 'noSig' ) )
+			{
+				//
+				// Clone and strip reserved fields from parameter.
+				//
+				reserved_values = {};
+				no_reserved = K.function.clone( theParam.noSig );
+				for( const field of reserved_fields )
+				{
+					if( no_reserved.hasOwnProperty( field ) )
+					{
+						reserved_values[ field ] = no_reserved[ field ];
+						delete no_reserved[ field ];
+					}
+				}
+				
+				//
+				// Instantiate without significant fields.
+				//
+				message = `Resolve with no significant fields and replace flag ${flag}`;
+				action = "Instantiate";
+				func = () => {
+					doc =
+						new theClass(
+							this.parameters.request,
+							no_reserved,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Set reserved fields.
+				//
+				this.setReservedProperties( doc, reserved_values );
+				
+				//
+				// Resolve function.
+				//
+				func = () => {
+					result = doc.resolveDocument( flag, true );
+				};
+				
+				//
+				// Handle document with significant fields.
+				//
+				if( doc.significantFields.length > 0 )
+				{
+					action = "Resolve and has significant fields";
+					expect( func, `${message} - ${action}`
+					).to.throw(
+						MyError,
+						/missing required fields/
+					);
+				}
+				
+				//
+				// Handle document without significant fields.
+				// Should find the document matching the provided field.
+				//
+				else
+				{
+					//
+					// Resolve.
+					//
+					action = "Resolve and has not significant fields";
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+					//
+					// Assert document state.
+					//
+					action = "Result";
+					expect( result, `${message} - ${action}` ).to.be.true;
+					action = "Contents";
+					expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+					action = "Collection";
+					expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+					action = "Persistent";
+					expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+					action = "Modified";
+					expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+					
+					//
+					// Match document contents.
+					//
+					this.validateResolvedContents(
+						flag,				// Replace flag.
+						message,			// Error message.
+						doc,				// The object to test.
+						original,			// The persistent contents.
+						theParam.noSig		// The selection contents.
+					);
+				}
+				
+			}	// Has noSig.
+			
+			//
+			// RESOLVE WITH AMBIGUOUS SIGNIFICANT FIELDS.
+			//
+			
+			//
+			// Instantiate with ambiguous significant fields.
+			//
+			if( theParam.hasOwnProperty( 'sigAmbig' ) )
+			{
+				//
+				// Clone and strip reserved fields from parameter.
+				//
+				reserved_values = {};
+				no_reserved = K.function.clone( theParam.sigAmbig );
+				for( const field of reserved_fields )
+				{
+					if( no_reserved.hasOwnProperty( field ) )
+					{
+						reserved_values[ field ] = no_reserved[ field ];
+						delete no_reserved[ field ];
+					}
+				}
+				
+				//
+				// Instantiate with ambiguous significant field.
+				//
+				message = `Resolve with ambiguous significant fields and replace flag ${flag}`;
+				action = "Instantiate";
+				func = () => {
+					doc =
+						new theClass(
+							this.parameters.request,
+							no_reserved,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Set reserved fields.
+				//
+				this.setReservedProperties( doc, reserved_values );
+				
+				//
+				// Resolve function.
+				//
+				action = "Resolve";
+				func = () => {
+					result = doc.resolveDocument( flag, true );
+				};
+				expect( func, `${message} - ${action}`
+				).to.throw(
+					MyError,
+					/Ambiguous document reference/
+				);
+				
+			}	// Has sigAmbig.
+			
+			//
+			// RESOLVE WITH UNMATCHED SIGNIFICANT FIELD.
+			//
+			
+			//
+			// Instantiate with unmatches significant fields.
+			//
+			if( theParam.hasOwnProperty( 'sigNoFind' ) )
+			{
+				//
+				// Clone and strip reserved fields from parameter.
+				//
+				reserved_values = {};
+				no_reserved = K.function.clone( theParam.sigNoFind );
+				for( const field of reserved_fields )
+				{
+					if( no_reserved.hasOwnProperty( field ) )
+					{
+						reserved_values[ field ] = no_reserved[ field ];
+						delete no_reserved[ field ];
+					}
+				}
+				
+				//
+				// Instantiate with unmatches significant field.
+				//
+				message = `Resolve with unmatched significant fields and replace flag ${flag}`;
+				action = "Instantiate";
+				func = () => {
+					doc =
+						new theClass(
+							this.parameters.request,
+							no_reserved,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Set reserved fields.
+				//
+				this.setReservedProperties( doc, reserved_values );
+				
+				//
+				// Resolve function.
+				//
+				action = "Resolve";
+				func = () => {
+					result = doc.resolveDocument( flag, true );
+				};
+				expect( func, `${message} - ${action}`
+				).to.throw(
+					MyError,
+					/not found in collection/
+				);
+				
+			}	// Has sigNoFind.
+			
+			//
+			// RESOLVE WITH MATCHING SIGNIFICANT FIELD AND DIFFERENT CONTENT.
+			//
+			
+			//
+			// Change all fields except significant.
+			//
+			selector = K.function.clone( theParam.replace );
+			for( const field in theParam.sigFind )
+				selector[ field ] = theParam.sigFind[ field ];
+			delete selector._id;
+			delete selector._key;
+			delete selector._rev;
+			
+			//
+			// Clone and strip reserved fields from parameter.
+			//
+			reserved_values = {};
+			no_reserved = K.function.clone( selector );
+			for( const field of reserved_fields )
+			{
+				if( no_reserved.hasOwnProperty( field ) )
+				{
+					reserved_values[ field ] = no_reserved[ field ];
+					delete no_reserved[ field ];
+				}
+			}
+			
+			//
+			// Instantiate with matching significant field and changed content.
+			//
+			message = `Matching significant field, changed content and replace flag ${flag}`;
+			action = "Instantiate";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						no_reserved,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Set reserved fields.
+			//
+			this.setReservedProperties( doc, reserved_values );
+			
+			//
+			// Resolve.
+			//
+			func = () => {
+				result = doc.resolveDocument( flag, true );
+			};
+			
+			//
+			// Handle document with significant fields.
+			// Should succeed, because it will use significant fields first.
+			//
+			action = "Resolve";
+			if( doc.significantFields.length > 0 )
+			{
+				//
+				// Succeed.
+				//
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Assert document state.
+				//
+				action = "Result";
+				expect( result, `${message} - ${action}` ).to.be.true;
+				action = "Contents";
+				expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+				action = "Collection";
+				expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+				action = "Persistent";
+				expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+				
+				//
+				// Match document contents.
+				//
+				this.validateResolvedContents(
+					flag,				// Replace flag.
+					message,			// Error message.
+					doc,				// The object to test.
+					original,			// The persistent contents.
+					selector			// The selection contents.
+				);
+				
+			}	// Has significant fields.
+			
+			//
+			// Handle document without significant fields.
+			// Should fail, because it will use all contents.
+			//
+			else
+			{
+				//
+				// Fail.
+				//
+				expect( func, `${message} - ${action}`
+				).to.throw(
+					MyError,
+					/not found in collection/
+				);
+				
+			}	// Has no significant fields.
+			
+		}	// Iterating by replace flag value.
 		
 	}	// testResolveSignificantField
 	
@@ -6713,6 +6638,8 @@ class DocumentUnitTest extends UnitTest
 		let action;
 		let message;
 		let selector;
+		let no_reserved;
+		let reserved_values;
 		
 		//
 		// Check parameter.
@@ -6743,219 +6670,162 @@ class DocumentUnitTest extends UnitTest
 		const original = K.function.clone( doc.document );
 		
 		//
-		// Make selector.
+		// Iterate replace flag values.
 		//
-		selector = K.function.clone( theParam );
-		selector._id = ref_id;
-		selector._key = "UNKNOWN";
-		
-		//
-		// RESOLVE BY ID WITH REPLACE FLAG FALSE.
-		//
-		
-		//
-		// Instantiate with ambiguous selector and reference ID.
-		//
-		message = "Use _id reference with replace flag off";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					selector,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Resolve.
-		//
-		func = () => {
-			result = doc.resolveDocument( false, true );
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Assert document state.
-		//
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( true );
-		
-		//
-		// Match document contents.
-		//
-		this.validateResolvedContents(
-			false,				// Replace flag.
-			message,			// Error message.
-			doc,				// The object to test.
-			original,			// The persistent contents.
-			selector			// The selection contents.
-		);
-		
-		//
-		// RESOLVE BY ID WITH REPLACE FLAG TRUE.
-		//
-		
-		//
-		// Instantiate with ambiguous selector and reference ID.
-		//
-		message = "Use _id reference with replace flag on";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					selector,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Resolve.
-		//
-		func = () => {
-			result = doc.resolveDocument( true, true );
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Assert document state.
-		//
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( true );
-		
-		//
-		// Match document contents.
-		//
-		this.validateResolvedContents(
-			true,				// Replace flag.
-			message,			// Error message.
-			doc,				// The object to test.
-			original,			// The persistent contents.
-			selector			// The selection contents.
-		);
-		
-		//
-		// Make selector.
-		//
-		selector = K.function.clone( theParam );
-		selector._key = ref_key;
-		
-		//
-		// RESOLVE BY KEY WITH REPLACE FLAG FALSE.
-		//
-		
-		//
-		// Instantiate with ambiguous selector and reference ID.
-		//
-		message = "Use _key reference with replace flag off";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					selector,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Resolve.
-		//
-		func = () => {
-			result = doc.resolveDocument( false, true );
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Assert document state.
-		//
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		
-		//
-		// Match document contents.
-		//
-		this.validateResolvedContents(
-			false,				// Replace flag.
-			message,			// Error message.
-			doc,				// The object to test.
-			original,			// The persistent contents.
-			selector			// The selection contents.
-		);
-		
-		//
-		// RESOLVE BY KEY WITH REPLACE FLAG TRUE.
-		//
-		
-		//
-		// Instantiate with ambiguous selector and reference ID.
-		//
-		message = "Use _id reference with replace flag on";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					selector,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Resolve.
-		//
-		func = () => {
-			result = doc.resolveDocument( true, true );
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		
-		//
-		// Assert document state.
-		//
-		action = "Result";
-		expect( result, `${message} - ${action}` ).to.be.true;
-		action = "Contents";
-		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-		action = "Collection";
-		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-		action = "Persistent";
-		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-		action = "Modified";
-		expect( doc.modified, `${message} - ${action}` ).to.equal( true );
-		
-		//
-		// Match document contents.
-		//
-		this.validateResolvedContents(
-			true,				// Replace flag.
-			message,			// Error message.
-			doc,				// The object to test.
-			original,			// The persistent contents.
-			selector			// The selection contents.
-		);
+		for( const flag of [ false, true ] )
+		{
+			//
+			// RESOLVE BY ID.
+			//
+			
+			//
+			// Make selector.
+			//
+			selector = K.function.clone( theParam );
+			selector._id = ref_id;
+			selector._key = "UNKNOWN";
+			
+			//
+			// Clone and strip reserved fields from parameter.
+			//
+			reserved_values = {};
+			no_reserved = K.function.clone( selector );
+			for( const field of doc.reservedFields )
+			{
+				if( no_reserved.hasOwnProperty( field ) )
+				{
+					reserved_values[ field ] = no_reserved[ field ];
+					delete no_reserved[ field ];
+				}
+			}
+			
+			//
+			// Instantiate with ambiguous selector and reference ID.
+			//
+			message = `Use _id reference with replace flag ${flag}`;
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						no_reserved,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Set reserved fields.
+			//
+			this.setReservedProperties( doc, reserved_values );
+			
+			//
+			// Resolve.
+			//
+			func = () => {
+				result = doc.resolveDocument( flag, true );
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Assert document state.
+			//
+			action = "Result";
+			expect( result, `${message} - ${action}` ).to.be.true;
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			action = "Modified";
+			expect( doc.modified, `${message} - ${action}` ).to.equal( true );
+			
+			//
+			// Match document contents.
+			//
+			this.validateResolvedContents(
+				flag,				// Replace flag.
+				message,			// Error message.
+				doc,				// The object to test.
+				original,			// The persistent contents.
+				selector			// The selection contents.
+			);
+			
+			//
+			// RESOLVE BY KEY.
+			//
+			
+			//
+			// Make selector.
+			//
+			selector = K.function.clone( theParam );
+			selector._key = ref_key;
+			
+			//
+			// Clone and strip reserved fields from parameter.
+			//
+			reserved_values = {};
+			no_reserved = K.function.clone( selector );
+			for( const field of doc.reservedFields )
+			{
+				if( no_reserved.hasOwnProperty( field ) )
+				{
+					reserved_values[ field ] = no_reserved[ field ];
+					delete no_reserved[ field ];
+				}
+			}
+			
+			//
+			// Instantiate with ambiguous selector and reference ID.
+			//
+			message = "Use _key reference with replace flag off";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						no_reserved,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Set reserved fields.
+			//
+			this.setReservedProperties( doc, reserved_values );
+			
+			//
+			// Resolve.
+			//
+			func = () => {
+				result = doc.resolveDocument( flag, true );
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// Assert document state.
+			//
+			action = "Result";
+			expect( result, `${message} - ${action}` ).to.be.true;
+			action = "Contents";
+			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+			action = "Collection";
+			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+			action = "Persistent";
+			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+			
+			//
+			// Match document contents.
+			//
+			this.validateResolvedContents(
+				flag,				// Replace flag.
+				message,			// Error message.
+				doc,				// The object to test.
+				original,			// The persistent contents.
+				selector			// The selection contents.
+			);
+			
+		}	// Iterating replace flag value.
 	
 	}	// testResolveReferenceField
 	
@@ -6975,6 +6845,8 @@ class DocumentUnitTest extends UnitTest
 		let result;
 		let action;
 		let message;
+		let no_reserved;
+		let reserved_values;
 		
 		//
 		// Check parameter.
@@ -6987,97 +6859,184 @@ class DocumentUnitTest extends UnitTest
 		// expect( theParam, message ).to.have.property( 'duplicate' );
 		
 		//
-		// TEST SUCCESS.
+		// Instantiate to get reserved fields.
 		//
-		
-		//
-		// Set correct selector.
-		//
-		message = "Instantiate with correct selector";
+		message = "Instantiate to get reserved fields";
 		func = () => {
 			doc =
 				new theClass(
 					this.parameters.request,
-					theParam.correct,
+					null,
 					this.defaultTestCollection
 				);
 		};
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
-		// Resolve and succeed.
+		// Save reserved fields.
 		//
-		message = "Resolve and succeed";
-		action = "Expect combination to be found";
-		func = () => {
-			result = doc.resolveDocument( true, true );
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
+		const reserved_fields = doc.reservedFields;
 		
 		//
-		// TEST FAIL WITH NOT FOUND.
+		// Iterate replace flag values.
 		//
-		
-		//
-		// Set not found selector.
-		//
-		message = "Instantiate with not found selector";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					theParam.incorrect,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Resolve and fail.
-		//
-		message = "Resolve and fail";
-		action = "Expect combination not to be found";
-		func = () => {
-			result = doc.resolveDocument( true, false );
-		};
-		expect( func, `${message} - ${action}` ).not.to.throw();
-		action = "Expect not found result to be false";
-		expect( result,`${message} - ${action}` ).to.be.false;
-		
-		//
-		// TEST FAIL WITH DUPLICATE.
-		//
-		if( theParam.hasOwnProperty( 'duplicate' ) )
+		for( const flag of [ false, true ] )
 		{
 			//
-			// Set duplicate selector.
+			// TEST SUCCESS.
 			//
-			message = "Instantiate with duplicate selector";
+			
+			//
+			// Clone and strip reserved fields from parameter.
+			//
+			reserved_values = {};
+			no_reserved = K.function.clone( theParam.correct );
+			for( const field of reserved_fields )
+			{
+				if( no_reserved.hasOwnProperty( field ) )
+				{
+					reserved_values[ field ] = no_reserved[ field ];
+					delete no_reserved[ field ];
+				}
+			}
+			
+			//
+			// Set correct selector.
+			//
+			message = "Instantiate with correct selector";
 			func = () => {
 				doc =
 					new theClass(
 						this.parameters.request,
-						theParam.duplicate,
+						no_reserved,
 						this.defaultTestCollection
 					);
 			};
 			expect( func, `${message}` ).not.to.throw();
 			
 			//
+			// Set reserved fields.
+			//
+			this.setReservedProperties( doc, reserved_values );
+			
+			//
+			// Resolve and succeed.
+			//
+			message = "Resolve and succeed";
+			action = "Expect combination to be found";
+			func = () => {
+				result = doc.resolveDocument( flag, true );
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			
+			//
+			// TEST FAIL WITH NOT FOUND AND NO RAISE.
+			//
+			
+			//
+			// Clone and strip reserved fields from parameter.
+			//
+			reserved_values = {};
+			no_reserved = K.function.clone( theParam.incorrect );
+			for( const field of reserved_fields )
+			{
+				if( no_reserved.hasOwnProperty( field ) )
+				{
+					reserved_values[ field ] = no_reserved[ field ];
+					delete no_reserved[ field ];
+				}
+			}
+			
+			//
+			// Set not found selector.
+			//
+			message = "Instantiate with not found selector";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						no_reserved,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Set reserved fields.
+			//
+			this.setReservedProperties( doc, reserved_values );
+			
+			//
 			// Resolve and fail.
 			//
 			message = "Resolve and fail";
-			action = "Expect combination to be duplicate";
+			action = "Expect combination not to be found";
 			func = () => {
-				result = doc.resolveDocument( true, false );
+				result = doc.resolveDocument( flag, false );
 			};
-			expect( func,`${message} - ${action}`
-			).to.throw(
-				MyError,
-				/resulted in more than one document found/
-			);
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			action = "Expect not found result to be false";
+			expect( result,`${message} - ${action}` ).to.be.false;
 			
-		}	// Has duplicate.
+			//
+			// TEST FAIL WITH DUPLICATE.
+			//
+			
+			//
+			// Check for duplicate parameter.
+			//
+			if( theParam.hasOwnProperty( 'duplicate' ) )
+			{
+				//
+				// Clone and strip reserved fields from parameter.
+				//
+				reserved_values = {};
+				no_reserved = K.function.clone( theParam.duplicate );
+				for( const field of reserved_fields )
+				{
+					if( no_reserved.hasOwnProperty( field ) )
+					{
+						reserved_values[ field ] = no_reserved[ field ];
+						delete no_reserved[ field ];
+					}
+				}
+				
+				//
+				// Set duplicate selector.
+				//
+				message = "Instantiate with duplicate selector";
+				func = () => {
+					doc =
+						new theClass(
+							this.parameters.request,
+							no_reserved,
+							this.defaultTestCollection
+						);
+				};
+				expect( func, `${message}` ).not.to.throw();
+				
+				//
+				// Set reserved fields.
+				//
+				this.setReservedProperties( doc, reserved_values );
+				
+				//
+				// Resolve and fail.
+				//
+				message = "Resolve and fail";
+				action = "Expect combination to be duplicate";
+				func = () => {
+					result = doc.resolveDocument( flag, false );
+				};
+				expect( func,`${message} - ${action}`
+				).to.throw(
+					MyError,
+					/resulted in more than one document found/
+				);
+				
+			}	// Has duplicate.
+			
+		}	// Iterating replace flag value.
 		
 	}	// testResolveNoException
 	
@@ -9416,6 +9375,34 @@ class DocumentUnitTest extends UnitTest
 	
 	
 	/****************************************************************************
+	 * MANIPULATION UTILITIES													*
+	 ****************************************************************************/
+	
+	/**
+	 * Set reserved fields.
+	 *
+	 * This method can be used to set reserved fields in the document, by default it
+	 * will set the values directly in the document data, but derived classes should
+	 * overload this method to use whatever custom interface they implement.
+	 *
+	 * @param theObject		{Document}	The object to maniipulate.
+	 * @param theProperties	{Object}	The reserved properties.
+	 */
+	setReservedProperties(
+		theObject,		// The object to maniipulate.
+		theProperties	// The values to set.
+	)
+	{
+		//
+		// Iterate provided properties.
+		//
+		for( const field in theProperties )
+			theObject.document[ field ] = theProperties[ field ];
+		
+	}	// setReservedProperties
+	
+	
+	/****************************************************************************
 	 * VALIDATION UTILITIES														*
 	 ****************************************************************************/
 	
@@ -9644,6 +9631,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		let op;
 		let func;
+		let failed;
 		let action;
 		let replace;
 		
@@ -9667,6 +9655,7 @@ class DocumentUnitTest extends UnitTest
 		// Replace properties.
 		// Note: order is important:
 		//
+		// 0.) Reserved.
 		// 1.) Restricted.
 		// 2.) Locked.
 		// 3.) Significant.
@@ -9675,6 +9664,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		for( const field in newData )
 		{
+			//
+			// Reset failed flag.
+			//
+			failed = false;
+			
 			//
 			// Set operation.
 			//
@@ -9696,9 +9690,47 @@ class DocumentUnitTest extends UnitTest
 			};
 			
 			//
+			// Set changed flag.
+			//
+			const different =
+				( ( (theNewData[field] === null)	// Deleting and there.
+				 && theObject.document.hasOwnProperty(field) )
+			   || ( (theNewData[field] !== null)	// Setting and not there
+				 && (! theObject.document.hasOwnProperty(field)) )
+			   || ( (theNewData[field] !== null) 	// Setting and different.
+				 && theObject.document.hasOwnProperty(field)
+				 && (theNewData[field] !== theObject.document[field]) ) );
+			
+			//
+			// Replace reserved field.
+			// Should fail.
+			//
+			if( theObject.reservedFields.includes( field ) )
+			{
+				//
+				// Catch changed field.
+				//
+				if( different )
+				{
+					failed = true;
+					action = `${op} different reserved [${field}]`;
+					expect( func, `${theMessage} - ${action}`
+					).to.throw(
+						MyError,
+						/is reserved and cannot be modified/
+					);
+				}
+				else
+				{
+					action = `${op} same reserved [${field}]`;
+					expect( func, `${theMessage} - ${action}`).not.to.throw();
+				}
+			}
+			
+			//
 			// Replace restricted field.
 			//
-			if( theObject.restrictedFields.includes( field ) )
+			else if( theObject.restrictedFields.includes( field ) )
 			{
 				action = `${op} restricted [${field}]`;
 				expect( func, `${theMessage} - ${action}`).not.to.throw();
@@ -9710,17 +9742,13 @@ class DocumentUnitTest extends UnitTest
 			//
 			else if( theObject.lockedFields.includes( field ) )
 			{
+				failed = true;
 				action = `${op} locked [${field}]`;
 				expect( func, `${theMessage} - ${action}`
 				).to.throw(
 					MyError,
 					/Property is locked/
 				);
-				
-				if( oldData.hasOwnProperty( field ) )
-					newData[ field ] = oldData[ field ];
-				else
-					delete newData[ field ];
 			}
 			
 			//
@@ -9764,19 +9792,20 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Check contents.
 		//
-		this.validatePersistentContents
-		(
-			theFlag,						// Replace flag.
-			theMessage,						// Error message.
-			oldData,						// Data before replace.
-			theObject.document,				// The object to test.
-			newData,						// The replacement data.
-			theObject.restrictedFields,		// Restricted fields.
-			theObject.requiredFields,		// Required fields.
-			theObject.lockedFields,			// Locked fields.
-			theObject.uniqueFields,			// Unique fields.
-			theObject.significantFields		// Significant fields.
-		);
+		if( ! failed )
+			this.validatePersistentContents
+			(
+				theFlag,						// Replace flag.
+				theMessage,						// Error message.
+				oldData,						// Data before replace.
+				theObject.document,				// The object to test.
+				replace,						// The replacement data.
+				theObject.restrictedFields,		// Restricted fields.
+				theObject.requiredFields,		// Required fields.
+				theObject.lockedFields,			// Locked fields.
+				theObject.uniqueFields,			// Unique fields.
+				theObject.significantFields		// Significant fields.
+			);
 		
 	}	// validatePersistentReplace
 	
@@ -9813,7 +9842,6 @@ class DocumentUnitTest extends UnitTest
 		let func;
 		let action;
 		let replace;
-		const theOldData = JSON.parse(JSON.stringify(theObject.document));
 		
 		//
 		// Flatten significant fields.
@@ -9826,6 +9854,7 @@ class DocumentUnitTest extends UnitTest
 		// Replace properties.
 		// Note: order is important:
 		//
+		// 0.) Reserved.
 		// 1.) Restricted.
 		// 2.) Locked.
 		// 3.) Significant.
@@ -9855,83 +9884,132 @@ class DocumentUnitTest extends UnitTest
 			};
 			
 			//
-			// Replace restricted field.
-			// Should succeed.
+			// Set changed flag.
 			//
-			if( theObject.restrictedFields.includes( field ) )
+			const different =
+				( ( (theNewData[field] === null)	// Deleting and there.
+				 && theObject.document.hasOwnProperty(field) )
+			   || ( (theNewData[field] !== null)	// Setting and not there
+			     && (! theObject.document.hasOwnProperty(field)) )
+			   || ( (theNewData[field] !== null) 	// Setting and different.
+				 && theObject.document.hasOwnProperty(field)
+			     && (theNewData[field] !== theObject.document[field]) ) );
+			
+			//
+			// Replace reserved field.
+			// Should fail.
+			//
+			if( theObject.reservedFields.includes( field ) )
 			{
-				action = `${op} restricted [${field}]`;
-				expect( func, `${theMessage} - ${action}`).not.to.throw();
+				//
+				// Catch changed field.
+				//
+				if( different )
+				{
+					action = `${op} different reserved [${field}]`;
+					expect( func, `${theMessage} - ${action}`
+					).to.throw(
+						MyError,
+						/is reserved and cannot be modified/
+					);
+				}
+				else
+				{
+					action = `${op} same reserved [${field}]`;
+					expect( func, `${theMessage} - ${action}`).not.to.throw();
+				}
 			}
 			
 			//
-			// Replace locked field.
-			// Should succeed.
-			//
-			else if( theObject.lockedFields.includes( field ) )
-			{
-				action = `${op} unique [${field}]`;
-				expect( func, `${theMessage} - ${action}`).not.to.throw();
-			}
-			
-			//
-			// Replace significant field.
-			// Should succeed.
-			//
-			else if( significant.includes( field ) )
-			{
-				action = `${op} significant [${field}]`;
-				expect( func, `${theMessage} - ${action}`).not.to.throw();
-			}
-			
-			//
-			// Replace required field.
-			// Should succeed.
-			//
-			else if( theObject.requiredFields.includes( field ) )
-			{
-				action = `${op} required [${field}]`;
-				expect( func, `${theMessage} - ${action}`).not.to.throw();
-			}
-			
-			//
-			// Replace unique field.
-			// Should succeed.
-			//
-			else if( theObject.uniqueFields.includes( field ) )
-			{
-				action = `${op} unique [${field}]`;
-				expect( func, `${theMessage} - ${action}`).not.to.throw();
-			}
-			
-			//
-			// Replace field.
-			// Should succeed.
+			// Replace other types of fields.
 			//
 			else
 			{
-				action = `${op} [${field}]`;
-				expect( func, `${theMessage} - ${action}`).not.to.throw();
-			}
+				//
+				// Save original document contents.
+				//
+				const theOldData = K.function.clone( theObject.document );
+				
+				//
+				// Replace restricted field.
+				// Should succeed.
+				//
+				if( theObject.restrictedFields.includes( field ) )
+				{
+					action = `${op} restricted [${field}]`;
+					expect( func, `${theMessage} - ${action}`).not.to.throw();
+				}
+				
+				//
+				// Replace locked field.
+				// Should succeed.
+				//
+				else if( theObject.lockedFields.includes( field ) )
+				{
+					action = `${op} unique [${field}]`;
+					expect( func, `${theMessage} - ${action}`).not.to.throw();
+				}
+				
+				//
+				// Replace significant field.
+				// Should succeed.
+				//
+				else if( significant.includes( field ) )
+				{
+					action = `${op} significant [${field}]`;
+					expect( func, `${theMessage} - ${action}`).not.to.throw();
+				}
+				
+				//
+				// Replace required field.
+				// Should succeed.
+				//
+				else if( theObject.requiredFields.includes( field ) )
+				{
+					action = `${op} required [${field}]`;
+					expect( func, `${theMessage} - ${action}`).not.to.throw();
+				}
+				
+				//
+				// Replace unique field.
+				// Should succeed.
+				//
+				else if( theObject.uniqueFields.includes( field ) )
+				{
+					action = `${op} unique [${field}]`;
+					expect( func, `${theMessage} - ${action}`).not.to.throw();
+				}
+				
+				//
+				// Replace field.
+				// Should succeed.
+				//
+				else
+				{
+					action = `${op} [${field}]`;
+					expect( func, `${theMessage} - ${action}`).not.to.throw();
+				}
+				
+				//
+				// Check contents.
+				//
+				this.validateNonPersistentContents
+				(
+					theFlag,								// Replace flag.
+					theMessage,								// Error message.
+					theOldData,								// Data before replace.
+					theObject.document,						// The object to test.
+					replace,								// The replacement data.
+					theObject.restrictedFields,				// Restricted fields.
+					theObject.requiredFields,				// Required fields.
+					theObject.lockedFields,					// Locked fields.
+					theObject.uniqueFields,					// Unique fields.
+					theObject.significantFields				// Significant fields.
+				);
+			
+			}	// Not a reserved field.
 			
 		}	// Iterating replace properties.
-		
-		//
-		// Check contents.
-		//
-		this.validateNonPersistentContents
-		(
-			theFlag,						// Replace flag.
-			theMessage,						// Error message.
-			theOldData,						// Data before replace.
-			theObject.document,				// The object to test.
-			theNewData,						// The replacement data.
-			theObject.restrictedFields,		// Restricted fields.
-			theObject.requiredFields,		// Required fields.
-			theObject.lockedFields,			// Locked fields.
-			theObject.uniqueFields,			// Unique fields.
-			theObject.significantFields		// Significant fields.
-		);
 		
 	}	// validateNonPersistentReplace
 	
@@ -10263,6 +10341,9 @@ class DocumentUnitTest extends UnitTest
 	 * The method does not return any status, errors are expected to be posted during
 	 * the unit tests.
 	 *
+	 * Note: This method should not be called when replacing reserved fields, because the
+	 * 		 operation should fail.
+	 *
 	 * @param theFlag			{Boolean}	The setDocumentProperties() replace flag.
 	 * @param theMessage		{String}	The main error message part.
 	 * @param theSource			{Object}	The original object.
@@ -10344,194 +10425,198 @@ class DocumentUnitTest extends UnitTest
 			}
 			
 			//
+			// Save property prior presence flag.
+			//
+			const was_there = ( theSource.hasOwnProperty( field ) );
+			
+			//
 			// Handle provided value and not restricted.
 			//
 			if( (status !== 'R')					// Restricted field,
 			 && (theReplaced[ field ] !== null) )	// or deleted field.
 			{
 				//
-				// Assert field is there.
+				// Assert the field was set.
+				// Conditions:
+				//	- Replace flag is true,
+				//	- or the property is locked,
+				//	- or the property was not there.
 				//
-				expect( theDestination, `${theMessage} - ${action}` ).to.have.property(field);
-				if( theDestination.hasOwnProperty( field ) )
+				// Replace flag is true or if property was not there it was set.
+				//
+				expect( theDestination, `${theMessage} - ${action} should be there` )
+					.to.have.property( field );
+				
+				//
+				// Handle true replace flag.
+				//
+				if( theFlag )
 				{
 					//
-					// Check if setting or replacing.
+					// Parse by descriptor status.
+					// Note: order is important:
 					//
-					const was_there = ( theSource.hasOwnProperty( field ) );
-					
+					// 1.) Restricted.
+					// 2.) Locked.
+					// 3.) Significant.
+					// 4.) Required.
+					// 5.) Unique.
 					//
-					// Handle true replace flag.
-					//
-					if( theFlag )
+					switch( status )
 					{
 						//
-						// Parse by descriptor status.
-						// Note: order is important:
+						// Locked fields are replaced,
 						//
-						// 1.) Restricted.
-						// 2.) Locked.
-						// 3.) Significant.
-						// 4.) Required.
-						// 5.) Unique.
-						//
-						switch( status )
-						{
-							//
-							// Locked fields are replaced,
-							//
-							case 'L':
-								this.compareValues(
-									( was_there ) ? theReplaced[ field ]
-												  : theReplaced[ field ],
-									theDestination[ field ],
-									theMessage,
-									action
-								);
-								break;
-							
-							//
-							// Significant fields are replaced.
-							//
-							case 'S':
-								this.compareValues(
-									( was_there ) ? theReplaced[ field ]
-												  : theReplaced[ field ],
-									theDestination[ field ],
-									theMessage,
-									action
-								);
-								break;
-							
-							//
-							// Required fields are replaced.
-							//
-							case 'Q':
-								this.compareValues(
-									( was_there ) ? theReplaced[ field ]
-												  : theReplaced[ field ],
-									theDestination[ field ],
-									theMessage,
-									action
-								);
-								break;
-							
-							//
-							// Unique fields are replaced.
-							//
-							case 'U':
-								this.compareValues(
-									( was_there ) ? theReplaced[ field ]
-												  : theReplaced[ field ],
-									theDestination[ field ],
-									theMessage,
-									action
-								);
-								break;
-							
-							//
-							// All other fields are replaced.
-							//
-							default:
-								this.compareValues(
-									( was_there ) ? theReplaced[ field ]
-												  : theReplaced[ field ],
-									theDestination[ field ],
-									theMessage,
-									action
-								);
-								break;
-							
-						}	// Parsing by descriptor status.
+						case 'L':
+							this.compareValues(
+								( was_there ) ? theReplaced[ field ]
+											  : theReplaced[ field ],
+								theDestination[ field ],
+								theMessage,
+								action
+							);
+							break;
 						
-					}	// Replace flag is true.
+						//
+						// Significant fields are replaced.
+						//
+						case 'S':
+							this.compareValues(
+								( was_there ) ? theReplaced[ field ]
+											  : theReplaced[ field ],
+								theDestination[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+						//
+						// Required fields are replaced.
+						//
+						case 'Q':
+							this.compareValues(
+								( was_there ) ? theReplaced[ field ]
+											  : theReplaced[ field ],
+								theDestination[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+						//
+						// Unique fields are replaced.
+						//
+						case 'U':
+							this.compareValues(
+								( was_there ) ? theReplaced[ field ]
+											  : theReplaced[ field ],
+								theDestination[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+						//
+						// All other fields are replaced.
+						//
+						default:
+							this.compareValues(
+								( was_there ) ? theReplaced[ field ]
+											  : theReplaced[ field ],
+								theDestination[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+					}	// Parsing by descriptor status.
 					
+				}	// Replace flag is true.
+				
+				//
+				// Handle false replace flag.
+				//
+				else
+				{
 					//
-					// Handle false replace flag.
+					// Parse by descriptor status.
+					// Note: order is important:
 					//
-					else
+					// 1.) Restricted.
+					// 2.) Locked.
+					// 3.) Significant.
+					// 4.) Required.
+					// 5.) Unique.
+					//
+					switch( status )
 					{
 						//
-						// Parse by descriptor status.
-						// Note: order is important:
+						// Locked fields are replaced in all cases.
 						//
-						// 1.) Restricted.
-						// 2.) Locked.
-						// 3.) Significant.
-						// 4.) Required.
-						// 5.) Unique.
-						//
-						switch( status )
-						{
-							//
-							// Locked fields are replaced in all cases.
-							//
-							case 'L':
-								this.compareValues(
-									theReplaced[ field ],
-									theDestination[ field ],
-									theMessage,
-									action
-								);
-								break;
-							
-							//
-							// Significant fields are replaced.
-							//
-							case 'S':
-								this.compareValues(
-									( was_there ) ? theSource[ field ]
-												  : theReplaced[ field ],
-									theDestination[ field ],
-									theMessage,
-									action
-								);
-								break;
-							
-							//
-							// Required fields are replaced.
-							//
-							case 'Q':
-								this.compareValues(
-									( was_there ) ? theSource[ field ]
-												  : theReplaced[ field ],
-									theDestination[ field ],
-									theMessage,
-									action
-								);
-								break;
-							
-							//
-							// Unique fields are replaced.
-							//
-							case 'U':
-								this.compareValues(
-									( was_there ) ? theSource[ field ]
-												  : theReplaced[ field ],
-									theDestination[ field ],
-									theMessage,
-									action
-								);
-								break;
-							
-							//
-							// All other fields are replaced.
-							//
-							default:
-								this.compareValues(
-									( was_there ) ? theSource[ field ]
-												  : theReplaced[ field ],
-									theDestination[ field ],
-									theMessage,
-									action
-								);
-								break;
-							
-						}	// Parsing by descriptor status.
+						case 'L':
+							this.compareValues(
+								theReplaced[ field ],
+								theDestination[ field ],
+								theMessage,
+								action
+							);
+							break;
 						
-					}	// Replace flag is false.
+						//
+						// Significant fields are replaced.
+						//
+						case 'S':
+							this.compareValues(
+								( was_there ) ? theSource[ field ]
+											  : theReplaced[ field ],
+								theDestination[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+						//
+						// Required fields are replaced.
+						//
+						case 'Q':
+							this.compareValues(
+								( was_there ) ? theSource[ field ]
+											  : theReplaced[ field ],
+								theDestination[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+						//
+						// Unique fields are replaced.
+						//
+						case 'U':
+							this.compareValues(
+								( was_there ) ? theSource[ field ]
+											  : theReplaced[ field ],
+								theDestination[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+						//
+						// All other fields are replaced.
+						//
+						default:
+							this.compareValues(
+								( was_there ) ? theSource[ field ]
+											  : theReplaced[ field ],
+								theDestination[ field ],
+								theMessage,
+								action
+							);
+							break;
+						
+					}	// Parsing by descriptor status.
 					
-				}	// Has field.
+				}	// Replace flag is false.
 				
 			}	// Neither restricted nor deleted.
 			
@@ -10544,7 +10629,7 @@ class DocumentUnitTest extends UnitTest
 				//
 				// Update action.
 				//
-				if( theReplaced[ field ] !== null )
+				if( theReplaced[ field ] === null )
 					action += " deleted";
 				
 				//

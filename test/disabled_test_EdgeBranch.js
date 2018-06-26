@@ -137,7 +137,6 @@ describe( "EdgeBranch class tests:", function ()
 		UnitTestClass.unitTestRun(unitTest, 'instantiation' );
 	});
 	
-/*
 	//
 	// Contents unit tests.
 	//
@@ -152,6 +151,7 @@ describe( "EdgeBranch class tests:", function ()
 		UnitTestClass.unitTestRun(unitTest, 'insert' );
 	});
 	
+/*
 	//
 	// Resolve unit tests.
 	//

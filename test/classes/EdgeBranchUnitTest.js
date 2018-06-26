@@ -36,6 +36,91 @@ const EdgeUnitTest = require( './EdgeUnitTest' );
 class EdgeBranchUnitTest extends EdgeUnitTest
 {
 	/****************************************************************************
+	 * DEFAULT TEST MODULES DEFINITIONS											*
+	 ****************************************************************************/
+	
+	/**
+	 * Define contents tests
+	 *
+	 * This method will load the contents tests queue with the desired test
+	 * records, each record has a property:
+	 *
+	 * 	- The name of the method that runs all the 'it' tests, whose value is an
+	 * 	  object structured as follows:
+	 * 		- name:	The test title used in the 'describe'.
+	 * 		- clas:	The class to be used in the tests.
+	 * 		- parm:	The eventual parameters for the test.
+	 *
+	 * This set of tests will validate all operations involving udating the object
+	 * contents, it will do the following checks:
+	 *
+	 * 	- Load contents in empty object.
+	 * 	- Load filled non persistent object.
+	 * 	- Load persistent object.
+	 */
+	unitsInitContent()
+	{
+		//
+		// Strip reserved branches and modifier fields from object.
+		//
+		const clone_base = K.function.clone(this.parameters.content);
+		const clone_replace = K.function.clone(this.parameters.replace);
+		if( clone_base.hasOwnProperty( Dict.descriptor.kBranches ) )
+			delete clone_base[ Dict.descriptor.kBranches ];
+		if( clone_base.hasOwnProperty( Dict.descriptor.kModifiers ) )
+			delete clone_base[ Dict.descriptor.kModifiers ];
+		if( clone_replace.hasOwnProperty( Dict.descriptor.kBranches ) )
+			delete clone_replace[ Dict.descriptor.kBranches ];
+		if( clone_replace.hasOwnProperty( Dict.descriptor.kModifiers ) )
+			delete clone_replace[ Dict.descriptor.kModifiers ];
+		
+		//
+		// Load empty object.
+		// Assert that all field types are copied, except for restricted fields.
+		//
+		this.contentsUnitSet(
+			'contentsLoadEmptyObject',
+			"Load contents in empty object",
+			this.test_classes.base,
+			clone_base,
+			true
+		);
+		
+		//
+		// Load filled and non persistent object.
+		// Assert that modifying the contents of a filled non persistent object works as
+		// follows:
+		//	- Restricted fields are not copied.
+		//	- Modifying locked fields will is allowed.
+		//	- All other fields are copied.
+		//
+		this.contentsUnitSet(
+			'contentsLoadFilledObject',
+			"Load filled non persistent object:",
+			this.test_classes.base,
+			{ base: clone_base, replace: clone_replace },
+			true
+		);
+		
+		//
+		// Load persistent object.
+		// Assert that modifying the contents of a persistent object works as follows:
+		//	- Restricted fields are not copied.
+		//	- Modifying locked fields will raise an exception.
+		//	- All other fields are copied.
+		//
+		this.contentsUnitSet(
+			'contentsLoadPersistentObject',
+			"Load persistent object:",
+			this.test_classes.base,
+			{ base: this.parameters.content, replace: this.parameters.replace },
+			true
+		);
+		
+	}	// unitsInitContent
+
+
+	/****************************************************************************
 	 * INSTANTIATION TEST MODULES DEFINITIONS									*
 	 ****************************************************************************/
 	
@@ -509,6 +594,22 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 		
 		//
+		// Load branches.
+		//
+		action = "Add branches";
+		func = () => {
+			result = doc.branchSet( branches, true );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.an.array;
+		expect( result, `${message} - ${action} result` ).not.to.be.empty;
+		expect( doc.document, `${message} - ${action} branches` )
+			.to.have.property( Dict.descriptor.kBranches );
+		action = "Check branches";
+		for( const branch of doc.document[ Dict.descriptor.kBranches ] )
+			expect( branch, `${message} - ${action} branch value` ).to.be.a.string;
+		
+		//
 		// Load modifiers.
 		//
 		if( modifiers !== null )
@@ -554,7 +655,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 		// Instantiate with default collection and invalid property.
 		// Should not fail, it will be caught before persisting.
 		//
-		const contents = K.function.clone( theParam );
+		const contents = K.function.clone( param );
 		contents[ "UNKNOWN" ] = "Should not be there";
 		message = "Instantiation with default collection and invalid property";
 		if( default_collection !== null )
@@ -608,7 +709,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					theParam,
+					param,
 					this.defaultTestCollection
 				);
 		};
@@ -629,7 +730,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 		//
 		// Check content.
 		//
-		this.assertAllProvidedDataInDocument( "Check contents", doc, theParam );
+		this.assertAllProvidedDataInDocument( "Check contents", doc, param );
 		
 		//
 		// Instantiate with provided collection and invalid property.
@@ -662,8 +763,441 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 		// Check content.
 		//
 		this.assertAllProvidedDataInDocument( "Check contents", doc, contents );
-		
+	
 	}	// testInstantiateWithContent
+	
+	
+	/****************************************************************************
+	 * CONTENTS TEST ROUTINE DEFINITIONS										*
+	 ****************************************************************************/
+	
+	/**
+	 * Load contents in persistent object
+	 *
+	 * Assert that loading contents in a persistent object works for all fields
+	 * except restricted fields, the following checks will be performed:
+	 *
+	 *	- Restricted fields are not copied.
+	 *	- Modifying locked fields will raise an exception.
+	 *	- All other fields are copied.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testContentsLoadPersistentObject( theClass, theParam = null )
+	{
+		let id;
+		let doc;
+		let data;
+		let func;
+		let result;
+		let action;
+		let message;
+		
+		//
+		// Get base and replace contents.
+		//
+		message = "Unit test parameter";
+		expect( theParam, message ).to.be.an.object;
+		expect( theParam, message ).to.have.property( 'base' );
+		expect( theParam, message ).to.have.property( 'replace' );
+		
+		//
+		// Clone parameters and save reserved fields.
+		//
+		const base_data = K.function.clone( theParam[ 'base' ] );
+		const base_data_branches = base_data[ Dict.descriptor.kBranches ];
+		const base_data_modifiers = ( base_data.hasOwnProperty( Dict.descriptor.kModifiers ) )
+								  ? base_data[ Dict.descriptor.kModifiers ]
+								  : null;
+		const replace_data = K.function.clone( theParam[ 'replace' ] );
+		const replace_data_branches = replace_data[ Dict.descriptor.kBranches ];
+		const replace_data_modifiers = ( replace_data.hasOwnProperty( Dict.descriptor.kModifiers ) )
+									 ? replace_data[ Dict.descriptor.kModifiers ]
+									 : null;
+		
+		//
+		// Remove reserved fields from parameters.
+		//
+		delete base_data[ Dict.descriptor.kBranches ];
+		delete replace_data[ Dict.descriptor.kBranches ];
+		if( base_data.hasOwnProperty( Dict.descriptor.kModifiers ) )
+			delete base_data[ Dict.descriptor.kModifiers ];
+		if( replace_data.hasOwnProperty( Dict.descriptor.kModifiers ) )
+			delete replace_data[ Dict.descriptor.kModifiers ];
+		
+		//
+		// Instantiate object for inserting.
+		//
+		message = "Persistent copy";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					base_data,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Load branches.
+		//
+		action = "Add branches";
+		func = () => {
+			result = doc.branchSet( base_data_branches, true );
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		expect( result, `${message} - ${action} result` ).to.be.an.array;
+		expect( result, `${message} - ${action} result` ).not.to.be.empty;
+		expect( doc.document, `${message} - ${action} branches` )
+			.to.have.property( Dict.descriptor.kBranches );
+		action = "Check branches";
+		for( const branch of doc.document[ Dict.descriptor.kBranches ] )
+			expect( branch, `${message} - ${action} branch value` ).to.be.a.string;
+		
+		//
+		// Load modifiers.
+		//
+		if( base_data_modifiers !== null )
+		{
+			action = "Add modifiers";
+			func = () => {
+				result = doc.modifierSet( base_data_modifiers, true );
+			};
+			expect( func, `${message} - ${action}` ).not.to.throw();
+			expect( result, `${message} - ${action} result` ).to.be.an.object;
+			expect( doc.document, `${message} - ${action} modifiers` )
+				.to.have.property( Dict.descriptor.kModifiers );
+			action = "Check modifiers";
+			for( const modifier in doc.document[ Dict.descriptor.kModifiers ] )
+			{
+				expect( modifier, `${message} - ${action} modifier property` ).to.be.a.string;
+				expect( modifier, `${message} - ${action} modifier value` ).to.be.an.object;
+			}
+		}
+		
+		//
+		// Insert object.
+		//
+		action = "Insertion";
+		func = () => {
+			result = doc.insertDocument();
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object persistent state.
+		//
+		action = "Insertion result";
+		expect( result, `${message} - ${action}` ).to.be.true;
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		action = "Has _id";
+		expect( doc.document, `${message} - ${action}` ).to.have.property( '_id' );
+		
+		//
+		// Save ID.
+		//
+		id = doc.document._id;
+		
+		//
+		// REPLACE FLAG FALSE
+		//
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object persistent state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, base_data );
+		
+		//
+		// Replace and check contents.
+		//
+		message = "Replace value and flag is off";
+		this.validatePersistentReplace(
+			message,								// Error message.
+			false,									// Replace flag.
+			doc,									// The document object.
+			replace_data							// The replacement data.
+		);
+		
+		//
+		// Check object replaced state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Replace and check contents.
+		//
+		data = K.function.clone( replace_data );
+		for( const item in data )
+			data[ item ] = null;
+		message = "Replace value and flag is off";
+		this.validatePersistentReplace(
+			`${message} - replace with delete contents`,	// Error message.
+			false,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Replace and check contents.
+		//
+		data = { "UNKNOWN" : "CONTENT" };
+		message = "Replace value and flag is off";
+		this.validatePersistentReplace(
+			`${message} - replace with invalid contents`,	// Error message.
+			false,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		action = "Has invalid field";
+		expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
+		expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// REPLACE FLAG TRUE
+		//
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Check object persistent state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Check content.
+		//
+		this.assertAllProvidedDataInDocument( "Check contents", doc, base_data );
+		
+		//
+		// Replace and check contents.
+		//
+		message = "Replace value and flag is on";
+		this.validatePersistentReplace(
+			message,								// Error message.
+			true,									// Replace flag.
+			doc,									// The document object.
+			replace_data							// The replacement data.
+		);
+		
+		//
+		// Check object replaced state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Replace and check contents.
+		//
+		data = K.function.clone( replace_data );
+		for( const item in data )
+			data[ item ] = null;
+		message = "Replace value and flag is on";
+		this.validatePersistentReplace(
+			`${message} - replace with delete contents`,	// Error message.
+			true,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Instantiate from reference.
+		//
+		message = "Resolving from reference";
+		action = "Instantiation";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					id,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message} - ${action}` ).not.to.throw();
+		
+		//
+		// Replace and check contents.
+		//
+		data = { "UNKNOWN" : "CONTENT" };
+		message = "Replace value and flag is on";
+		this.validatePersistentReplace(
+			`${message} - replace with invalid contents`,	// Error message.
+			true,											// Replace flag.
+			doc,											// The document object.
+			data											// The replacement data.
+		);
+		action = "Has invalid field";
+		expect( doc.document, `${message} - ${action}` ).to.have.property( 'UNKNOWN' );
+		expect( doc.document[ 'UNKNOWN'], `${message} - ${action}` ).to.equal( 'CONTENT' );
+		
+		//
+		// Check object loaded state.
+		//
+		action = "Contents";
+		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+		action = "Collection";
+		expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+		action = "Persistent";
+		expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+		action = "Modified";
+		expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+		
+		//
+		// Remove document.
+		//
+		db._remove( id );
+		
+	}	// testContentsLoadPersistentObject
 
 }	// EdgeBranchUnitTest.
 

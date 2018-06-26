@@ -52,7 +52,8 @@ module.exports = {
 		var: 'VAR',
 		password: 'XXX',
 		name: "NAME",
-		order: 0
+		order: 0,
+		email: 'skofic@agropolis.fr'
 	},
 	
 	//
@@ -67,7 +68,8 @@ module.exports = {
 		password: 'XXX',
 		name: "NAME",
 		order: 1,
-		username: "USERNAME"
+		username: "USERNAME",
+		email: 'skofic@agropolis.fr'
 	},
 	
 	//

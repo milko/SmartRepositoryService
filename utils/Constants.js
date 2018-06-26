@@ -360,7 +360,7 @@ module.exports = Object.freeze(
 			BadManagerReference	:  96,
 			CannotManageUser	:  97,
 			CannotMakeEdgeKey	:  98,
-			CannotManageBranches:  99,
+			FieldIsReserved		:  99,
 			NotBranchedEdge		: 100,
 			IsPersistent		: 101,
 			IsNotPersistent		: 102,
