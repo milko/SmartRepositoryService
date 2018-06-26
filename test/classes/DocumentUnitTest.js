@@ -4111,8 +4111,6 @@ class DocumentUnitTest extends UnitTest
 			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 			action = "Persistent";
 			expect( doc.persistent, `${message} - ${action}` ).to.equal( false );
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 			
 			//
 			// DELETE PROPERTIES
@@ -4410,8 +4408,6 @@ class DocumentUnitTest extends UnitTest
 			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 			action = "Persistent";
 			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 			
 			//
 			// DELETE PROPERTIES
@@ -7067,9 +7063,6 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
-		// ToDo:
-		// Should make special fields list a static method.
-		//
 		// Instantiate from reference.
 		//
 		message = "Instantiate with saved reference";
@@ -7391,20 +7384,57 @@ class DocumentUnitTest extends UnitTest
 		let func;
 		let result;
 		let message;
+		let no_reserved;
+		let reserved_values;
 		
 		//
-		// Instantiate empty object.
+		// Instantiate to get reserved fields.
+		//
+		message = "Instantiate to get reserved fields";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		
+		//
+		// Clone and strip reserved fields from parameter.
+		//
+		reserved_values = {};
+		const reserved_fields = doc.reservedFields;
+		no_reserved = K.function.clone( theParam );
+		for( const field of reserved_fields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+			}
+		}
+		
+		//
+		// Instantiate with content.
 		//
 		message = "Instantiation";
 		func = () => {
 			doc =
 				new theClass(
 					this.parameters.request,
-					theParam,
+					no_reserved,
 					this.defaultTestCollection
 				);
 		};
 		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Set reserved fields.
+		//
+		this.setReservedProperties( doc, reserved_values );
 		
 		//
 		// Replace.
@@ -7836,6 +7866,27 @@ class DocumentUnitTest extends UnitTest
 		let action;
 		let message;
 		let selector;
+		let no_reserved;
+		let reserved_values;
+		
+		//
+		// Instantiate to get reserved fields.
+		//
+		message = "Instantiate to get reserved fields";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Get reserved fields.
+		//
+		const reserved = doc.reservedFields;
 		
 		//
 		// Instantiate from existing reference.
@@ -7925,15 +7976,24 @@ class DocumentUnitTest extends UnitTest
 				action = state;
 				
 				//
-				// Update field using default method.
-				// Should only raise an exception for locked fields.
+				// Update field.
 				//
 				message = "Chenge value with setDocumentProperties()";
 				selector = {};
 				selector[ field ] = "1234";
-				func = () => {
-					doc.setDocumentProperties( selector, true );
-				};
+				if( reserved.includes( field ) )
+					func = () => {
+						this.setReservedProperties( doc, selector );
+					};
+				else
+					func = () => {
+						doc.setDocumentProperties( selector, true );
+					};
+
+				//
+				// Perform update.
+				// Should only raise an exception for locked fields.
+				//
 				switch( status )
 				{
 					case 'R':
@@ -8122,15 +8182,24 @@ class DocumentUnitTest extends UnitTest
 				expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 				
 				//
-				// Delete field using default method.
-				// Should only raise an exception for locked fields.
+				// Update field.
 				//
 				message = "Delete value with setDocumentProperties()";
 				selector = {};
 				selector[ field ] = null;
-				func = () => {
-					doc.setDocumentProperties( selector, true );
-				};
+				if( reserved.includes( field ) )
+					func = () => {
+						this.setReservedProperties( doc, selector );
+					};
+				else
+					func = () => {
+						doc.setDocumentProperties( selector, true );
+					};
+				
+				//
+				// Perform update.
+				// Should only raise an exception for locked fields.
+				//
 				switch( status )
 				{
 					case 'R':
@@ -8403,6 +8472,38 @@ class DocumentUnitTest extends UnitTest
 		let func;
 		let result;
 		let message;
+		let no_reserved;
+		let reserved_values;
+		
+		//
+		// Instantiate to get reserved fields.
+		//
+		message = "Instantiate to get reserved fields";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		
+		//
+		// Clone and strip reserved fields from parameter.
+		//
+		reserved_values = {};
+		const reserved_fields = doc.reservedFields;
+		no_reserved = K.function.clone( theParam );
+		for( const field of reserved_fields )
+		{
+			if( no_reserved.hasOwnProperty( field ) )
+			{
+				reserved_values[ field ] = no_reserved[ field ];
+				delete no_reserved[ field ];
+			}
+		}
 		
 		//
 		// Instantiate empty object.
@@ -8412,11 +8513,16 @@ class DocumentUnitTest extends UnitTest
 			doc =
 				new theClass(
 					this.parameters.request,
-					theParam,
+					no_reserved,
 					this.defaultTestCollection
 				);
 		};
 		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Set reserved fields.
+		//
+		this.setReservedProperties( doc, reserved_values );
 		
 		//
 		// Remove.

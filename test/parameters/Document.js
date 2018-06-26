@@ -53,7 +53,7 @@ module.exports = {
 		password: 'XXX',
 		name: "NAME",
 		order: 0,
-		email: 'skofic@agropolis.fr'
+		passcheck: 'DCBA'
 	},
 	
 	//
@@ -69,7 +69,7 @@ module.exports = {
 		name: "NAME",
 		order: 1,
 		username: "USERNAME",
-		email: 'skofic@agropolis.fr'
+		passcheck: 'ABCD'
 	},
 	
 	//

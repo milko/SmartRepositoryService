@@ -69,7 +69,7 @@ class TestClassCustom extends TestClass
 	}
 	
 	get restrictedFields() {
-		return super.restrictedFields.concat([Dict.descriptor.kPassword]);
+		return super.restrictedFields.concat([Dict.descriptor.kPasswordCheck]);
 	}
 	
 	get reservedFields() {
