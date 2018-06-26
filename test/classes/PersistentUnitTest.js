@@ -153,7 +153,7 @@ class PersistentUnitTest extends DocumentUnitTest
 			[ Dict.descriptor.kMStamp ],
 			false
 		);
-		
+	
 	}	// unitsInitResolve
 
 }	// PersistentUnitTest.
