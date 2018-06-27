@@ -42,7 +42,7 @@ module.exports = {
 	//
 	// Other references.
 	//
-	other_id			: null,
+	other_id			: 'edges/86ec2630408d3b6ef1073c4e8dfb5eeb',
 	other_collection	: 'edges',
 	
 	//

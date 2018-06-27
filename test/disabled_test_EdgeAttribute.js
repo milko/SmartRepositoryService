@@ -19,8 +19,8 @@ const expect = require('chai').expect;
 // Test classes.
 //
 const TestClass = require( './classes/EdgeAttributeUnitTestClass' ).base;
-const ParentClass = require( './classes/EdgeAttributeUnitTestClass' ).parent;
 const TestClassCustom = require( './classes/EdgeAttributeUnitTestClass' ).base;
+const TestClassOther = require( '../classes/Edge' );
 
 //
 // Node class.
@@ -51,7 +51,7 @@ const unitTest =
 		{
 			base: TestClass,
 			custom: TestClassCustom,
-			parent: ParentClass
+			other: TestClassOther
 		}
 	);
 

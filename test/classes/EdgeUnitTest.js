@@ -85,6 +85,18 @@ class EdgeUnitTest extends PersistentUnitTest
 		super.unitsInitCustom();
 		
 		//
+		// Instantiate with wrong type of edge.
+		// Assert it fails.
+		//
+		this.customUnitSet(
+			'instantiateWrongEdgeType',
+			"Instantiate class with wrong edge type selector:",
+			this.test_classes.base,
+			null,
+			true
+		);
+		
+		//
 		// Validate edge key.
 		// Assert that removing a constrained document fails.
 		//
@@ -161,6 +173,34 @@ class EdgeUnitTest extends PersistentUnitTest
 	 ****************************************************************************/
 	
 	/**
+	 * Instantiate class with wrong edge type selector
+	 *
+	 * Assert instantiating the class with a resolved selector that is not an
+	 * EdgeAttribute instance raises an exception.
+	 *
+	 * Should fail with base class and custom classes.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	instantiateWrongEdgeType( theClass, theParam = null )
+	{
+		//
+		// Should fail.
+		//
+		this.testInstantiateWrongEdgeType(
+			this.test_classes.base, theParam );
+		
+		//
+		// Should fail.
+		//
+		if( this.test_classes.custom )
+			this.testInstantiateWrongEdgeType(
+				this.test_classes.custom, theParam );
+		
+	}	// instantiateNoSelectorNoCollection
+	
+	/**
 	 * Validate edge key.
 	 *
 	 * This test will check that the key getter returns a string if all required
@@ -192,8 +232,113 @@ class EdgeUnitTest extends PersistentUnitTest
 	
 	
 	/****************************************************************************
-	 * REMOVE TEST ROUTINE DEFINITIONS											*
+	 * CUSTOM TEST ROUTINE DEFINITIONS											*
 	 ****************************************************************************/
+	
+	/**
+	 * Test instantiate class with wrong edge type selector
+	 *
+	 * Assert instantiating the class with a resolved selector that is not an
+	 * EdgeAttribute instance raises an exception.
+	 *
+	 * Perform test with _id reference and content selector.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testInstantiateWrongEdgeType( theClass, theParam = null )
+	{
+		//
+		// Init local storage.
+		//
+		let doc;
+		let func;
+		let message;
+		
+		//
+		// Instantiate other class.
+		//
+		message = "Instantiate test edge with parent class";
+		func = () => {
+			doc =
+				new this.test_classes.other(
+					this.parameters.request,
+					this.parameters.other_id
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( doc.persistent, `${message}` ).be.true;
+		expect( doc.document, `${message}` ).not.be.empty;
+		
+		//
+		// Save other edge references.
+		//
+		const id = doc.document._id;
+		const key = doc.document._key;
+		const selector = {};
+		for( const field of K.function.flatten(doc.significantFields) )
+			selector[ field ] = doc.document[ field ];
+		message = "Other class selector";
+		expect(selector, message).not.to.be.empty;
+		
+		//
+		// Instantiate with _id.
+		//
+		message = "Instantiate with _id";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					id
+				);
+		};
+		expect( func, `${message}`
+		).to.throw(
+			MyError,
+			/Constraint violation|Ambiguous document reference|Invalid document reference/
+		);
+		
+		//
+		// Instantioate with _key.
+		//
+		message = "Instantiate with _key";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					key,
+					this.parameters.other_collection
+				);
+		};
+		expect( func, `${message}`
+		).to.throw(
+			MyError,
+			/Constraint violation|Ambiguous document reference/
+		);
+		
+		//
+		// Instantioate with selector.
+		//
+		message = "Instantiate with selector";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					selector,
+					this.parameters.other_collection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		func = () => {
+			doc.resolveDocument();
+		};
+		expect( func, `${message}`
+		).to.throw(
+			MyError,
+			/missing required fields|Invalid document reference/
+		);
+		
+	}	// testInstantiateWrongEdgeType
 	
 	/**
 	 * Test removing an object

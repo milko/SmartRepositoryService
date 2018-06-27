@@ -20,6 +20,7 @@ const expect = require('chai').expect;
 //
 const TestClass = require( './classes/EdgeUnitTestClass' ).base;
 const TestClassCustom = require( './classes/EdgeUnitTestClass' ).custom;
+const TestClassOther = require( '../classes/EdgeAttribute' );
 
 //
 // Node class.
@@ -49,7 +50,8 @@ const unitTest =
 		param,
 		{
 			base: TestClass,
-			custom: TestClassCustom
+			custom: TestClassCustom,
+			other: TestClassOther
 		}
 	);
 
