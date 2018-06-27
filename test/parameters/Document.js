@@ -81,6 +81,137 @@ module.exports = {
 	},
 	
 	//
+	// Intermediate parameters.
+	// insertWithContent().
+	// Values to change when testing for the second time.
+	//
+	insertWithContent: {
+		name: 'NAME FILLED',
+		lid: 'LID_FILLED'
+	},
+	
+	//
+	// Intermediate parameters.
+	// insertWithSameContent().
+	// Values to change when testing for the second time.
+	//
+	insertWithSameContent: {
+		first: {
+		},
+		second: {
+			name: "NAME SAME CONTENTS"
+		}
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveAmbiguousObject().
+	// Parameters to the test.
+	//
+	resolveAmbiguous: {
+		nid: 'terms/:id',
+		lid: 'LID'
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveSignificantField().
+	// Parameters to the test.
+	//
+	resolveSignificant: {
+		noSig: {
+			name: 'NAME FILLED'
+		},
+		sigOne: {
+			lid: 'LID_FILLED'
+		},
+		sigFind: {
+			nid: 'terms/:id',
+			lid: 'LID_FILLED'
+		},
+		sigAmbig: {
+			nid: 'terms/:id',
+			lid: 'LID'
+		},
+		sigNoFind: {
+			nid: 'UNKNOWN',
+			lid: 'LID'
+		}
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveReferenceField().
+	// Parameters to the test.
+	//
+	resolveReference: {
+		nid: 'BAD_NID',
+		lid: 'BAD_LID'
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveNoException().
+	// Parameters to the test.
+	//
+	resolveNoException: {
+		correct: {
+			nid: 'terms/:id',
+			lid: 'LID_FILLED'
+		},
+		duplicate: {
+			nid: 'terms/:id',
+			lid: 'LID'
+		},
+		incorrect: {
+			nid: 'UNKNOWN',
+			lid: 'UNKNOWN'
+		}
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeLockedField().
+	// Parameters to the test.
+	//
+	changeLocked: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeSignificantField().
+	// Parameters to the test.
+	//
+	changeSignificant: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeRequiredField().
+	// Parameters to the test.
+	//
+	changeRequired: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeUniqueField().
+	// Parameters to the test.
+	//
+	changeUnique: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeLocalField().
+	// Parameters to the test.
+	//
+	changeLocal: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeStandardField().
+	// Parameters to the test.
+	//
+	changeStandard: "I_CHANGED_IT",
+	
+	//
 	// Default request.
 	//
 	request : {

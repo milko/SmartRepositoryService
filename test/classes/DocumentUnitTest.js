@@ -490,7 +490,10 @@ class DocumentUnitTest extends UnitTest
 			'insertWithoutPersist',
 			"Insert without persist",
 			this.test_classes.base,
-			this.parameters.replace,
+			{
+				content: this.parameters.replace,
+				local: []
+			},
 			true
 		);
 	
@@ -545,14 +548,11 @@ class DocumentUnitTest extends UnitTest
 		// Assert that resolving a document with more than one match will raise an
 		// exception.
 		//
-		tmp = {};
-		tmp[ Dict.descriptor.kNID ] = 'terms/:id';
-		tmp[ Dict.descriptor.kLID ] = 'LID';
 		this.resolveUnitSet(
 			'resolveAmbiguousObject',
 			"Resolve ambiguous document",
 			this.test_classes.base,
-			tmp,
+			this.parameters.resolveAmbiguous,
 			true
 		);
 		
@@ -583,39 +583,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Properties 'replace' and 'sigFind' must be there.
 		//
-		tmp = {
-			noSig: {},
-			sigOne: {},
-			sigFind: {},
-			sigAmbig: {},
-			sigNoFind: {}
-		};
-		
-		tmp.noSig[ Dict.descriptor.kName ] = 'NAME FILLED';
-		
-		tmp.sigOne[ Dict.descriptor.kLID ] = 'LID_FILLED';
-		
-		tmp.sigFind[ Dict.descriptor.kNID ] = 'terms/:id';
-		tmp.sigFind[ Dict.descriptor.kLID ] = 'LID_FILLED';
-		
-		tmp.sigAmbig[ Dict.descriptor.kNID ] = 'terms/:id';
-		tmp.sigAmbig[ Dict.descriptor.kLID ] = 'LID';
-		
-		tmp.sigNoFind[ Dict.descriptor.kNID ] = 'UNKNOWN';
-		tmp.sigNoFind[ Dict.descriptor.kLID ] = 'LID';
-		
 		this.resolveUnitSet(
 			'resolveSignificantField',
 			"Resolve significant field",
 			this.test_classes.base,
-			{
-				replace: this.parameters.replace,
-				noSig: tmp.noSig,
-				sigFind: tmp.sigFind,
-				sigOne: tmp.sigOne,
-				sigAmbig: tmp.sigAmbig,
-				sigNoFind: tmp.sigNoFind
-			},
+			this.parameters.resolveSignificant,
 			true
 		);
 		
@@ -625,14 +597,11 @@ class DocumentUnitTest extends UnitTest
 		// contains a reference, this will take precedence over significant field
 		// combunations.
 		//
-		tmp = {};
-		tmp[ Dict.descriptor.kNID ] = 'BAD_NID';
-		tmp[ Dict.descriptor.kLID ] = 'BAD_LID';
 		this.resolveUnitSet(
 			'resolveReferenceField',
 			"Resolve reference fields",
 			this.test_classes.base,
-			tmp,
+			this.parameters.resolveReference,
 			true
 		);
 		
@@ -648,18 +617,11 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Property 'correct' and 'incorrect' must be there.
 		//
-		tmp = { correct: {}, duplicate: {}, incorrect: {} };
-		tmp.correct[ Dict.descriptor.kNID ] = 'terms/:id';
-		tmp.correct[ Dict.descriptor.kLID ] = 'LID_FILLED';
-		tmp.duplicate[ Dict.descriptor.kNID ] = 'terms/:id';
-		tmp.duplicate[ Dict.descriptor.kLID ] = 'LID';
-		tmp.incorrect[ Dict.descriptor.kNID ] = 'UNKNOWN';
-		tmp.incorrect[ Dict.descriptor.kLID ] = 'UNKNOWN';
 		this.resolveUnitSet(
 			'resolveNoException',
 			"Resolve without raising",
 			this.test_classes.base,
-			tmp,
+			this.parameters.resolveNoException,
 			true
 		);
 		
@@ -673,7 +635,7 @@ class DocumentUnitTest extends UnitTest
 			'resolveChangeLockedField',
 			"Resolve changed locked fields",
 			this.test_classes.base,
-			"I_CHANGED_IT",
+			this.parameters.changeLocked,
 			true
 		);
 		
@@ -687,7 +649,7 @@ class DocumentUnitTest extends UnitTest
 			'resolveChangeSignificantField',
 			"Resolve changed significant fields",
 			this.test_classes.base,
-			"I_CHANGED_IT",
+			this.parameters.changeSignificant,
 			true
 		);
 		
@@ -701,7 +663,7 @@ class DocumentUnitTest extends UnitTest
 			'resolveChangeRequiredField',
 			"Resolve changed required fields",
 			this.test_classes.base,
-			"I_CHANGED_IT",
+			this.parameters.changeRequired,
 			true
 		);
 		
@@ -713,9 +675,9 @@ class DocumentUnitTest extends UnitTest
 		//
 		this.resolveUnitSet(
 			'resolveChangeUniqueField',
-			"Resolve changed required fields",
+			"Resolve changed unique fields",
 			this.test_classes.base,
-			"I_CHANGED_IT",
+			this.parameters.changeUnique,
 			true
 		);
 		
@@ -729,7 +691,7 @@ class DocumentUnitTest extends UnitTest
 			'resolveChangeLocalField',
 			"Resolve changed local fields",
 			this.test_classes.base,
-			"I_CHANGED_IT",
+			this.parameters.changeLocal,
 			true
 		);
 		
@@ -743,7 +705,7 @@ class DocumentUnitTest extends UnitTest
 			'resolveChangeStandardField',
 			"Resolve changed standard fields",
 			this.test_classes.base,
-			"I_CHANGED_IT",
+			this.parameters.changeStandard,
 			true
 		);
 	
@@ -4585,7 +4547,7 @@ class DocumentUnitTest extends UnitTest
 			expect( func, `${message} - ${action}`
 			).to.throw(
 				MyError,
-				/missing required field/
+				/missing required fields/
 			);
 		}
 		
@@ -4761,7 +4723,7 @@ class DocumentUnitTest extends UnitTest
 				expect( func, `${message}`
 				).to.throw(
 					MyError,
-					/missing required field/
+					/missing required fields/
 				);
 				
 				//
@@ -4962,7 +4924,7 @@ class DocumentUnitTest extends UnitTest
 					expect( func, `${message}`
 					).to.throw(
 						MyError,
-						/missing required field/
+						/missing required fields/
 					);
 				
 				//
@@ -5120,8 +5082,8 @@ class DocumentUnitTest extends UnitTest
 		//
 		if( this.intermediate_results.hasOwnProperty( 'key_insert_filled' ) )
 		{
-			clone[ Dict.descriptor.kName ] = 'NAME FILLED';
-			clone[ Dict.descriptor.kLID ] = 'LID_FILLED';
+			for( const field in this.parameters.insertWithContent )
+				clone[ field ] = this.parameters.insertWithContent[ field ];
 		}
 		
 		//
@@ -5329,10 +5291,16 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			result = doc.insertDocument();
 		};
+		
+		//
+		// Here we test for two error types: classes that compute the _key and enforce
+		// resolving by _key, such as the Edge, will raise an ambiguous document
+		// error, other classes will raise the duplicate document error.
+		//
 		expect( func, message
 		).to.throw(
 			MyError,
-			/duplicate document in collection/
+			/duplicate document in collection|_key field mismatch/
 		);
 		
 	}	// testInsertDuplicate
@@ -5464,7 +5432,15 @@ class DocumentUnitTest extends UnitTest
 		// To ensure resolving by name doesn't raise an ambiguous document error.
 		//
 		if( this.intermediate_results.hasOwnProperty( 'key_insert_same' ) )
-			clone[ Dict.descriptor.kName ] = "NAME SAME CONTENTS";
+		{
+			for( const field in this.parameters.insertWithSameContent.second )
+				clone[ field ] = this.parameters.insertWithSameContent.second[ field ];
+		}
+		else
+		{
+			for( const field in this.parameters.insertWithSameContent.first )
+				clone[ field ] = this.parameters.insertWithSameContent.first[ field ];
+		}
 		
 		//
 		// Instantiate to get reserved fields.
@@ -5697,7 +5673,7 @@ class DocumentUnitTest extends UnitTest
 		// Clone and strip reserved fields from parameter.
 		//
 		const reserved_values = {};
-		const no_reserved = K.function.clone( theParam );
+		const no_reserved = K.function.clone( theParam.content );
 		for( const field of doc.reservedFields )
 		{
 			if( no_reserved.hasOwnProperty( field ) )
@@ -5739,18 +5715,24 @@ class DocumentUnitTest extends UnitTest
 		action = "Should not be empty";
 		expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
 		action = "Has reference fields";
-		expect(doc.document, `${message} - ${action}` ).not.to.have.property('_id');
-		expect(doc.document, `${message} - ${action}` ).not.to.have.property('_key');
-		expect(doc.document, `${message} - ${action}` ).not.to.have.property('_rev');
 		action = "Persistent";
 		expect( doc.persistent, `${message} - ${action}` ).to.equal(true);
 		action = "Modified";
 		expect( doc.modified, `${message} - ${action}` ).to.equal(false);
 		
 		//
+		// Assert reference fields are not there.
+		//
+		for( const field of [ '_id', '_key', '_rev' ] )
+		{
+			if( ! theParam.local.includes( field ) )
+				expect(doc.document, `${message} - ${action}` ).not.to.have.property( field );
+		}
+		
+		//
 		// Assert all data is there.
 		//
-		this.assertAllProvidedDataInDocument( "Contents", doc, theParam );
+		this.assertAllProvidedDataInDocument( "Contents", doc, theParam.content );
 		
 	}	// testInsertWithoutPersist
 	
@@ -6012,6 +5994,11 @@ class DocumentUnitTest extends UnitTest
 		func = () => {
 			result = doc.resolveDocument( false, true );
 		};
+		
+		//
+		// We test two types of errors:
+		//
+		//
 		expect( func, `${message}`
 		).to.throw(
 			MyError,
@@ -6073,7 +6060,6 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Checking parameter";
 		expect( theParam, message ).to.be.an.object;
-		expect( theParam, message ).to.have.property( 'replace' );
 		expect( theParam, message ).to.have.property( 'sigFind' );
 		
 		//
@@ -6504,7 +6490,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Change all fields except significant.
 			//
-			selector = K.function.clone( theParam.replace );
+			selector = K.function.clone( this.parameters.replace );
 			for( const field in theParam.sigFind )
 				selector[ field ] = theParam.sigFind[ field ];
 			delete selector._id;
@@ -7085,13 +7071,32 @@ class DocumentUnitTest extends UnitTest
 			);
 		
 		//
+		// Prepare replacement values.
+		//
+		const replace = {};
+		for( const field of locked )
+		{
+			//
+			// Provided specific values.
+			//
+			if( K.function.isObject( theParam )
+			 && theParam.hasOwnProperty( field ) )
+				replace[ field ] = theParam[ field ];
+			
+			//
+			// Provided one value for all.
+			//
+			else
+				replace[ field ] = theParam;
+		}
+		
+		//
 		// Perforn test.
 		//
 		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
-			locked,											// List of test fields.
-			theParam										// Changed value.
+			replace											// Replace values.
 		);
 	
 	}	// testResolveChangeLockedField
@@ -7136,13 +7141,32 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
+		// Prepare replacement values.
+		//
+		const replace = {};
+		for( const field of K.function.flatten(doc.significantFields) )
+		{
+			//
+			// Provided specific values.
+			//
+			if( K.function.isObject( theParam )
+			 && theParam.hasOwnProperty( field ) )
+				replace[ field ] = theParam[ field ];
+			
+			//
+			// Provided one value for all.
+			//
+			else
+				replace[ field ] = theParam;
+		}
+		
+		//
 		// Perforn test.
 		//
 		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
-			K.function.flatten(doc.significantFields),		// List of test fields.
-			theParam										// Changed value.
+			replace											// Replace values.
 		);
 		
 	}	// testResolveChangeSignificantField
@@ -7187,13 +7211,32 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
+		// Prepare replacement values.
+		//
+		const replace = {};
+		for( const field of doc.requiredFields )
+		{
+			//
+			// Provided specific values.
+			//
+			if( K.function.isObject( theParam )
+			 && theParam.hasOwnProperty( field ) )
+				replace[ field ] = theParam[ field ];
+			
+			//
+			// Provided one value for all.
+			//
+			else
+				replace[ field ] = theParam;
+		}
+		
+		//
 		// Perforn test.
 		//
 		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
-			doc.requiredFields,								// List of test fields.
-			theParam										// Changed value.
+			replace											// Replace values.
 		);
 		
 	}	// testResolveChangeRequiredField
@@ -7238,13 +7281,32 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
+		// Prepare replacement values.
+		//
+		const replace = {};
+		for( const field of doc.uniqueFields )
+		{
+			//
+			// Provided specific values.
+			//
+			if( K.function.isObject( theParam )
+				&& theParam.hasOwnProperty( field ) )
+				replace[ field ] = theParam[ field ];
+			
+			//
+			// Provided one value for all.
+			//
+			else
+				replace[ field ] = theParam;
+		}
+		
+		//
 		// Perforn test.
 		//
 		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
-			doc.uniqueFields,								// List of test fields.
-			theParam										// Changed value.
+			replace											// Replace values.
 		);
 		
 	}	// testResolveChangeUniqueField
@@ -7289,13 +7351,32 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message}` ).not.to.throw();
 		
 		//
+		// Prepare replacement values.
+		//
+		const replace = {};
+		for( const field of doc.localFields )
+		{
+			//
+			// Provided specific values.
+			//
+			if( K.function.isObject( theParam )
+				&& theParam.hasOwnProperty( field ) )
+				replace[ field ] = theParam[ field ];
+			
+			//
+			// Provided one value for all.
+			//
+			else
+				replace[ field ] = theParam;
+		}
+		
+		//
 		// Perforn test.
 		//
 		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
-			doc.localFields,								// List of test fields.
-			theParam										// Changed value.
+			replace											// Replace values.
 		);
 		
 	}	// testResolveChangeLocalField
@@ -7354,13 +7435,32 @@ class DocumentUnitTest extends UnitTest
 		}
 		
 		//
+		// Prepare replacement values.
+		//
+		const replace = {};
+		for( const field of fields )
+		{
+			//
+			// Provided specific values.
+			//
+			if( K.function.isObject( theParam )
+			 && theParam.hasOwnProperty( field ) )
+				replace[ field ] = theParam[ field ];
+			
+			//
+			// Provided one value for all.
+			//
+			else
+				replace[ field ] = theParam;
+		}
+		
+		//
 		// Perforn test.
 		//
 		this.checkChangedContents(
 			theClass,										// Class to test.
 			this.intermediate_results.key_insert_filled,	// Test object reference.
-			fields,											// List of test fields.
-			theParam										// Changed value.
+			replace											// Replace values.
 		);
 		
 	}	// testResolveChangeStandardField
@@ -8309,7 +8409,7 @@ class DocumentUnitTest extends UnitTest
 						expect( func, `${message} - ${action}`
 						).to.throw(
 							MyError,
-							/missing required field/
+							/missing required fields/
 						);
 						expect( doc.document, `${message} - ${action}` ).not.to.have.property( field );
 						break;
@@ -8818,13 +8918,11 @@ class DocumentUnitTest extends UnitTest
 	 *
 	 * @param theClass		{Function}	The class to test.
 	 * @param theReference	{String}	The test object _key.
-	 * @param theFields		{Array}		The list of fields to test.
-	 * @param theValue		{*}			The changed value.
+	 * @param theReplace	{Object}	The list of fields to test.
 	 */
-	checkChangedContents( theClass, theReference, theFields, theValue )
+	checkChangedContents( theClass, theReference, theReplace )
 	{
 		let doc;
-		let tmp;
 		let func;
 		let result;
 		let action;
@@ -8864,108 +8962,21 @@ class DocumentUnitTest extends UnitTest
 		const original = K.function.clone( doc.document );
 		
 		//
-		// Try fields with replace flag off.
+		// Iterate by replace flag value.
 		//
-		message = "Replace flag off";
-		for( const field of theFields )
+		for( const flag of [ false, true ] )
 		{
 			//
-			// Do test if the document has it.
+			// Iterate fields.
 			//
-			if( doc.document.hasOwnProperty( field ) )
+			message = `Replace flag is ${flag}`;
+			for( const field in theReplace )
 			{
 				//
-				// Resolve document by reference.
+				// Do test if the document has it.
 				//
-				action = "Instantiate with reference";
-				func = () => {
-					doc =
-						new theClass(
-							this.parameters.request,
-							theReference,
-							this.defaultTestCollection
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Save current revision.
-				//
-				revision = doc.document._rev;
-				
-				//
-				// Change field value.
-				//
-				action = `Change field [${field}] value`;
-				selector = {};
-				selector[ field ] = theValue;
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							theReference,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Catch revision change.
-				//
-				func = () => {
-					tmp = db._collection(this.defaultTestCollection)
-						.document(theReference);
-				};
-				action = `Getting revision with changed field [${field}]`;
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Resolve document.
-				//
-				func = () => {
-					result = doc.resolveDocument( false, true );
-				};
-				if( revision !== tmp._rev )
+				if( doc.document.hasOwnProperty( field ) )
 				{
-					action = `Catch revision change with changed field [${field}]`;
-					expect( func, `${message} - ${action}`
-					).to.throw(
-						MyError,
-						/Ambiguous document reference/
-					);
-				}
-				else
-				{
-					action = `Resolve with changed field [${field}]`;
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					action = `Check field [${field}] value`;
-					expect( doc.document[ field ], `${message} - ${action}` )
-						.to.equal( original[ field ] );
-				}
-				
-				//
-				// Check removing field if not reference.
-				//
-				if( (field !== '_id')
-				 && (field !== '_key')
-				 && (field !== '_rev') )
-				{
-					//
-					// Restore field value.
-					//
-					action = `Restore field [${field}]`;
-					selector = {};
-					selector[ field ] = original[ field ];
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								theReference,
-								selector,
-								{waitForSync: true}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
 					//
 					// Resolve document by reference.
 					//
@@ -8981,179 +8992,11 @@ class DocumentUnitTest extends UnitTest
 					expect( func, `${message} - ${action}` ).not.to.throw();
 					
 					//
-					// Save current revision.
+					// Change field value.
 					//
-					revision = doc.document._rev;
-					
-					//
-					// Remove field.
-					//
-					action = `Remove field [${field}]`;
+					action = `Change field [${field}] value`;
 					selector = {};
-					selector[ field ] = null;
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								theReference,
-								selector,
-								{waitForSync: true, keepNull: false}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Catch revision change.
-					//
-					func = () => {
-						tmp = db._collection(this.defaultTestCollection)
-							.document(theReference);
-					};
-					action = `Getting revision with deleted field [${field}]`;
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Resolve document.
-					//
-					func = () => {
-						result = doc.resolveDocument( false, true );
-					};
-					if( revision !== tmp._rev )
-					{
-						action = `Catch revision change with deleted field [${field}]`;
-						expect( func, `${message} - ${action}`
-						).to.throw(
-							MyError,
-							/Ambiguous document reference/
-						);
-					}
-					else
-					{
-						action = `Resolve with deleted field [${field}]`;
-						expect( func, `${message} - ${action}` ).not.to.throw();
-						action = `Check field [${field}] value`;
-						expect( doc.document[ field ], `${message} - ${action}` )
-							.to.equal( original[ field ] );
-					}
-					
-				}	// Not a reference field.
-				
-				//
-				// Restore field value.
-				//
-				action = `Restore field [${field}]`;
-				selector = {};
-				selector[ field ] = original[ field ];
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							theReference,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-			}	// Document has property.
-			
-		}	// Iterating fields with replace flag off.
-		
-		//
-		// Try fields with replace flag off.
-		//
-		message = "Replace flag on";
-		for( const field of theFields )
-		{
-			//
-			// Do test if the document has it.
-			//
-			if( doc.document.hasOwnProperty( field ) )
-			{
-				//
-				// Resolve document by reference.
-				//
-				action = "Instantiate with reference";
-				func = () => {
-					doc =
-						new theClass(
-							this.parameters.request,
-							theReference,
-							this.defaultTestCollection
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Save current revision.
-				//
-				revision = doc.document._rev;
-				
-				//
-				// Change field value.
-				//
-				action = "Change value";
-				selector = {};
-				selector[ field ] = theValue;
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							theReference,
-							selector,
-							{waitForSync: true}
-						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Catch revision change.
-				//
-				func = () => {
-					tmp = db._collection(this.defaultTestCollection)
-						.document(theReference);
-				};
-				action = `Getting revision with changed field [${field}]`;
-				expect( func, `${message} - ${action}` ).not.to.throw();
-				
-				//
-				// Resolve document.
-				//
-				func = () => {
-					result = doc.resolveDocument( true, true );
-				};
-				if( revision !== tmp._rev )
-				{
-					action = `Catch revision change with changed field [${field}]`;
-					expect( func, `${message} - ${action}`
-					).to.throw(
-						MyError,
-						/Ambiguous document reference/
-					);
-				}
-				else
-				{
-					action = `Resolve with changed field [${field}]`;
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					action = `Check field [${field}] value`;
-					if( field === '_rev')
-						expect( doc.document[ field ], `${message} - ${action}` )
-							.to.equal( revision );
-					else
-						expect( doc.document[ field ], `${message} - ${action}` )
-							.to.equal( original[ field ] );
-				}
-				
-				//
-				// Check removing field if not reference.
-				//
-				if( (field !== '_id')
-					&& (field !== '_key')
-					&& (field !== '_rev') )
-				{
-					//
-					// Restore field value.
-					//
-					action = `Restore field [${field}]`;
-					selector = {};
-					selector[ field ] = original[ field ];
+					selector[ field ] = theReplace[ field ];
 					func = () => {
 						db._collection(this.defaultTestCollection)
 							.update(
@@ -9165,66 +9008,16 @@ class DocumentUnitTest extends UnitTest
 					expect( func, `${message} - ${action}` ).not.to.throw();
 					
 					//
-					// Resolve document by reference.
-					//
-					action = "Instantiate with reference";
-					func = () => {
-						doc =
-							new theClass(
-								this.parameters.request,
-								theReference,
-								this.defaultTestCollection
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Save current revision.
-					//
-					revision = doc.document._rev;
-					
-					//
-					// Remove field.
-					//
-					action = `Remove field [${field}]`;
-					selector = {};
-					selector[ field ] = null;
-					func = () => {
-						db._collection(this.defaultTestCollection)
-							.update(
-								theReference,
-								selector,
-								{waitForSync: true, keepNull: false}
-							);
-					};
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
-					// Catch revision change.
-					//
-					func = () => {
-						tmp = db._collection(this.defaultTestCollection)
-							.document(theReference);
-					};
-					action = `Getting revision with changed field [${field}]`;
-					expect( func, `${message} - ${action}` ).not.to.throw();
-					
-					//
 					// Resolve document.
 					//
 					func = () => {
-						result = doc.resolveDocument( false, true );
+						result = doc.resolveDocument( flag, true );
 					};
-					if( revision !== tmp._rev )
-					{
-						action = `Catch revision change with changed field [${field}]`;
-						expect( func, `${message} - ${action}`
-						).to.throw(
-							MyError,
-							/Ambiguous document reference/
-						);
-					}
-					else
+					
+					//
+					// Handle reference fields.
+					//
+					if( [ '_id', '_key' ].includes( field ) )
 					{
 						action = `Resolve with changed field [${field}]`;
 						expect( func, `${message} - ${action}` ).not.to.throw();
@@ -9233,27 +9026,138 @@ class DocumentUnitTest extends UnitTest
 							.to.equal( original[ field ] );
 					}
 					
-				}	// Not a reference field.
-				
-				//
-				// Restore field value.
-				//
-				action = `Restore field [${field}]`;
-				selector = {};
-				selector[ field ] = original[ field ];
-				func = () => {
-					db._collection(this.defaultTestCollection)
-						.update(
-							theReference,
-							selector,
-							{waitForSync: true}
+					//
+					// Handle revision field.
+					// We don't check for changes.
+					//
+					else if( field === '_rev' )
+					{
+						action = `Resolve with changed field [${field}]`;
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						action = `Check field [${field}] value`;
+					}
+					
+					//
+					// Handle other persistent fields change.
+					//
+					else
+					{
+						action = `Catch persistent changed field [${field}]`;
+						expect( func, `${message} - ${action}`
+						).to.throw(
+							MyError,
+							/Ambiguous document reference/
 						);
-				};
-				expect( func, `${message} - ${action}` ).not.to.throw();
+					}
+					
+					//
+					// Check removing field if not reference.
+					//
+					if( (field !== '_id')
+					 && (field !== '_key')
+					 && (field !== '_rev') )
+					{
+						//
+						// Restore field value.
+						//
+						action = `Restore field [${field}]`;
+						selector = {};
+						selector[ field ] = original[ field ];
+						func = () => {
+							db._collection(this.defaultTestCollection)
+								.update(
+									theReference,
+									selector,
+									{waitForSync: true}
+								);
+						};
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						
+						//
+						// Resolve document by reference.
+						//
+						action = "Instantiate with reference";
+						func = () => {
+							doc =
+								new theClass(
+									this.parameters.request,
+									theReference,
+									this.defaultTestCollection
+								);
+						};
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						
+						//
+						// Remove field.
+						//
+						action = `Remove field [${field}]`;
+						selector = {};
+						selector[ field ] = null;
+						func = () => {
+							db._collection(this.defaultTestCollection)
+								.update(
+									theReference,
+									selector,
+									{waitForSync: true, keepNull: false}
+								);
+						};
+						expect( func, `${message} - ${action}` ).not.to.throw();
+						
+						//
+						// Resolve document.
+						//
+						func = () => {
+							result = doc.resolveDocument( flag, true );
+						};
+						
+						//
+						// Handle reference fields.
+						//
+						if( [ '_id', '_key', '_rev' ].includes( field ) )
+						{
+							action = `Resolve with changed field [${field}]`;
+							expect( func, `${message} - ${action}` ).not.to.throw();
+							action = `Check field [${field}] value`;
+							expect( doc.document[ field ], `${message} - ${action}` )
+								.to.equal( original[ field ] );
+						}
+						
+						//
+						// Handle other persistent fields change.
+						//
+						else
+						{
+							action = `Catch persistent changed field [${field}]`;
+							expect( func, `${message} - ${action}`
+							).to.throw(
+								MyError,
+								/Ambiguous document reference/
+							);
+						}
+					
+					}	// Not a reference field.
+					
+					//
+					// Restore field value.
+					//
+					action = `Restore field [${field}]`;
+					selector = {};
+					selector[ field ] = original[ field ];
+					func = () => {
+						db._collection(this.defaultTestCollection)
+							.update(
+								theReference,
+								selector,
+								{waitForSync: true}
+							);
+					};
+					expect( func, `${message} - ${action}` ).not.to.throw();
+					
+				}	// Document has property.
 				
-			}	// Document has property.
+			}	// Iterating fields with replace flag off.
 			
-		}	// Iterating fields with replace flag on.
+		}	// Iterating by replace flag value.
 		
 	}	// checkChangedContents
 	

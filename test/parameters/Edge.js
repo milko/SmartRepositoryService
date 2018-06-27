@@ -80,7 +80,8 @@ module.exports = {
 		var: 'VAR',
 		password: 'XXX',
 		name: "NAME",
-		order: 0
+		order: 0,
+		passcheck: 'DCBA'
 	},
 	
 	//
@@ -95,7 +96,8 @@ module.exports = {
 		password: 'XXX',
 		name: "NAME",
 		order: 1,
-		username: "USERNAME"
+		username: "USERNAME",
+		passcheck: 'ABCD'
 	},
 	
 	//
@@ -105,8 +107,138 @@ module.exports = {
 		_from: 'test_Document/NODE0',
 		_to: 'test_Document/NODE1',
 		predicate: `terms/${Dict.term.kPredicateEnumOf}`,
-		var: "SAMPLE"
+		name: "PIPPO",
+		var: "VARIABLE"
 	},
+	
+	//
+	// Intermediate parameters.
+	// These are used in some tests to change the contents of objects in order for
+	// them not to be considered duplicates.
+	//
+	insertWithContent: {
+		_to: 'test_Document/NODE2',
+		name: 'NAME FILLED',
+		lid: 'LID_FILLED'
+	},
+	
+	//
+	// Intermediate parameters.
+	// insertWithSameContent().
+	// Values to change when testing for the second time.
+	//
+	insertWithSameContent: {
+		first: {
+			_from: 'test_Document/NODE2',
+			_to: 'test_Document/NODE0'
+		},
+		second: {
+			_from: 'test_Document/NODE1',
+			_to: 'test_Document/NODE0',
+			name: "NAME SAME CONTENTS"
+		}
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveSignificantField().
+	// Parameters to the test.
+	//
+	resolveSignificant: {
+		noSig: {
+			name: 'NAME FILLED'
+		},
+		sigOne: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			lid: 'LID_FILLED'
+		},
+		sigFind: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			nid: 'terms/:id',
+			lid: 'LID_FILLED'
+		},
+		sigNoFind: {
+			_from: 'test_Document/NODE2',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			nid: 'UNKNOWN',
+			lid: 'LID'
+		}
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveReferenceField().
+	// Parameters to the test.
+	//
+	resolveReference: {
+		_from: 'test_Document/NODE2',
+		_to: 'test_Document/NODE1',
+		predicate: `terms/${Dict.term.kPredicateEnumOf}`
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveNoException().
+	// Parameters to the test.
+	//
+	resolveNoException: {
+		correct: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`
+		},
+		incorrect: {
+			_from: 'test_Document/NODE2',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`
+		}
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeLockedField().
+	// Parameters to the test.
+	//
+	changeLocked: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeSignificantField().
+	// Parameters to the test.
+	//
+	changeSignificant: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeRequiredField().
+	// Parameters to the test.
+	//
+	changeRequired: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeUniqueField().
+	// Parameters to the test.
+	//
+	changeUnique: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeLocalField().
+	// Parameters to the test.
+	//
+	changeLocal: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeStandardField().
+	// Parameters to the test.
+	//
+	changeStandard: "I_CHANGED_IT",
 	
 	//
 	// Default request.

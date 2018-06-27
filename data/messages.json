@@ -410,7 +410,7 @@
   {
     "_key" : "e69",
     "label" : {
-      "ISO:639:3:eng" : "missing required field [@arg@]."
+      "ISO:639:3:eng" : "missing required fields [@arg@]."
     }
   },
   {
@@ -584,7 +584,7 @@
   {
     "_key" : "e98",
     "label" : {
-      "ISO:639:3:eng" : "missing fields required to compute edge key in [@arg@] instance."
+      "ISO:639:3:eng" : "missing required fields to compute edge key in [@arg@] instance."
     }
   },
   {

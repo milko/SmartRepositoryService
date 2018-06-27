@@ -54,6 +54,10 @@ class TestClassCustom extends TestClass
 		return super.restrictedFields.concat([Dict.descriptor.kPassword]);
 	}
 	
+	get reservedFields() {
+		return super.reservedFields.concat([Dict.descriptor.kEmail]);
+	}
+	
 }	// TestClassCustom
 
 /**

@@ -255,6 +255,25 @@ class Edge extends Persistent
 	 ************************************************************************************/
 	
 	/**
+	 * Return list of required fields
+	 *
+	 * In this class we add the three significant fields that identify an edge: the
+	 * _from, _to and predicate.
+	 *
+	 * @returns {Array}	List of required fields.
+	 */
+	get requiredFields()
+	{
+		return super.requiredFields
+			.concat([
+				'_from',
+				'_to',
+				Dict.descriptor.kPredicate
+			]);																		// ==>
+		
+	}	// requiredFields
+	
+	/**
 	 * Return list of significant fields
 	 *
 	 * In the Edge class family there must be only one combination of significant

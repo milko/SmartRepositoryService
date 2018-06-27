@@ -1673,7 +1673,7 @@ class Document
 				//
 				// Clone document contents and strip local fields.
 				//
-				selector = JSON.parse(JSON.stringify(this._document));
+				selector = K.function.clone(this._document);
 				for( const field of this.localFields )
 				{
 					if( selector.hasOwnProperty( field ) )
