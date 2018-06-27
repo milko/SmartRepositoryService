@@ -7079,9 +7079,14 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Provided specific values.
 			//
-			if( K.function.isObject( theParam )
-			 && theParam.hasOwnProperty( field ) )
-				replace[ field ] = theParam[ field ];
+			if( K.function.isObject( theParam ) )
+			{
+				//
+				// Include only if provided.
+				//
+				if( theParam.hasOwnProperty( field ) )
+					replace[ field ] = theParam[ field ];
+			}
 			
 			//
 			// Provided one value for all.
@@ -7149,9 +7154,14 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Provided specific values.
 			//
-			if( K.function.isObject( theParam )
-			 && theParam.hasOwnProperty( field ) )
-				replace[ field ] = theParam[ field ];
+			if( K.function.isObject( theParam ) )
+			{
+				//
+				// Include only if provided.
+				//
+				if( theParam.hasOwnProperty( field ) )
+					replace[ field ] = theParam[ field ];
+			}
 			
 			//
 			// Provided one value for all.
@@ -7219,9 +7229,14 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Provided specific values.
 			//
-			if( K.function.isObject( theParam )
-			 && theParam.hasOwnProperty( field ) )
-				replace[ field ] = theParam[ field ];
+			if( K.function.isObject( theParam ) )
+			{
+				//
+				// Include only if provided.
+				//
+				if( theParam.hasOwnProperty( field ) )
+					replace[ field ] = theParam[ field ];
+			}
 			
 			//
 			// Provided one value for all.
@@ -7289,9 +7304,14 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Provided specific values.
 			//
-			if( K.function.isObject( theParam )
-				&& theParam.hasOwnProperty( field ) )
-				replace[ field ] = theParam[ field ];
+			if( K.function.isObject( theParam ) )
+			{
+				//
+				// Include only if provided.
+				//
+				if( theParam.hasOwnProperty( field ) )
+					replace[ field ] = theParam[ field ];
+			}
 			
 			//
 			// Provided one value for all.
@@ -7359,9 +7379,14 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Provided specific values.
 			//
-			if( K.function.isObject( theParam )
-				&& theParam.hasOwnProperty( field ) )
-				replace[ field ] = theParam[ field ];
+			if( K.function.isObject( theParam ) )
+			{
+				//
+				// Include only if provided.
+				//
+				if( theParam.hasOwnProperty( field ) )
+					replace[ field ] = theParam[ field ];
+			}
 			
 			//
 			// Provided one value for all.
@@ -7443,9 +7468,14 @@ class DocumentUnitTest extends UnitTest
 			//
 			// Provided specific values.
 			//
-			if( K.function.isObject( theParam )
-			 && theParam.hasOwnProperty( field ) )
-				replace[ field ] = theParam[ field ];
+			if( K.function.isObject( theParam ) )
+			{
+				//
+				// Include only if provided.
+				//
+				if( theParam.hasOwnProperty( field ) )
+					replace[ field ] = theParam[ field ];
+			}
 			
 			//
 			// Provided one value for all.

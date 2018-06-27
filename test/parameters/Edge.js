@@ -207,17 +207,19 @@ module.exports = {
 	
 	//
 	// Intermediate parameters.
+	// resolveChangeRequiredField().
+	// We exclude the significant fields from the test.
+	//
+	changeRequired: {
+		var: "I_CHANGED_IT"
+	},
+	
+	//
+	// Intermediate parameters.
 	// resolveChangeSignificantField().
 	// Parameters to the test.
 	//
 	changeSignificant: "I_CHANGED_IT",
-	
-	//
-	// Intermediate parameters.
-	// resolveChangeRequiredField().
-	// Parameters to the test.
-	//
-	changeRequired: "I_CHANGED_IT",
 	
 	//
 	// Intermediate parameters.
