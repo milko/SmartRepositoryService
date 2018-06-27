@@ -9753,25 +9753,10 @@ class DocumentUnitTest extends UnitTest
 				 && (theNewData[field] !== theObject.document[field]) ) );
 			
 			//
-			// Replace locked field,
-			// and set new data to original data if the replace raises an exception.
-			//
-			if( theObject.lockedFields.includes( field ) )
-			{
-				failed = true;
-				action = `${op} locked [${field}]`;
-				expect( func, `${theMessage} - ${action}`
-				).to.throw(
-					MyError,
-					/Property is locked/
-				);
-			}
-			
-			//
 			// Replace reserved field.
 			// Should fail.
 			//
-			else if( theObject.reservedFields.includes( field ) )
+			if( theObject.reservedFields.includes( field ) )
 			{
 				//
 				// Catch changed field.
@@ -9789,6 +9774,21 @@ class DocumentUnitTest extends UnitTest
 					action = `${op} same reserved [${field}]`;
 					expect( func, `${theMessage} - ${action}`).not.to.throw();
 				}
+			}
+			
+			//
+			// Replace locked field,
+			// and set new data to original data if the replace raises an exception.
+			//
+			else if( theObject.lockedFields.includes( field ) )
+			{
+				failed = true;
+				action = `${op} locked [${field}]`;
+				expect( func, `${theMessage} - ${action}`
+				).to.throw(
+					MyError,
+					/Property is locked/
+				);
 			}
 			
 			//
