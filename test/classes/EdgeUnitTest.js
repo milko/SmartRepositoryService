@@ -40,39 +40,6 @@ class EdgeUnitTest extends PersistentUnitTest
 	 ****************************************************************************/
 	
 	/**
-	 * Define insert tests
-	 *
-	 * TWe overload this method to change the parameters passed to the
-	 * insertWithoutPersist() method: we exclude the _key field from the test that
-	 * asserts reference fields are not there.
-	 */
-	unitsInitInsert()
-	{
-		//
-		// Call parent method.
-		//
-		super.unitsInitInsert();
-		
-		//
-		// Insert without persist.
-		// Assert that inserting a document with the persist flag off, succeeds, if
-		// all validations pass and that the document is not actually saved in the
-		// collection.
-		//
-		this.insertUnitSet(
-			'insertWithoutPersist',
-			"Insert without persist",
-			this.test_classes.base,
-			{
-				content: this.parameters.replace,
-				local: [ '_key' ]
-			},
-			false
-		);
-		
-	}	// unitsInitInsert
-	
-	/**
 	 * Define resolve tests
 	 *
 	 * We overload this method to make the following changes:

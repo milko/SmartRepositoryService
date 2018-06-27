@@ -1,5 +1,10 @@
 'use strict';
 
+//
+// Application.
+//
+const Dict = require( '../../dictionary/Dict' );
+
 /**
  * Persistent test parameters.
  *
@@ -80,12 +85,73 @@ module.exports = {
 	
 	//
 	// Intermediate parameters.
+	// insertEmptyObject().
+	// Values to change when testing for the second time.
+	//
+	insertEmptyObject: [ Dict.descriptor.kMStamp ],
+	
+	//
+	// Intermediate parameters.
+	// insertWithoutRequiredFields().
+	// Values to change when testing.
+	//
+	insertWithoutRequired: {
+		contents: {
+			nid: 'terms/:id',
+			lid: 'LID',
+			gid: 'terms/:id:LID',
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
+	},
+	
+	//
+	// Intermediate parameters.
+	// insertWithoutSignificantFields().
+	// Values to change when testing.
+	//
+	insertWithoutSignificant: {
+		contents: {
+			nid: 'terms/:id',
+			lid: 'LID',
+			gid: 'terms/:id:LID',
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
+	},
+	
+	//
+	// Intermediate parameters.
 	// insertWithContent().
 	// Values to change when testing for the second time.
 	//
 	insertWithContent: {
-		name: 'NAME FILLED',
-		lid: 'LID_FILLED'
+		contents: {
+			nid: 'terms/:id',
+			lid: 'LID',
+			gid: 'terms/:id:LID',
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
+		changed: {
+			name: 'NAME FILLED',
+			lid: 'LID_FILLED'
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
 	},
 	
 	//
@@ -94,11 +160,43 @@ module.exports = {
 	// Values to change when testing for the second time.
 	//
 	insertWithSameContent: {
+		contents: {
+			nid: 'terms/:id',
+			lid: 'LID',
+			gid: 'terms/:id:LID',
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
 		first: {
 		},
 		second: {
 			name: "NAME SAME CONTENTS"
-		}
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
+	},
+	
+	//
+	// Intermediate parameters.
+	// insertWithoutPersist().
+	// Values to change when testing.
+	//
+	insertWithoutPersist: {
+		contents: {
+			nid: 'terms/:def',
+			lid: 'LID_REPLACED',
+			gid: 'terms/:def:LID_REPLACED',
+			sym: 'SYMBOL_replaced',
+			var: 'VAR_REPLACED',
+			password: 'XXX',
+			name: "NAME",
+			order: 1,
+			username: "USERNAME"
+		},
+		local: []
 	},
 	
 	//
@@ -208,6 +306,13 @@ module.exports = {
 	// Parameters to the test.
 	//
 	changeStandard: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// replacePersistentValue().
+	// Parameters to the test.
+	//
+	replacePersistent: "THIS_WAS_CHANGED",
 	
 	//
 	// Default request.

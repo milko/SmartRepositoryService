@@ -113,13 +113,74 @@ module.exports = {
 	
 	//
 	// Intermediate parameters.
+	// insertEmptyObject().
+	// Values to change when testing for the second time.
+	//
+	insertEmptyObject: [ Dict.descriptor.kMStamp ],
+	
+	//
+	// Intermediate parameters.
+	// insertWithoutRequiredFields().
+	// Values to change when testing.
+	//
+	insertWithoutRequired: {
+		contents: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
+	},
+	
+	//
+	// Intermediate parameters.
+	// insertWithoutSignificantFields().
+	// Values to change when testing.
+	//
+	insertWithoutSignificant: {
+		contents: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
+	},
+	
+	//
+	// Intermediate parameters.
 	// These are used in some tests to change the contents of objects in order for
 	// them not to be considered duplicates.
 	//
 	insertWithContent: {
-		_to: 'test_Document/NODE2',
-		name: 'NAME FILLED',
-		lid: 'LID_FILLED'
+		contents: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
+		changed: {
+			_to: 'test_Document/NODE2',
+			name: 'NAME FILLED',
+			lid: 'LID_FILLED'
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
 	},
 	
 	//
@@ -128,6 +189,17 @@ module.exports = {
 	// Values to change when testing for the second time.
 	//
 	insertWithSameContent: {
+		contents: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
 		first: {
 			_from: 'test_Document/NODE2',
 			_to: 'test_Document/NODE0'
@@ -136,7 +208,29 @@ module.exports = {
 			_from: 'test_Document/NODE1',
 			_to: 'test_Document/NODE0',
 			name: "NAME SAME CONTENTS"
-		}
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
+	},
+	
+	//
+	// Intermediate parameters.
+	// insertWithoutPersist().
+	// Values to change when testing.
+	//
+	insertWithoutPersist: {
+		contents: {
+			_from: 'test_Document/NODE1',
+			_to: 'test_Document/NODE2',
+			predicate: `terms/${Dict.term.kPredicateManagedBy}`,
+			sym: 'SYMBOL_replaced',
+			var: 'VAR_REPLACED',
+			password: 'XXX',
+			name: "NAME",
+			order: 1,
+			username: "USERNAME",
+			passcheck: 'ABCD'
+		},
+		local: [ '_key' ]
 	},
 	
 	//
