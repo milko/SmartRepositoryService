@@ -289,6 +289,11 @@ module.exports = {
 		sigOne: {
 			_from: 'test_Document/NODE0',
 			_to: 'test_Document/NODE1',
+			attributes: [
+				':class:descriptor:iaddr',
+				':class:descriptor:any',
+				':class:descriptor:txt'
+			],
 			lid: 'LID_FILLED'
 		},
 		sigFind: {
@@ -355,7 +360,7 @@ module.exports = {
 			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
 			attributes: [
 				':class:descriptor:iaddr',
-				// ':class:descriptor:any',
+				':class:descriptor:any',
 				':class:descriptor:txt'
 			],
 		}
@@ -438,7 +443,7 @@ module.exports = {
 	customEdgeKey: [
 		'_from',
 		'_to',
-		Dict.descriptor.kPredicate
+		Dict.descriptor.kPredicate,
 		Dict.descriptor.kAttributes
 	],
 	

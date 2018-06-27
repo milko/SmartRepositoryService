@@ -80,6 +80,57 @@ else
 describe( "EdgeAttribute class tests:", function ()
 {
 	//
+	// Check base class.
+	//
+	it( "Test class", function () {
+		expect( unitTest.getClassName( 'base' ), "Class" ).to.equal( 'EdgeAttribute' );
+		expect( unitTest.currentClass, "Parameters" ).to.equal( 'EdgeAttribute' );
+	});
+	
+	//
+	// Prepare environment.
+	//
+	it( "Prepare environment", function ()
+	{
+		let name;
+		let collection;
+		
+		//
+		// Clear edges.
+		//
+		name = param.collection_edge;
+		expect( function ()
+		{
+			collection = db._collection( name );
+			if( ! collection )
+			{
+				db._createEdgeCollection( name, { waitForSync : true } );
+				collection = db._collection( name );
+			}
+			else
+				collection.truncate();
+		}, "Clear Edges" ).not.to.throw();
+		expect( collection.count(), "Edges count" ).to.equal( 0 );
+		
+		//
+		// Clear documents.
+		//
+		name = param.collection_document;
+		expect( function ()
+		{
+			collection = db._collection( name );
+			if( ! collection )
+			{
+				db._createDocumentCollection( name, { waitForSync : true } );
+				collection = db._collection( name );
+			}
+			else
+				collection.truncate();
+		}, "Clear Documents" ).not.to.throw();
+		expect( collection.count(), "Documents count" ).to.equal( 0 );
+	});
+	
+	//
 	// Create test nodes.
 	//
 	it( "Create test nodes", function ()
@@ -115,14 +166,6 @@ describe( "EdgeAttribute class tests:", function ()
 			expect( func, `Insert node` ).not.to.throw();
 			expect( result, "Insert result" ).to.be.true;
 		}
-	});
-	
-	//
-	// Check base class.
-	//
-	it( "Test class", function () {
-		expect( unitTest.getClassName( 'base' ), "Class" ).to.equal( 'EdgeAttribute' );
-		expect( unitTest.currentClass, "Parameters" ).to.equal( 'EdgeAttribute' );
 	});
 	
 	//

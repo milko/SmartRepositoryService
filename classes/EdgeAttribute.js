@@ -171,6 +171,23 @@ class EdgeAttribute extends Edge
 	 ************************************************************************************/
 	
 	/**
+	 * Return list of required fields
+	 *
+	 * In this class we add the three significant fields that identify an edge: the
+	 * _from, _to and predicate.
+	 *
+	 * @returns {Array}	List of required fields.
+	 */
+	get requiredFields()
+	{
+		return super.requiredFields
+			.concat([
+				Dict.descriptor.kAttributes	// The attributes list.
+			]);																		// ==>
+		
+	}	// requiredFields
+	
+	/**
 	 * Return list of significant fields
 	 *
 	 * We overload the parent method to add the attributes property.

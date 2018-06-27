@@ -48,17 +48,6 @@ const unitTest =
 		}
 	);
 
-//
-// Clear collections.
-//
-if( ! db._collection( param.collection_edge  ) )
-	db._createEdgeCollection( param.collection_edge, { waitForSync : true } );
-else
-	db._collection( param.collection_edge ).truncate();
-if( ! db._collection( param.collection_document ) )
-	db._createDocumentCollection( param.collection_document, { waitForSync : true } );
-else
-	db._collection( param.collection_document ).truncate();
 
 
 /********************************************************************************
@@ -78,6 +67,49 @@ describe( "Document class tests:", function ()
 	it( "Test class", function () {
 		expect( unitTest.getClassName( 'base' ), "Class" ).to.equal( 'Document' );
 		expect( unitTest.currentClass, "Parameters" ).to.equal( 'Document' );
+	});
+	
+	//
+	// Prepare environment.
+	//
+	it( "Prepare environment", function ()
+	{
+		let name;
+		let collection;
+		
+		//
+		// Clear edges.
+		//
+		name = param.collection_edge;
+		expect( function ()
+		{
+			collection = db._collection( name );
+			if( ! collection )
+			{
+				db._createEdgeCollection( name, { waitForSync : true } );
+				collection = db._collection( name );
+			}
+			else
+				collection.truncate();
+		}, "Clear Edges" ).not.to.throw();
+		expect( collection.count(), "Edges count" ).to.equal( 0 );
+		
+		//
+		// Clear documents.
+		//
+		name = param.collection_document;
+		expect( function ()
+		{
+			collection = db._collection( name );
+			if( ! collection )
+			{
+				db._createDocumentCollection( name, { waitForSync : true } );
+				collection = db._collection( name );
+			}
+			else
+				collection.truncate();
+		}, "Clear Documents" ).not.to.throw();
+		expect( collection.count(), "Documents count" ).to.equal( 0 );
 	});
 	
 	//
