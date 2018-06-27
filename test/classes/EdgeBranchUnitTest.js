@@ -58,6 +58,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 	 * 	- Load filled non persistent object.
 	 * 	- Load persistent object.
 	 */
+/*
 	unitsInitContent()
 	{
 		//
@@ -118,6 +119,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 		);
 		
 	}	// unitsInitContent
+*/
 
 
 	/****************************************************************************
@@ -135,6 +137,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 	 * @param theClass		{Function}	The class to test.
 	 * @param theParam		{Object}	The object contents.
 	 */
+/*
 	instantiateMutableImmutableDocument( theClass, theParam = null )
 	{
 		//
@@ -161,6 +164,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 			);
 		
 	}	// instantiateMutableImmutableDocument
+*/
 	
 	
 	/****************************************************************************
@@ -176,6 +180,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 	 * @param theClass		{Function}	The class to test.
 	 * @param theParam		{Object}	The object contents.
 	 */
+/*
 	testInstantiateFoundReference( theClass, theParam = null )
 	{
 		let doc;
@@ -495,6 +500,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 		db._remove(meta._id);
 	
 	}	// testInstantiateFoundReference
+*/
 	
 	/**
 	 * Instantiate with content and default collection.
@@ -505,6 +511,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 	 * @param theClass		{Function}	The class to test.
 	 * @param theParam		{Object}	The object contents.
 	 */
+/*
 	testInstantiateWithContent( theClass, theParam = null )
 	{
 		let doc;
@@ -765,6 +772,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 		this.assertAllProvidedDataInDocument( "Check contents", doc, contents );
 	
 	}	// testInstantiateWithContent
+*/
 	
 	
 	/****************************************************************************
@@ -784,6 +792,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 	 * @param theClass	{Function}	The class to test.
 	 * @param theParam	{*}			Eventual parameters for the method.
 	 */
+/*
 	testContentsLoadPersistentObject( theClass, theParam = null )
 	{
 		let id;
@@ -1198,6 +1207,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 		db._remove( id );
 		
 	}	// testContentsLoadPersistentObject
+*/
 
 }	// EdgeBranchUnitTest.
 

@@ -4266,6 +4266,11 @@ class DocumentUnitTest extends UnitTest
 		expect( func, `${message} - ${action}` ).not.to.throw();
 		
 		//
+		// Set reserved fields.
+		//
+		this.setReservedProperties( doc, base_reserved_values );
+		
+		//
 		// Insert object.
 		//
 		action = "Insertion";
@@ -9748,18 +9753,31 @@ class DocumentUnitTest extends UnitTest
 				 && (theNewData[field] !== theObject.document[field]) ) );
 			
 			//
+			// Replace locked field,
+			// and set new data to original data if the replace raises an exception.
+			//
+			if( theObject.lockedFields.includes( field ) )
+			{
+				failed = true;
+				action = `${op} locked [${field}]`;
+				expect( func, `${theMessage} - ${action}`
+				).to.throw(
+					MyError,
+					/Property is locked/
+				);
+			}
+			
+			//
 			// Replace reserved field.
 			// Should fail.
 			//
-			if( theObject.reservedFields.includes( field ) )
+			else if( theObject.reservedFields.includes( field ) )
 			{
 				//
 				// Catch changed field.
 				//
 				if( different )
 				{
-					failed = true;
-					action = `${op} different reserved [${field}]`;
 					expect( func, `${theMessage} - ${action}`
 					).to.throw(
 						MyError,
@@ -9780,21 +9798,6 @@ class DocumentUnitTest extends UnitTest
 			{
 				action = `${op} restricted [${field}]`;
 				expect( func, `${theMessage} - ${action}`).not.to.throw();
-			}
-			
-			//
-			// Replace locked field,
-			// and set new data to original data if the replace raises an exception.
-			//
-			else if( theObject.lockedFields.includes( field ) )
-			{
-				failed = true;
-				action = `${op} locked [${field}]`;
-				expect( func, `${theMessage} - ${action}`
-				).to.throw(
-					MyError,
-					/Property is locked/
-				);
 			}
 			
 			//

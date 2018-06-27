@@ -88,7 +88,8 @@ module.exports = {
 		var: 'VAR',
 		password: 'XXX',
 		name: "NAME",
-		order: 0
+		order: 0,
+		passcheck: 'DCBA'
 	},
 	
 	//
@@ -115,7 +116,8 @@ module.exports = {
 		password: 'XXX',
 		name: "NAME",
 		order: 1,
-		username: "USERNAME"
+		username: "USERNAME",
+		passcheck: 'ABCD'
 	},
 	
 	//
@@ -133,9 +135,363 @@ module.exports = {
 				name: "Pippo"
 			}
 		},
-		var: "SAMPLE"
+		name: "PIPPO",
+		var: "VARIABLE"
 	},
 	
+	//
+	// Intermediate parameters.
+	// insertEmptyObject().
+	// Values to change when testing for the second time.
+	//
+	insertEmptyObject: [ Dict.descriptor.kMStamp ],
+	
+	//
+	// Intermediate parameters.
+	// insertWithoutRequiredFields().
+	// Values to change when testing.
+	//
+	insertWithoutRequired: {
+		contents: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			branches: [
+				'terms/:type:domain'
+			],
+			modifiers: {
+				'terms/:type:domain': {
+					name: "Pippo"
+				}
+			},
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
+	},
+	
+	//
+	// Intermediate parameters.
+	// insertWithoutSignificantFields().
+	// Values to change when testing.
+	//
+	insertWithoutSignificant: {
+		contents: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			branches: [
+				'terms/:type:domain'
+			],
+			modifiers: {
+				'terms/:type:domain': {
+					name: "Pippo"
+				}
+			},
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
+	},
+	
+	//
+	// Intermediate parameters.
+	// These are used in some tests to change the contents of objects in order for
+	// them not to be considered duplicates.
+	//
+	insertWithContent: {
+		contents: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			branches: [
+				'terms/:type:domain'
+			],
+			modifiers: {
+				'terms/:type:domain': {
+					name: "Pippo"
+				}
+			},
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
+		changed: {
+			_to: 'test_Document/NODE2',
+			name: 'NAME FILLED',
+			lid: 'LID_FILLED'
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
+	},
+	
+	//
+	// Intermediate parameters.
+	// insertWithSameContent().
+	// Values to change when testing for the second time.
+	//
+	insertWithSameContent: {
+		contents: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			branches: [
+				'terms/:type:domain'
+			],
+			modifiers: {
+				'terms/:type:domain': {
+					name: "Pippo"
+				}
+			},
+			sym: 'SYMBOL',
+			var: 'VAR',
+			password: 'XXX',
+			name: "NAME",
+			order: 0,
+			passcheck: 'DCBA'
+		},
+		first: {
+			_from: 'test_Document/NODE2',
+			_to: 'test_Document/NODE0'
+		},
+		second: {
+			_from: 'test_Document/NODE1',
+			_to: 'test_Document/NODE0',
+			name: "NAME SAME CONTENTS"
+		},
+		excluded: [ Dict.descriptor.kMStamp ]
+	},
+	
+	//
+	// Intermediate parameters.
+	// insertWithoutPersist().
+	// Values to change when testing.
+	//
+	insertWithoutPersist: {
+		contents: {
+			_from: 'test_Document/NODE1',
+			_to: 'test_Document/NODE2',
+			predicate: `terms/${Dict.term.kPredicateManagedBy}`,
+			branches: [
+				'terms/:type:domain',
+				'terms/:type:value'
+			],
+			modifiers: {
+				'terms/:type:domain': {
+					name: "Pappa"
+				},
+				'terms/:type:value': {
+					name: "Pippo"
+				}
+			},
+			sym: 'SYMBOL_replaced',
+			var: 'VAR_REPLACED',
+			password: 'XXX',
+			name: "NAME",
+			order: 1,
+			username: "USERNAME",
+			passcheck: 'ABCD'
+		},
+		local: [ '_key' ]
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolvePersistent().
+	// Parameters to the test.
+	//
+	resolvePersistent: [ Dict.descriptor.kMStamp ],
+	
+	//
+	// Intermediate parameters.
+	// resolveSignificantField().
+	// Parameters to the test.
+	//
+	resolveSignificant: {
+		noSig: {
+			name: 'NAME FILLED'
+		},
+		sigOne: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			lid: 'LID_FILLED'
+		},
+		sigFind: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			branches: [
+				'terms/:type:domain'
+			],
+			modifiers: {
+				'terms/:type:domain': {
+					name: "Pippo"
+				}
+			},
+			nid: 'terms/:id',
+			lid: 'LID_FILLED'
+		},
+		sigNoFind: {
+			_from: 'test_Document/NODE2',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			branches: [
+				'terms/:type:domain'
+			],
+			modifiers: {
+				'terms/:type:domain': {
+					name: "Pippo"
+				}
+			},
+			nid: 'UNKNOWN',
+			lid: 'LID'
+		}
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveReferenceField().
+	// Parameters to the test.
+	//
+	resolveReference: {
+		_from: 'test_Document/NODE2',
+		_to: 'test_Document/NODE1',
+		predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+		branches: [
+			'terms/:type:domain'
+		],
+		modifiers: {
+			'terms/:type:domain': {
+				name: "Pippo"
+			}
+		},
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveNoException().
+	// Parameters to the test.
+	//
+	resolveNoException: {
+		correct: {
+			_from: 'test_Document/NODE0',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			branches: [
+				'terms/:type:domain'
+			],
+			modifiers: {
+				'terms/:type:domain': {
+					name: "Pippo"
+				}
+			}
+		},
+		incorrect: {
+			_from: 'test_Document/NODE2',
+			_to: 'test_Document/NODE1',
+			predicate: `terms/${Dict.term.kPredicateEnumOf}`,
+			branches: [
+				'terms/:type:domain'
+			],
+			modifiers: {
+				'terms/:type:domain': {
+					name: "Pippo"
+				}
+			}
+		}
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeLockedField().
+	// Parameters to the test.
+	//
+	changeLocked: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeRequiredField().
+	// We exclude the significant fields from the test.
+	//
+	changeRequired: {
+		var: "I_CHANGED_IT"
+	},
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeSignificantField().
+	// Parameters to the test.
+	//
+	changeSignificant: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeUniqueField().
+	// Parameters to the test.
+	//
+	changeUnique: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeLocalField().
+	// Parameters to the test.
+	//
+	changeLocal: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// resolveChangeStandardField().
+	// Parameters to the test.
+	//
+	changeStandard: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// replacePersistentValue().
+	// Parameters to the test.
+	//
+	replacePersistentValue: [
+		'_from',
+		'_to',
+		Dict.descriptor.kPredicate,
+		Dict.descriptor.kAttributes
+	],
+	
+	//
+	// Intermediate parameters.
+	// replaceContentValue().
+	// Parameters to the test.
+	//
+	replaceContentValue: [
+		'_from',
+		'_to',
+		Dict.descriptor.kPredicate,
+		Dict.descriptor.kAttributes,
+		Dict.descriptor.kNID
+	],
+	
+	//
+	// Intermediate parameters.
+	// customEdgeKey().
+	// Parameters to the test.
+	//
+	customEdgeKey: [
+		'_from',
+		'_to',
+		Dict.descriptor.kPredicate,
+		Dict.descriptor.kAttributes
+	],
+
 	//
 	// Default request.
 	//

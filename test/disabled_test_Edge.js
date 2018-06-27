@@ -55,18 +55,6 @@ const unitTest =
 		}
 	);
 
-//
-// Clear collections.
-//
-if( ! db._collection( param.collection_edge  ) )
-	db._createEdgeCollection( param.collection_edge, { waitForSync : true } );
-else
-	db._collection( param.collection_edge ).truncate();
-if( ! db._collection( param.collection_document ) )
-	db._createDocumentCollection( param.collection_document, { waitForSync : true } );
-else
-	db._collection( param.collection_document ).truncate();
-
 
 /********************************************************************************
  * UNIT TESTS																	*
