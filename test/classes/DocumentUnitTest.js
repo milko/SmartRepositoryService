@@ -8608,7 +8608,6 @@ class DocumentUnitTest extends UnitTest
 		};
 		expect( func, `${message}` ).not.to.throw();
 		
-		
 		//
 		// Clone and strip reserved fields from parameter.
 		//
@@ -8826,14 +8825,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		// Set constrained state.
 		//
-		message = "Setting constrained state";
-		func = () => {
-			db._collection(this.defaultTestCollection).update(
-				this.intermediate_results.key_insert_same,
-				{ name: "CONSTRAINED" }
-			);
-		};
-		expect( func, `${message}` ).not.to.throw();
+		this.setDocumentConstrained( clone );
 		
 		//
 		// Instantiate from existing reference.
@@ -9414,11 +9406,11 @@ class DocumentUnitTest extends UnitTest
 	 * will set the values directly in the document data, but derived classes should
 	 * overload this method to use whatever custom interface they implement.
 	 *
-	 * @param theObject		{Document}	The object to maniipulate.
+	 * @param theObject		{Document}	The object to manipulate.
 	 * @param theProperties	{Object}	The reserved properties.
 	 */
 	setReservedProperties(
-		theObject,		// The object to maniipulate.
+		theObject,		// The object to manipulate.
 		theProperties	// The values to set.
 	)
 	{
@@ -9429,6 +9421,31 @@ class DocumentUnitTest extends UnitTest
 			theObject.document[ field ] = theProperties[ field ];
 		
 	}	// setReservedProperties
+	
+	/**
+	 * Constrain document.
+	 *
+	 * This method can be used to make a document constrained.
+	 *
+	 * In this class we implement the validateDocumentConstraints() by checking if the
+	 * name property is "CONSTRAINED".
+	 *
+	 * @param theObject		{Object}	The document to constrain.
+	 */
+	setDocumentConstrained( theObject )
+	{
+		//
+		// Set the name to "CONSTRAINED" in the database.
+		//
+		const message = "Setting constrained state";
+		expect( () => {
+			db._collection(this.defaultTestCollection).update(
+				theObject._key,
+				{ name: "CONSTRAINED" }
+			);
+		}, message ).not.to.throw();
+		
+	}	// setDocumentConstrained
 	
 	
 	/****************************************************************************

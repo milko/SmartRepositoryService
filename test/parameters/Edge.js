@@ -364,7 +364,18 @@ module.exports = {
 		'_to',
 		Dict.descriptor.kPredicate,
 		Dict.descriptor.kNID
-],
+	],
+	
+	//
+	// Intermediate parameters.
+	// customEdgeKey().
+	// Parameters to the test.
+	//
+	customEdgeKey: [
+		'_from',
+		'_to',
+		Dict.descriptor.kPredicate
+	],
 	
 	//
 	// Default request.
