@@ -235,6 +235,13 @@ module.exports = {
 	
 	//
 	// Intermediate parameters.
+	// resolvePersistent().
+	// Parameters to the test.
+	//
+	resolvePersistent: [ Dict.descriptor.kMStamp ],
+	
+	//
+	// Intermediate parameters.
 	// resolveSignificantField().
 	// Parameters to the test.
 	//
@@ -335,6 +342,29 @@ module.exports = {
 	// Parameters to the test.
 	//
 	changeStandard: "I_CHANGED_IT",
+	
+	//
+	// Intermediate parameters.
+	// replacePersistentValue().
+	// Parameters to the test.
+	//
+	replacePersistentValue: [
+		'_from',
+		'_to',
+		Dict.descriptor.kPredicate
+	],
+	
+	//
+	// Intermediate parameters.
+	// replaceContentValue().
+	// Parameters to the test.
+	//
+	replaceContentValue: [
+		'_from',
+		'_to',
+		Dict.descriptor.kPredicate,
+		Dict.descriptor.kNID
+],
 	
 	//
 	// Default request.

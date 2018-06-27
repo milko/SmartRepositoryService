@@ -204,6 +204,13 @@ module.exports = {
 	
 	//
 	// Intermediate parameters.
+	// resolvePersistent().
+	// Parameters to the test.
+	//
+	resolvePersistent: [],
+	
+	//
+	// Intermediate parameters.
 	// resolveAmbiguousObject().
 	// Parameters to the test.
 	//
@@ -315,7 +322,14 @@ module.exports = {
 	// replacePersistentValue().
 	// Parameters to the test.
 	//
-	replacePersistent: "THIS_WAS_CHANGED",
+	replacePersistentValue: [],
+	
+	//
+	// Intermediate parameters.
+	// replaceContentValue().
+	// Parameters to the test.
+	//
+	replaceContentValue: [ Dict.descriptor.kNID ],
 	
 	//
 	// Default request.

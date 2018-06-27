@@ -28,38 +28,7 @@ const DocumentUnitTest = require( './DocumentUnitTest' );
  */
 class PersistentUnitTest extends DocumentUnitTest
 {
-	/****************************************************************************
-	 * DEFAULT TEST MODULES DEFINITIONS											*
-	 ****************************************************************************/
-	
-	/**
-	 * Define resolve tests
-	 *
-	 * We overload the parent method to add the modification time stamp in the local
-	 * excluded fields for the following tests:
-	 *
-	 * 	- Resolve persistent document.
-	 */
-	unitsInitResolve()
-	{
-		//
-		// Call parent method.
-		//
-		super.unitsInitResolve();
-		
-		//
-		// Resolve persistent document.
-		// Set modification time stamp in excluded local fields.
-		//
-		this.resolveUnitSet(
-			'resolvePersistent',
-			"Resolve persistent document",
-			this.test_classes.base,
-			[ Dict.descriptor.kMStamp ],
-			false
-		);
-	
-	}	// unitsInitResolve
+	// Like parent.
 
 }	// PersistentUnitTest.
 

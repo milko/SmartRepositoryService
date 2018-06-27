@@ -524,7 +524,7 @@ class DocumentUnitTest extends UnitTest
 			'resolvePersistent',
 			"Resolve persistent document",
 			this.test_classes.base,
-			null,
+			this.parameters.resolvePersistent,
 			true
 		);
 		
@@ -751,7 +751,7 @@ class DocumentUnitTest extends UnitTest
 			'replacePersistentValue',
 			"Replace persistent values",
 			this.test_classes.base,
-			this.parameters.replacePersistent,
+			this.parameters.replacePersistentValue,
 			true
 		);
 		
@@ -765,7 +765,7 @@ class DocumentUnitTest extends UnitTest
 			'replaceContentValue',
 			"Replace content values",
 			this.test_classes.base,
-			null,
+			this.parameters.replaceContentValue,
 			true
 		);
 		
@@ -7648,8 +7648,8 @@ class DocumentUnitTest extends UnitTest
 	 */
 	testReplacePersistentValue( theClass, theParam = null )
 	{
-		let doc;
 		let tmp;
+		let doc;
 		let meta;
 		let func;
 		let result;
@@ -7658,15 +7658,22 @@ class DocumentUnitTest extends UnitTest
 		let action;
 		let message;
 		let selector;
-		
-		//
-		// Instantiate from existing reference.
-		//
 		const func_get = () => {
 			tmp =
 				db._collection(this.defaultTestCollection)
 					.document(this.intermediate_results.key_insert_filled);
 		};
+		
+		//
+		// Normalise parameter.
+		//
+		const excluded = ( Array.isArray( theParam ) )
+					   ? theParam
+					   : [];
+		
+		//
+		// Instantiate persistent document.
+		//
 		message = "Instantiate from reference";
 		expect( func_get, `${message}` ).not.to.throw();
 		
@@ -7676,32 +7683,19 @@ class DocumentUnitTest extends UnitTest
 		//
 		const replace = {};
 		const clone = K.function.clone(tmp);
-		const fields =
-			Object.keys(clone)
-				.filter( x => (! [ '_id', '_key', '_rev' ].includes( x )) );
 		
 		//
 		// Get fields and values to test.
 		//
-		for( const field of fields )
+		for( const field in clone )
 		{
 			//
-			// Provided specific values.
+			// Select value from replace parameter.
 			//
-			if( K.function.isObject( theParam ) )
-			{
-				//
-				// Include only if provided.
-				//
-				if( theParam.hasOwnProperty( field ) )
-					replace[ field ] = theParam[ field ];
-			}
-			
-			//
-			// Provided one value for all.
-			//
-			else
-				replace[ field ] = theParam;
+			if( this.parameters.replace.hasOwnProperty( field )
+			 && (! [ '_id', '_key', '_rev' ].includes( field ))
+			 && (! excluded.includes( field )) )
+				replace[ field ] = this.parameters.replace[ field ];
 		}
 		
 		//
@@ -8046,7 +8040,7 @@ class DocumentUnitTest extends UnitTest
 			if( (field !== '_id')
 			 && (field !== '_key')
 			 && (field !== '_rev')
-			 && (field !== Dict.descriptor.kNID)
+			 // && (field !== Dict.descriptor.kNID)
 			 && (! excluded.includes( field )) )
 			{
 				//
