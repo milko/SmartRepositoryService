@@ -125,48 +125,6 @@ class EdgeAttribute extends Edge
 	
 	
 	/************************************************************************************
-	 * ASSERTIONS METHODS																*
-	 ************************************************************************************/
-	
-	/**
-	 * Match locked property
-	 *
-	 * We overload this method to match the contents of the attributes property: since
-	 * it is an array, even if the contents are the same, the identity match will
-	 * fail, so we match their stringified bersion.
-	 *
-	 * @param theProperty	{String}	Property name.
-	 * @param theExisting	{*}			Existing value.
-	 * @param theProvided	{*}			Provided value.
-	 * @returns {Boolean}				True if identical.
-	 */
-	matchPropertyValue( theProperty, theExisting, theProvided )
-	{
-		//
-		// Trap attributes.
-		//
-		if( theProperty === Dict.descriptor.kAttributes )
-		{
-			//
-			// Sort values.
-			//
-			if( Array.isArray( theExisting )
-				&& (theExisting.length > 0) )
-				theExisting.sort();
-			
-			if( Array.isArray( theProvided )
-				&& (theProvided.length > 0) )
-				theProvided.sort();
-			
-			return (JSON.stringify(theExisting) === JSON.stringify(theProvided));	// ==>
-		}
-		
-		return super.matchPropertyValue( theProperty, theExisting, theProvided );	// ==~
-		
-	}	// matchPropertyValue
-	
-	
-	/************************************************************************************
 	 * GETTER METHODS																	*
 	 ************************************************************************************/
 	

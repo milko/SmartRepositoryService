@@ -42,7 +42,7 @@ module.exports = {
 	//
 	// Other references.
 	//
-	other_id			: 'edges/8d6a14683d60f2680800655d067a118d',
+	other_id			: 'edges/86ec2630408d3b6ef1073c4e8dfb5eeb',
 	other_collection	: 'edges',
 	
 	//
@@ -464,7 +464,8 @@ module.exports = {
 		'_from',
 		'_to',
 		Dict.descriptor.kPredicate,
-		Dict.descriptor.kAttributes
+		Dict.descriptor.kBranches,
+		Dict.descriptor.kModifiers
 	],
 	
 	//
@@ -476,7 +477,8 @@ module.exports = {
 		'_from',
 		'_to',
 		Dict.descriptor.kPredicate,
-		Dict.descriptor.kAttributes,
+		Dict.descriptor.kBranches,
+		Dict.descriptor.kModifiers,
 		Dict.descriptor.kNID
 	],
 	
@@ -488,8 +490,7 @@ module.exports = {
 	customEdgeKey: [
 		'_from',
 		'_to',
-		Dict.descriptor.kPredicate,
-		Dict.descriptor.kAttributes
+		Dict.descriptor.kPredicate
 	],
 
 	//

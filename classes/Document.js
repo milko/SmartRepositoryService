@@ -557,7 +557,7 @@ class Document
 		//
 		// Handle value modifications.
 		//
-		if( ! this.matchPropertyValue( theField, value_old, theValue ) )
+		if( ! this.matchPropertyValue( value_old, theValue, theField ) )
 		{
 			//
 			// Handle locked field violation.
@@ -1043,9 +1043,9 @@ class Document
 						return ( existing.hasOwnProperty( field )
 							  && this._document.hasOwnProperty( field )
 							  && (! this.matchPropertyValue(
-							  			field,
 										existing[ field ],
-										this._document[ field ]
+										this._document[ field ],
+										field
 							))
 						);
 					});
@@ -1120,18 +1120,148 @@ class Document
 	 * explicitly updating the document contents, and in validateLockedProperties()
 	 * when validating the document before persisting.
 	 *
-	 * In this class we return A === B.
+	 * In this class we handle the following types:
 	 *
-	 * @param theProperty	{String}	Property name.
+	 * 	- Arrays:	If both arrays exist, these will be sorted and stringified, then
+	 * 				the result will be compared with "===".
+	 * 	- Objects:	We first check if all properties are the same, if that is the case
+	 * 				we recursively check each property untile all match or the first
+	 * 				doesn't match.
+	 * 	- Other:	Other types will be compared with "===".
+	 *
+	 * Note that a provided 'undefined' value will be equated to 'null', which
+	 * represents the value used to delete properties, so if one is undefined and the
+	 * other is null, they are conssidered equal.
+	 *
+	 * Although theProperty is not used here, it might be used in derived classes to
+	 * perform checks according to the property.
+	 *
 	 * @param theExisting	{*}			Existing value.
 	 * @param theProvided	{*}			Provided value.
+	 * @param theProperty	{String}	Property name.
 	 * @returns {Boolean}				True if identical.
 	 */
-	matchPropertyValue( theProperty, theExisting, theProvided )
+	matchPropertyValue( theExisting, theProvided, theProperty = null )
 	{
-		return (theExisting === theProvided);										// ==>
+		//
+		// Equate undefined to null.
+		//
+		if( theExisting === undefined )
+			theExisting = null;
+		if( theProvided === undefined )
+			theProvided = null;
+		
+		//
+		// Handle identity.
+		// If this succeeds, we trust they are equal.
+		//
+		if( theExisting === theProvided )
+			return true;															// ==>
+		
+		//
+		// Handle one missing.
+		// We already checked if they are both missing.
+		//
+		if( (theExisting === null)
+		 || (theProvided === null) )
+			return false;															// ==>
+		
+		//
+		// Trap arrays.
+		//
+		if( Array.isArray( theProvided ) )
+		{
+			//
+			// Handle different type.
+			//
+			if( ! Array.isArray( theExisting ) )
+				return false;														// ==>
+			
+			//
+			// Clone arrays.
+			//
+			const provided = K.function.clone( theProvided );
+			const existing = K.function.clone( theExisting );
+			
+			//
+			// Sort arrays.
+			//
+			provided.sort();
+			existing.sort();
+			
+			return (JSON.stringify(existing) === JSON.stringify(provided));			// ==>
+			
+		}	// Provided array.
+		
+		//
+		// Trap objects.
+		//
+		if( K.function.isObject( theProvided ) )
+		{
+			//
+			// Handle different type.
+			//
+			if( ! K.function.isObject( theExisting ) )
+				return false;														// ==>
+			
+			//
+			// Compare keys.
+			//
+			if( this.matchPropertyValue(
+					Object.keys( theExisting ),
+					Object.keys( theProvided ) ) )
+			{
+				//
+				// Iterate keys.
+				//
+				for( const field in theExisting )
+				{
+					//
+					// Exit on first mismatch.
+					//
+					if( ! this.matchPropertyValue(
+							theExisting[ field ],
+							theProvided[ field ],
+							field ) )
+						return false;												// ==>
+					
+				}	// Iterating object property names.
+				
+				return true;														// ==>
+				
+			}	// Keys match.
+			
+		}	// Provided structure.
+
+		return false;																// ==>
 		
 	}	// matchPropertyValue
+	
+	/**
+	 * Check if property will be considered for modification
+	 *
+	 * The setDocumentProperties() method calls the setDocumentProperty() method if
+	 * the replace flag is set, or if the property is locked, or if the property
+	 * doesn't yet exist in the document. This method will return true if any of these
+	 * conditions is true.
+	 *
+	 * The result of this method, associated to the result of the matchPropertyValue()
+	 * method, can be used to determine whether providing a value to
+	 * setDocumentProperties() will trigger validation routines.
+	 *
+	 * @param theProperty	{String}	The property name.
+	 * @param theFlag		{Boolean}	The replace flag value.
+	 * @returns {Boolean}				True if will be considered for modification.
+	 */
+	willPropertySet( theProperty, theFlag )
+	{
+		return (
+			theFlag												// Replace flag on,
+		 || this.lockedFields.includes( theProperty )			// or property is locked,
+		 || (! this._document.hasOwnProperty( theProperty ))	// or missing.
+		);																			// ==>
+	
+	}	// willPropertySet
 	
 	
 	/************************************************************************************

@@ -32,7 +32,6 @@ const TestClass = require( '../../classes/EdgeAttribute' );
  * custom:	Derived base class with optional features.
  */
 module.exports = {
-	parent : ParentClass,
 	base   : TestClass,
 	custom : null
 };

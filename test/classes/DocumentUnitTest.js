@@ -354,6 +354,18 @@ class DocumentUnitTest extends UnitTest
 			true
 		);
 		
+		//
+		// Check value matching.
+		// Assert that matchPropertyValue works.
+		//
+		this.contentsUnitSet(
+			'contentsMatchPropertyValue',
+			"Match property values:",
+			this.test_classes.base,
+			null,
+			true
+		);
+		
 	}	// unitsInitContent
 	
 	/**
@@ -1400,6 +1412,33 @@ class DocumentUnitTest extends UnitTest
 				this.test_classes.custom, theParam );
 		
 	}	// contentsLoadPersistentObject
+	
+	/**
+	 * Match property values
+	 *
+	 * Will test matching property values works.
+	 *
+	 * Should succeed with both base and custom class.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	contentsMatchPropertyValue( theClass, theParam = null )
+	{
+		//
+		// Should succeed.
+		//
+		this.testContentsMatchPropertyValue(
+			this.test_classes.base, theParam );
+		
+		//
+		// Should succeed.
+		//
+		if( this.test_classes.custom )
+			this.testContentsMatchPropertyValue(
+				this.test_classes.custom, theParam );
+		
+	}	// contentsMatchPropertyValue
 	
 	
 	/****************************************************************************
@@ -4477,6 +4516,172 @@ class DocumentUnitTest extends UnitTest
 
 	}	// testContentsLoadPersistentObject
 	
+	/**
+	 * Match property values
+	 *
+	 * Assert that matchPropertyValue() method works as needed.
+	 *
+	 * In derived classes call parent method and implement custom tests.
+	 *
+	 * @param theClass	{Function}	The class to test.
+	 * @param theParam	{*}			Eventual parameters for the method.
+	 */
+	testContentsMatchPropertyValue( theClass, theParam = null )
+	{
+		let id;
+		let doc;
+		let data;
+		let func;
+		let result;
+		let action;
+		let message;
+		let property;
+		
+		//
+		// Instantiate to get document instance.
+		//
+		message = "Instantiate to get instance";
+		func = () => {
+			doc =
+				new theClass(
+					this.parameters.request,
+					null,
+					this.defaultTestCollection
+				);
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Test set new value.
+		//
+		property = 'name';
+		message = "Set new value";
+		func = () => {
+			result = doc.matchPropertyValue( doc.document[ property ], "A name" );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( result, message ).to.be.false;
+		
+		//
+		// Test delete missing.
+		//
+		message = "Delete missing";
+		func = () => {
+			result = doc.matchPropertyValue( doc.document[ property ], null );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( result, message ).to.be.true;
+		result = doc.matchPropertyValue( doc.document[ property ], undefined );
+		expect( result, message ).to.be.true;
+		
+		//
+		// Set value.
+		//
+		func = () => {
+			doc.setDocumentProperties({ name: "pippo"}, true );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Test set different value.
+		//
+		message = "Set new value";
+		func = () => {
+			result = doc.matchPropertyValue( doc.document[ property ], "A name" );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( result, message ).to.be.false;
+		
+		//
+		// Test delete value.
+		//
+		message = "Delete existing value";
+		func = () => {
+			result = doc.matchPropertyValue( doc.document[ property ], null );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( result, message ).to.be.false;
+		
+		//
+		// Test set same value.
+		//
+		message = "Set same value";
+		func = () => {
+			result = doc.matchPropertyValue( doc.document[ property ], "pippo" );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( result, message ).to.be.true;
+		
+		//
+		// Create test arrays.
+		//
+		const arr1 = [ 1, 2, 3 ];
+		const arr2 = [ 3, 2, 1 ];
+		const arr3 = [ 4, 5, 6 ];
+		
+		//
+		// Test set new value.
+		//
+		property = 'array';
+		message = "Set new value";
+		func = () => {
+			result = doc.matchPropertyValue( doc.document[ property ], arr1 );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( result, message ).to.be.false;
+		
+		//
+		// Test delete missing.
+		//
+		message = "Delete missing";
+		func = () => {
+			result = doc.matchPropertyValue( doc.document[ property ], null );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( result, message ).to.be.true;
+		result = doc.matchPropertyValue( doc.document[ property ], undefined );
+		expect( result, message ).to.be.true;
+		
+		//
+		// Set value.
+		//
+		func = () => {
+			doc.setDocumentProperties({ array: arr1}, true );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		
+		//
+		// Test set different value.
+		//
+		message = "Set new value";
+		func = () => {
+			result = doc.matchPropertyValue( doc.document[ property ], arr3 );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( result, message ).to.be.false;
+		
+		//
+		// Test delete value.
+		//
+		message = "Delete existing value";
+		func = () => {
+			result = doc.matchPropertyValue( doc.document[ property ], null );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( result, message ).to.be.false;
+		
+		//
+		// Test set same value.
+		//
+		message = "Set same value";
+		func = () => {
+			result = doc.matchPropertyValue( doc.document[ property ], arr2 );
+		};
+		expect( func, `${message}` ).not.to.throw();
+		expect( result, message ).to.be.true;
+		
+	}	// testContentsMatchPropertyValue
+	
 	
 	/****************************************************************************
 	 * INSERT TEST ROUTINE DEFINITIONS											*
@@ -4601,6 +4806,7 @@ class DocumentUnitTest extends UnitTest
 		let result;
 		let action;
 		let message;
+		let reserved;
 		
 		//
 		// Check parameter.
@@ -4682,6 +4888,7 @@ class DocumentUnitTest extends UnitTest
 				//
 				// Remove from current document.
 				//
+				reserved = false;
 				if( doc.document.hasOwnProperty( field ) )
 				{
 					//
@@ -4693,23 +4900,49 @@ class DocumentUnitTest extends UnitTest
 					func = () => {
 						doc.setDocumentProperties( data, true );
 					};
-					expect( func, `${message}` ).not.to.throw();
-					expect( doc.document, message ).not.to.have.property( field );
+					
+					//
+					// Handle reserved.
+					//
+					if( doc.reservedFields.includes( field ) )
+					{
+						reserved = true;
+						action = "Reserved";
+						expect( func, `${message} - ${action}`
+						).to.throw(
+							MyError,
+							/Property is reserved/
+						);
+					}
+					
+					//
+					// Handle other types.
+					//
+					else
+					{
+						action = "Not reserved";
+						expect( func, `${message}` ).not.to.throw();
+						expect( doc.document, message ).not.to.have.property( field );
+					}
 					
 				}	// Removed existing field.
 				
 				//
 				// Insert.
+				// Except if reserved field was deleted.
 				//
-				message = `Insert without [${field}]`;
-				func = () => {
-					result = doc.insertDocument();
-				};
-				expect( func, `${message}`
-				).to.throw(
-					MyError,
-					/missing required fields/
-				);
+				if( ! reserved )
+				{
+					message = `Insert without [${field}]`;
+					func = () => {
+						result = doc.insertDocument();
+					};
+					expect( func, `${message}`
+					).to.throw(
+						MyError,
+						/missing required fields/
+					);
+				}
 				
 				//
 				// Restore the full object.
@@ -6131,8 +6364,6 @@ class DocumentUnitTest extends UnitTest
 			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
 			action = "Persistent";
 			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
 			
 			//
 			// Save persistent contents.
@@ -7812,47 +8043,109 @@ class DocumentUnitTest extends UnitTest
 					expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 					expect( func_get, "resolving persistent copy" ).not.to.throw();
 					action = state + " matches persistent";
-					expect( doc.document[ field ], `${message} - ${action}` ).not.to.equal( tmp[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							tmp[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.false;
 					break;
 				
 				case 'S':
 					expect( func, `${message} - ${action}` ).not.to.throw();
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							clone[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
 					action += " is persistent";
 					expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 					expect( func_get, "resolving persistent copy" ).not.to.throw();
 					action = state + " matches persistent";
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							tmp[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
 					break;
 				
 				case 'Q':
 					expect( func, `${message} - ${action}` ).not.to.throw();
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							clone[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
 					action += " is persistent";
 					expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 					expect( func_get, "resolving persistent copy" ).not.to.throw();
 					action = state + " matches persistent";
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							tmp[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
 					break;
 				
 				case 'U':
 					expect( func, `${message} - ${action}` ).not.to.throw();
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							clone[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
 					action += " is persistent";
 					expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 					expect( func_get, "resolving persistent copy" ).not.to.throw();
 					action = state + " matches persistent";
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							tmp[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
 					break;
 				
 				default:
 					expect( func, `${message} - ${action}` ).not.to.throw();
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							clone[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
 					action += " is persistent";
 					expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 					expect( func_get, "resolving persistent copy" ).not.to.throw();
 					action = state + " matches persistent";
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							tmp[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( tmp[ field ] );
 					break;
 			}
 			
@@ -7898,52 +8191,122 @@ class DocumentUnitTest extends UnitTest
 				
 				case 'L':
 					expect( func, `${message} - ${action}` ).not.to.throw();
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							clone[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
 					action += " is persistent";
 					expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 					expect( func_get, "resolving persistent copy" ).not.to.throw();
 					action = state + " matches persistent";
-					expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							tmp[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
 					break;
 				
 				case 'S':
 					expect( func, `${message} - ${action}` ).not.to.throw();
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							clone[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
 					action += " is persistent";
 					expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 					expect( func_get, "resolving persistent copy" ).not.to.throw();
 					action = state + " matches persistent";
-					expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							tmp[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
 					break;
 				
 				case 'Q':
 					expect( func, `${message} - ${action}` ).not.to.throw();
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							clone[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
 					action += " is persistent";
 					expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 					expect( func_get, "resolving persistent copy" ).not.to.throw();
 					action = state + " matches persistent";
-					expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							tmp[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
 					break;
 				
 				case 'U':
 					expect( func, `${message} - ${action}` ).not.to.throw();
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							clone[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
 					action += " is persistent";
 					expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 					expect( func_get, "resolving persistent copy" ).not.to.throw();
 					action = state + " matches persistent";
-					expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							tmp[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
 					break;
 				
 				default:
 					expect( func, `${message} - ${action}` ).not.to.throw();
-					expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							clone[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( doc.document[ field ], `${message} - ${action}` ).to.equal( clone[ field ] );
 					action += " is persistent";
 					expect(doc.persistent, `${message} - ${action}`).to.equal(true);
 					expect( func_get, "resolving persistent copy" ).not.to.throw();
 					action = state + " matches persistent";
-					expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
+					expect(
+						doc.matchPropertyValue(
+							doc.document[ field ],
+							tmp[ field ],
+							field ),
+						`${message} - ${action}` )
+						.to.be.true;
+					// expect( tmp[ field ], `${message} - ${action}` ).to.equal( doc.document[ field ] );
 					break;
 			}
 			
@@ -9687,6 +10050,14 @@ class DocumentUnitTest extends UnitTest
 		let replace;
 		
 		//
+		// Assert the provided object is persistent.
+		//
+		expect(
+			theObject.persistent,
+			"validatePersistentReplace() theObject parameter persistent flag"
+		).to.be.true;
+		
+		//
 		// Clone existing and new data.
 		// We clone new data, because if the replace raises an exception, we must
 		// replace the replaced value with the original one, since the exception would
@@ -9744,52 +10115,85 @@ class DocumentUnitTest extends UnitTest
 			// Set changed flag.
 			//
 			const different =
-				( ( (theNewData[field] === null)	// Deleting and there.
-				 && theObject.document.hasOwnProperty(field) )
-			   || ( (theNewData[field] !== null)	// Setting and not there
-				 && (! theObject.document.hasOwnProperty(field)) )
-			   || ( (theNewData[field] !== null) 	// Setting and different.
-				 && theObject.document.hasOwnProperty(field)
-				 && (theNewData[field] !== theObject.document[field]) ) );
+				theObject.matchPropertyValue(
+					theObject.document[ field ],
+					replace[ field ],
+					field
+				);
 			
 			//
-			// Replace reserved field.
-			// Should fail.
+			// Set considered flag.
+			// This flag tests the conditions that are needed to have
+			// setDocumentProperties() call setDocumentProperty().
 			//
-			if( theObject.reservedFields.includes( field ) )
+			const considered = theObject.willPropertySet( field, theFlag );
+			
+			//
+			// Replace reserved or locked field:
+			// 	- If locked it will always raise an exception.
+			// 	- If reserved:
+			//		- If the flag is on, it raises an exception.
+			//		- If flag is off, it doesn't.
+			//
+			if( theObject.lockedFields.includes( field )
+			 || theObject.reservedFields.includes( field ) )
 			{
 				//
-				// Catch changed field.
+				// Set type.
 				//
-				if( different )
+				let type;
+				if( theObject.lockedFields.includes( field )
+				 && theObject.reservedFields.includes( field ) )
+					type = `locked and reserved field [${field}]`;
+				else if( theObject.lockedFields.includes( field ) )
+					type = `locked field [${field}]`;
+				else
+					type = `reserved field [${field}]`;
+				
+				//
+				// Handle locked.
+				//
+				if( theObject.lockedFields.includes( field ) )
 				{
+					failed = true;
+					action = `${op} ${type}`;
 					expect( func, `${theMessage} - ${action}`
 					).to.throw(
 						MyError,
-						/is reserved and cannot be modified/
+						/Property is locked/
 					);
 				}
+				
+				//
+				// Handle reserved field.
+				//
 				else
 				{
-					action = `${op} same reserved [${field}]`;
-					expect( func, `${theMessage} - ${action}`).not.to.throw();
+					//
+					// Handle replace flag on.
+					//
+					if( theFlag )
+					{
+						failed = true;
+						action = `${op} different ${type}`;
+						expect( func, `${theMessage} - ${action}`
+						).to.throw(
+							MyError,
+							/is reserved and cannot be modified/
+						);
+					}
+					
+					//
+					// Handle replace flag off.
+					//
+					else
+					{
+						action = `${op} same ${type}`;
+						expect( func, `${theMessage} - ${action}`).not.to.throw();
+					}
 				}
-			}
 			
-			//
-			// Replace locked field,
-			// and set new data to original data if the replace raises an exception.
-			//
-			else if( theObject.lockedFields.includes( field ) )
-			{
-				failed = true;
-				action = `${op} locked [${field}]`;
-				expect( func, `${theMessage} - ${action}`
-				).to.throw(
-					MyError,
-					/Property is locked/
-				);
-			}
+			}	// Reserved or locked.
 			
 			//
 			// Replace restricted field.
