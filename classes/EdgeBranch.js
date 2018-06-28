@@ -624,7 +624,7 @@ class EdgeBranch extends Edge
 				//
 				// Clone immutable object.
 				//
-				record = JSON.parse(JSON.stringify(temp));
+				record = K.function.clone(temp);
 				
 				//
 				// Set found flag.
@@ -684,28 +684,32 @@ class EdgeBranch extends Edge
 				// Init local storage.
 				//
 				const updator = {};
+				const selector = {
+					_id: record._id,
+					_key: record._key,
+					_rev: record._rev
+				};
 				
 				//
-				// Handle branches.
+				// Add branches.
+				// Note that we add them anyway, since adding modifiers may add branches.
 				//
-				if( theBranch !== null )
-					updator[ Dict.descriptor.kBranches ] =
-						record[ Dict.descriptor.kBranches ];
+				updator[ Dict.descriptor.kBranches ] = record[ Dict.descriptor.kBranches ];
 				
 				//
-				// Handle modifiers.
+				// Add modifiers.
+				// Set to null if deleting property.
 				//
-				if( theModifier !== null )
-					updator[ Dict.descriptor.kModifiers ] =
-						( record.hasOwnProperty( Dict.descriptor.kModifiers ) )
-							? record[ Dict.descriptor.kModifiers ]
-							: null;
+				updator[ Dict.descriptor.kModifiers ] =
+					( record.hasOwnProperty( Dict.descriptor.kModifiers ) )
+					? record[ Dict.descriptor.kModifiers ]
+					: null;
 				
 				//
 				// Update edge.
 				// Will raise an exception on errors.
 				//
-				collection.update( record, updator, { keepNull : false } );
+				collection.update( selector, updator, { keepNull : false, waitForSync : true } );
 				
 			}	// Existing edge.
 			
@@ -909,7 +913,7 @@ class EdgeBranch extends Edge
 	 *
 	 * The method must not raise exceptions.
 	 *
-	 * @param theObject	{Object}		The object to update.
+	 * @param theObject		{Object}	The object to update.
 	 * @param theModifier	{Object}	The modifiers to add or delete.
 	 * @param doAdd			{Boolean}	If true, add, if false, delete.
 	 * @returns {Object}|{null}			The updated mofdifier records.
