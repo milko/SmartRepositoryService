@@ -709,7 +709,15 @@ class EdgeBranch extends Edge
 				// Update edge.
 				// Will raise an exception on errors.
 				//
-				collection.update( selector, updator, { keepNull : false, waitForSync : true } );
+				collection.update(
+					selector,
+					updator,
+					{
+						waitForSync : true,
+						keepNull	: false,
+						mergeObjects: false
+					}
+				);
 				
 			}	// Existing edge.
 			
