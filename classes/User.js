@@ -209,7 +209,7 @@ class User extends Persistent
 			//
 			if( manager !== null )
 				this.manager = manager;
-		
+			
 		}	// Handle related objects.
 		
 	}	// constructor
@@ -375,7 +375,7 @@ class User extends Persistent
 	 */
 	validateCollectionType( theCollection, doAssert = true )
 	{
-		return Document.isDocumentCollection(
+		return User.isDocumentCollection(
 			this._request,
 			theCollection,
 			doAssert
@@ -976,7 +976,7 @@ class User extends Persistent
 					FILTER doc.user == ${this._document._id}
 					REMOVE doc IN ${collection}
 		`);																			// ==>
-	
+		
 	}	// removeLogEntries
 	
 	
@@ -1331,8 +1331,8 @@ class User extends Persistent
 			// Init local storage.
 			//
 			const this_id = ( this.hasOwnProperty( '_manager' ) )
-						  ? this._manager
-						  : null;
+							? this._manager
+							: null;
 			
 			//
 			// Assert provided reference matches the current one.
