@@ -99,6 +99,11 @@ const Edge = require( './Edge' );
  * for the system administrator, the operation will not be permitted. Once the manager
  * was handled, the method will remove all the user log entries. At the end, the
  * method will call removeDocumentReferences() to remove any edge pointing to the user.
+ *
+ * The insertDocument() and replaceDocument() methods append a password parameter that
+ * can be used to set or update the user's authentication data: when inserting, the
+ * password is required, when replacing, the password should only be provided if it
+ * has changed.
  */
 class User extends Persistent
 {
@@ -115,12 +120,12 @@ class User extends Persistent
 	 * The user has two unique fields: the _key and the username.
 	 *
 	 * The constructor adds an extra private parameter to prevent an instantiation
-	 * cascading: when resolving managers, for instance, we instantiate the manager
-	 * user, this means that if it has a manager the process will go on: if you
-	 * provide false in the last parameter, the manager will not be resolved. This
-	 * signature is used internally: the resulting user object will not be valid,
-	 * since it will lack the manager, so clients MUST ALWAYS OMIT THIS PARAMETER when
-	 * calling the constructor.
+	 * cascading: when resolving managers, we instantiate the manager user, this means
+	 * that if manager has a manager the process will become recursive: if you provide
+	 * false in the last parameter, the manager will not be resolved. This signature
+	 * is used internally: the resulting user object will not be valid, since it will
+	 * lack the manager, so clients MUST ALWAYS OMIT THIS PARAMETER when calling the
+	 * constructor.
 	 *
 	 * In this class we follow these steps:
 	 *
@@ -135,7 +140,8 @@ class User extends Persistent
 	 *
 	 * This class implements the defaultCollection() method, which returns the users
 	 * collection name. Users reside by default in that collection and the database
-	 * expects users to be found in it.
+	 * expects users to be found in it: for that reason, it is suggested to omit the
+	 * collection parameter.
 	 *
 	 * There may be cases in which we want to grant access to an entity other than a
 	 * human user, such as a procedure or external service, in that case you can
@@ -202,10 +208,9 @@ class User extends Persistent
 			}
 			
 			//
-			// Set _manager data member if manager was provided.
-			// Here we raise an exception if the provided manager
-			// does not match the one in the database,
-			// if not, the setter will not need to replace the value.
+			// Set _manager data member with provided value.
+			// This is a trick to raise an exception if the provided and current
+			// managers do not match.
 			//
 			if( manager !== null )
 				this.manager = manager;
@@ -265,7 +270,7 @@ class User extends Persistent
 	 * administrator have a manager.
 	 *
 	 * Note that we do this here, rather than in validateRequiredProperties(), because
-	 * the manager is not a document property snd the current document must be valid.
+	 * the manager is not a document property and the current document must be valid.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
@@ -391,7 +396,7 @@ class User extends Persistent
 	/**
 	 * Insert document
 	 *
-	 * We overload this method's dignature to provide the user password. The method
+	 * We overload this method's signature to provide the user password. The method
 	 * will first create the authentication record, set it in the document, insert the
 	 * document and finally insert the manager edge.
 	 *
@@ -402,10 +407,11 @@ class User extends Persistent
 	 * Note: all persistence methods should first handle the user: the parent class
 	 * will raise an exception if the method was called in the wrong context.
 	 *
-	 * @param thePassword	{String} The user password.
-	 * @returns {Boolean}	True if inserted.
+	 * @param doPersist		{Boolean}	True means iwrite to database.
+	 * @param thePassword	{String}	The user password.
+	 * @returns {Boolean}				True if inserted.
 	 */
-	insertDocument( thePassword )
+	insertDocument( doPersist, thePassword )
 	{
 		//
 		// Set authentication record.
@@ -421,12 +427,13 @@ class User extends Persistent
 			//
 			// Insert user.
 			//
-			persistent = super.insertDocument();
+			persistent = super.insertDocument( doPersist );
 			
 			//
 			// Insert manager.
 			//
-			if( persistent )
+			if( persistent
+			 && doPersist )
 				this.insertManager();
 		}
 		catch( error )
@@ -519,7 +526,7 @@ class User extends Persistent
 			// normally an integrity error should be raised.
 			//
 			if( ! edge.resolveDocument( false, false ) )
-				edge.insertDocument();
+				edge.insertDocument( true );
 			
 			return edge.document._id;												// ==>
 			
@@ -657,17 +664,17 @@ class User extends Persistent
 	 * Note: all persistence methods should first handle the user: the parent class
 	 * will raise an exception if the method was called in the wrong context.
 	 *
-	 * @param doRevision	{Boolean}		If true, check revision (default).
+	 * @param doPersist		{Boolean}		True means write to database.
 	 * @param thePassword	{String}|{null}	If provided, update authentication data.
 	 * @returns {Boolean}					True if replaced or false if not valid.
 	 */
-	replaceDocument( doRevision = true, thePassword = null )
+	replaceDocument( doPersist, thePassword = null )
 	{
 		//
 		// Handle no new password.
 		//
 		if( thePassword === null )
-			return super.replaceDocument( doRevision );								// ==>
+			return super.replaceDocument( doPersist );								// ==>
 		
 		//
 		// If persistent and provided password, update authentication record.
@@ -696,7 +703,7 @@ class User extends Persistent
 				//
 				// Call parent method.
 				//
-				if( ! super.replaceDocument( doRevision ) )
+				if( ! super.replaceDocument( doPersist ) )
 				{
 					//
 					// Reset to old authentication.
@@ -756,10 +763,11 @@ class User extends Persistent
 	 * doesn't exist: this is intentional, currently, the methods of this class
 	 * ensure the integrity of the database is protected, not asserted.
 	 *
+	 * @param doPersist	{Boolean}	True means write to database.
 	 * @param doFail	{Boolean}	If false, don't fail on document not found (default).
 	 * @returns {Boolean}	True removed, false not found, null not persistent.
 	 */
-	removeDocument( doFail = false )
+	removeDocument( doPersist, doFail = false )
 	{
 		//
 		// Call parent method.
@@ -767,7 +775,7 @@ class User extends Persistent
 		// if this method was called by insert(), it will proceed only if
 		// the user was actually inserted or if it exists.
 		//
-		const result = super.removeDocument( doFail );
+		const result = super.removeDocument( doPersist, doFail );
 		
 		//
 		// Remove group and manager.
@@ -1568,13 +1576,13 @@ class User extends Persistent
 			// Insert edge.
 			//
 			if( doAdd )
-				return edge.insertDocument();										// ==>
+				return edge.insertDocument( true );									// ==>
 			
 			//
 			// Resolve edge.
 			//
 			if( edge.resolveDocument( false, false ) )
-				return edge.removeDocument();										// ==>
+				return edge.removeDocument( true );									// ==>
 			
 			return false;															// ==>
 			
@@ -1752,7 +1760,7 @@ class User extends Persistent
 			//
 			// Remove relationship to current manager.
 			//
-			edge.removeDocument();
+			edge.removeDocument( true );
 			
 			//
 			// Update directly the current user manager.
@@ -1792,7 +1800,7 @@ class User extends Persistent
 			// If that is not the case, the database is corrupt: need to implement
 			// safeguards.
 			//
-			edge.insertDocument();
+			edge.insertDocument( true );
 			
 		}	// Persistent.
 		

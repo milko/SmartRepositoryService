@@ -456,7 +456,7 @@ class EdgeBranchUnitTest extends EdgeUnitTest
 		//
 		message = "Replace with all branches deleted";
 		func = () => {
-			result = doc.replaceDocument();
+			result = doc.replaceDocument( true );
 		};
 		expect( func, `${message}` ).not.to.throw();
 		action = "Was deleted";

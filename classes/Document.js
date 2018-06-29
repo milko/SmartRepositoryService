@@ -1295,10 +1295,13 @@ class Document
 	 * document is not persistent: this means that you must set collection indexes so
 	 * that unique field conflicts are caught.
 	 *
-	 * @param doInsert	{Boolean}	True means inset the document (default).
+	 * Derived classes should maintain this signature and add eventual parameters
+	 * after the persist flag.
+	 *
+	 * @param doPersist	{Boolean}	True means write to database.
 	 * @returns {Boolean}	True if inserted.
 	 */
-	insertDocument( doInsert = true )
+	insertDocument( doPersist )
 	{
 		//
 		// Prevent inserting persistent objects.
@@ -1319,14 +1322,14 @@ class Document
 			{
 				//
 				// Set insert information.
+				// Note that we enforce raising exceptions.
 				//
-				if( ! this.normaliseInsertProperties( true ) )
-					return false;													// ==>
+				this.normaliseInsertProperties( true );
 				
 				//
 				// Insert.
 				//
-				if( doInsert )
+				if( doPersist )
 				{
 					//
 					// Write to database.
@@ -1898,20 +1901,26 @@ class Document
 	 * will first check if the current object is persistent, if that is the case, it
 	 * will validate the current document and replace its contents in the database.
 	 *
-	 * The method will return true if the document was replaced or false if the
-	 * document is not valid. The method will raise an exception if any of the
+	 * The method will return true if the document was replaced or raise an exception
+	 * if the document is not valid. The method will raise an exception if any of the
 	 * following conditions are met:
 	 *
+	 * 	- The current object is not persistent.
 	 * 	- Any current property is invalid.
 	 * 	- Any current value replaces an existing locked value.
 	 * 	- The current object does not exist.
-	 * 	- doRevision is true and current and existing revisions do not match.
-	 * 	- The current object is not persistent.
+	 * 	- The current and persistent revisions do not match.
 	 *
-	 * @param doRevision	{Boolean}	If true, check revision (default).
-	 * @returns {Boolean}				True if replaced or false if not valid.
+	 * If you provide false in doPersist, the operation will omit persisting to the
+	 * database.
+	 *
+	 * Derived classes should maintain this signature and add eventual parameters
+	 * after the persist flag.
+	 *
+	 * @param doPersist	{Boolean}	True means write to database.
+	 * @returns {Boolean}			True if replaced or false if not valid.
 	 */
-	replaceDocument( doRevision = true )
+	replaceDocument( doPersist )
 	{
 		//
 		// Prevent replacing non persistent objects.
@@ -1932,61 +1941,76 @@ class Document
 			
 			//
 			// Set replace information.
+			// Note that we enforce exceptions.
 			//
-			if( ! this.normaliseReplaceProperties( true ) )
-				return false;														// ==>
+			this.normaliseReplaceProperties( true );
 			
 			//
-			// Replace.
+			// Write to database.
 			//
-			try
+			if( doPersist )
 			{
 				//
-				// Replace document.
+				// Replace.
 				//
-				const meta =
-					db._replace(
-						{ _id : this._document._id },	// Selector.
-						this._document,					// New data.
-						{ overwrite : (! doRevision) }	// Handle revision.
-					);
+				try
+				{
+					//
+					// Replace document.
+					// Force revision errors.
+					//
+					const meta =
+						db._replace(
+							{
+								_id : this._document._id,
+								_key: this._document._key,
+								_rev: this._document._rev
+							},
+							this._document,
+							{
+								waitForSync : true,
+								overwrite 	: false
+							}
+						);
+					
+					//
+					// Set revision flag.
+					//
+					this._revised = ( meta._rev !== meta.oldRev );
+					
+					//
+					// Set revision.
+					//
+					this._document._rev = meta._rev;
+				}
+				catch( error )
+				{
+					//
+					// Ignore not found.
+					//
+					if( (! error.isArangoError)
+					 || (error.errorNum !== ARANGO_NOT_FOUND) )
+						throw( error );											// !@! ==>
+					
+					//
+					// Reset persistent flag.
+					//
+					this._persistent = false;
+					
+					throw(
+						new MyError(
+							'ReplaceDocument',					// Error name.
+							K.error.DocumentNotFound,			// Message code.
+							this._request.application.language,	// Language.
+							[this._document._key, this._collection],
+							404									// HTTP error code.
+						)
+					);															// !@! ==>
+				}
 				
-				//
-				// Set revision flag.
-				//
-				this._revised = ( meta._rev !== meta.oldRev );
-				
-				//
-				// Set revision.
-				//
-				this._document._rev = meta._rev;
-				
-				return true;														// ==>
-			}
-			catch( error )
-			{
-				//
-				// Ignore not found.
-				//
-				if( (! error.isArangoError)
-				 || (error.errorNum !== ARANGO_NOT_FOUND) )
-					throw( error );												// !@! ==>
-				
-				//
-				// Reset persistent flag.
-				//
-				this._persistent = false;
-				
-				throw(
-					new MyError(
-						'ReplaceDocument',					// Error name.
-						K.error.DocumentNotFound,			// Message code.
-						this._request.application.language,	// Language.
-						[this._document._key, this._collection],
-						404									// HTTP error code.
-					)
-				);																// !@! ==>
-			}
+			}	// Persist to database.
+			
+			return true;															// ==>
 			
 		}	// Is persistent.
 		
@@ -2023,10 +2047,15 @@ class Document
 	 * default, this means that if that method fails without raising an exception, by
 	 * returning false, the exception will be raised in this method.
 	 *
+	 * If the doPersist flag is off, the method will not initiate the removal process,
+	 * this feature is useful when replacing or inserting documents involves removals:
+	 * in that case the doPersist flag should be passed to the other persistence methods.
+	 *
+	 * @param doPersist	{Boolean}	True means write to database.
 	 * @param doFail	{Boolean}	If false, don't fail on document not found (default).
 	 * @returns {Boolean}	True removed, false not found, null not persistent.
 	 */
-	removeDocument( doFail = false )
+	removeDocument( doPersist, doFail = false )
 	{
 		//
 		// Prevent replacing non persistent objects.
@@ -2051,52 +2080,59 @@ class Document
 				);																// !@! ==>
 			
 			//
-			// Remove.
+			// Persist to database.
 			//
-			try
+			if( doPersist )
 			{
 				//
-				// Delete.
+				// Remove.
 				//
-				db._remove( this._document );
+				try
+				{
+					//
+					// Delete.
+					//
+					db._remove( this._document );
+					
+					//
+					// Update persistent flag.
+					//
+					this._persistent = false;
+				}
+				catch( error )
+				{
+					//
+					// Raise all except not found.
+					//
+					if( (! error.isArangoError)
+						|| (error.errorNum !== ARANGO_NOT_FOUND) )
+						throw( error );												// !@! ==>
+					
+					//
+					// Update persistent flag.
+					//
+					this._persistent = false;
+					
+					//
+					// Ignore not found error.
+					//
+					if( ! doFail )
+						return false;													// ==>
+					
+					throw(
+						new MyError(
+							'RemoveDocument',					// Error name.
+							K.error.DocumentNotFound,			// Message code.
+							this._request.application.language,	// Language.
+							[this._document._key, this._collection],
+							404									// HTTP error code.
+						)
+					);																// !@! ==>
+				}
 				
-				//
-				// Update persistent flag.
-				//
-				this._persistent = false;
-				
-				return true;														// ==>
-			}
-			catch( error )
-			{
-				//
-				// Raise all except not found.
-				//
-				if( (! error.isArangoError)
-				 || (error.errorNum !== ARANGO_NOT_FOUND) )
-					throw( error );												// !@! ==>
-				
-				//
-				// Update persistent flag.
-				//
-				this._persistent = false;
-				
-				//
-				// Ignore not found error.
-				//
-				if( ! doFail )
-					return false;													// ==>
-				
-				throw(
-					new MyError(
-						'RemoveDocument',					// Error name.
-						K.error.DocumentNotFound,			// Message code.
-						this._request.application.language,	// Language.
-						[this._document._key, this._collection],
-						404									// HTTP error code.
-					)
-				);																// !@! ==>
-			}
+			}	// Persist to database.
+			
+			return true;															// ==>
 			
 		}	// Is persistent.
 		

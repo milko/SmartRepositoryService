@@ -136,7 +136,7 @@ module.exports = {
 			//
 			// Insert user.
 			//
-			user.insertDocument( encode[ Dict.descriptor.kPassword ] );
+			user.insertDocument( true,  encode[ Dict.descriptor.kPassword ] );
 			
 			//
 			// Return response.
@@ -587,7 +587,7 @@ module.exports = {
 			// Insert user.
 			//
 			const user = new User( theRequest, data );
-			user.insertDocument( password );
+			user.insertDocument( true, password );
 			
 			//
 			// Login user.

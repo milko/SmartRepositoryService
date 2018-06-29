@@ -161,7 +161,7 @@ describe( "EdgeAttribute class tests:", function ()
 			// Insert node.
 			//
 			func = () => {
-				result = doc.insertDocument();
+				result = doc.insertDocument( true );
 			};
 			expect( func, `Insert node` ).not.to.throw();
 			expect( result, "Insert result" ).to.be.true;

@@ -186,29 +186,23 @@ class EdgeBranch extends Edge
 	 * The method will return the result of whatever method was called: replace or
 	 * remove, which means true is success.
 	 *
-	 * @param doRevision	{Boolean}	If true, check revision (default).
+	 * @param doPersist	{Boolean}	True means write to database.
 	 * @returns {Boolean}|{null}		True if replaced or null if not persistent.
 	 */
-	replaceDocument( doRevision = true )
+	replaceDocument( doPersist )
 	{
 		//
-		// Prevent replacing non persistent objects.
-		// We check this here to catch eventual blunders.
+		// Remove edge if branches are empty.
+		//	- Persist flag is on.
+		//	- Object is persistent.
+		//	- Has no branches.
 		//
-		if( this._persistent )
-		{
-			//
-			// Handle no more branches.
-			//
-			if( ! this._document.hasOwnProperty( Dict.descriptor.kBranches ) )
-				return this.removeDocument();										// ==>
-			
-		}	// Document is persistent.
+		if( doPersist
+		 && this._persistent
+		 && (! this._document.hasOwnProperty( Dict.descriptor.kBranches )) )
+			return this.removeDocument( doPersist );								// ==>
 		
-		//
-		// Call parent method.
-		//
-		return super.replaceDocument();												// ==>
+		return super.replaceDocument( doPersist );									// ==>
 		
 	}	// replaceDocument
 	

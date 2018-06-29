@@ -370,7 +370,8 @@ module.exports = Object.freeze(
 			CrossCollectionRef	: 106,
 			NoSelectionData		: 107,
 			HasConstraints		: 108,
-			ObjectIsImmutable	: 109
+			ObjectIsImmutable	: 109,
+			BadTransOpCode		: 110
 		},
 
 		//

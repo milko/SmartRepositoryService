@@ -129,7 +129,7 @@ router.post
 			let insert = null;
 			if( request.body.insert )
 			{
-				insert = document.insertDocument();
+				insert = document.insertDocument( true );
 				if( insert )
 				{
 					if( ! db._exists( document.document ) )
@@ -149,9 +149,7 @@ router.post
 			//
 			let replace = null;
 			if( request.body.replace )
-				replace = document.replaceDocument(
-					request.body.revision
-				);
+				replace = document.replaceDocument( true );
 			
 			//
 			// Remove document.
@@ -162,7 +160,7 @@ router.post
 				//
 				// Remove document.
 				//
-				remove = document.removeDocument();
+				remove = document.removeDocument( true );
 				if( remove )
 				{
 					//
@@ -371,7 +369,7 @@ router.post
 			let insert = null;
 			if( request.body.insert )
 			{
-				insert = document.insertDocument();
+				insert = document.insertDocument( true );
 				if( insert )
 				{
 					if( ! db._exists( document.document ) )
@@ -391,9 +389,7 @@ router.post
 			//
 			let replace = null;
 			if( request.body.replace )
-				replace = document.replaceDocument(
-					request.body.revision
-				);
+				replace = document.replaceDocument( true );
 			
 			//
 			// Remove document.
@@ -404,7 +400,7 @@ router.post
 				//
 				// Remove document.
 				//
-				remove = document.removeDocument();
+				remove = document.removeDocument( true );
 				if( remove )
 				{
 					//
@@ -612,7 +608,7 @@ router.post
 			let insert = null;
 			if( request.body.insert )
 			{
-				insert = document.insertDocument();
+				insert = document.insertDocument( true );
 				if( insert )
 				{
 					if( ! db._exists( document.document ) )
@@ -632,9 +628,7 @@ router.post
 			//
 			let replace = null;
 			if( request.body.replace )
-				replace = document.replaceDocument(
-					request.body.revision
-				);
+				replace = document.replaceDocument( true );
 			
 			//
 			// Remove document.
@@ -645,7 +639,7 @@ router.post
 				//
 				// Remove document.
 				//
-				remove = document.removeDocument();
+				remove = document.removeDocument( true );
 				if( remove )
 				{
 					//
@@ -915,9 +909,7 @@ router.post
 			//
 			let replace = null;
 			if( request.body.replace )
-				replace = document.replaceDocument(
-					request.body.revision
-				);
+				replace = document.replaceDocument( true );
 			
 			//
 			// Remove document.
@@ -928,7 +920,7 @@ router.post
 				//
 				// Remove document.
 				//
-				remove = document.removeDocument();
+				remove = document.removeDocument( true );
 				if( remove )
 				{
 					//
@@ -1276,7 +1268,7 @@ router.post
 			let insert = null;
 			if( request.body.insert )
 			{
-				insert = document.insertDocument();
+				insert = document.insertDocument( true );
 				if( insert )
 				{
 					if( ! db._exists( document.document ) )
@@ -1296,9 +1288,7 @@ router.post
 			//
 			let replace = null;
 			if( request.body.replace )
-				replace = document.replaceDocument(
-					request.body.revision
-				);
+				replace = document.replaceDocument( true );
 			
 			//
 			// Remove document.
@@ -1309,7 +1299,7 @@ router.post
 				//
 				// Remove document.
 				//
-				remove = document.removeDocument();
+				remove = document.removeDocument( true );
 				if( remove )
 				{
 					//
@@ -1488,11 +1478,11 @@ router.get
 			//
 			let doc;
 			doc = new TestClass( request, {_key: "baba4"}, "test" );
-			doc.insertDocument();
+			doc.insertDocument( true );
 			doc = new TestClass( request, {_key: "baba5"}, "test" );
-			doc.insertDocument();
+			doc.insertDocument( true );
 			doc = new TestClass( request, {_key: "baba3"}, "test" );
-			doc.insertDocument();
+			doc.insertDocument( true );
 			
 			return true;
 		};

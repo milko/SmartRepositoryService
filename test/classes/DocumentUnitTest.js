@@ -4314,7 +4314,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		action = "Insertion";
 		func = () => {
-			result = doc.insertDocument();
+			result = doc.insertDocument( true );
 		};
 		expect( func, `${message} - ${action}` ).not.to.throw();
 		
@@ -4728,7 +4728,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			action = "Insertion";
 			func = () => {
-				result = doc.insertDocument();
+				result = doc.insertDocument( true );
 			};
 			
 			//
@@ -4751,7 +4751,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			action = "Insertion";
 			func = () => {
-				result = doc.insertDocument();
+				result = doc.insertDocument( true );
 			};
 			
 			//
@@ -4935,7 +4935,7 @@ class DocumentUnitTest extends UnitTest
 				{
 					message = `Insert without [${field}]`;
 					func = () => {
-						result = doc.insertDocument();
+						result = doc.insertDocument( true );
 					};
 					expect( func, `${message}`
 					).to.throw(
@@ -4977,7 +4977,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			message = "Insertion without required fields";
 			func = () => {
-				result = doc.insertDocument();
+				result = doc.insertDocument( true );
 			};
 			expect( func, `${message}` ).not.to.throw();
 			
@@ -5131,7 +5131,7 @@ class DocumentUnitTest extends UnitTest
 				//
 				message = `Insert without [${field}]`;
 				func = () => {
-					result = doc.insertDocument();
+					result = doc.insertDocument( true );
 				};
 				
 				//
@@ -5219,7 +5219,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			message = "Insertion without significant fields";
 			func = () => {
-				result = doc.insertDocument();
+				result = doc.insertDocument( true );
 			};
 			expect( func, `${message}` ).not.to.throw();
 			
@@ -5357,7 +5357,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Insert";
 		func = () => {
-			result = doc.insertDocument();
+			result = doc.insertDocument( true );
 		};
 		expect( func, message ).not.to.throw();
 		
@@ -5508,7 +5508,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Insert";
 		func = () => {
-			result = doc.insertDocument();
+			result = doc.insertDocument( true );
 		};
 		
 		//
@@ -5599,7 +5599,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Insert";
 		func = () => {
-			result = doc.insertDocument();
+			result = doc.insertDocument( true );
 		};
 		expect( func, message
 		).to.throw(
@@ -5720,7 +5720,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			message = "Insert";
 			func = () => {
-				result = doc.insertDocument();
+				result = doc.insertDocument( true );
 			};
 			expect( func, message ).not.to.throw();
 			
@@ -5844,7 +5844,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Insert";
 		func = () => {
-			result = doc.insertDocument();
+			result = doc.insertDocument( true );
 		};
 		expect( func, message
 		).to.throw(
@@ -7789,7 +7789,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Replace";
 		func = () => {
-			result = doc.replaceDocument();
+			result = doc.replaceDocument( true );
 		};
 		expect( func, `${message}`
 		).to.throw(
@@ -7850,7 +7850,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Replace";
 		func = () => {
-			result = doc.replaceDocument();
+			result = doc.replaceDocument( true );
 		};
 		expect( func, `${message}`
 		).to.throw(
@@ -8019,7 +8019,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			message = "Replace";
 			func = () => {
-				result = doc.replaceDocument();
+				result = doc.replaceDocument( true );
 			};
 			switch( status )
 			{
@@ -8178,7 +8178,7 @@ class DocumentUnitTest extends UnitTest
 			message = "Replace";
 			action = state;
 			func = () => {
-				result = doc.replaceDocument();
+				result = doc.replaceDocument( true );
 			};
 			switch( status )
 			{
@@ -8567,7 +8567,7 @@ class DocumentUnitTest extends UnitTest
 				//
 				message = "Replace changed value";
 				func = () => {
-					result = doc.replaceDocument();
+					result = doc.replaceDocument( true );
 				};
 				switch( status )
 				{
@@ -8773,7 +8773,7 @@ class DocumentUnitTest extends UnitTest
 				//
 				message = "Replace";
 				func = () => {
-					result = doc.replaceDocument();
+					result = doc.replaceDocument( true );
 				};
 				switch( status )
 				{
@@ -8886,7 +8886,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Test remove constrained with fail flag on";
 		func = () => {
-			result = doc.removeDocument( true );
+			result = doc.removeDocument( true, true );
 		};
 		expect( func, `${message}` ).not.to.throw();
 		action = "Result";
@@ -8925,7 +8925,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Test remove constrained with fail flag off";
 		func = () => {
-			result = doc.removeDocument( false );
+			result = doc.removeDocument( true, false );
 		};
 		expect( func, `${message}` ).not.to.throw();
 		action = "Result";
@@ -9015,7 +9015,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Remove with fail on";
 		func = () => {
-			result = doc.removeDocument( true );
+			result = doc.removeDocument( true, true );
 		};
 		expect( func, `${message}`
 		).to.throw(
@@ -9028,7 +9028,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Remove with fail off";
 		func = () => {
-			result = doc.removeDocument( false );
+			result = doc.removeDocument( true, false );
 		};
 		expect( func, `${message}`
 		).to.throw(
@@ -9090,7 +9090,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Test remove non existing  with fail flag on";
 		func = () => {
-			result = doc.removeDocument( true );
+			result = doc.removeDocument( true, true );
 		};
 		expect( func, `${message}`
 		).to.throw(
@@ -9139,7 +9139,7 @@ class DocumentUnitTest extends UnitTest
 		//
 		message = "Test remove non existing  with fail flag off";
 		func = () => {
-			result = doc.removeDocument( false );
+			result = doc.removeDocument( true, false );
 		};
 		expect( func, `${message}` ).not.to.throw();
 		action = "Persistent";
@@ -9230,7 +9230,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			message = "Test remove constrained with fail flag on";
 			func = () => {
-				result = doc.removeDocument( true );
+				result = doc.removeDocument( true, true );
 			};
 			expect( func, `${message}`
 			).to.throw(
@@ -9245,7 +9245,7 @@ class DocumentUnitTest extends UnitTest
 			//
 			message = "Test remove constrained with fail flag off";
 			func = () => {
-				result = doc.removeDocument( false );
+				result = doc.removeDocument( true, false );
 			};
 			expect( func, `${message}`
 			).to.throw(
