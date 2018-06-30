@@ -69,24 +69,37 @@ const Edge = require( './Edge' );
  * 	  which presents the user a form in which it can update personal information and
  * 	  provide the password. Once the form is submitted, the user is active and logged in.
  *
- * All users must be created by another user, the latter becomes the manager of that
- * user and takes responsibility to manage it. Only one user is not required to have a
- * manager, the system administrator: this user is created with a service which will
- * run only if there are no users in the database. The manager relationships are store
- * using graph edges, to allow traversing manager hierarchies. Any manager above the
- * current user hierarchical level is allowed to manage that user.
+ * All users must be created by another user, the latter becomes the user's manager
+ * who takes responsibility to manage it. Only one user is not required to have a
+ * manager, the system administrator: this user can only be created when there are no
+ * users in the database. The manager relationships are stored using graph edges. Any
+ * manager above the current user hierarchical level is allowed to manage that user.
  *
- * Users can also be part of a group, this membership relationship is also implemented
+ * Users can also belong to a group, this membership relationship is also implemented
  * using graph edges. The group can be any Document derived instance and, unlike with
  * managers, a user may be a member of more than one group.
  *
- * This class adds a series of members which can be used to handle manager hierarchies:
+ * All users must also have a password, this is required when a user in inserted for
+ * the first time in the database and can be changed when updating or replacing the
+ * user record. The password is never stored in the user document, it is used to
+ * create an authentication record which is used to validate a provided password.
  *
- * - _manager:			This is a non persistent data member of the object which records
+ * These three properties, the manager, the groups and the password, exist as
+ * descriptors and can be provided when instantiating the user from an object, but
+ * they will never be stored in the user record. These special properties are declared
+ * restricted, which means that they will always be removed from the user document.
+ * The following non persistent data members are used to manage these references:
+ *
+ * 	- _manager:			This is a non persistent data member of the object which records
  * 						the manager _id, it can be accessed with the 'manager' getter.
- * - _manages:			This member holds the number of directly managed users, it is
+ * 	- _manages:			This member holds the number of directly managed users, it is
  * 						set if the object is persistent and is used to prevent having to
  * 						repeatedly probe the database.
+ * 	- _groups:			This member holds the list of group _id references to which the
+ * 						current	user belongs.
+ *
+ * The password is never stored in the object, it can only be set or changed when
+ * instantiating the object before it is inserted, or
  *
  * Both the group and manager are reserved members, the manager can only be set by
  * providing it in the constructor, or by using the manager() setter while the object
