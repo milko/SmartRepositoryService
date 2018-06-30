@@ -103,10 +103,15 @@ class Transaction
 		this.record.collections = {};
 		
 		//
+		// Init action function.
+		//
+		this.record.action = () => {};
+		
+		//
 		// Init parameters element.
 		//
 		this.record.params = [];
-	
+		
 	}	// constructor
 	
 	/**
@@ -245,7 +250,7 @@ class Transaction
 		//
 		// Define default transaction action.
 		//
-		this.record.action = function (params)
+		this.record.action = function ( theParameters )
 		{
 			//
 			// Init local storage.
@@ -255,7 +260,7 @@ class Transaction
 			//
 			// Iterate operations.
 			//
-			for( const record of this.record.params )
+			for( const record of theParameters )
 			{
 				//
 				// Set waitForSync flag.

@@ -25,6 +25,17 @@ const Persistent = require( './Persistent' );
 //
 const Edge = require( './Edge' );
 
+//
+// MILKO:
+// Why not use restricted fields to handle password, manager and group,
+// all three fields are valid descriptors, so we could intercept them
+// when restricted fields are handled.
+// This would allow us not to need to add the password in the insert and replace
+// structures.
+//
+// Note: Remember to implement update user password.
+//
+
 
 /**
  * User class

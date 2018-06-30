@@ -411,19 +411,24 @@ module.exports = Object.freeze(
 		// Function snippets.
 		//
 		function: {
-			isObject	: (obj) => {
-				if( (obj === null)
-				 || Array.isArray(obj)
-				 || (typeof obj === 'function') )
-					return false;
-				return (typeof obj === 'object');
-			},
 			clone		: (obj) => {
 				return JSON.parse(JSON.stringify(obj));
 			},
 			flatten		: (arr) => {
 				return [].concat(...arr);
-			}
+			},
+			className	: (cls) => {
+				if( typeof(cls) === 'function' )
+					return cls.prototype.constructor.name;
+				return null;
+			},
+			isObject	: (obj) => {
+				if( (obj === null)
+					|| Array.isArray(obj)
+					|| (typeof obj === 'function') )
+					return false;
+				return (typeof obj === 'object');
+			},
 		}
 	}
 );
