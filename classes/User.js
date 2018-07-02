@@ -4,6 +4,7 @@
 // Frameworks.
 //
 const db = require('@arangodb').db;
+const aql = require('@arangodb').aql;
 const errors = require('@arangodb').errors;
 const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
@@ -24,6 +25,7 @@ const Persistent = require( './Persistent' );
 // Classes.
 //
 const Edge = require( './Edge' );
+const Transaction = require( './Transaction' );
 
 
 /**
@@ -74,14 +76,15 @@ const Edge = require( './Edge' );
  * create an authentication record which is used to validate a provided password and
  * can be provided only using the dedicated setPassword() method.
  *
- * These three properties, the manager, the groups and the password, exist as
- * descriptors and can be provided when instantiating the user from an object, but
- * they will never be stored in the user record. These special properties are declared
- * restricted, which means that they will always be removed from the user document.
- * The following non persistent data members are used to manage these references:
+ * These three properties, the manager, the groups and the password, are not user data
+ * members, the corresponding descriptors are set as restricted, but can be
+ * intercepted before instantiating the user.
+ *
+ * The following non persistent data members are used to handle manager references:
  *
  * 	- _manager:			This is a non persistent data member of the object which records
- * 						the manager _id, it can be accessed with the 'manager' getter.
+ * 						the manager _id, it can be accessed with the 'manager'
+ * 						getter/setter.
  * 	- _manages:			This member holds the number of directly managed users, it is
  * 						set if the object is persistent and is used to prevent having to
  * 						repeatedly probe the database.
@@ -107,11 +110,6 @@ const Edge = require( './Edge' );
  * was handled, the method will remove all the user log entries. At the end, the
  * method will call removeDocumentReferences() to remove any edge pointing to the user.
  *
- * The insertDocument() and replaceDocument() methods append a password parameter that
- * can be used to set or update the user's authentication data: when inserting, the
- * password is required, when replacing, the password should only be provided if it
- * has changed.
- *
  * User groups are set or removed using the setGroup() method, this feature is still
  * under development and has not been finalised.
  */
@@ -120,18 +118,14 @@ class User extends Persistent
 	/**
 	 * Constructor
 	 *
-	 * We overload the constructor to intercept the manager and groups from the provided
-	 * object reference, the manager must be provided in the 'manager' property and
-	 * can take the same signatures as the theReference parameter to this constructor.
+	 * We overload the constructor to load the user manager if the object becomes
+	 * persistent, we first call the parent constructor, then, if the provided
+	 * reference was resolved, we load the manager in a non persistent data member of
+	 * the object.
 	 *
-	 * The manager is stored in the '_manager' data member of this object. All users
-	 * MUST have a manager, except the system administrator.
-	 *
-	 * The user has two unique fields: the _key and the username.
-	 *
-	 * The constructor adds an extra private parameter to prevent an instantiation
+	 * The constructor appends an extra private parameter to prevent an instantiation
 	 * cascading: when resolving managers, we instantiate the manager user, this means
-	 * that if manager has a manager the process will become recursive: if you provide
+	 * that if the manager has a manager the process will become recursive: if you provide
 	 * false in the last parameter, the manager will not be resolved. This signature
 	 * is used internally: the resulting user object will not be valid, since it will
 	 * lack the manager, so clients MUST ALWAYS OMIT THIS PARAMETER when calling the
@@ -139,24 +133,10 @@ class User extends Persistent
 	 *
 	 * In this class we follow these steps:
 	 *
-	 * 	- Extract and remove the manager reference from the provided object selector.
 	 * 	- Call the parent constructor.
-	 * 	- If doRelated is true:
-	 * 		- If the object is persistent:
-	 * 			- We initialise the manager with the eventual one found in the
-	 * 			  database.
-	 * 		- If the manager was provided, we set it; this covers the case in which
-	 * 		  the object is not persistent, or if the manager was not explicitly provided.
-	 *
-	 * This class implements the defaultCollection() method, which returns the users
-	 * collection name. Users reside by default in that collection and the database
-	 * expects users to be found in it: for that reason, it is suggested to omit the
-	 * collection parameter.
-	 *
-	 * There may be cases in which we want to grant access to an entity other than a
-	 * human user, such as a procedure or external service, in that case you can
-	 * provide the collection explicitly which will override the default one. Note
-	 * that only elements of the users collection can be managers.
+	 * 	- If the object is persistent.
+	 * 		- If doRelated is true:
+	 * 			- Load the user manager from the database.
 	 *
 	 * @param theRequest	{Object}					The current request.
 	 * @param theReference	{String}|{Object}|{null}	The document reference or object.
@@ -171,24 +151,6 @@ class User extends Persistent
 		isImmutable = false,
 		doRelated = true )
 	{
-		//
-		// Init local storage.
-		//
-		let manager = null;
-		
-		//
-		// Extract and remove the manager from the selector.
-		//
-		if( K.function.isObject( theReference ) )
-		{
-			//
-			// Save manager.
-			//
-			if( theReference.hasOwnProperty( Dict.descriptor.kManager ) )
-				manager = theReference[ Dict.descriptor.kManager ];
-			
-		}	// Provided an object initialiser.
-		
 		//
 		// Call parent constructor.
 		//
@@ -213,14 +175,6 @@ class User extends Persistent
 				if( reference !== null )
 					this.manager = reference;
 			}
-			
-			//
-			// Set _manager data member with provided value.
-			// This is a trick to raise an exception if the provided and current
-			// managers do not match.
-			//
-			if( manager !== null )
-				this.manager = manager;
 			
 		}	// Handle related objects.
 		
@@ -402,69 +356,68 @@ class User extends Persistent
 	/**
 	 * Insert document
 	 *
-	 * We overload this method's signature to provide the user password. The method
-	 * will first create the authentication record, set it in the document, insert the
-	 * document and finally insert the manager edge.
+	 * We overload this method because inserting a user involves inserting the user
+	 * document and inserting the manager relationship.
 	 *
-	 * The method performs these operations sequentially without programmatically
-	 * rolling back if the transaction, for this reason it is the responsibility of
-	 * the caller to enclose the business logic in a transaction.
-	 *
-	 * Note: all persistence methods should first handle the user: the parent class
-	 * will raise an exception if the method was called in the wrong context.
+	 * ToDo:
+	 * We cannot implement a stransaction as is, because we need to instantiate the
+	 * edge with the user _id, passing the edge class hierarchy currently doesn't worh
+	 * with transactions.
 	 *
 	 * @param doPersist		{Boolean}	True means iwrite to database.
-	 * @param thePassword	{String}	The user password.
 	 * @returns {Boolean}				True if inserted.
 	 */
-	insertDocument( doPersist, thePassword )
+	insertDocument( doPersist )
 	{
 		//
-		// Set authentication record.
+		// Call parent method.
 		//
-		User.setAuthentication( thePassword, this );
+		let persistent = super.insertDocument( doPersist );
 		
 		//
-		// Insert user and manager.
+		// Handle manager.
 		//
-		let persistent = false;
-		try
+		if( doPersist
+		 && this.hasOwnProperty( '_manager' ) )
 		{
-			//
-			// Insert user.
-			//
-			persistent = super.insertDocument( doPersist );
-			
 			//
 			// Insert manager.
 			//
-			if( persistent
-			 && doPersist )
+			try
+			{
 				this.insertManager();
-		}
-		catch( error )
-		{
-			//
-			// Delete authentication record.
-			//
-			if( this._document.hasOwnProperty( Dict.descriptor.kAuthData ) )
-				delete this._document[ Dict.descriptor.kAuthData ];
-			
-			//
-			// Remove revision.
-			// We wan t the user to be deleted.
-			//
-			if( this._document.hasOwnProperty( '_rev' ) )
-				delete this._document._rev;
-			
-			//
-			// Remove user.
-			//
-			if( persistent )
-				db._remove( this._document );
-			
-			throw( error );															// ==>
-		}
+			}
+			catch( error )
+			{
+				//
+				// Remove revision.
+				// We want to be sure the user will be deleted.
+				//
+				if( this._document.hasOwnProperty( '_rev' ) )
+					delete this._document._rev;
+				
+				//
+				// Remove user.
+				//
+				if( persistent )
+					db._remove( this._document._id );
+				
+				//
+				// Remove references.
+				//
+				if( this._document.hasOwnProperty( '_id' ) )
+					delete this._document._id;
+				if( this._document.hasOwnProperty( '_key' ) )
+					delete this._document._key;
+				
+				//
+				// We don't consider the edge, since it cannot have been inserted.
+				//
+				
+				throw( error );													// !@! ==>
+			}
+		
+		}	// Persist and has manager.
 		
 		return persistent;															// ==>
 		
@@ -660,315 +613,168 @@ class User extends Persistent
 	}	// resolveManager
 	
 	/**
-	 * Replace document
-	 *
-	 * We overload this method's signature by appending the password parameter, it is
-	 * used to update the authentication record in the event of a password change: if
-	 * provided, the authentication record will be replaced; if not, the
-	 * authentication record will not be changed.
-	 *
-	 * Note: all persistence methods should first handle the user: the parent class
-	 * will raise an exception if the method was called in the wrong context.
-	 *
-	 * @param doPersist		{Boolean}		True means write to database.
-	 * @param thePassword	{String}|{null}	If provided, update authentication data.
-	 * @returns {Boolean}					True if replaced or false if not valid.
-	 */
-	replaceDocument( doPersist, thePassword = null )
-	{
-		//
-		// Handle no new password.
-		//
-		if( thePassword === null )
-			return super.replaceDocument( doPersist );								// ==>
-		
-		//
-		// If persistent and provided password, update authentication record.
-		// Note that we copy the structure of the parent method: we need to do it
-		// because we have to set the authentication record.
-		//
-		if( this._persistent )
-		{
-			//
-			// Save authentication record.
-			// We will reset it if replace fails.
-			// Note that we assume it is there: all users must have it.
-			//
-			const auth = this._document[ Dict.descriptor.kAuthData ];
-			
-			//
-			// Remove.
-			//
-			try
-			{
-				//
-				// Set authentication record.
-				//
-				User.setAuthentication( thePassword, this );
-				
-				//
-				// Call parent method.
-				//
-				if( ! super.replaceDocument( doPersist ) )
-				{
-					//
-					// Reset to old authentication.
-					//
-					this._document[ Dict.descriptor.kAuthData ] = auth;
-					
-					return false;													// ==>
-				}
-				
-				return true;														// ==>
-			}
-			catch( error )
-			{
-				//
-				// Reset authentication.
-				//
-				this._document[ Dict.descriptor.kAuthData ] = auth;
-				
-				throw( error );													// !@! ==>
-			}
-			
-		}	// Object is persistent.
-		
-		throw(
-			new MyError(
-				'ReplaceDocument',					// Error name.
-				K.error.IsNotPersistent,			// Message code.
-				this._request.application.language,	// Language.
-				null,								// Arguments.
-				409									// HTTP error code.
-			)
-		);																		// !@! ==>
-		
-	}	// replaceDocument
-	
-	/**
-	 * Remove document
-	 *
-	 * We overload this method to handle group and manager relationships. The method
-	 * will perform the following steps:
-	 *
-	 * 	- Remove the user.
-	 * 	- If successful:
-	 * 		- Transfer managed users under the current user's manager.
-	 * 		- Remove the relationship with the manager.
-	 * 		- Remove all log entries concerning the user.
-	 * 		- Remove all edge references to the current user.
-	 *
-	 * If the current document revision is different than the existing document
-	 * revision, the method will raise an exception.
-	 *
-	 * If the current user manages other users, but has no manager, the method will
-	 * raise an exception: this is caught in validateDocumentConstraints().
-	 *
-	 * ToDo: No integrity check is performed on the current database state.
-	 * When removing the manager, no exception is raised if the manager to be deleted
-	 * doesn't exist: this is intentional, currently, the methods of this class
-	 * ensure the integrity of the database is protected, not asserted.
-	 *
-	 * @param doPersist	{Boolean}	True means write to database.
-	 * @param doFail	{Boolean}	If false, don't fail on document not found (default).
-	 * @returns {Boolean}	True removed, false not found, null not persistent.
-	 */
-	removeDocument( doPersist, doFail = false )
-	{
-		//
-		// Call parent method.
-		// The parent method will proceed only if the user is persistent:
-		// if this method was called by insert(), it will proceed only if
-		// the user was actually inserted or if it exists.
-		//
-		const result = super.removeDocument( doPersist, doFail );
-		
-		//
-		// Remove group and manager.
-		// Only if the user has been removed or exists.
-		//
-		if( result === true )
-		{
-			//
-			// Remove manager relationship.
-			//
-			// ToDo
-			// Musat implement transactions...
-			// Must not fail.
-			// When called by insert(), the doGroup flag indicates whether
-			// the group edge was inserted, if that is not the case, the
-			// group edge might already exist and should not be removed.
-			//
-			this.removeManager();
-			
-			//
-			// Remove log entries.
-			//
-			this.removeLogEntries();
-			
-			//
-			// Remove user other references.
-			//
-			this.removeDocumentReferences();
-			
-		}	// Removed current document.
-		
-		return result;																// ==>
-		
-	}	// removeDocument
-	
-	/**
 	 * Remove manager relationship
 	 *
-	 * This method will remove the relationship between the curren user and its
-	 * manager and will transfer the eventual managed users under the current user's
-	 * manager.
-	 *
-	 * This method is called after validateDocumentConstraints(), which asserts that
-	 * if the current user has mnaged users it does have a manager, which means that
-	 * the method should guarantee that no users are left without a manager.
-	 *
-	 * The method can also be called by the constructor, in the event of an error: in
-	 * that case the method parameter is expected to be the edge _id, in this case it
-	 * will only remove the referenced edge.
-	 *
-	 * The method will perform the following steps:
-	 *
-	 * 	- If the reference is provided:
-	 * 		- Remove that edge.
-	 *  - If the reference was not provided, or null:
-	 * 		- Collect all edges relating managed users to the current user, if found,
-	 * 		  perform the following with each edge:
-	 * 			- Remove the edge.
-	 * 			- Delete local fields from the edge.
-	 * 			- Set the edge _to to the current user's manager.
-	 * 			- Insert the edge.
-	 * 		- Select the edge relating the current user with its manager.
-	 * 		- Remove the edge.
-	 *
-	 * The method will return true if the manager edge was removed.
-	 *
-	 * ToDo: The database structure is not asserted before the method completes.
-	 * 		 The mothod only guarantees that once run, no manager relationship will
-	 * 		 exist involving the current user: a structure integrity check should be
-	 * 		 run before the method operates and logged for post handling.
-	 *
-	 * Note: this method will be called only if the user is persistent, therefore it
-	 * is guaranteed that the user _id exists.
+	 * This method will remove the relationship between the current user and its
+	 * manager. The method will register the operation with the povided transaction.
 	 *
 	 * Note: you must NOT call this method, consider it private, since, if used
 	 * incorrectly, it will corrupt the database.
 	 *
-	 * @param theReference	{String}|{null}	The edge to remove, or null.
-	 * @returns {Boolean}					True, deleted.
+	 * @param theTransaction	{Transaction}	The transaction object.
 	 */
-	removeManager( theReference = null )
+	removeManager( theTransaction )
 	{
 		//
-		// Handle edge reference.
+		// Do it if we have a manager.
+		// Note that we assume the document to be persistent and have the manager.
 		//
-		if( theReference !== null )
+		if( this.hasOwnProperty( '_manager' ) )
 		{
 			//
-			// Remove edge.
+			// Init local storage.
 			//
-			try
-			{
-				db._remove( theReference );
-			}
-			catch( error )
-			{
-				//
-				// ToDo
-				// We ignore any error, this is because here we only ensure that once
-				// run, the edge does not exist; if the edge is not there in the first
-				// place, it is an error and it should be handled.
-				//
-				return false;														// ==>
-			}
+			let result;
+			let collection = 'schemas';
 			
-			return true;															// ==>
+			//
+			// Get manager relationship references.
+			//
+			result =
+				db._query( aql`
+					FOR doc IN ${db._collection(collection)}
+						FILTER doc._from == ${this._document._id}
+						   AND doc._to == ${this._manager}
+						   AND doc.${Dict.descriptor.kPredicate} ==
+						   			${`terms/${Dict.term.kPredicateManagedBy}`}
+					RETURN { _key: doc._key, _rev: doc._rev }
+				`).toArray();
 			
-		}	// Provided edge reference.
+			//
+			// Continue if there.
+			// Note that we cannot have more than one record.
+			// ToDo: We don't check if the relationship is missing.
+			//
+			if( result.length === 1 )
+				theTransaction.addOperation(
+					'D',						// Operation code.
+					collection,					// Collection
+					result[ 0 ],				// Selector.
+					null,						// Record.
+					false,						// waitForSync.
+					false,						// Don't return result.
+					false						// Don't stop.
+				);
+			
+		}	// Has manager.
+		
+	}	// removeManager
+	
+	/**
+	 * Remove managed relationships
+	 *
+	 * This method will remove the relationship between the current user and the users
+	 * it manages, it will then transfer all those relationships under the current
+	 * user's manager, if it is managed.
+	 *
+	 * Note: you must NOT call this method, consider it private, since, if used
+	 * incorrectly, it will corrupt the database.
+	 *
+	 * @param theTransaction	{Transaction}	The transaction object.
+	 */
+	removeManaged( theTransaction )
+	{
+		//
+		// Init local storage.
+		//
+		let result;
+		let collection = 'schemas';
 		
 		//
-		// Select all edges where the current user is manager.
+		// Get managed relationship references.
 		//
-		const sel_managed = {};
-		sel_managed._to = this._document._id;				// Current user.
-		sel_managed[ Dict.descriptor.kPredicate ] =		// Manager predicate.
-			`terms/${Dict.term.kPredicateManagedBy}`;
-		const managed =
-			db._collection( 'schemas' )
-				.byExample( sel_managed ).toArray();
+		result =
+			db._query( aql`
+					FOR doc IN ${db._collection(collection)}
+						FILTER doc._to == ${this._document._id}
+						   AND doc.${Dict.descriptor.kPredicate} ==
+						   			${`terms/${Dict.term.kPredicateManagedBy}`}
+					RETURN doc
+				`).toArray();
 		
 		//
-		// Swap current user with current user's manager
-		// and remove the original edge.
+		// Iterate relationships.
 		//
-		for( const edge of managed )
+		for( const record of result )
 		{
 			//
-			// Remove relationship to current user.
+			// Create deletion selector.
 			//
-			const sel_current = {};
-			sel_current._to = edge._to;
-			sel_current._from = edge._from;
-			sel_current[ Dict.descriptor.kPredicate ] =
-				edge[ Dict.descriptor.kPredicate ];
-			db._collection( 'schemas' )
-				.removeByExample( sel_current );
+			const selector = {
+				_key: record._key,
+				_rev: record._rev
+			};
+			
+			//
+			// Add deletion operation to transaction.
+			//
+			theTransaction.addOperation(
+				'D',						// Operation code.
+				collection,					// Collection
+				selector,					// Selector.
+				null,						// Record.
+				false,						// waitForSync.
+				false,						// Don't return result.
+				false						// Don't stop.
+			);
 			
 			//
 			// Remove identifiers, revision and timestamps.
 			//
 			for( const field of this.localFields )
 			{
-				if( edge.hasOwnProperty( field ) )
-					delete edge[ field ]
+				if( record.hasOwnProperty( field ) )
+					delete record[ field ]
 			}
 			
 			//
-			// Swap manager from current user to current user's manager.
+			// Replace current user with its manager.
+			// Note that if there is no manager, this will have been caught before
+			// getting here.
 			//
-			edge._to = this.manager;
+			record._to = this._manager;
 			
 			//
 			// Instantiate edge.
 			//
-			const new_edge = new Edge( this._request, edge, 'schemas' );
+			const edge = new Edge(
+				this._request,
+				record,
+				collection,
+				false
+			);
 			
 			//
-			// Resolve edge.
-			// We resolve the edge without raising exceptions,
-			// if the edge doesn't exist we insert it,
-			// if it does, we do nothing.
+			// Normalise document for persisting.
 			//
-			// ToDo
-			// If the edge already exists, we do not attempt to insert it,
-			// this case obviously indicates a database structure corruption.
-			// A solution should be devised to prevent this from happening,
-			// like implementing an exception que.
-			//
-			if( new_edge.resolve( false, false ) !== true )
-				new_edge.insert();
+			edge.insertDocument( false );
 			
-		}	// Transferring managed users under current manager.
+			//
+			// Add insertion operation to transaction.
+			//
+			theTransaction.addOperation(
+				'I',						// Operation code.
+				collection,					// Collection
+				null,						// Selector.
+				edge.document,				// Record.
+				false,						// waitForSync.
+				false,						// Don't return result.
+				false						// Don't stop.
+			);
+			
+		}	// Iterating managed edges.
 		
-		//
-		// Remove relationship to current manager.
-		// Note that we are guaranteed the current user has a manager.
-		// We reuse the original selector, since it has the correct predicate.
-		//
-		sel_managed._from = this._document._id;
-		sel_managed._to	  = this._manager;
-		return (
-			db._collection( 'schemas' )
-				.removeByExample( selector )
-				.count() > 0
-		);																			// ==>
-		
-	}	// removeManager
+	}	// removeManaged
 	
 	/**
 	 * Remove user log entries
@@ -977,19 +783,33 @@ class User extends Persistent
 	 *
 	 * The method will return the result of the operation.
 	 *
-	 * @returns {*}	The results of the operation.
+	 * @param theTransaction	{Transaction}	The transaction object.
 	 */
-	removeLogEntries()
+	removeLogEntries( theTransaction )
 	{
 		//
-		// Remove entries.
+		// Collect log entries.
 		//
-		const collection = db._collection( 'logs' );
-		return db._query( aql`
-				FOR doc IN ${collection}
+		const collection = 'logs';
+		const result = db._query( aql`
+				FOR doc IN ${db._collection(collection)}
 					FILTER doc.user == ${this._document._id}
-					REMOVE doc IN ${collection}
-		`);																			// ==>
+				RETURN { _key: doc._key, _rev: doc._rev }
+		`).toArray();
+		
+		//
+		// Add delete operations to transacton.
+		//
+		for( const selector of result )
+			theTransaction.addOperation(
+				'D',						// Operation code.
+				collection,					// Collection
+				selector,					// Selector.
+				null,						// Record.
+				false,						// waitForSync.
+				false,						// Don't return result.
+				false						// Don't stop.
+			);
 		
 	}	// removeLogEntries
 	
@@ -1223,6 +1043,84 @@ class User extends Persistent
 		
 	}	// managedBy
 	
+	
+	/************************************************************************************
+	 * CORE PERSISTENCE METHODS															*
+	 ************************************************************************************/
+	
+	/**
+	 * Remove
+	 *
+	 * We overload this method to implement a transaction, removing a user involves
+	 * the following operations:
+	 *
+	 * 	- Remove the user document.
+	 * 	- Remove the manager relationship.
+	 * 	- Transfer all managed users under the current user's manager.
+	 * 	- Remove other document references.
+	 * 	- Remove log entries.
+	 *
+	 * The method will return the user remove database operation result.
+	 *
+	 * @returns {Object}			The removed document metadata.
+	 */
+	doRemove()
+	{
+		//
+		// Instantiate transaction.
+		//
+		const trans = new Transaction();
+		
+		//
+		// Create deletion selector.
+		//
+		let selector = {
+			_key: this._document_key,
+			_rev: this._document._rev
+		};
+		
+		//
+		// Add user removal transaction.
+		//
+		trans.addOperation(
+			'D',								// Operation code.
+			this.collection,					// Collection name.
+			selector,							// Selector.
+			null,								// Data.
+			false,								// waitForSync.
+			true,								// Use result.
+			false								// Stop after.
+		);
+		
+		//
+		// Add manager removal transaction.
+		//
+		this.removeManager( trans );
+		
+		//
+		// Add managed removal transaction.
+		//
+		this.removeManaged( trans );
+		
+		//
+		// Remove log entries.
+		//
+		this.removeLogEntries( trans );
+		
+		//
+		// Remove user other references.
+		//
+		this.removeDocumentReferences( trans );
+		
+		return trans.execute();														// ==>
+		
+	}	// doRemove
+	
+	
+	/************************************************************************************
+	 * GETTER METHODS																	*
+	 ************************************************************************************/
+	
 	/**
 	 * Assert managed users
 	 *
@@ -1267,11 +1165,6 @@ class User extends Persistent
 		return null;																// ==>
 		
 	}	// manages
-	
-	
-	/************************************************************************************
-	 * GETTER METHODS																	*
-	 ************************************************************************************/
 	
 	/**
 	 * Set current manager reference

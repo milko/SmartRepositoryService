@@ -17,6 +17,7 @@ const ARANGO_ILLEGAL_DOCUMENT_HANDLE = errors.ERROR_ARANGO_DOCUMENT_HANDLE_BAD.c
 const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
+const Transaction = require( './Transaction' );
 
 
 /**
@@ -2150,40 +2151,102 @@ class Document
 	 * This method is not called in this class, derived classes should call it if
 	 * approperiate.
 	 *
-	 * @returns {Object}	The results indexed by collection name.
+	 * @param theTransaction	{Transaction}|{null}	The transaction object.
+	 * @returns {Object}		The operation result.
 	 */
-	removeDocumentReferences()
+	removeDocumentReferences( theTransaction = null )
 	{
 		//
-		// Init local storage.
+		// Collect non-system collections.
 		//
 		const result = {};
 		const collections =
 			db._collections().filter( item => {
 				return (
-					(item._type === 3) &&
-					(! item._name.startsWith( '_' ))
+					(item._type === 3) &&				// Edge collection
+					(! item._name.startsWith( '_' ))	// and not system.
 				);
 			});
-		
+
 		//
-		// Iterate all collections.
+		// Handle transaction.
 		//
-		for( const item of collections )
+		if( theTransaction !== null )
 		{
 			//
-			// Remove relationships.
+			// Iterate collections.
 			//
-			const collection = db._collection( item._name );
-			result[ item ] =
-				db._query( aql`
+			for( const item of collections )
+			{
+				//
+				// Collect relationships.
+				//
+				const collection = db._collection( item._name );
+				result[ item ] =
+					db._query( aql`
+					FOR doc IN ${collection}
+						FILTER doc._to == ${this._document._id}
+							OR doc._from == ${this._document._id}
+					RETURN { _key: doc._key, _rev: doc._rev }
+				`).toArray();
+				
+			}	// Iterating non system collections.
+			
+			//
+			// Iterate collection relationships.
+			//
+			for( const collection in result )
+			{
+				//
+				// Handle relationships.
+				//
+				if( result[ collection ].length )
+				{
+					//
+					// Iterate relationships.
+					//
+					for( const selector of result[ collection ] )
+						theTransaction.addOperation(
+							'D',						// Operation code.
+							collection,					// Collection.
+							selector,					// Selector.
+							null,						// Record.
+							false,						// waitForSync.
+							false,						// Return result.
+							false						// Stop after.
+						);
+					
+				}	// Has relationships.
+				
+			}	// Iterating related collections.
+			
+		}	// Add to transaction
+		
+		//
+		// Handle direct execution.
+		//
+		else
+		{
+			//
+			// Iterate all collections.
+			//
+			for( const item of collections )
+			{
+				//
+				// Remove relationships.
+				//
+				const collection = db._collection( item._name );
+				result[ item ] =
+					db._query( aql`
 					FOR doc IN ${collection}
 						FILTER doc._to == ${this._document._id}
 							OR doc._from == ${this._document._id}
 					REMOVE doc IN ${collection}
 				`);
+				
+			}	// Iterating all collections.
 			
-		}	// Iterating all collections.
+		}	// No transaction.
 		
 		return result;																// ==>
 		
