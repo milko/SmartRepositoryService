@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Document.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/User.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/User.js" afterDir="false" />
-    </list>
+    <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
     <ignored path="$PROJECT_DIR$/tmp/" />
@@ -57,7 +53,7 @@
           <file leaf-file-name="Document.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/classes/Document.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2786">
+                <state relative-caret-position="577">
                   <caret line="317" column="21" selection-start-line="317" selection-start-column="13" selection-end-line="317" selection-end-column="21" />
                 </state>
               </provider>
@@ -66,7 +62,7 @@
           <file leaf-file-name="disabled_test_Transaction.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/test/disabled_test_Transaction.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2426">
+                <state relative-caret-position="4695">
                   <caret line="313" column="41" selection-start-line="313" selection-start-column="25" selection-end-line="313" selection-end-column="41" />
                 </state>
               </provider>
@@ -84,7 +80,7 @@
           <file leaf-file-name="EdgeBranch.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="19">
+                <state relative-caret-position="2865">
                   <caret line="191" column="13" selection-start-line="191" selection-start-column="13" selection-end-line="191" selection-end-column="13" />
                 </state>
               </provider>
@@ -248,10 +244,9 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1280" />
     <option name="y" value="23" />
-    <option name="width" value="1280" />
-    <option name="height" value="1001" />
+    <option name="width" value="953" />
+    <option name="height" value="777" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -505,6 +500,7 @@
       <workItem from="1530356525126" duration="9026000" />
       <workItem from="1530379392199" duration="1717000" />
       <workItem from="1530531454429" duration="13559000" />
+      <workItem from="1530545546089" duration="5000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring Document unit tests.&#10;Developed functions to make lengthy checks: will not transform functions into classes to make checks inherited and reusable.">
       <created>1528974578541</created>
@@ -538,20 +534,19 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="901789000" />
+    <option name="totallyTimeSpent" value="901794000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
+    <frame x="0" y="23" width="1280" height="777" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4324631" visible="true" weight="0.1477363" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4307458" visible="true" weight="0.1477363" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.49148694" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.3299923" />
       <window_info anchor="bottom" id="Version Control" order="9" weight="0.3299923" />
-      <window_info active="true" id="Structure" order="1" sideWeight="0.5675369" side_tool="true" visible="true" weight="0.1477363" />
+      <window_info active="true" id="Structure" order="1" sideWeight="0.56925416" side_tool="true" visible="true" weight="0.1477363" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -561,6 +556,7 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.49148694" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -753,7 +749,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="19">
+        <state relative-caret-position="2865">
           <caret line="191" column="13" selection-start-line="191" selection-start-column="13" selection-end-line="191" selection-end-column="13" />
         </state>
       </provider>
@@ -845,7 +841,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test/disabled_test_Transaction.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2426">
+        <state relative-caret-position="4695">
           <caret line="313" column="41" selection-start-line="313" selection-start-column="25" selection-end-line="313" selection-end-column="41" />
         </state>
       </provider>
@@ -859,7 +855,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/classes/Document.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2786">
+        <state relative-caret-position="577">
           <caret line="317" column="21" selection-start-line="317" selection-start-column="13" selection-end-line="317" selection-end-column="21" />
         </state>
       </provider>
