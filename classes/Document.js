@@ -1334,9 +1334,7 @@ class Document
 					//
 					// Write to database.
 					//
-					const meta =
-						db._collection( this._collection )
-							.insert( this._document );
+					const meta = this.doInsert();
 					
 					//
 					// Update metadata.
@@ -1959,19 +1957,7 @@ class Document
 					// Replace document.
 					// Force revision errors.
 					//
-					const meta =
-						db._replace(
-							{
-								_id : this._document._id,
-								_key: this._document._key,
-								_rev: this._document._rev
-							},
-							this._document,
-							{
-								waitForSync : true,
-								overwrite 	: false
-							}
-						);
+					const meta = this.doReplace();
 					
 					//
 					// Set revision flag.
@@ -2092,7 +2078,7 @@ class Document
 					//
 					// Delete.
 					//
-					db._remove( this._document );
+					this.doRemove();
 					
 					//
 					// Update persistent flag.
@@ -2105,7 +2091,7 @@ class Document
 					// Raise all except not found.
 					//
 					if( (! error.isArangoError)
-						|| (error.errorNum !== ARANGO_NOT_FOUND) )
+					 || (error.errorNum !== ARANGO_NOT_FOUND) )
 						throw( error );												// !@! ==>
 					
 					//
@@ -2202,6 +2188,90 @@ class Document
 		return result;																// ==>
 		
 	}	// removeDocumentReferences
+	
+	
+	/************************************************************************************
+	 * CORE PERSISTENCE METHODS															*
+	 ************************************************************************************/
+	
+	/**
+	 * Insert
+	 *
+	 * This method will insert the document into the database, it expects the current
+	 * object to have the collection reference.
+	 *
+	 * The method exists in order to concentrate in one place database operations,
+	 * this allows derived objects to implement transactions where required.
+	 *
+	 * The method should be called after validation and normalisation operations, this
+	 * means that if the doPersist flag is off this method should not be called.
+	 *
+	 * The method should return the database operation result.
+	 *
+	 * @returns {Object}			The inserted document metadata.
+	 */
+	doInsert()
+	{
+		return db._collection( this._collection ).insert( this._document );			// ==>
+		
+	}	// doInsert
+	
+	/**
+	 * Replace
+	 *
+	 * This method will replace the document in the database, it expects the current
+	 * object to have the collection reference and all identifiers, including the
+	 * revision.
+	 *
+	 * The method exists in order to concentrate in one place database operations,
+	 * this allows derived objects to implement transactions where required.
+	 *
+	 * The method should be called after validation and normalisation operations, this
+	 * means that if the doPersist flag is off this method should not be called.
+	 *
+	 * The method should return the database operation result.
+	 *
+	 * @returns {Object}			The replaced document metadata.
+	 */
+	doReplace()
+	{
+		return db._replace(
+			{
+				_id : this._document._id,
+				_key: this._document._key,
+				_rev: this._document._rev
+			},
+			this._document,
+			{
+				waitForSync : true,
+				overwrite 	: false
+			}
+		);																			// ==>
+		
+	}	// doReplace
+	
+	/**
+	 * Remove
+	 *
+	 * This method will replace the document in the database, it expects the current
+	 * object to have the collection reference and all identifiers, including the
+	 * revision.
+	 *
+	 * The method exists in order to concentrate in one place database operations,
+	 * this allows derived objects to implement transactions where required.
+	 *
+	 * The method should be called after validation and normalisation operations, this
+	 * means that if the doPersist flag is off this method should not be called.
+	 *
+	 * The method should return the database operation result.
+	 *
+	 * @returns {Object}			The removed document metadata.
+	 */
+	doRemove()
+	{
+		return db._remove( this._document );										// ==>
+		
+	}	// doRemove
 	
 	
 	/************************************************************************************

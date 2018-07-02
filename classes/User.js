@@ -25,17 +25,6 @@ const Persistent = require( './Persistent' );
 //
 const Edge = require( './Edge' );
 
-//
-// MILKO:
-// Why not use restricted fields to handle password, manager and group,
-// all three fields are valid descriptors, so we could intercept them
-// when restricted fields are handled.
-// This would allow us not to need to add the password in the insert and replace
-// structures.
-//
-// Note: Remember to implement update user password.
-//
-
 
 /**
  * User class
@@ -82,7 +71,8 @@ const Edge = require( './Edge' );
  * All users must also have a password, this is required when a user in inserted for
  * the first time in the database and can be changed when updating or replacing the
  * user record. The password is never stored in the user document, it is used to
- * create an authentication record which is used to validate a provided password.
+ * create an authentication record which is used to validate a provided password and
+ * can be provided only using the dedicated setPassword() method.
  *
  * These three properties, the manager, the groups and the password, exist as
  * descriptors and can be provided when instantiating the user from an object, but
@@ -98,17 +88,10 @@ const Edge = require( './Edge' );
  * 	- _groups:			This member holds the list of group _id references to which the
  * 						current	user belongs.
  *
- * The password is never stored in the object, it can only be set or changed when
- * instantiating the object before it is inserted, or
+ * The password is never stored in the object, it can only be set externally by the static
+ * user interface.
  *
- * Both the group and manager are reserved members, the manager can only be set by
- * providing it in the constructor, or by using the manager() setter while the object
- * is not persistent; the group can only be set once the user has been saved by the
- * dedicated setGroup() method. The current manager can only be changed with the
- * setManager() method, that will assert the current user belongs the the target
- * user's manager hierarchy.
- *
- * Manager hierarchies can be managed by the following methods:
+ * Manager hierarchies can be handled by the following methods:
  *
  * 	- manages():		Returns the count of users directly managed by the current user.
  * 	- managed():		Returns the list or hierarchy of managed users, it is possible
@@ -128,15 +111,18 @@ const Edge = require( './Edge' );
  * can be used to set or update the user's authentication data: when inserting, the
  * password is required, when replacing, the password should only be provided if it
  * has changed.
+ *
+ * User groups are set or removed using the setGroup() method, this feature is still
+ * under development and has not been finalised.
  */
 class User extends Persistent
 {
 	/**
 	 * Constructor
 	 *
-	 * We overload the constructor to intercept the manager from the provided object
-	 * reference, the manager must be provided in the custom '__manager' property and
-	 * can take the same signatutes as the theReference parameter to this constructor.
+	 * We overload the constructor to intercept the manager and groups from the provided
+	 * object reference, the manager must be provided in the 'manager' property and
+	 * can take the same signatures as the theReference parameter to this constructor.
 	 *
 	 * The manager is stored in the '_manager' data member of this object. All users
 	 * MUST have a manager, except the system administrator.
@@ -196,13 +182,10 @@ class User extends Persistent
 		if( K.function.isObject( theReference ) )
 		{
 			//
-			// Extract manager.
+			// Save manager.
 			//
-			if( theReference.hasOwnProperty( '__manager' ) )
-			{
-				manager = theReference.__manager;
-				delete theReference.__manager;
-			}
+			if( theReference.hasOwnProperty( Dict.descriptor.kManager ) )
+				manager = theReference[ Dict.descriptor.kManager ];
 			
 		}	// Provided an object initialiser.
 		
@@ -259,8 +242,7 @@ class User extends Persistent
 	 * 	- _revised:		The revision status.
 	 * 	- _instance:	The document instance, if applicable.
 	 *
-	 * In this class we initialise all but the last member: this class does not
-	 * represeent any specific instance, so here it will be undefined..
+	 * In this class we set the User instance.
 	 *
 	 * Any error in this phase should raise an exception.
 	 *
@@ -365,9 +347,9 @@ class User extends Persistent
 			// Handle manager that has no manager.
 			// Note that this method is called when deleting a document,
 			// which operates only if the document is persistent,
-			// so we have the guarantee that hasManaged returns the actual information.
+			// so we have the guarantee that manages returns the actual information.
 			//
-			if( (this.hasManaged > 0)					// Manages users
+			if( (this.manages > 0)						// Manages users
 			 && (! this.hasOwnProperty( '_manager' )) )	// and has no manager.
 			{
 				//
@@ -1362,20 +1344,20 @@ class User extends Persistent
 			//
 			// Init local storage.
 			//
-			const this_id = ( this.hasOwnProperty( '_manager' ) )
-							? this._manager
-							: null;
+			const this_manager = ( this.hasOwnProperty( '_manager' ) )
+							   ? this._manager
+							   : null;
 			
 			//
 			// Assert provided reference matches the current one.
 			//
-			if( id !== this_id )
+			if( id !== this_manager )
 				throw(
 					new MyError(
 						'UserManagerConflict',				// Error name.
 						K.error.UserManagerConflict,		// Message code.
 						this._request.application.language,	// Language.
-						[ this_id, id ],					// Arguments.
+						[ this_manager, id ],					// Arguments.
 						409									// HTTP error code.
 					)
 				);																// !@! ==>
@@ -1528,7 +1510,9 @@ class User extends Persistent
 	{
 		return super.restrictedFields
 			.concat(
-				Dict.descriptor.kPassword	// Prevent password from being stored.
+				Dict.descriptor.kPassword,	// User password.
+				Dict.descriptor.kManager,	// User manager.
+				Dict.descriptor.kGroup		// User groups.
 			);																		// ==>
 		
 	}	// restrictedFields
@@ -1649,7 +1633,7 @@ class User extends Persistent
 	 *
 	 * @returns {Boolean}	True, succeeded; false not.
 	 */
-	setManager( theGroup, doAdd, theCollection = null )
+	setManager( theManager, doAdd, theCollection = null )
 	{
 		//
 		// Assert persistent object.
@@ -1670,7 +1654,7 @@ class User extends Persistent
 			const manager =
 				new User(
 					this._request,	// The current request.
-					theGroup,		// The document selector.
+					theManager,		// The document selector.
 					theCollection,	// The eventual group collection.
 					true,			// Return immutable.
 					false			// Don't resolve related.
@@ -1855,7 +1839,7 @@ class User extends Persistent
 	 * load the authentication record into the appropriate property of the object.
 	 *
 	 * @param thePassword	{String}	The password.
-	 * @param theDocument	{Object}	Receives authentication record.
+	 * @param theDocument	{Document}	Receives authentication record.
 	 */
 	static setAuthentication( thePassword, theDocument )
 	{
@@ -1875,15 +1859,13 @@ class User extends Persistent
 		// Set in user.
 		//
 		if( theDocument instanceof User )
-			theDocument.document[ Dict.descriptor.kAuthData ] =
-				data;
+			theDocument.document[ Dict.descriptor.kAuthData ] = data;
 		
 		//
 		// Set in structure.
 		//
 		else if( K.function.isObject( theDocument ) )
-			theDocument[ Dict.descriptor.kAuthData ] =
-				data;
+			theDocument[ Dict.descriptor.kAuthData ] = data;
 		
 		//
 		// Complain.
