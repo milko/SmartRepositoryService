@@ -2494,13 +2494,13 @@ class Schema
 		//
 		// Sort by order.
 		//
-		if( theLeft.hasOwnProperty( 'order' )
-		 && theRight.hasOwnProperty( 'order' ) )
+		if( theLeft.hasOwnProperty( Dict.descriptor.kOrder )
+		 && theRight.hasOwnProperty( Dict.descriptor.kOrder ) )
 		{
-			if( theLeft.order < theRight.order )
+			if( theLeft[ Dict.descriptor.kOrder ] < theRight[ Dict.descriptor.kOrder ] )
 				return -1;															// ==>
 
-			if( theLeft.order > theRight.order )
+			if( theLeft[ Dict.descriptor.kOrder ] > theRight[ Dict.descriptor.kOrder ] )
 				return 1;															// ==>
 
 			return 0;																// ==>
