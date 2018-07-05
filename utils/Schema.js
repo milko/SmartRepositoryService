@@ -2136,7 +2136,7 @@ class Schema
 		//
 		// Check branch.
 		//
-		if( ! theEdge.branchList.includes( theConfig.custom.branch ) )
+		if( ! theEdge[ Dict.descriptor.kBranches ].includes( theConfig.custom.branch ) )
 			return false;															// ==>
 
 		//

@@ -5,9 +5,6 @@
 //
 const db = require('@arangodb').db;
 const aql = require('@arangodb').aql;
-const errors = require('@arangodb').errors;
-const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
-const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
 
 //
 // Application.
@@ -464,7 +461,7 @@ class User extends Persistent
 			selector._to   = this._manager;
 			selector[ Dict.descriptor.kPredicate ] =
 				`terms/${Dict.term.kPredicateManagedBy}`;
-			
+
 			//
 			// Instantiate.
 			// We use the Edge class to add timestamps and other panaphrelia.
@@ -476,7 +473,7 @@ class User extends Persistent
 					'schemas',		// Collection.
 					false			// Return mutable.
 				);
-			
+
 			//
 			// Resolve or insert edge.
 			//
@@ -486,13 +483,13 @@ class User extends Persistent
 			//
 			if( ! edge.resolveDocument( false, false ) )
 				edge.insertDocument( true );
-			
+
 			return edge.document._id;												// ==>
-			
+
 		}	// Has manager.
-		
+
 		return null;																// ==>
-		
+
 	}	// insertManager
 	
 	/**
@@ -1847,7 +1844,7 @@ class User extends Persistent
 		return auth.verify( data, thePassword );									// ==>
 		
 	}	// checkAuthentication
-	
+
 }	// User.
 
 module.exports = User;

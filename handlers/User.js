@@ -584,9 +584,18 @@ module.exports = {
 			delete data[ Dict.descriptor.kPassword ];
 			
 			//
-			// Insert user.
+			// Instantiate user.
 			//
 			const user = new User( theRequest, data );
+			
+			//
+			// Create authentication record.
+			//
+			User.setAuthentication( password, user );
+			
+			//
+			// Insert user.
+			//
 			user.insertDocument( true, password );
 			
 			//

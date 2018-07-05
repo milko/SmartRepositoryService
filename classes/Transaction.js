@@ -4,26 +4,12 @@
 // Frameworks.
 //
 const db = require('@arangodb').db;
-const errors = require('@arangodb').errors;
-const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
-const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
 
 //
 // Application.
 //
 const K = require( '../utils/Constants' );
-const Dict = require( '../dictionary/Dict' );
 const MyError = require( '../utils/MyError' );
-
-//
-// Parent.
-//
-const Persistent = require( './Persistent' );
-
-//
-// Classes.
-//
-const Edge = require( './Edge' );
 
 
 /**
