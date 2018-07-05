@@ -1476,7 +1476,7 @@ class Schema
 		// Inir query parameters.
 		//
 		const identifier = type._id;
-		const predicate = 'terms/' + Dict.term.kPredicateTypeOf;
+		const predicte = `terms/${Dict.term.kPredicateTypeOf}`;
 
 		//
 		// Query schemas.
@@ -2075,10 +2075,11 @@ class Schema
 		//
 		// Handle inbound choices.
 		//
-		if( theConfig.custom.doChoices								// Do choices
-		 && (theConfig.custom.dir === 'in')							// and inbound
-		 && (thePath.edges.length > 0)								// and not root
-		 && (thePath.edges[ thePath.edges.length - 1 ].predicate	// and not enum-of.
+		if( theConfig.custom.doChoices						// Do choices
+		 && (theConfig.custom.dir === 'in')					// and inbound
+		 && (thePath.edges.length > 0)						// and not root
+		 && (thePath.edges[ thePath.edges.length - 1 ]		// and not enum-of.
+						  [ Dict.descriptor.kPredicate ]
 				!== theConfig.custom.predicates[ 0 ]) )
 			return 'exclude';														// ==>
 
