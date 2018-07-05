@@ -2142,7 +2142,8 @@ class Schema
 		//
 		// Check predicate.
 		//
-		if( ! theConfig.custom.predicates.includes( theEdge.predicate ) )
+		if( ! theConfig.custom.predicates.includes(
+			theEdge[ Dict.descriptor.kPredicate ] ) )
 			return false;															// ==>
 
 		return true;																// ==>
@@ -2350,10 +2351,10 @@ class Schema
 		//
 		// Filter choice elements for outbound traversals.
 		//
-		if( theConfig.custom.doChoices					// Select choices
-		 && (theConfig.custom.dir === 'out')			// and outbound
-		 && (theEdge.length > 0)						// and has edges
-		 && (theEdge[ 0 ].edge.predicate				// and not enum-of.
+		if( theConfig.custom.doChoices						// Select choices
+		 && (theConfig.custom.dir === 'out')				// and outbound
+		 && (theEdge.length > 0)							// and has edges
+		 && (theEdge[ 0 ].edge[ Dict.descriptor.kOrder ]	// and not enum-of.
 				!== theConfig.custom.predicates[ 0 ]) )
 			doit = false;
 
