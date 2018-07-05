@@ -2107,7 +2107,8 @@ class Schema
 		//
 		// Check predicate.
 		//
-		if( ! theConfig.custom.predicates.includes( theEdge.predicate ) )
+		if( ! theConfig.custom.predicates.includes(
+			theEdge[ Dict.descriptor.kPredicate ] ) )
 			return false;															// ==>
 		
 		return true;																// ==>
