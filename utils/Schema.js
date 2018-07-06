@@ -1476,7 +1476,7 @@ class Schema
 		// Inir query parameters.
 		//
 		const identifier = type._id;
-		const predicte = `terms/${Dict.term.kPredicateTypeOf}`;
+		const predicate = `terms/${Dict.term.kPredicateTypeOf}`;
 
 		//
 		// Query schemas.

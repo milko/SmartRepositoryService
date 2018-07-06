@@ -356,6 +356,13 @@ class User extends Persistent
 	 * We overload this method because inserting a user involves inserting the user
 	 * document and inserting the manager relationship.
 	 *
+	 * We follow these steps:
+	 *
+	 * 	- If persisting, there is a current session user and the manager has not yet
+	 * 	  been set, we set the manager to the current user.
+	 * 	- Call the parent insert method.
+	 * 	- If persisting and has a manager, insert the manager relationship.
+	 *
 	 * ToDo:
 	 * We cannot implement a stransaction as is, because we need to instantiate the
 	 * edge with the user _id, passing the edge class hierarchy currently doesn't worh
@@ -366,6 +373,27 @@ class User extends Persistent
 	 */
 	insertDocument( doPersist )
 	{
+		//
+		// Set manager from current session.
+		// If the manager has not already been set,
+		// and there is a current user,
+		// attempt to set the manager as the current session user.
+		//
+		if( doPersist
+		 && (! this.hasOwnProperty( '_manager' )) )
+		{
+			//
+			// Handle non admin user.
+			//
+			if( this._document.hasOwnProperty( Dict.descriptor.kUsername )
+			 && this._request.hasOwnProperty( 'session' )
+			 && this._request.session.hasOwnProperty( 'uid' )
+			 && (this._document[ Dict.descriptor.kUsername ] !==
+					module.context.configuration.adminCode) )
+				this.manager = this._request.session.uid;
+			
+		}	// Persisting and no manager.
+		
 		//
 		// Call parent method.
 		//
@@ -468,10 +496,10 @@ class User extends Persistent
 			//
 			const edge =
 				new Edge(
-					this._request,	// Current request.
-					selector,		// Selector.
-					'schemas',		// Collection.
-					false			// Return mutable.
+					this._request,					// Current request.
+					selector,						// Selector.
+					this.defaultEdgeCollection,		// Collection.
+					false							// Return mutable.
 				);
 
 			//
@@ -569,7 +597,7 @@ class User extends Persistent
 			selector[ Dict.descriptor.kPredicate ] =
 				`terms/${Dict.term.kPredicateManagedBy}`;
 			const cursor =
-				db._collection( 'schemas' )
+				db._collection( this.defaultEdgeCollection )
 					.byExample( selector );
 			
 			//
@@ -632,7 +660,7 @@ class User extends Persistent
 			// Init local storage.
 			//
 			let result;
-			let collection = 'schemas';
+			let collection = this.defaultEdgeCollection;
 			
 			//
 			// Get manager relationship references.
@@ -685,7 +713,7 @@ class User extends Persistent
 		// Init local storage.
 		//
 		let result;
-		let collection = 'schemas';
+		let collection = this.defaultEdgeCollection;
 		
 		//
 		// Get managed relationship references.
@@ -1046,6 +1074,28 @@ class User extends Persistent
 	 ************************************************************************************/
 	
 	/**
+	 * Insert
+	 *
+	 * This method will insert the document into the database, it expects the current
+	 * object to have the collection reference.
+	 *
+	 * The method exists in order to concentrate in one place database operations,
+	 * this allows derived objects to implement transactions where required.
+	 *
+	 * The method should be called after validation and normalisation operations, this
+	 * means that if the doPersist flag is off this method should not be called.
+	 *
+	 * The method should return the database operation result.
+	 *
+	 * @returns {Object}			The inserted document metadata.
+	 */
+	doInsert()
+	{
+		return db._collection( this._collection ).insert( this._document );			// ==>
+		
+	}	// doInsert
+	
+	/**
 	 * Remove
 	 *
 	 * We overload this method to implement a transaction, removing a user involves
@@ -1151,7 +1201,7 @@ class User extends Persistent
 				// Save count.
 				//
 				this._manages =
-					db._collection( 'schemas' )
+					db._collection( this.defaultEdgeCollection )
 						.byExample( selector ).count();
 				
 			}	// Not yet computed.
@@ -1175,9 +1225,9 @@ class User extends Persistent
 	 *
 	 * The provided reference can either be the user _id or _key as a string
 	 * reference, or an object containing the key fields, in this case the username.
-	 * If you provide null, it means that the current user doesn't have a manager, in
-	 * this case the data member will deleted; if the object is persistent, any
-	 * attempt to set a different value for the manager will result in an exception.
+	 * If you provide null, it means that the manager is the current session's user.
+	 * If the object is persistent, any attempt to set a different value for the
+	 * manager will result in an exception.
 	 *
 	 * The method fails and raises an exception in the following cases:
 	 *
@@ -1185,6 +1235,7 @@ class User extends Persistent
 	 * 	- If resolving the manager reference results in more than one document.
 	 * 	- If the resolved _id doesn't math the existing _manager data member and the
 	 * 	  object is persistent.
+	 * 	- If the resolved manager is not allowed to manage users.
 	 *
 	 * @param theReference	{String}|{Object}{null}	The manager reference.
 	 */
@@ -1218,6 +1269,20 @@ class User extends Persistent
 			//
 			if( ! manager.persistent )
 				manager.resolveDocument( true, true );
+
+			//
+			// Assert it can manage users.
+			//
+			if( ! manager._document[ Dict.descriptor.kRole ].includes( Dict.term.kRoleUser ) )
+				throw(
+					new MyError(
+						'SetManager',						// Error name.
+						K.error.CannotManageUsers,			// Message code.
+						this._request.application.language,	// Language.
+						null,								// Arguments.
+						409									// HTTP error code.
+					)
+				);																// !@! ==>
 			
 			//
 			// Set reference.
@@ -1225,6 +1290,13 @@ class User extends Persistent
 			id = manager.document._id;
 			
 		}	// Provided a reference.
+		
+		//
+		// Consider current session user.
+		//
+		else if( this._request.hasOwnProperty( 'session' )
+			  && this._request.session.hasOwnProperty( 'uid' ) )
+			id = this._request.session.uid;
 		
 		//
 		// Catch manager mismatch in persistent object.
@@ -1430,7 +1502,10 @@ class User extends Persistent
 	 *
 	 * The method will also raise an exception if the object is not persistent.
 	 *
-	 * @returns {Boolean}	True, succeeded; false not.
+	 * @param theGroup		{String}|{Object}	The group reference.
+	 * @param doAdd			{Boolean}			True means add reference.
+	 * @param theCollection	{String}			The group collection.
+	 * @returns {Boolean}						True, succeeded; false not.
 	 */
 	setGroup( theGroup, doAdd, theCollection = null )
 	{
@@ -1466,7 +1541,7 @@ class User extends Persistent
 			const edge = new Edge(
 				this._request,				// The current request.
 				document,					// The edge contents.
-				this.defaultEdgeCollection,	// The schemas collection.
+				this.defaultEdgeCollection,	// The hierarchies collection.
 				false						// Return mutable.
 			);
 			
@@ -1517,13 +1592,16 @@ class User extends Persistent
 	 *
 	 * 	- If the current object is not persistent.
 	 * 	- If the provided manager user does not have the required role.
+	 * 	- If any error occurs when deleting the current edge and inserting the new one.
 	 *
 	 * If you try to set a manager to the system administrator, the method will simply
 	 * return false.
 	 *
-	 * @returns {Boolean}	True, succeeded; false not.
+	 * @param theManager	{String}|{Object}	The manager reference.
+	 * @returns {Object}|{false}				The new edge metadata or false if
+	 * 											system administrator.
 	 */
-	setManager( theManager, doAdd, theCollection = null )
+	setManager( theManager )
 	{
 		//
 		// Assert persistent object.
@@ -1538,26 +1616,27 @@ class User extends Persistent
 				return false;														// ==>
 			
 			//
-			// Resolve manager.
-			// Will raise an exception if not found.
+			// Instantiate manager.
 			//
 			const manager =
 				new User(
 					this._request,	// The current request.
 					theManager,		// The document selector.
-					theCollection,	// The eventual group collection.
+					null,			// Use default users collection.
 					true,			// Return immutable.
 					false			// Don't resolve related.
 				);
 			
 			//
-			// Save IDs.
+			// Resolve manager.
+			// Will raise an exception if not found.
 			//
-			const id_user = this._document._id;
-			const id_manager = manager._document._id;
+			if( ! manager.persistent )
+				manager.resolveDocument( true, true );
 			
 			//
 			// Assert it can manage users.
+			// Raise exception if not.
 			//
 			if( ! manager._document[ Dict.descriptor.kRole ].includes( Dict.term.kRoleUser ) )
 				throw(
@@ -1571,140 +1650,112 @@ class User extends Persistent
 				);																// !@! ==>
 			
 			//
-			// Init local storage.
+			// Create current manager edge selector.
 			//
-			const predicate = `terms/${Dict.term.kPredicateManagedBy}`;
-			const predicate_field = Dict.descriptor.kPredicate;
+			let selector = {};
+			selector._to = this.manager;
+			selector._from = this._document._id;
+			selector[ Dict.descriptor.kPredicate ] =
+				`terms/${Dict.term.kPredicateManagedBy}`;
 			
 			//
-			// Get current manager edge.
+			// Intstantiate current manager edge.
 			//
-			const selector = {};
-			selector._to = this.manager;
-			selector._from = id_user;
-			selector[ predicate_field ] = predicate;
 			let edge =
 				new Edge(
-					this._request,				// The current request.
-					selector,					// The document selector.
-					this.defaultEdgeCollection,	// The schemas collection.
-					false						// Return mutable.
+					this._request,							// The current request.
+					selector,								// The document selector.
+					this.defaultEdgeCollection,				// The hierarchies collection.
+					false									// Return mutable.
 				);
 			
 			//
-			// Select all edges where the current user is manager.
+			// Resolve edge.
+			// Will raise an exception if not found.
 			//
-			selector._to = id_user;	// Points to current user.
-			delete selector._from;	// Any source node.
-			const managed =
-				db._collection( this.defaultEdgeCollection )
-					.byExample( sel_managed )
-					.toArray();
+			if( ! edge.persistent )
+				edge.resolveDocument( true, true );
 			
 			//
-			// Swap current user with current user's manager
-			// and remove the original edge.
+			// Instantiate transaction.
 			//
-			for( const item of managed )
+			const trans = new Transaction();
+			
+			//
+			// Add current manager reference removal transaction.
+			//
+			trans.addOperation(
+				'D',										// Operation code.
+				this.defaultEdgeCollection,					// Collection name.
+				edge.document._id,							// Selector.
+				null,										// Data.
+				false,										// waitForSync.
+				false,										// Don't use result.
+				false										// Stop after.
+			);
+			
+			//
+			// Clone and clean new edge.
+			//
+			selector = K.function.clone( edge.document );
+			for( const field in edge.localFields )
 			{
-				//
-				// Remove relationship to current user.
-				//
-				selector._from = item._from;	// Set the source node.
-				db._collection( this.defaultEdgeCollection )
-					.removeByExample( sel_current );
-				
-				//
-				// Remove identifiers, revision and timestamps.
-				//
-				for( const field of this.localFields )
-				{
-					if( item.hasOwnProperty( field ) )
-						delete item[ field ]
-				}
-				
-				//
-				// Swap manager from current user to current user's manager.
-				//
-				item._to = id_manager;
-				
-				//
-				// Instantiate edge.
-				//
-				const new_edge =
-					new Edge(
-						this._request,
-						item,
-						this.defaultEdgeCollection
-					);
-				
-				//
-				// Resolve edge.
-				// We resolve the edge without raising exceptions,
-				// if the edge doesn't exist we insert it,
-				// if it does, we do nothing.
-				//
-				// ToDo
-				// If the edge already exists, we do not attempt to insert it,
-				// this case obviously indicates a database structure corruption.
-				// A solution should be devised to prevent this from happening,
-				// like implementing an exception que.
-				//
-				if( new_edge.resolve( false, false ) !== true )
-					new_edge.insert();
-				
-			}	// Transferring managed users under current manager.
-			
-			//
-			// Remove relationship to current manager.
-			//
-			edge.removeDocument( true );
-			
-			//
-			// Update directly the current user manager.
-			//
-			this._manager = id_manager;
-			
-			//
-			// Remove identifiers, revision and timestamps.
-			//
-			const data = JSON.parse(JSON.stringify(edge._document));
-			for( const field of this.localFields )
-			{
-				if( data.hasOwnProperty( field ) )
-					delete data[ field ]
+				if( selector.hasOwnProperty( field ) )
+					delete selector[ field ];
 			}
+			
+			//
+			// Change manager reference.
+			//
+			selector._to = manager.document._id;
+			
+			//
+			// Instantiate new manager edge.
+			//
+			edge =
+				new Edge(
+					this._request,							// The current request.
+					selector,								// The document selector.
+					this.defaultEdgeCollection,				// The hierarchies collection.
+					false									// Return mutable.
+				);
+			
+			//
+			// Load document insert properties,
+			// without inserting.
+			//
+			edge.insertDocument( false );
+			
+			//
+			// Add new manager reference insert transaction.
+			//
+			trans.addOperation(
+				'I',										// Operation code.
+				this.defaultEdgeCollection,					// Collection name.
+				null,										// Selector.
+				edge.document,								// Data.
+				false,										// waitForSync.
+				true,										// Use result.
+				false										// Stop after.
+			);
+			
+			//
+			// Execute transaction.
+			//
+			const meta = trans.execute();
 			
 			//
 			// Set new manager.
 			//
-			data._to = id_manager;
+			this._manager = manager.document._id;
 			
-			//
-			// Create new edge.
-			//
-			edge =
-				new Edge(
-					this._request,				// The current request.
-					data,						// The edge contents.
-					this.defaultEdgeCollection,	// The schemas collection.
-					false						// Return mutable.
-				);
-			
-			//
-			// Insert updated edge.
-			//
-			// ToDo: If insertion fails, it should only be because of a duplicate.
-			// If that is not the case, the database is corrupt: need to implement
-			// safeguards.
-			//
-			edge.insertDocument( true );
+			return meta;															// ==>
 			
 		}	// Persistent.
 		
 		throw(
 			new MyError(
-				'SetGroup',							// Error name.
+				'SetManager',						// Error name.
 				K.error.IsNotPersistent,			// Message code.
 				this._request.application.language,	// Language.
 				null,								// Arguments.

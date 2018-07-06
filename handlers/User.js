@@ -124,19 +124,24 @@ module.exports = {
 			//
 			// Instantiate user.
 			//
-			const user = new User(
-				theRequest,
-				data,
-				( theRequest.body.data.hasOwnProperty( Dict.descriptor.kGroup ) )
-					? theRequest.body.data[ Dict.descriptor.kGroup ]
-					: null,
-				theRequest.session.uid
-			);
+			const user =
+				new User(
+					theRequest,			// Current request.
+					data,				// User document contents.
+					null,				// Default collection.
+					false,				// Mutable.
+					true				// Load related.
+				);
+			
+			//
+			// Set authentication record.
+			//
+			User.setAuthentication( encode[ Dict.descriptor.kPassword ], user );
 			
 			//
 			// Insert user.
 			//
-			user.insertDocument( true,  encode[ Dict.descriptor.kPassword ] );
+			user.insertDocument( true );
 			
 			//
 			// Return response.
