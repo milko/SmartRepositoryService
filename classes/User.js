@@ -1247,6 +1247,14 @@ class User extends Persistent
 		let id = null;
 		
 		//
+		// Use current session user.
+		//
+		if( (theReference === null)
+		 && this._request.hasOwnProperty( 'session' )
+		 && this._request.session.hasOwnProperty( 'uid' ) )
+			theReference = this._request.session.uid;
+		
+		//
 		// Handle provided reference.
 		//
 		if( theReference !== null )
@@ -1292,46 +1300,25 @@ class User extends Persistent
 		}	// Provided a reference.
 		
 		//
-		// Consider current session user.
-		//
-		else if( this._request.hasOwnProperty( 'session' )
-			  && this._request.session.hasOwnProperty( 'uid' ) )
-			id = this._request.session.uid;
-		
-		//
 		// Catch manager mismatch in persistent object.
 		//
-		if( this._persistent )
-		{
-			//
-			// Init local storage.
-			//
-			const this_manager = ( this.hasOwnProperty( '_manager' ) )
-							   ? this._manager
-							   : null;
-			
-			//
-			// Assert provided reference matches the current one.
-			//
-			if( id !== this_manager )
-				throw(
-					new MyError(
-						'UserManagerConflict',				// Error name.
-						K.error.UserManagerConflict,		// Message code.
-						this._request.application.language,	// Language.
-						[ this_manager, id ],					// Arguments.
-						409									// HTTP error code.
-					)
-				);																// !@! ==>
-			
-		}	// Object is persistent.
+		if( this._persistent
+		 && this.hasOwnProperty( '_manager' )
+		 && (id !== this._manager) )
+			throw(
+				new MyError(
+					'UserManagerConflict',				// Error name.
+					K.error.UserManagerConflict,		// Message code.
+					this._request.application.language,	// Language.
+					[ this_manager, id ],					// Arguments.
+					409									// HTTP error code.
+				)
+			);																	// !@! ==>
 		
 		//
-		// Handle non persistent object.
-		// Note that if persistent they must match, so no need to set.
+		// Set manager.
 		//
-		else
-			this._manager = id;
+		this._manager = id;
 		
 	}	// manager
 	

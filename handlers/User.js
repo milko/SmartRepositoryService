@@ -263,9 +263,14 @@ module.exports = {
 				);
 			
 			//
+			// Set authentication data.
+			//
+			User.setAuthentication( encode[ Dict.descriptor.kPassword ], user );
+			
+			//
 			// Replace user.
 			//
-			user.replaceDocument( true, encode[ Dict.descriptor.kPassword ] );
+			user.replaceDocument( true );
 			
 			//
 			// Return response.
@@ -475,7 +480,7 @@ module.exports = {
 						'AuthFailed',						// Error name.
 						K.error.UserNotFound,				// Error code.
 						theRequest.application.language,	// Error language.
-						decoded.username						// Error data.
+						decoded.username					// Error data.
 					)
 				);																// !@! ==>
 			
@@ -745,9 +750,14 @@ module.exports = {
 			delete user.document[ Dict.descriptor.kStatus ];
 			
 			//
+			// Set authentication record.
+			//
+			User.setAuthentication( password_user, user );
+			
+			//
 			// Replace user.
 			//
-			user.replaceDocument( true, password_user );
+			user.replaceDocument( true );
 			
 			//
 			// Login user.

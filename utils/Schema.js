@@ -937,7 +937,7 @@ class Schema
 	/**
 	 * Get managed users path
 	 *
-	 * This method will perform an outbound traversal of the schemas graph following
+	 * This method will perform an outbound traversal of the hierarchy graph following
 	 * the managed-by predicate starting from 'theRoot' returning the list of
 	 * traversed elements. This kind of traversal should follow a path from the graph
 	 * leaf element to its root.
@@ -983,7 +983,7 @@ class Schema
 	 * 					lack _from and _to.
 	 *
 	 * The method will return an array of path nodes.
-	 * The method assumes the users and schemas collections to exist.
+	 * The method assumes the users and hierarchy collections to exist.
 	 * The method will raise an exception if the leaf cannot be found.
 	 *
 	 * @param theRequest	{Object}			The current service request.
@@ -1877,7 +1877,7 @@ class Schema
 	/**
 	 * Traverse managed users
 	 *
-	 * This method will perform an inbound or outbound traversal of the schemas graph
+	 * This method will perform an inbound or outbound traversal of the hierarchy graph
 	 * following the managed-by predicate starting from 'theRoot' returning either the
 	 * flattened the list visited elements, or the list of root nodes with their
 	 * children in the '_children' property.
@@ -1924,7 +1924,7 @@ class Schema
 	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
 	 * 					will contain the edge.
 	 *
-	 * The method assumes the terms and schemas collections to exist.
+	 * The method assumes the terms and hierarchy collections to exist.
 	 *
 	 * @param theRequest	{Object}			The current service request.
 	 * @param theRoot		{Object}			Graph traversal origin.
@@ -1970,7 +1970,7 @@ class Schema
 		// Init configuration.
 		//
 		const config =  {
-			datasource	: traversal.collectionDatasourceFactory( 'schemas' ),
+			datasource	: traversal.collectionDatasourceFactory( 'hierarchy' ),
 			strategy	: "depthfirst",
 			expander	: ( theDirection === 'in' )
 						  ? traversal.inboundExpander
@@ -1982,7 +1982,6 @@ class Schema
 			},
 			
 			visitor		: this.edgeVisitor,
-			// filter		: this.enumFilter,
 			expandFilter: this.edgeExpandFilter,
 			
 			custom		: {
@@ -2105,15 +2104,11 @@ class Schema
 	 */
 	static edgeExpandFilter( theConfig, theVertex, theEdge, thePath )
 	{
-		//
-		// Check predicate.
-		//
-		if( ! theConfig.custom.predicates.includes(
-			theEdge[ Dict.descriptor.kPredicate ] ) )
-			return false;															// ==>
-		
-		return true;																// ==>
-		
+		return (
+			theConfig.custom.predicates.includes(
+				theEdge[ Dict.descriptor.kPredicate ] )
+		);																			// ==>
+	
 	}	// edgeExpandFilter
 
 	/**
@@ -2272,7 +2267,7 @@ class Schema
 			// Handle root.
 			//
 			if( (parent === null)
-				|| (! theConfig.custom.dict.hasOwnProperty( parent )) )
+			 || (! theConfig.custom.dict.hasOwnProperty( parent )) )
 				theResult.push( node );
 			
 			//
