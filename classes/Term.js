@@ -18,13 +18,13 @@ const Validation = require( '../utils/Validation' );
 //
 // Parent.
 //
-const Document = require( './Document' );
+const Persistent = require( './Persistent' );
 
 
 /**
- * Document virtual class
+ * Term class
  *
- * This virtual class declares the methods that all document classes should support.
+ * Terms are
  * The class features the following properties:
  *
  * 	- _request:			Holds the current service request.
@@ -42,7 +42,7 @@ const Document = require( './Document' );
  * 						collection and the current document has the revision field.
  * 						The value can be retrieved with the revised() getter.
  */
-class Term extends Document
+class Term extends Persistent
 {
 	/**
 	 * Constructor
