@@ -85,7 +85,7 @@ class Form
 			//
 			let data = null;
 			if( K.function.isObject( theData ) )
-				data = JSON.parse(JSON.stringify(theData));
+				data = K.function.clone(theData);
 			
 			//
 			// Normalise and store form hierarchy.
@@ -445,7 +445,7 @@ class Form
 		//
 		// Add element.
 		//
-		theElement.push( element );
+		theElements.push( element );
 	
 	}	// addDataValue
 	

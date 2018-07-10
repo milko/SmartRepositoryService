@@ -11,7 +11,6 @@ module.context.use( "/descriptor", require( './routes/descriptor'), 'descriptor'
 //
 // Test routes.
 //
-/*
 module.context.use('/test/Log', require('./routes/test/Log'), 'testLog');
 module.context.use('/test/Utils', require('./routes/test/Utils'), 'testUtils');
 module.context.use('/test/Errors', require('./routes/test/MyError'), 'testErrors');
@@ -24,7 +23,6 @@ module.context.use('/test/Validation', require('./routes/test/Validation'),
 'testValidation');
 module.context.use('/test/Application', require('./routes/test/Application'),
 'testApplication');
-*/
 
 //
 // Frameworks.
