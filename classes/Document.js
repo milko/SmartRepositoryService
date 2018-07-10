@@ -2168,7 +2168,6 @@ class Document
 				);
 			});
 
-/*
 		//
 		// Handle transaction.
 		//
@@ -2228,7 +2227,6 @@ class Document
 		//
 		else
 		{
-*/
 			//
 			// Iterate all collections.
 			//
@@ -2248,9 +2246,7 @@ class Document
 				
 			}	// Iterating all collections.
 			
-/*
 		}	// No transaction.
-*/
 		
 		return result;																// ==>
 		

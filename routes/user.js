@@ -160,12 +160,12 @@ router.post( '/signup/form', Handlers.signUpForm, 'signupForm' )
  * class: if MyError and it contains the HTTP code, this will be used, in all
  * other cases, the code will be 500.
  *
- * @path		/reset/user
+ * @path		/reset
  * @verb		post
  * @request		{Object}	User authentication token and user code.
  * @response	{Object}	The result.
  */
-router.post( '/reset/user', Handlers.reset, 'reset' )
+router.post( '/reset', Handlers.reset, 'reset' )
 	.body(
 		require( '../models/user/reset' ),
 		Application.getServiceDescription(
@@ -183,6 +183,52 @@ router.post( '/reset/user', Handlers.reset, 'reset' )
 	.description(
 		Application.getServiceDescription(
 			'user', 'reset', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Remove user
+ *
+ * The service is used to remove a user, the service expects two parameters in the POST body:
+ *
+ * 	- token:	the user authentication token.
+ * 	- username:	the user code.
+ *
+ * The service will perform the following steps:
+ *
+ * 	- Validate the user authentication token.
+ * 	- Resolve the provided username.
+ * 	- Check that the current user can manage the provided user reference.
+ * 	- Transfer the user's managed under the user's manager.
+ * 	- Remove the user.
+ *
+ * The service may raise an exception, the HTTP code depends on the exception
+ * class: if MyError and it contains the HTTP code, this will be used, in all
+ * other cases, the code will be 500.
+ *
+ * @path		/remove
+ * @verb		post
+ * @request		{Object}	User authentication token and user code.
+ * @response	{Object}	The result.
+ */
+router.post( '/remove', Handlers.remove, 'remove' )
+	.body(
+		require( '../models/user/reset' ),
+		Application.getServiceDescription(
+			'user', 'remove', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/user/reset' ),
+		Application.getServiceDescription(
+			'user', 'remove', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Reset user."
+	)
+	.description(
+		Application.getServiceDescription(
+			'user', 'remove', 'description', module.context.configuration.defaultLanguage )
 	);
 
 
@@ -228,7 +274,7 @@ router.post( '/change/code', Handlers.changeUsername, 'changeUsername' )
 			'user', 'setUsername', 'response', module.context.configuration.defaultLanguage )
 	)
 	.summary(
-		"Reset user."
+		"Change user code."
 	)
 	.description(
 		Application.getServiceDescription(

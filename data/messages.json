@@ -879,6 +879,18 @@
     }
   },
   {
+    "_key" : "s:user:remove",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><token>key</code></strong>: the <em>user authentication token</em> string.</li><li><strong><code>username</code></strong>: the <em>user code</em> string</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be <code>true</code> if the user was deleted."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service can be used to remove a user, it expects the following information in the request POST body:<ul><li><strong><code>token</code></strong>: the user authentication <em>token</em> string.</li><li><strong><code>username</code></strong>: the <em>user code</em> string of the user to reset.</li></ul><p>The service will perform the following steps:<ul><li>Validate the provided user authentication token.</li><li>Resolve the provided username.</li><li>Assert that the current session usercan manage the resolved user.</li><li>Transfer the resolved managed users under the resolved user's manager.</li><li>Remove the user record.</li><li>Return true.</li></ul></p><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be <code>true</code>.</p>"
+    }
+  },
+  {
     "_key" : "s:user:setUsername",
     "body" : {
       "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><token>key</code></strong>: the <em>user authentication token</em> string.</li><li><strong><code>old</code></strong>: the <em>current</em> user code string</li><li><strong><code>new</code></strong>: the <em>new</em> user code string</li></ul>"

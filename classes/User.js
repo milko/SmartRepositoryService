@@ -1122,7 +1122,7 @@ class User extends Persistent
 		// Create deletion selector.
 		//
 		let selector = {
-			_key: this._document_key,
+			_key: this._document._key,
 			_rev: this._document._rev
 		};
 		
@@ -1596,7 +1596,7 @@ class User extends Persistent
 		if( this._persistent )
 		{
 			//
-			// Assert has manager.
+			// Skip system administrator.
 			//
 			if( this._document[ Dict.descriptor.kUsername ]
 				=== module.context.configuration.adminCode )
