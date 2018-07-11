@@ -88,10 +88,10 @@ router.post( '/signup', Handlers.signUp, 'signup' )
 
 
 /**
- * Signup user form
+ * Signin user form
  *
- * The service will return the contents of the sign up service token, it expects two
- * parameters in the POST body:
+ * The service will decode the provided signUp token and return its contents in the
+ * signIn form, the service expects the following parameters in the POST body:
  *
  * 	- token:	the user authentication token.
  * 	- encoded:	the sign up token.
@@ -100,26 +100,27 @@ router.post( '/signup', Handlers.signUp, 'signup' )
  *
  * 	- Validate the user authentication token.
  * 	- Decode the sign up token.
- * 	- Return the decoded sign up contents.
+ * 	- Load the 'terms/:form:signin' form.
+ * 	- Return the decoded sign up contents in the sign in form.
  *
  * The service may raise an exceprion, the HTTP code depends on the exception
  * class: if MyError and it contains the HTTP code, this will be used, in all
  * other cases, the code will be 500.
  *
- * @path		/signup/form
+ * @path		/signin/form
  * @verb		post
  * @request		{Object}	User authentication and signUp tokens.
  * @response	{Object}	The result.
  */
-router.post( '/signup/form', Handlers.signUpForm, 'signupForm' )
+router.post( '/signin/form', Handlers.signInForm, 'signinForm' )
 	.body(
-		require( '../models/user/signUpForm' ),
+		require( '../models/user/signInForm' ),
 		Application.getServiceDescription(
 			'user', 'signupForm', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
-		require( '../models/user/signUpForm' ),
+		require( '../models/user/signInForm' ),
 		Application.getServiceDescription(
 			'user', 'signupForm', 'response', module.context.configuration.defaultLanguage )
 	)

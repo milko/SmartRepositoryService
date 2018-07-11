@@ -297,30 +297,25 @@ module.exports = {
 	},	// reset
 	
 	/**
-	 * Reset user
+	 * Remove user
 	 *
-	 * The service can be used to reset a user, it expects the following properties in
+	 * The service can be used to remove a user, it expects the following properties in
 	 * the POST body:
 	 *
 	 * 	- token:	The user authentication token.
 	 * 	- username:	The user code.
 	 *
-	 * The service will return a string token that will be used when the user will
-	 * signin, it contains the user code and password, these will be used to
-	 * authenticate and load the user data when the user will sign in.
+	 * The service will return an ovject, { result : true }, upon completion.
 	 *
 	 * The service will perform the following steps:
 	 *
+	 * 	- Assert there is a current session user.
+	 * 	- Assert the current session user can manage other users.
 	 * 	- Validate the user authentication token.
 	 * 	- Resolve the provided username.
-	 * 	- Check that there is no current user in the session, or that the current user
-	 * 	  can manage the provided user reference.
-	 * 	- Set the user status to pending.
-	 * 	- Set password.
-	 * 	- Encode the username and password.
-	 * 	- Create the authorisation data.
-	 * 	- Replace the user.
-	 * 	- Return the encoded user record token.
+	 * 	- Assert the current session user can manage provided user.
+	 * 	- Remove the user.
+	 * 	- Return { result : true }.
 	 *
 	 * If the method raises an exception, the service will forward it using the
 	 * HTTP code if the exception is of class MyError.
@@ -520,22 +515,23 @@ module.exports = {
 	},	// changeUsername
 	
 	/**
-	 * Return sign up form
+	 * Return sign in form
 	 *
-	 * The service will decode the sign up token, resolve the corresponding user and
-	 * return its contents, it expects the following object in the body:
+	 * This service can be used to get the signin form along with the saved user data,
+	 * it expects the following parameters in the body:
 	 *
 	 * 	- token:	the user authentication token.
 	 * 	- encoded:	the sign up token.
 	 *
 	 * The service will perform the following steps:
 	 *
-	 * 	- Decode the provided token.
+	 * 	- Validate the user authentication token.
+	 * 	- Decode the sign up token.
 	 * 	- Resolve the corresponding user.
 	 * 	- Authenticate the user.
-	 * 	- Return the user contents.
-	 *
-	 * The service returns the user record.
+	 * 	- Resolve the signin form.
+	 * 	- Add the user data to the form.
+	 * 	- Return the signin form with user data.
 	 *
 	 * If the method raises an exception, the service will forward it using the
 	 * HTTP code if the exception is of class MyError.
@@ -543,7 +539,7 @@ module.exports = {
 	 * @param theRequest	{Object}	The current request.
 	 * @param theResponse	{Object}	The current response.
 	 */
-	signUpForm : ( theRequest, theResponse ) =>
+	signInForm : ( theRequest, theResponse ) =>
 	{
 		//
 		// Procedures.
@@ -602,7 +598,18 @@ module.exports = {
 					)
 				);																// !@! ==>
 			
-			theResponse.send({ result : user.document });							// ==>
+			//
+			// Resolve signin form.
+			//
+			const form =
+				new Form(
+					theRequest,								// Current request.
+					Dict.term.kFormSignin,					// Form _key.
+					K.function.clone(user.document),		// Form data.
+					true									// Only form fields.
+				);
+			
+			theResponse.send({ result : form.form });								// ==>
 		}
 		catch( error )
 		{
@@ -621,7 +628,7 @@ module.exports = {
 			theResponse.throw( http, error );									// !@! ==>
 		}
 		
-	},	// signUpForm
+	},	// signInForm
 	
 	/**
 	 * Create administrator user

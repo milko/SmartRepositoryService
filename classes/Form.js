@@ -4,6 +4,7 @@
 // Frameworks.
 //
 const _ = require('lodash');
+const db = require('@arangodb').db;
 
 //
 // Application.
@@ -11,6 +12,7 @@ const _ = require('lodash');
 const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
 const Schema = require( '../utils/Schema' );
+const Dictionary = require( '../utils/Dictionary' );
 const Validation = require( '../utils/Validation' );
 
 
@@ -46,8 +48,9 @@ class Form
 	 * @param theRequest	{Object}	The current request.
 	 * @param theForm		{String}	The form reference.
 	 * @param theData		{Object}	The form data.
+	 * @param doForm		{Boolean}	True: only form fields.
 	 */
-	constructor( theRequest, theForm, theData = null )
+	constructor( theRequest, theForm, theData = null, doForm = false )
 	{
 		//
 		// Init descriptors list.
@@ -105,7 +108,8 @@ class Form
 			// ToDo
 			//
 			if( K.function.isObject( theData )
-			 && (Object.keys( data ).length > 0) )
+			 && (Object.keys( data ).length > 0)
+			 && (doForm === false) )
 			{
 				//
 				// Prepare last form element.
@@ -120,7 +124,7 @@ class Form
 				for( const field in data )
 					Form.addDataValue(
 						theRequest,			// Current request.
-						element._children,	// Elelents receptor.
+						element._children,	// Elements receptor.
 						field,				// Data value field.
 						data[ field ]		// Data value.
 					);
@@ -128,7 +132,7 @@ class Form
 			}	// Values left.
 			
 		}	// Has elements.
-		
+	
 	}	// constructor
 	
 	/**
@@ -236,7 +240,7 @@ class Form
 	 * modifiers from the edge to the vertex and finally process the eventual element
 	 * siblings.
 	 *
-	 * If you provide theData, the method will add a _value property to descriptor
+	 * If you provide theData, the method will add a '_value' property to descriptor
 	 * elements with the corresponding data value; to ignore, provide null.
 	 *
 	 * If you provide theFields, all used descriptor _key fields will be added to the
@@ -410,11 +414,12 @@ class Form
 				
 				//
 				// Remove property from data.
+				// ToDo.
 				// MILKO - STRUCTURES ARE NOT SUPPORTED.
 				//
 				delete theData[ theElement._vertex._key ];
 			}
-			
+		
 		}	// Is descriptor.
 	
 	}	// normaliseFormElement
@@ -440,7 +445,33 @@ class Form
 		//
 		// Init element.
 		//
-		const element = { _vertex : {} };
+		const element = {};
+		
+		//
+		// Get descriptor.
+		//
+		element._vertex = db._document( `descriptors/${theField}` );
+		
+		//
+		// Restrict to language.
+		//
+		Dictionary.restrictLanguage(
+			element._vertex,
+			theRequest.application.user[ Dict.descriptor.kLanguage ]
+		);
+		
+		//
+		// Add interface.
+		// Defaults to input-output, if you want it different, add it to the form.
+		//
+		if( ! element._vertex.hasOwnProperty( Dict.descriptor.kInterface ) )
+			element._vertex[ Dict.descriptor.kInterface ] =
+				Dict.term.kStateInterfaceFieldInOut;
+		
+		//
+		// Set value.
+		//
+		element._value = theValue;
 		
 		//
 		// Add element.

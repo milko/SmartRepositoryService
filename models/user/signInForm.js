@@ -6,11 +6,11 @@
 const Joi = require('joi');
 
 /**
- * Sign up form
+ * Sign in form
  *
- * This schema is used to decode a signUp, the schema will validate the main service
- * contents, that is, ensure the key and token are provided; the detailed validation
- * will be performed by the handler.
+ * This schema is used to decode a singIn, the schema will validate the main service
+ * contents, that is, ensure the user and encoded tokens are provided; the detailed
+ * validation will be performed by the handler.
  */
 module.exports = {
 	

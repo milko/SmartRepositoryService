@@ -95,7 +95,12 @@ router.post
 			//
 			// Create form.
 			//
-			const form = new Form( request, request.body.form, data );
+			const form =
+				new Form(
+					request,
+					request.body.form,
+					data
+				);
 			
 			response.send({
 				branch : form.branch,
