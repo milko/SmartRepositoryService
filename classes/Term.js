@@ -115,6 +115,30 @@ class Term extends Identifier
 		
 	}	// lockedFields
 	
+	
+	/************************************************************************************
+	 * DEFAULT GLOBALS																	*
+	 ************************************************************************************/
+	
+	/**
+	 * Return default collection name
+	 *
+	 * This method should return the default collection name: if documents of this
+	 * class belong to a specific collection, this method should return its name; if
+	 * documents of this class may be stored in different collectons, this method
+	 * should return null.
+	 *
+	 * We overload this method to return the terms collection.
+	 *
+	 * @returns {String}|{null}	The default collection name.
+	 */
+	get defaultCollection()
+	{
+		return 'terms';																// ==>
+		
+	}	// defaultCollection
+
+	
 }	// Term.
 
 module.exports = Term;
