@@ -9,8 +9,8 @@ const Joi = require('joi');
  * Sign up form
  *
  * This schema is used to decode a signUp, the schema will validate the main service
- * contents, that is, ensure the key and token are provided; the detailed validation
- * will be performed by the handler.
+ * contents, that is, ensure the token is provided; the detailed validation will be
+ * performed by the handler.
  */
 module.exports = {
 	
@@ -18,8 +18,7 @@ module.exports = {
 	 * Parameters schema
 	 */
 	schema : Joi.object({
-		token:	 Joi.string().required(),
-		encoded: Joi.string().required()
+		token:	 Joi.string().required()
 	}).required(),
 	
 	/**
