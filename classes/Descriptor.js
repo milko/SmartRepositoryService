@@ -1,84 +1,79 @@
 'use strict';
 
 //
-// Frameworks.
-//
-const db = require('@arangodb').db;
-const errors = require('@arangodb').errors;
-const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
-const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
-
-//
 // Application.
 //
 const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
-const MyError = require( '../utils/MyError' );
 const Schema = require( '../utils/Schema' );
+const MyError = require( '../utils/MyError' );
 const Dictionary = require( '../utils/Dictionary' );
 
 //
 // Parent.
 //
-const Document = require( './Document' );
+const Identifier = require( './Identifier' );
 
 
 /**
  * Descriptor class
  *
- * This class implements a descriptor object.
+ * This class implements a Descriptor object.
  */
-class Descriptor extends Document
+class Descriptor extends Identifier
 {
-	/**
-	 * Set class
-	 *
-	 * This method will set the document class, which is the _key reference of the
-	 * term defining the document class.
-	 */
-	setClass()
-	{
-		this._class = 'Descriptor';
-		
-	}	// setClass
+	/************************************************************************************
+	 * INITIALISATION METHODS															*
+	 ************************************************************************************/
 	
 	/**
-	 * Load computed fields
+	 * Init document properties
 	 *
-	 * We overload this method to add the validation record.
+	 * This method is called by initProperties(), its duty is to initialise the main
+	 * object properties.
 	 *
-	 * @param doAssert		{Boolean}	If true, an exception will be raised on errors
-	 * 									(defaults to true).
-	 * @returns {Boolean}				True if valid.
+	 * We overload this method to set the Descriptor instance.
+	 *
+	 * @param theRequest	{Object}			The current request.
+	 * @param theCollection	{String}|{null}		The document collection.
+	 * @param isImmutable	{Boolean}			True, instantiate immutable document.
 	 */
-	setComputedProperties( doAssert = true )
+	initDocumentMembers( theRequest, theCollection, isImmutable )
 	{
 		//
 		// Call parent method.
 		//
-		if( super.setComputedProperties( doAssert ) )
+		super.initDocumentMembers( theRequest, theCollection, isImmutable );
+		
+		//
+		// Set edge instance.
+		//
+		this._instance = 'Descriptor';
+		
+	}	// initDocumentMembers
+	
+	
+	/************************************************************************************
+	 * MODIFICATION METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Normalise insert properties
+	 *
+	 * This method should load any default properties set when inserting the object.
+	 *
+	 * We overload this method to set the validation data.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	normaliseInsertProperties( doAssert = true )
+	{
+		//
+		// Call parent method.
+		//
+		if( super.normaliseInsertProperties( doAssert ) )
 		{
-			//
-			// Compute the global identifier.
-			//
-			const gid = Dictionary.compileGlobalIdentifier( this._document, doAssert );
-			
-			//
-			// Set the global identifier.
-			// Will raise an exception if it is unable to compute,
-			// or if the eventual existing GID is different (locked flag):
-			// if the field doesn't exist set it, since it is required.
-			//
-			if( gid !== null )
-				this.setProperty(
-					Dict.descriptor.kGID,	// Field name.
-					gid,					// Field value.
-					this._document.hasOwnProperty( Dict.descriptor.kGID ),
-					false					// Validating, thus not resolving.
-				);
-			else
-				return false;														// ==>
-			
 			//
 			// Set validation structure.
 			//
@@ -93,128 +88,167 @@ class Descriptor extends Document
 			
 			return true;															// ==>
 			
-		}	// Parent method was successful.
+		}	// Parent method passed.
 		
 		return false;																// ==>
 		
-	}	// setComputedProperties
+	}	// normaliseInsertProperties
 	
 	/**
-	 * Check collection type
+	 * Normalise replace properties
 	 *
-	 * This method will check if the collection is of the correct type, if that is not
-	 * the case, the method will raise an exception.
+	 * This method should load any default properties set when replacing the object.
 	 *
-	 * In this class we expect a document collection.
+	 * In this class we do nothing.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
 	 */
-	checkCollectionType()
+	normaliseReplaceProperties( doAssert = true )
 	{
 		//
-		// Check collection type.
+		// Call parent method.
 		//
-		if( db._collection( this._collection ).type() !== 2 )
-			throw(
-				new MyError(
-					'BadCollection',					// Error name.
-					K.error.ExpectingDocColl,			// Message code.
-					this._request.application.language,	// Language.
-					this._collection,					// Error value.
-					412									// HTTP error code.
-				)
-			);																	// !@! ==>
-		
-	}	// checkCollectionType
-	
-	/**
-	 * Assert if current object is constrained
-	 *
-	 * This method will check if the current object has constraints that should
-	 * prevent the object from being removed, the method will return true if there is
-	 * a constraint, or it will return false.
-	 *
-	 * If the getMad parameter is true and if the object is constrained, the method will
-	 * raise an exception.
-	 *
-	 * In this class we prevent removing embedded, default and standard descriptors.
-	 *
-	 * This method is called before removing the current object.
-	 *
-	 * @param getMad	{Boolean}	True raises an exception (default).
-	 * @returns {Boolean}			True if object is related and null if not persistent.
-	 */
-	hasConstraints( getMad = true )
-	{
-		//
-		// Check if persistent.
-		//
-		if( this._persistent )
+		if( super.normaliseReplaceProperties( doAssert ) )
 		{
 			//
-			// Check if embedded.
+			// Set validation structure.
 			//
-			if( this._document[ Dict.descriptor.kDeploy ]
-				=== Dict.term.kStateApplicationEmbedded )
-			{
-				if( getMad )
-					throw(
-						new MyError(
-							'ConstraintViolated',				// Error name.
-							K.error.DescriptorEmbedded,			// Message code.
-							this._request.application.language,	// Language.
-							this._document._key,				// Error value.
-							409									// HTTP error code.
-						)
-					);															// !@! ==>
-				
-				return true;														// ==>
-			}
+			this._document[ Dict.descriptor.kValidation ] =
+				Descriptor.getValidationStructure(
+					this._request,
+					Descriptor.getDescriptorValidationRecord(
+						this._request,
+						this._document
+					)
+				);
 			
-			//
-			// Check if default.
-			//
-			if( this._document[ Dict.descriptor.kDeploy ]
-				=== Dict.term.kStateApplicationDefault )
-			{
-				if( getMad )
-					throw(
-						new MyError(
-							'ConstraintViolated',				// Error name.
-							K.error.DescriptorDefault,			// Message code.
-							this._request.application.language,	// Language.
-							this._document._key,				// Error value.
-							409									// HTTP error code.
-						)
-					);															// !@! ==>
-				
-				return true;														// ==>
-			}
+			return true;															// ==>
 			
-			//
-			// Check if standard.
-			//
-			if( this._document[ Dict.descriptor.kDeploy ]
-				=== Dict.term.kStateApplicationStandard )
-			{
-				if( getMad )
-					throw(
-						new MyError(
-							'ConstraintViolated',				// Error name.
-							K.error.DescriptorStandard,			// Message code.
-							this._request.application.language,	// Language.
-							this._document._key,				// Error value.
-							409									// HTTP error code.
-						)
-					);															// !@! ==>
-				
-				return true;														// ==>
-			}
-			
-			return false;															// ==>
-		}
+		}	// Parent method passed.
 		
-		return null;																// ==>
+		return false;																// ==>
 		
-	}	// hasConstraints
+	}	// normaliseReplaceProperties
+	
+	
+	/************************************************************************************
+	 * VALIDATION METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Validate document constraints
+	 *
+	 * This method is called before deleting a document, it should ensure the current
+	 * document has no constraints that would prevent it from being deleted.
+	 *
+	 * If the current document is not persistent, the method will return null; if
+	 * there are no constraints, the method will return true; if there are
+	 * constraints, the method will raise an exception if doAssert is true, or return
+	 * false.
+	 *
+	 * Note. Don't get confused: returning true means there are no constraints, false
+	 * there are constraints and null means constraints are irrelevant.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception (default).
+	 * @returns {Boolean}			True/false if no constraints and null if not
+	 * 								persistent.
+	 */
+	validateDocumentConstraints( doAssert = true )
+	{
+		//
+		// Call parent method.
+		//
+		const result = super.validateDocumentConstraints( doAssert );
+		
+		//
+		// Continue if no constraints.
+		// This also means the object is persistent.
+		//
+		if( result === true )
+		{
+			//
+			// Parse by application state.
+			//
+			switch( this._document[ Dict.descriptor.kDeploy ] )
+			{
+				//
+				// Prevent removing embedded descriptors.
+				//
+				case Dict.term.kStateApplicationEmbedded:
+					if( doAssert )
+						throw(
+							new MyError(
+								'ConstraintViolated',				// Error name.
+								K.error.DescriptorEmbedded,			// Message code.
+								this._request.application.language,	// Language.
+								this._document._key,				// Error value.
+								409									// HTTP error code.
+							)
+						);														// !@! ==>
+					
+					return false;													// ==>
+				
+				//
+				// Prevent removing default descriptors.
+				//
+				case Dict.term.kStateApplicationDefault:
+					if( doAssert )
+						throw(
+							new MyError(
+								'ConstraintViolated',				// Error name.
+								K.error.DescriptorDefault,			// Message code.
+								this._request.application.language,	// Language.
+								this._document._key,				// Error value.
+								409									// HTTP error code.
+							)
+						);														// !@! ==>
+					
+					return false;													// ==>
+				
+				//
+				// Prevent removing standard descriptors.
+				//
+				case Dict.term.kStateApplicationStandard:
+					if( doAssert )
+						throw(
+							new MyError(
+								'ConstraintViolated',				// Error name.
+								K.error.DescriptorStandard,			// Message code.
+								this._request.application.language,	// Language.
+								this._document._key,				// Error value.
+								409									// HTTP error code.
+							)
+						);														// !@! ==>
+					
+					return false;													// ==>
+			
+			}	// Parsing by application state.
+			
+		}	// Parent has no constraints.
+		
+		return result;																// ==>
+		
+	}	// validateDocumentConstraints
+	
+	/**
+	 * Validate collection type
+	 *
+	 * In this class we assert the collection to be of type document.
+	 *
+	 * @param theCollection	{String}	The collection name.
+	 * @param doAssert		{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}				True if all required fields are there.
+	 */
+	validateCollectionType( theCollection, doAssert = true )
+	{
+		return Edge.isDocumentCollection(
+			this._request,
+			theCollection,
+			doAssert
+		);																			// ==>
+		
+	}	// validateCollectionType
 	
 	
 	/************************************************************************************
@@ -222,44 +256,34 @@ class Descriptor extends Document
 	 ************************************************************************************/
 	
 	/**
-	 * Return list of significant fields
-	 *
-	 * This method should return the list of properties that will uniquely identify
-	 * the document.
-	 *
-	 * In this class we return the global identifier.
-	 *
-	 * @returns {Array}	List of significant fields.
-	 */
-	get significantFields()
-	{
-		return [ [Dict.descriptor.kGID] ];											// ==>
-		
-	}	// significantFields
-	
-	/**
 	 * Return list of required fields
 	 *
 	 * This method should return the list of required properties.
 	 *
-	 * In this class we return the _key, lid, gid, var, kind, type, format, deploy and
-	 * label.
+	 * In this class we return the following fields:
+	 *
+	 * 	- nid:		Namespace reference.
+	 * 	- var:		Descriptor variable.
+	 * 	- kind:		Data kind.
+	 * 	- type:		Data type.
+	 * 	- format:	Data format.
+	 * 	- deploy:	Application state.
+	 * 	- label:	Descriptor label.
 	 *
 	 * @returns {Array}	List of required fields.
 	 */
 	get requiredFields()
 	{
-		return [
-			'_key',
-			Dict.descriptor.kLID,
-			Dict.descriptor.kGID,
-			Dict.descriptor.kVariable,
-			Dict.descriptor.kKind,
-			Dict.descriptor.kType,
-			Dict.descriptor.kFormat,
-			Dict.descriptor.kDeploy,
-			Dict.descriptor.kLabel
-		];																			// ==>
+		return super.requiredFields
+			.concat([
+				Dict.descriptor.kNID,				// Namespace reference.
+				Dict.descriptor.kVariable,			// Descriptor variable name.
+				Dict.descriptor.kKind,				// Data kind.
+				Dict.descriptor.kType,				// Data type.
+				Dict.descriptor.kFormat,			// Data format.
+				Dict.descriptor.kDeploy,			// Application state.
+				Dict.descriptor.kLabel				// Label.
+			]);																		// ==>
 		
 	}	// requiredFields
 	
@@ -268,7 +292,9 @@ class Descriptor extends Document
 	 *
 	 * This method should return the list of unique properties.
 	 *
-	 * In this class we return the key and the global identifier.
+	 * In this class we return the following fields:
+	 *
+	 * 	- var:		Descriptor variable.
 	 *
 	 * @returns {Array}	List of unique fields.
 	 */
@@ -276,8 +302,7 @@ class Descriptor extends Document
 	{
 		return super.uniqueFields
 			.concat([
-				Dict.descriptor.kGID,
-				Dict.descriptor.kVariable
+				Dict.descriptor.kVariable			// Descriptor variable name.
 			]);																		// ==>
 		
 	}	// uniqueFields
@@ -288,7 +313,9 @@ class Descriptor extends Document
 	 * This method should return the list of fields that cannot be changed once the
 	 * document has been inserted.
 	 *
-	 * In this class we return the id, key, revision.
+	 * In this class we return the following fields:
+	 *
+	 * 	- var:		Descriptor variable.
 	 *
 	 * @returns {Array}	List of locked fields.
 	 */
@@ -296,17 +323,54 @@ class Descriptor extends Document
 	{
 		return super.lockedFields
 			.concat([
-				Dict.descriptor.kNID,
-				Dict.descriptor.kLID,
-				Dict.descriptor.kGID,
-				Dict.descriptor.kVariable,
-				Dict.descriptor.kKind,
-				Dict.descriptor.kType,
-				Dict.descriptor.kFormat,
-				Dict.descriptor.kDeploy
+				Dict.descriptor.kVariable			// Descriptor variable name.
 			]);																		// ==>
 		
 	}	// lockedFields
+	
+	/**
+	 * Return list of significant fields
+	 *
+	 * This method should return the list of properties that will uniquely identify
+	 * the document, it is used when resolving a document from an object.
+	 *
+	 * In this class we return the following fields:
+	 *
+	 * 	- var:		Descriptor variable.
+	 *
+	 * @returns {Array}	List of significant fields.
+	 */
+	get significantFields()
+	{
+		return super.significantFields
+			.concat([
+				[ Dict.descriptor.kVariable ]		// Descriptor variable name.
+			]);																		// ==>
+		
+	}	// significantFields
+	
+	
+	/************************************************************************************
+	 * DEFAULT GLOBALS																	*
+	 ************************************************************************************/
+	
+	/**
+	 * Return default collection name
+	 *
+	 * This method should return the default collection name: if documents of this
+	 * class belong to a specific collection, this method should return its name; if
+	 * documents of this class may be stored in different collectons, this method
+	 * should return null.
+	 *
+	 * We overload this method to return the descriptors collection.
+	 *
+	 * @returns {String}|{null}	The default collection name.
+	 */
+	get defaultCollection()
+	{
+		return 'descriptors';															// ==>
+		
+	}	// defaultCollection
 	
 	
 	/************************************************************************************

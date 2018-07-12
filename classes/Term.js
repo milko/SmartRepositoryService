@@ -75,6 +75,30 @@ class Term extends Identifier
 	
 	
 	/************************************************************************************
+	 * VALIDATION METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Validate collection type
+	 *
+	 * In this class we assert the collection to be of type document.
+	 *
+	 * @param theCollection	{String}	The collection name.
+	 * @param doAssert		{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}				True if all required fields are there.
+	 */
+	validateCollectionType( theCollection, doAssert = true )
+	{
+		return Edge.isDocumentCollection(
+			this._request,
+			theCollection,
+			doAssert
+		);																			// ==>
+		
+	}	// validateCollectionType
+	
+	
+	/************************************************************************************
 	 * GETTER METHODS																	*
 	 ************************************************************************************/
 	

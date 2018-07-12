@@ -2365,7 +2365,7 @@ class Document
 	 */
 	get instance()
 	{
-		return this._instance;															// ==>
+		return this._instance;														// ==>
 		
 	}	// instance
 	
