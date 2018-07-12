@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/Descriptor.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Descriptor.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/Document.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Document.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/Term.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Term.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/classes/Toponym.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -42,11 +39,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Descriptor.js" pinned="false" current-in-tab="true">
+          <file leaf-file-name="Descriptor.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/classes/Descriptor.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="135">
-                  <caret line="9" lean-forward="true" selection-start-line="9" selection-end-line="9" />
+                  <caret line="9" column="48" selection-start-line="9" selection-start-column="48" selection-end-line="9" selection-end-column="48" />
                 </state>
               </provider>
             </entry>
@@ -54,8 +51,17 @@
           <file leaf-file-name="Term.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/classes/Term.js">
               <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="227">
+                  <caret line="119" column="8" lean-forward="true" selection-start-line="119" selection-start-column="8" selection-end-line="119" selection-end-column="8" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Toponym.js" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/classes/Toponym.js">
+              <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="621">
-                  <caret line="160" selection-start-line="160" selection-end-line="161" />
+                  <caret line="57" column="84" selection-start-line="57" selection-start-column="84" selection-end-line="57" selection-end-column="84" />
                 </state>
               </provider>
             </entry>
@@ -273,7 +279,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/test/disabled_test_Edge.js" />
         <option value="$PROJECT_DIR$/test/test_Persistent.js" />
         <option value="$PROJECT_DIR$/test/test_Document.js" />
         <option value="$PROJECT_DIR$/classes/Edge.js" />
@@ -324,6 +329,7 @@
         <option value="$PROJECT_DIR$/classes/Term.js" />
         <option value="$PROJECT_DIR$/classes/Document.js" />
         <option value="$PROJECT_DIR$/classes/Descriptor.js" />
+        <option value="$PROJECT_DIR$/classes/Toponym.js" />
       </list>
     </option>
   </component>
@@ -617,7 +623,7 @@
       <workItem from="1531319097627" duration="5121000" />
       <workItem from="1531325284477" duration="812000" />
       <workItem from="1531326192148" duration="123000" />
-      <workItem from="1531388722768" duration="2532000" />
+      <workItem from="1531388722768" duration="3147000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring Document unit tests.&#10;Developed functions to make lengthy checks: will not transform functions into classes to make checks inherited and reusable.">
       <created>1528974578541</created>
@@ -651,7 +657,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="961059000" />
+    <option name="totallyTimeSpent" value="961674000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
@@ -705,7 +711,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/classes/user.old.js" />
     <entry file="file://$PROJECT_DIR$/classes/EdgeBranch.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2865">
@@ -978,17 +983,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Term.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="621">
-          <caret line="160" selection-start-line="160" selection-end-line="161" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/classes/Descriptor.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="135">
-          <caret line="9" lean-forward="true" selection-start-line="9" selection-end-line="9" />
+          <caret line="9" column="48" selection-start-line="9" selection-start-column="48" selection-end-line="9" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Term.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="227">
+          <caret line="119" column="8" lean-forward="true" selection-start-line="119" selection-start-column="8" selection-end-line="119" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Toponym.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="621">
+          <caret line="57" column="84" selection-start-line="57" selection-start-column="84" selection-end-line="57" selection-end-column="84" />
         </state>
       </provider>
     </entry>
