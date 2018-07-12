@@ -660,6 +660,51 @@
     }
   },
   {
+    "_key" : "s:init:descriptors",
+    "response" : {
+      "ISO:639:3:eng" : "The operation result."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "<p>This service will iterate all descriptors and replace them, its duty is to initialise local properties and validate the objects.</p><p>The service will first set the creation time stamp for all descriptors, then it will set the validation record for all descriptors and finally it will replace all descriptors.</p><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the operation status.</p>"
+    }
+  },
+  {
+    "_key" : "s:init:shapes",
+    "response" : {
+      "ISO:639:3:eng" : "The operation result."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "<p>This service will iterate all shapes and replace them, its duty is to initialise local properties and validate the objects.</p><p>The service will first set the creation time stamp for all shapes, then it will replace all shapes.</p><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the operation status.</p>"
+    }
+  },
+  {
+    "_key" : "s:init:toponyms",
+    "response" : {
+      "ISO:639:3:eng" : "The operation result."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "<p>This service will iterate all toponyms and replace them, its duty is to initialise local properties and validate the objects.</p><p>The service will first set the creation time stamp for all records, then it will replace all records.</p><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the operation status.</p>"
+    }
+  },
+  {
+    "_key" : "s:init:edges",
+    "response" : {
+      "ISO:639:3:eng" : "The operation result."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "<p>This service will iterate all edges and replace them, its duty is to initialise local properties and validate the objects.</p><p>The service will first set the creation time stamp for all records, then it will replace all records.</p><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the operation status.</p>"
+    }
+  },
+  {
+    "_key" : "s:init:schemas",
+    "response" : {
+      "ISO:639:3:eng" : "The operation result."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "<p>This service will iterate all schemas and replace them, its duty is to initialise local properties and validate the objects.</p><p>The service will first set the creation time stamp for all records, then it will replace all records.</p><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the operation status.</p>"
+    }
+  },
+  {
     "_key": "s:schema:enumIsChoice",
     "body": {
       "ISO:639:3:eng": "<p>The service expects two parameters from the request body:</p><ul><li><strong>term</strong>: The reference(s) to the term to test as its <code>_id</code> or <code>_key</code>: it can be provided as a <em>string</em>, or as an <em>array</em> of strings.</li><li><strong>enum</strong>: An array of term <code>_id</code> or <code>_key</code> values which represent the set of enumerations to which the term should belong. To ignore enumeration membership, provide either an <em>empty array</em> or <code>null</code>, which is the default choice.</li></ul>"

@@ -3,6 +3,7 @@
 //
 // Routes.
 //
+module.context.use( "/init", require( './routes/init'), 'init');
 module.context.use( "/session", require( './routes/session'), 'session');
 module.context.use( "/schema", require( './routes/schema'), 'schema');
 module.context.use( "/user", require( './routes/user'), 'user');

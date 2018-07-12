@@ -89,7 +89,7 @@ class Term extends Identifier
 	 */
 	validateCollectionType( theCollection, doAssert = true )
 	{
-		return Edge.isDocumentCollection(
+		return Term.isDocumentCollection(
 			this._request,
 			theCollection,
 			doAssert

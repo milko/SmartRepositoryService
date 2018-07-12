@@ -52,17 +52,12 @@ class Descriptor extends Identifier
 		
 	}	// initDocumentMembers
 	
-	
-	/************************************************************************************
-	 * MODIFICATION METHODS																*
-	 ************************************************************************************/
-	
 	/**
 	 * Normalise insert properties
 	 *
 	 * This method should load any default properties set when inserting the object.
 	 *
-	 * We overload this method to set the validation data.
+	 * In this class we set the validation structure.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
@@ -99,7 +94,7 @@ class Descriptor extends Identifier
 	 *
 	 * This method should load any default properties set when replacing the object.
 	 *
-	 * In this class we do nothing.
+	 * In this class we set the validation structure.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
@@ -242,7 +237,7 @@ class Descriptor extends Identifier
 	 */
 	validateCollectionType( theCollection, doAssert = true )
 	{
-		return Edge.isDocumentCollection(
+		return Descriptor.isDocumentCollection(
 			this._request,
 			theCollection,
 			doAssert
@@ -276,7 +271,6 @@ class Descriptor extends Identifier
 	{
 		return super.requiredFields
 			.concat([
-				Dict.descriptor.kNID,				// Namespace reference.
 				Dict.descriptor.kVariable,			// Descriptor variable name.
 				Dict.descriptor.kKind,				// Data kind.
 				Dict.descriptor.kType,				// Data type.

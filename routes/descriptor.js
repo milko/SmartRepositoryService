@@ -48,7 +48,7 @@ router.tag( 'descriptor' );
  * The service returns an object { result : <value> } where the value represents
  * the number of updated descriptors.
  *
- * The service may raise an exceprion, the HTTP code depends on the exception
+ * The service may raise an exception, the HTTP code depends on the exception
  * class: if MyError and it contains the HTTP code, this will be used, in all
  * other cases, the code will be 500.
  *
