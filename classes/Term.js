@@ -1,6 +1,12 @@
 'use strict';
 
 //
+// Application.
+//
+const K = require( '../utils/Constants' );
+const Dict = require( '../dictionary/Dict' );
+
+//
 // Parent.
 //
 const Identifier = require( './Identifier' );
@@ -77,6 +83,47 @@ class Term extends Identifier
 	/************************************************************************************
 	 * VALIDATION METHODS																*
 	 ************************************************************************************/
+	
+	/**
+	 * Validate document
+	 *
+	 * This method will assert that the current document contents are valid and that
+	 * the object is ready to be stored in the database, it will perform the following
+	 * steps:
+	 *
+	 * 	- Normalise document: load any default or computed required property.
+	 * 	- Assert if all required properties are there.
+	 * 	- Validate all document properties.
+	 *
+	 * In this class we overload this method to skip the default namespace term: this
+	 * term has an empty local identifier, this is intentional in order to prevent
+	 * anyone from creating such a namespace, the local identifier is required and
+	 * cannot be empty, so we skip this term and assume it is valid.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	validateDocument( doAssert = true )
+	{
+		//
+		// Filter default namespace.
+		//
+		if( (this._document[ Dict.descriptor.kGID ] === ':')
+		 && (this._document[ Dict.descriptor.kDeploy ] === Dict.term.kStateApplicationDefault) )
+		{
+			//
+			// Load computed fields.
+			//
+			if( ! this.normaliseDocumentProperties( doAssert ) )
+				return false;														// ==>
+			
+			return true;															// ==>
+		}
+		
+		else
+			return super.validateDocument( doAssert );								// ==>
+		
+	}	// validateDocument
 	
 	/**
 	 * Validate collection type

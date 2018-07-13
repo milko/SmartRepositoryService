@@ -6,6 +6,12 @@
     }
   },
   {
+    "_key" : "DifferentCurrentUser",
+    "label" : {
+      "ISO:639:3:eng" : "Session user has changed: "
+    }
+  },
+  {
     "_key" : "EmptyCollection",
     "label" : {
       "ISO:639:3:eng" : "Collection [@arg@] is empty: "

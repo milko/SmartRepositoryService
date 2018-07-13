@@ -146,33 +146,62 @@ router.post( '/user/login', Handlers.login, 'login' )
 
 
 /**
- * User credentials
+ * User profile form
  *
  * This service can be used to request the current user's filled credentials form, it
  * will return an object, { form : <form>, user : <user> }, where form is the
  * credentials form and user is the current user record; if there is no current user,
  * the service will return null in both properties.
  *
- * @path		/user/credentials
+ * @path		/user/profile/form
  * @verb		get
  * @response	{Object}	The current user record and the credentials form.
  */
-/*
-router.post( '/user/credentials', Handlers.getCredentials(), 'getCredentials' )
+router.get( '/user/profile/form', Handlers.userProfileForm, 'userProfileForm' )
 	.response(
 		200,
-		require( '../models/session/credentials' ),
+		require( '../models/session/userProfileForm' ),
 		Application.getServiceDescription(
-			'session', 'login', 'response', module.context.configuration.defaultLanguage )
+			'session', 'userProfileForm', 'response', module.context.configuration.defaultLanguage )
 	)
 	.summary(
-		"Update current user credentials"
+		"Get current user profile form"
 	)
 	.description(
 		Application.getServiceDescription(
-			'session', 'credentials', 'description', module.context.configuration.defaultLanguage )
+			'session', 'userProfileForm', 'description', module.context.configuration.defaultLanguage )
 	);
-*/
+
+
+/**
+ * User profile
+ *
+ * This service can be used to change the current user's profile data, it expects the
+ * data from the profile form and will return the updated user record.
+ *
+ * @path		/user/profile
+ * @verb		post
+ * @response	{Object}	The current user record and the credentials form.
+ */
+router.post( '/user/profile', Handlers.userProfile, 'userProfile' )
+	.body(
+		require( '../models/session/userProfile' ),
+		Application.getServiceDescription(
+			'session', 'userProfile', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/session/userProfile' ),
+		Application.getServiceDescription(
+			'session', 'userProfile', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Set current user profile."
+	)
+	.description(
+		Application.getServiceDescription(
+			'session', 'userProfile', 'description', module.context.configuration.defaultLanguage )
+	);
 
 
 /**

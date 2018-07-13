@@ -485,7 +485,7 @@ class Validation
 					);
 
 				//
-				// Add path.
+				// Add identifier and path.
 				//
 				error.path = thePath;
 

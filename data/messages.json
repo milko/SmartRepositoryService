@@ -660,6 +660,12 @@
     }
   },
   {
+    "_key" : "e111",
+    "label" : {
+      "ISO:639:3:eng" : "current user does not match."
+    }
+  },
+  {
     "_key" : "s:init:descriptors",
     "response" : {
       "ISO:639:3:eng" : "The operation result."
@@ -861,6 +867,27 @@
     },
     "description": {
       "ISO:639:3:eng": "The service can be used to logout the current session user, will return an object, <code>{ result : value }</code>, where <code>value</code> will contain the previous session user record, or <code>null</code>, if no user was previously logged in."
+    }
+  },
+  {
+    "_key" : "s:session:userProfileForm",
+    "response" : {
+      "ISO:639:3:eng" : "The service returns an object <code>{ result : value }</code>, where <code>value</code> will be the sign-in form with the current user record in the session."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service returns the sign-in form filled with the current user record."
+    }
+  },
+  {
+    "_key" : "s:session:userProfile",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>token</code></strong>: the user <em>token</em> string.</li><li><strong><code>data</code></strong>: the user <em>sign in form contents</em> object which must include the following required properties:</li><ul><li><strong><code>username</code></stromg>: the user code.</li><li><strong><code>password</code></stromg>: the user password.</li><li><strong><code>name</code></stromg>: the user full name.</li><li><strong><code>email</code></stromg>: the user e-mail address.</li><li><strong><code>language</code></stromg>: the user preferred language code.</li></ul></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the user object."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service is used to change the current session user profile. The service expects the following information in the request POST body:<ul><li><strong><code>token</code></strong>: the user authentication <em>token</em> string.</li><li><strong><code>data</code></strong>: the sign in <em>form contents</em> object which should include the following properties:</li><ul><li><strong><code>username</code></stromg>: the user code.</li><li><strong><code>password</code></stromg>: the user password.</li><li><strong><code>name</code></stromg>: the user full name.</li><li><strong><code>email</code></stromg>: the user e-mail address.</li><li><strong><code>language</code></stromg>: the user preferred language code.</li></ul></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the updated user object.</p>"
     }
   },
   {

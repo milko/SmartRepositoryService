@@ -804,7 +804,17 @@ class Document
 			// Raise errors.
 			//
 			if( doAssert )
+			{
+				if( this._document.hasOwnProperty( '_id' ) )
+				{
+					throw(
+						new Error(
+							`[${this._document._id}] ${error.message}`
+						)
+					);
+				}
 				throw( error );													// !@! ==>
+			}
 		}
 		
 		return false;																// ==>

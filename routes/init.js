@@ -180,7 +180,7 @@ router.get( '/edges', Handlers.initEdges, 'edges' )
  * @verb		get
  * @response	{Object}	{ result : something }.
  */
-router.get( '/schemas', Handlers.initEdges, 'schemas' )
+router.get( '/schemas', Handlers.initSchemas, 'schemas' )
 	.response(
 		200,
 		Joi.object({

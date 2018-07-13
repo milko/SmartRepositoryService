@@ -121,6 +121,7 @@ module.exports = {
 		//
 		result.step2 = { count: count, time: time() - stamp };
 		
+/*
 		//
 		// Iterate all descriptors.
 		//
@@ -129,7 +130,14 @@ module.exports = {
 		pages = page;
 		selector = [];
 		stamp = time();
-		cursor = collection.all();
+		cursor =
+			db._query( aql`
+				FOR term IN ${collection}
+					FILTER term.mstamp == null
+				RETURN term
+			`);
+		
+		// cursor = collection.all();
 		while( cursor.hasNext() )
 		{
 			//
@@ -183,6 +191,7 @@ module.exports = {
 		// Set result.
 		//
 		result.step3 = { count: count, time: time() - stamp };
+*/
 		
 		theResponse.send({ result : result });										// ==>
 		
@@ -240,6 +249,7 @@ module.exports = {
 				UPDATE item WITH ${update} IN ${collection}
 			`);
 		
+/*
 		//
 		// Iterate all shapes.
 		//
@@ -302,6 +312,7 @@ module.exports = {
 		// Set result.
 		//
 		result.step3 = { count: count, time: time() - stamp };
+*/
 		
 		theResponse.send({ result : result });										// ==>
 		
@@ -359,6 +370,7 @@ module.exports = {
 				UPDATE item WITH ${update} IN ${collection}
 			`);
 		
+/*
 		//
 		// Iterate all shapes.
 		//
@@ -421,6 +433,7 @@ module.exports = {
 		// Set result.
 		//
 		result.step3 = { count: count, time: time() - stamp };
+*/
 		
 		theResponse.send({ result : result });										// ==>
 		
@@ -457,6 +470,7 @@ module.exports = {
 		//
 		// Init local storage.
 		//
+		let term;
 		let stamp;
 		let count;
 		let pages;
@@ -478,6 +492,7 @@ module.exports = {
 				UPDATE item WITH ${update} IN ${collection}
 			`);
 		
+/*
 		//
 		// Iterate all records.
 		//
@@ -498,10 +513,10 @@ module.exports = {
 			//
 			// Instantiate descriptor.
 			//
-			const term = new Term( theRequest, id );
+			term = new Term( theRequest, id );
 			
 			//
-			// Replace shape.
+			// Replace term.
 			// Without saving.
 			//
 			term.replaceDocument( false );
@@ -540,6 +555,7 @@ module.exports = {
 		// Set result.
 		//
 		result.step3 = { count: count, time: time() - stamp };
+*/
 		
 		theResponse.send({ result : result });										// ==>
 		
@@ -599,6 +615,7 @@ module.exports = {
 				UPDATE item WITH ${update} IN ${collection}
 			`);
 		
+/*
 		//
 		// Iterate all records.
 		//
@@ -631,10 +648,15 @@ module.exports = {
 				object = new Edge( theRequest, document._id );
 			
 			//
-			// Replace shape.
+			// Replace edge.
 			// Without saving.
 			//
 			object.replaceDocument( false );
+			
+			//
+			// Add selector.
+			//
+			selector.push({ _id : document._id });
 			
 			//
 			// Add to buffer.
@@ -670,6 +692,7 @@ module.exports = {
 		// Set result.
 		//
 		result.step3 = { count: count, time: time() - stamp };
+*/
 		
 		theResponse.send({ result : result });										// ==>
 		
@@ -729,6 +752,7 @@ module.exports = {
 				UPDATE item WITH ${update} IN ${collection}
 			`);
 		
+/*
 		//
 		// Iterate all records.
 		//
@@ -767,6 +791,11 @@ module.exports = {
 			object.replaceDocument( false );
 			
 			//
+			// Add selector.
+			//
+			selector.push({ _id : document._id });
+			
+			//
 			// Add to buffer.
 			//
 			buffer.push( object.document );
@@ -800,6 +829,7 @@ module.exports = {
 		// Set result.
 		//
 		result.step3 = { count: count, time: time() - stamp };
+*/
 		
 		theResponse.send({ result : result });										// ==>
 		
