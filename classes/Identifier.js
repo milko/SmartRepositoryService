@@ -26,21 +26,35 @@ class Identifier extends Persistent
 	 ************************************************************************************/
 	
 	/**
-	 * Normalise insert properties
+	 * Normalise document properties
 	 *
-	 * This method should load any default properties set when inserting the object.
+	 * This method should finalise the contents of the document, such as setting
+	 * eventual missing default values or computing dynamic properties.
 	 *
-	 * In this class we compute the global identifier.
+	 * The provided parameter is a flag that determines whether errors raise
+	 * exceptions or not, it is set to true by default.
+	 *
+	 * The method is called at the end of the constructor and before validating the
+	 * contents of the document: in the first case the doAssert flag is set to the
+	 * value of the persistent flag, which means that if this method fails, an
+	 * exception will be raised if the object is persistent, while if the object is
+	 * not persistent it may still not have all of its fields; in the second case, the
+	 * method should raise an exception according to the value of doAssert passed to
+	 * the caller method.
+	 *
+	 * In this class we compute the global identifier. When called by the constructor,
+	 * the assert parameter is set to the value of the persistent flag, when called
+	 * when inserting and replacing, the flag is by default on.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
 	 */
-	normaliseInsertProperties( doAssert = true )
+	normaliseDocumentProperties( doAssert = true )
 	{
 		//
 		// Call parent method.
 		//
-		if( super.normaliseInsertProperties( doAssert ) )
+		if( super.normaliseDocumentProperties( doAssert ) )
 		{
 			//
 			// Compute the global identifier.
@@ -62,7 +76,7 @@ class Identifier extends Persistent
 		
 		return false;																// ==>
 		
-	}	// normaliseInsertProperties
+	}	// normaliseDocumentProperties
 	
 	
 	/************************************************************************************

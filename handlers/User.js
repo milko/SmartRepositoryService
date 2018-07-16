@@ -195,7 +195,7 @@ module.exports = {
 			//
 			// Insert user.
 			//
-			user.insertDocument( true, password );
+			user.insertDocument( true );
 			
 			//
 			// Login user.

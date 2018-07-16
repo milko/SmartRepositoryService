@@ -115,6 +115,33 @@ module.exports = {
 		},	// canManage
 		
 		/**
+		 * Assert current user can upload
+		 *
+		 * This middleware will check if the current user can manage users.
+		 *
+		 * Must call 'hasUser' before this.
+		 *
+		 * @param theRequest	{Object}	The request.
+		 * @param theResponse	{Object}	The response.
+		 */
+		canUpload : ( theRequest, theResponse ) =>
+		{
+			//
+			// Ensure user can manage.
+			//
+			if( ! theRequest.application.user.role.includes( Dict.term.kRoleUpload ) )
+				theResponse.throw(
+					403,
+					new MyError(
+						'ServiceUnavailable',			// Error name.
+						K.error.CannotUpload,			// Error code.
+						theRequest.application.language	// Error language.
+					)
+				);																// !@! ==>
+			
+		},	// canUpload
+		
+		/**
 		 * Assert administrator token
 		 *
 		 * This middleware will check if the provided administrator token is valid.

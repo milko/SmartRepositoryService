@@ -666,6 +666,12 @@
     }
   },
   {
+    "_key" : "e112",
+    "label" : {
+      "ISO:639:3:eng" : "not authorised to upload datasets."
+    }
+  },
+  {
     "_key" : "s:init:descriptors",
     "response" : {
       "ISO:639:3:eng" : "The operation result."
@@ -1032,6 +1038,27 @@
     },
     "description" : {
       "ISO:639:3:eng" : "The service can be used to update the validation structure of descriptors, it expects the following information in the request POST body <code>param</code> property:</p><ul><li><strong><em>A string</em></strong>: the descriptor <code>_id</code> or <code>_key</code>.</li><li><strong><em>An array of strings</em></strong>: a list of descriptor <em>references</em> as their <code>_id</code> or <code>_key</code>.</li><li><strong><em>An empty array</em></strong>: in this case, <em>all</em> descriptors will be updated.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the number of updated descriptors."
+    }
+  },
+  {
+    "_key" : "s:dataset:datasetRegistrationForm",
+    "response" : {
+      "ISO:639:3:eng" : "The service returns an object <code>{ result : value }</code>, where <code>value</code> will be the dataset registration form."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service returns the dataset registration form."
+    }
+  },
+  {
+    "_key" : "s:dataset:datasetRegistration",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>data</code></strong>: the dataset <em>registration form contents</em> object.</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the dataset registration object."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service is used to register a dataset from the filled contents of the dataset registration form.<p>The service expects the following information in the request POST body:</p><ul><li><strong><code>data</code></strong>: the dataset registration <em>form contents</em> object.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the dataset registration object.</p>"
     }
   }
 ]

@@ -38,7 +38,7 @@ class Term extends Identifier
 		super.initDocumentMembers( theRequest, theCollection, isImmutable );
 		
 		//
-		// Set edge instance.
+		// Set term instance.
 		//
 		this._instance = 'Term';
 		
@@ -50,24 +50,38 @@ class Term extends Identifier
 	 ************************************************************************************/
 	
 	/**
-	 * Normalise insert properties
+	 * Normalise document properties
 	 *
-	 * This method should load any default properties set when inserting the object.
+	 * This method should finalise the contents of the document, such as setting
+	 * eventual missing default values or computing dynamic properties.
 	 *
-	 * In this class we copy the global identifier value to the _key.
+	 * The provided parameter is a flag that determines whether errors raise
+	 * exceptions or not, it is set to true by default.
+	 *
+	 * The method is called at the end of the constructor and before validating the
+	 * contents of the document: in the first case the doAssert flag is set to the
+	 * value of the persistent flag, which means that if this method fails, an
+	 * exception will be raised if the object is persistent, while if the object is
+	 * not persistent it may still not have all of its fields; in the second case, the
+	 * method should raise an exception according to the value of doAssert passed to
+	 * the caller method.
+	 *
+	 * In this class we copy the computer global identifier to the _key, if the former
+	 * is there.
 	 *
 	 * @param doAssert	{Boolean}	True raises an exception on error (default).
 	 * @returns {Boolean}			True if valid.
 	 */
-	normaliseInsertProperties( doAssert = true )
+	normaliseDocumentProperties( doAssert = true )
 	{
 		//
 		// Call parent method.
 		//
-		if( super.normaliseInsertProperties( doAssert ) )
+		if( super.normaliseDocumentProperties( doAssert ) )
 		{
 			//
 			// Copy the global identifier to the _key.
+			// If missing, it would return false.
 			//
 			this._document._key = this._document[ Dict.descriptor.kGID ];
 			
@@ -77,53 +91,12 @@ class Term extends Identifier
 		
 		return false;																// ==>
 		
-	}	// normaliseInsertProperties
+	}	// normaliseDocumentProperties
 	
 	
 	/************************************************************************************
 	 * VALIDATION METHODS																*
 	 ************************************************************************************/
-	
-	/**
-	 * Validate document
-	 *
-	 * This method will assert that the current document contents are valid and that
-	 * the object is ready to be stored in the database, it will perform the following
-	 * steps:
-	 *
-	 * 	- Normalise document: load any default or computed required property.
-	 * 	- Assert if all required properties are there.
-	 * 	- Validate all document properties.
-	 *
-	 * In this class we overload this method to skip the default namespace term: this
-	 * term has an empty local identifier, this is intentional in order to prevent
-	 * anyone from creating such a namespace, the local identifier is required and
-	 * cannot be empty, so we skip this term and assume it is valid.
-	 *
-	 * @param doAssert	{Boolean}	True raises an exception on error (default).
-	 * @returns {Boolean}			True if valid.
-	 */
-	validateDocument( doAssert = true )
-	{
-		//
-		// Filter default namespace.
-		//
-		if( (this._document[ Dict.descriptor.kGID ] === ':')
-		 && (this._document[ Dict.descriptor.kDeploy ] === Dict.term.kStateApplicationDefault) )
-		{
-			//
-			// Load computed fields.
-			//
-			if( ! this.normaliseDocumentProperties( doAssert ) )
-				return false;														// ==>
-			
-			return true;															// ==>
-		}
-		
-		else
-			return super.validateDocument( doAssert );								// ==>
-		
-	}	// validateDocument
 	
 	/**
 	 * Validate collection type
