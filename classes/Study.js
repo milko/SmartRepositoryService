@@ -113,13 +113,10 @@ class Study extends Term
 		}
 		catch( error )
 		{
-			try
-			{
-				db._remove( meta );
-			}
-			catch( e )
-			{
-			}
+			//
+			// Remove study.
+			//
+			db._remove( meta );
 			
 			throw( error );														// !@! ==>
 		}

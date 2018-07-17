@@ -133,17 +133,29 @@ module.exports = {
 	 */
 	datasetRegistration : ( theRequest, theResponse ) =>
 	{
-		
 		//
 		// Procedures.
 		//
 		try
 		{
 			//
+			// Framework.
+			//
+			const Dictionary = require( '../utils/Dictionary' );
+			
+			//
 			// Assertions.
 			//
 			UserMiddleware.assert.hasUser( theRequest, theResponse );
 			UserMiddleware.assert.canUpload( theRequest, theResponse );
+			
+			//
+			// Restore language.
+			//
+			Dictionary.restoreLanguage(
+				theRequest.body.data,
+				theRequest.application.user[ Dict.descriptor.kLanguage ]
+			);
 			
 			//
 			// Validate form.

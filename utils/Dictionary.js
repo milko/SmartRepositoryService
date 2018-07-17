@@ -69,7 +69,7 @@ class Dictionary
 		return _.pick( theDocument, theFields );									// ==>
 
 	}	// restrictFields
-
+	
 	/**
 	 * Restrict to language
 	 *
@@ -93,11 +93,42 @@ class Dictionary
 			// Handle property.
 			//
 			if( theDocument.hasOwnProperty( property )
-			 && theDocument[ property ].hasOwnProperty( theLanguage ) )
+				&& theDocument[ property ].hasOwnProperty( theLanguage ) )
 				theDocument[ property ] = theDocument[ property ][ theLanguage ];
 		}
-
+		
 	}	// restrictLanguage
+	
+	/**
+	 * Restore to language
+	 *
+	 * This method can be used to restore the language in a property reduced by
+	 * restrictLanguage(), it will set the language of the strings to the default
+	 * language. If the property has a language reference, it will not be touched.
+	 *
+	 * @param theDocument	{Object}	The document to process.
+	 * @param theLanguage	{String}	The desired language.
+	 */
+	static restoreLanguage( theDocument, theLanguage )
+	{
+		//
+		// Iterate properties.
+		//
+		for( const property of Dictionary.listLanguageFields )
+		{
+			//
+			// Handle property.
+			//
+			if( theDocument.hasOwnProperty( property )
+			 && (! K.function.isObject( theDocument[ property ] )) )
+			{
+				const temp = theDocument[ property ];
+				theDocument[ property ] = {};
+				theDocument[ property ][ theLanguage ] = temp;
+			}
+		}
+		
+	}	// restoreLanguage
 
 	/**
 	 * Restrict edge to language
