@@ -207,7 +207,7 @@ router.post( '/enum/path', Handlers.getEnumPath, 'enumGetPath' )
  *
  * The service expects the following parameters from the body:
  *
- * 	- root:			The root vertex of the graph, provided as a term _key or _id.
+ * 	- origin:		The root vertex of the graph, provided as a term _key or _id.
  * 	- branch:		The graph branch to traverse, provided as a term _key or _id.
  * 	- vField:		The vertex property field name(s) to be returned. The value
  * 					may be provided as a descriptor _key, in which case the vertex
@@ -346,10 +346,10 @@ router.post( '/enum/tree', Handlers.getEnumTree, 'enumGetTree' )
 
 
 /**
- * Get type hierarchy
+ * Get type path
  *
- * The service will return the  hierarchy of the provided data type term reference,
- * starting from the leaf type node.
+ * The service will return the type path starting from the provided leaf node,
+ * ending with the provided root node of the provided graph branch.
  *
  * The service expects the following parameters from the body:
  *
@@ -364,6 +364,8 @@ router.post( '/enum/tree', Handlers.getEnumTree, 'enumGetTree' )
  * 					in which case the vertex will remain untouched.
  * 	- eField:		The edge property field name(s) to be returned, please refer to
  * 					the previous parameter explanations.
+ * 	- doTree:		A boolean flag, if true, the the result will be a hierarchy of
+ * 					nodes, if false, the result will be an array of nodes.
  * 	- doChoice:		A boolean flag, if true, only enumeration choice elements will be
  * 					included in the result, this means that categories will not be
  * 					included.
@@ -381,7 +383,7 @@ router.post( '/enum/tree', Handlers.getEnumTree, 'enumGetTree' )
  * parameters:
  *
  * 	- doEdge:		If true, each element will be an object with two fields,
- * 					'vertex' will contain the vertex and 'edge' will contain the
+ * 					'term' will contain the vertex and 'edge' will contain the
  * 					edge. If false, the element will be the vertex.
  * 	- vField:		If the parameter is a scalar, the vertex will be the vertex
  * 					value referenced by the parameter, if the parameter is an
@@ -393,29 +395,29 @@ router.post( '/enum/tree', Handlers.getEnumTree, 'enumGetTree' )
  * If the method raises an exception, the service will forward it using the
  * HTTP code if the exception is of class MyError.
  *
- * @path		/enum/list
+ * @path		/type/path
  * @verb		post
  * @request		{Object}	Term reference(s).
  * @response	{Object}	The result.
  */
-router.post( '/type/hierarchy', Handlers.getEnumList, 'typeHierarchy' )
+router.post( '/type/path', Handlers.getTypePath, 'typeGetPath' )
 	.body(
-		require( '../models/schema/schemaEnumList' ),
+		require( '../models/schema/schemaTypeList' ),
 		Application.getServiceDescription(
-			'schema', 'enumGetList', 'body', module.context.configuration.defaultLanguage )
+			'schema', 'typeGetPath', 'body', module.context.configuration.defaultLanguage )
 	)
 	.response(
 		200,
-		require( '../models/schema/schemaEnumList' ),
+		require( '../models/schema/schemaTypeList' ),
 		Application.getServiceDescription(
-			'schema', 'enumGetList', 'response', module.context.configuration.defaultLanguage )
+			'schema', 'typeGetPath', 'response', module.context.configuration.defaultLanguage )
 	)
 	.summary(
-		"Return all the enumeration siblings of the provided root."
+		"Return the type hierarchy from the provided origin to its root."
 	)
 	.description(
 		Application.getServiceDescription(
-			'schema', 'enumGetList', 'description', module.context.configuration.defaultLanguage )
+			'schema', 'typeGetPath', 'description', module.context.configuration.defaultLanguage )
 	);
 
 

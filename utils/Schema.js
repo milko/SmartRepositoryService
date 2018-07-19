@@ -653,6 +653,286 @@ class Schema
 	}	// getEnumTree
 	
 	/**
+	 * Get type hierarchy list
+	 *
+	 * This method will perform an inbound traversal of the schemas graph following
+	 * the type-of predicate starting from 'theOrigin' node, which represents the type
+	 * to probe, until the root data type.
+	 *
+	 * The method accepts the following parameters:
+	 *
+	 * 	- theRequest:	Used to retrieve the session language and to raise eventual
+	 * 					exceptions.
+	 * 	- theOrigin:	Determines the traversal origin node, it must be provided as
+	 * 					the term _id or _key.
+	 * 	- theMinDepth:	Represents the minimum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theMaxDepth:	Represents the maximum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theVertexFld:	References the field(s) that should be included in the vertex.
+	 * 					If the provided value is null, the vertex value will be the
+	 * 					original document. If provided as a string, it must be the
+	 * 					_key of a descriptor and the resulting vertex value will
+	 * 					become the value of the vertex field matched by the provided
+	 * 					reference; if the reference does not match a field in the
+	 * 					document, the value will be null. If provided as an array, the
+	 * 					elements must be strings representing descriptor _key values:
+	 * 					the resulting vertex value will be the original document
+	 * 					containing only the fields that match the provided references.
+	 * 	- theEdgeFld:	References the field(s) that should be included in the edge.
+	 * 					This parameter behaves exactly as the previous one, except
+	 * 					that it refers to edges; this parameter is only relevant if
+	 * 					the 'doEdge' parameter is true.
+	 * 	- doLanguage:	If this parameter is true, the label, definition, description,
+	 * 					note and example of both the vertex and the edge, if
+	 * 					requested, will be set to the current session language. This
+	 * 					means that these fields, instead of being objects indexed by
+	 * 					the language code, will hold the value matched by the session
+	 * 					language code. I the session language doesn't match any
+	 * 					element, the field will remain untouched.
+	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
+	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
+	 * 					will contain the edge.
+	 *
+	 * The method will return a flattened array of the provided origin's ancestors.
+	 * The method assumes the terms and schemas collections to exist.
+	 * The method will raise an exception if the root cannot be found.
+	 *
+	 * @param theRequest	{Object}			The current service request.
+	 * @param theOrigin		{String}			Traversal origin.
+	 * @param theBranch		{String}			Graph branch.
+	 * @param theMinDepth	{Number}|{null}		Minimum traversal depth.
+	 * @param theMaxDepth	{Number}|{null}		Maximum traversal depth.
+	 * @param theVertexFld	{String}|{null}		Vertex property name.
+	 * @param theEdgeFld	{String}|{null}		Edge property name.
+	 * @param doChoices		{boolean}			Restrict to choices.
+	 * @param doLanguage	{boolean}			Restrict labels to current language.
+	 * @param doEdge		{boolean}			Include edge.
+	 * @returns {Array}							List of enumeration elements.
+	 */
+	static getTypePath
+	(
+		theRequest,
+		theOrigin,
+		theBranch,
+		theMinDepth = null,
+		theMaxDepth = null,
+		theVertexFld = null,
+		theEdgeFld = null,
+		doLanguage = false,
+		doEdge = false
+	)
+	{
+		//
+		// Init local storage.
+		//
+		const terms_name = 'terms/';
+		
+		//
+		// Get root and branch.
+		//
+		const branch = ( theBranch.startsWith( terms_name ) )
+					   ? theBranch
+					   : terms_name + theBranch;
+		
+		//
+		// Get leaf.
+		//
+		try
+		{
+			//
+			// Get traversal origin document.
+			//
+			const root = db._collection( 'terms' ).document( theOrigin );
+			
+			//
+			// Perform traversal.
+			//
+			return this.traverseType(
+				theRequest,		// Current request.
+				root,			// Traversal origin.
+				branch,			// Graph branch.
+				'in',			// Outbound direction.
+				theMinDepth,	// Search start depth.
+				theMaxDepth,	// Search final depth.
+				theVertexFld,	// Vertex fields.
+				theEdgeFld,		// Edge fields.
+				false,			// Return tree.
+				false,			// Restrict to choices.
+				doLanguage,		// Restrict to language.
+				doEdge			// Include edges.
+			);																		// ==>
+		}
+		catch( error )
+		{
+			//
+			// Handle exceptions.
+			//
+			if( (! error.isArangoError)
+			 || (error.errorNum !== ARANGO_NOT_FOUND) )
+				throw( error );													// !@! ==>
+			
+			//
+			// Handle not found.
+			//
+			throw(
+				new MyError(
+					'BadTermReference',					// Error name.
+					K.error.TermNotFound,				// Message code.
+					theRequest.application.language,	// Language.
+					theOrigin,							// Error value.
+					404									// HTTP error code.
+				)
+			);																	// !@! ==>
+		}
+		
+	}	// getTypePath
+	
+	/**
+	 * Get type hierarchy
+	 *
+	 * This method will return an array containing the type hierarchy corresponding to
+	 * the provided data type. The list will start with the provided type and end with
+	 * the root data type below the enumeration root, which means that the hierarchy
+	 * will follow types starting from the most specific to the most general.
+	 *
+	 * The provided type reference must be the '_id', or the '_key' of the term, if
+	 * the reference cannot be resolved, the method will raise an exception; it can also
+	 * be an object, in which case it must have the _id , _key and 'var' fields. This last
+	 * option is relevant when this method is called while creating descriptor
+	 * validation records, since in that case type records are created by hand.
+	 *
+	 * Note: if the method returns an empty array, this means that the provided term
+	 * reference is correct, but that it is not a data type, including if you provide
+	 * the enumeration root: in this case the caller is responsible for taking action.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theType		{String}	The type reference.
+	 * @return {Array}					Type hierarchy.
+	 */
+	static getTypeHierarchy( theRequest, theType )
+	{
+		//
+		// Resolve type.
+		//
+		let type = null;
+		
+		//
+		// Handle term reference.
+		//
+		if( (typeof theType === 'string')
+			|| (theType instanceof String) )
+		{
+			try
+			{
+				type = db._collection( 'terms' ).document( theType );
+			}
+			catch( error )
+			{
+				//
+				// Handle exceptions.
+				//
+				if( (! error.isArangoError)
+					|| (error.errorNum !== ARANGO_NOT_FOUND) )
+					throw( error );												// !@! ==>
+				
+				//
+				// Handle not found.
+				//
+				throw(
+					new MyError(
+						'BadTermReference',					// Error name.
+						K.error.TermNotFound,				// Message code.
+						theRequest.application.language,	// Language.
+						theType,							// Error value.
+						404									// HTTP error code.
+					)
+				);																// !@! ==>
+			}
+		}
+		
+		//
+		// Handle provided object.
+		//
+		else
+		{
+			//
+			// Check required fields.
+			//
+			if( ! theType.hasOwnProperty( '_id' ) )
+				throw(
+					new MyError(
+						'BadParam',							// Error name.
+						K.error.MissingId,					// Message code.
+						theRequest.application.language,	// Language.
+						theType,							// Error value.
+						500									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			if( ! theType.hasOwnProperty( '_key' ) )
+				throw(
+					new MyError(
+						'BadParam',							// Error name.
+						K.error.MissingKey,					// Message code.
+						theRequest.application.language,	// Language.
+						theType,							// Error value.
+						500									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			if( ! theType.hasOwnProperty( 'var' ) )
+				throw(
+					new MyError(
+						'BadParam',							// Error name.
+						K.error.MissingVar,					// Message code.
+						theRequest.application.language,	// Language.
+						theType,							// Error value.
+						500									// HTTP error code.
+					)
+				);																// !@! ==>
+			
+			//
+			// Set type.
+			//
+			type = theType;
+		}
+		
+		//
+		// Inir query parameters.
+		//
+		const identifier = type._id;
+		const predicate = `terms/${Dict.term.kPredicateTypeOf}`;
+		
+		//
+		// Query schemas.
+		//
+		const result =
+			db._query( aql`
+				FOR vertex, edge, path
+					IN 0..10
+					INBOUND ${identifier}
+					schemas
+					OPTIONS {
+						"uniqueEdges"	 : "path",
+						"uniqueVertices" : "path"
+					}
+					FILTER path.edges[*].predicate ALL == ${predicate}
+					   AND ${identifier} IN edge.branches[*]
+				RETURN vertex
+			`).toArray();
+		
+		//
+		// Prepend target type and remove root.
+		//
+		result.unshift( type );
+		result.pop();
+		
+		return result;																// ==>
+		
+	}	// getTypeHierarchy
+	
+	/**
 	 * Get form list
 	 *
 	 * This method will perform an inbound traversal of the schemas graph following
@@ -1363,150 +1643,6 @@ class Schema
 	}	// getManagedUsersTree
 
 	/**
-	 * Get type hierarchy
-	 *
-	 * This method will return an array containing the type hierarchy corresponding to
-	 * the provided data type. The list will start with the provided type and end with
-	 * the root data type below the enumeration root, which means that the hierarchy
-	 * will follow types starting from the most specific to the most general.
-	 *
-	 * The provided type reference must be the '_id', or the '_key' of the term, if
-	 * the reference cannot be resolved, the method will raise an exception; it can also
-	 * be an object, in which case it must have the _id , _key and 'var' fields. This last
-	 * option is relevant when this method is called while creating descriptor
-	 * validation records, since in that case type records are created by hand.
-	 *
-	 * Note: if the method returns an empty array, this means that the provided term
-	 * reference is correct, but that it is not a data type, including if you provide
-	 * the enumeration root: in this case the caller is responsible for taking action.
-	 *
-	 * @param theRequest	{Object}	The current request.
-	 * @param theType		{String}	The type reference.
-	 * @return {Array}					Type hierarchy.
-	 */
-	static getTypeHierarchy( theRequest, theType )
-	{
-		//
-		// Resolve type.
-		//
-		let type = null;
-
-		//
-		// Handle term reference.
-		//
-		if( (typeof theType === 'string')
-		 || (theType instanceof String) )
-		{
-			try
-			{
-				type = db._collection( 'terms' ).document( theType );
-			}
-			catch( error )
-			{
-				//
-				// Handle exceptions.
-				//
-				if( (! error.isArangoError)
-				 || (error.errorNum !== ARANGO_NOT_FOUND) )
-					throw( error );												// !@! ==>
-
-				//
-				// Handle not found.
-				//
-				throw(
-					new MyError(
-						'BadTermReference',					// Error name.
-						K.error.TermNotFound,				// Message code.
-						theRequest.application.language,	// Language.
-						theType,							// Error value.
-						404									// HTTP error code.
-					)
-				);																// !@! ==>
-			}
-		}
-
-		//
-		// Handle provided object.
-		//
-		else
-		{
-			//
-			// Check required fields.
-			//
-			if( ! theType.hasOwnProperty( '_id' ) )
-				throw(
-					new MyError(
-						'BadParam',							// Error name.
-						K.error.MissingId,					// Message code.
-						theRequest.application.language,	// Language.
-						theType,							// Error value.
-						500									// HTTP error code.
-					)
-				);																// !@! ==>
-
-			if( ! theType.hasOwnProperty( '_key' ) )
-				throw(
-					new MyError(
-						'BadParam',							// Error name.
-						K.error.MissingKey,					// Message code.
-						theRequest.application.language,	// Language.
-						theType,							// Error value.
-						500									// HTTP error code.
-					)
-				);																// !@! ==>
-
-			if( ! theType.hasOwnProperty( 'var' ) )
-				throw(
-					new MyError(
-						'BadParam',							// Error name.
-						K.error.MissingVar,					// Message code.
-						theRequest.application.language,	// Language.
-						theType,							// Error value.
-						500									// HTTP error code.
-					)
-				);																// !@! ==>
-
-			//
-			// Set type.
-			//
-			type = theType;
-		}
-
-		//
-		// Inir query parameters.
-		//
-		const identifier = type._id;
-		const predicate = `terms/${Dict.term.kPredicateTypeOf}`;
-
-		//
-		// Query schemas.
-		//
-		const result =
-			db._query( aql`
-				FOR vertex, edge, path
-					IN 0..10
-					INBOUND ${identifier}
-					schemas
-					OPTIONS {
-						"uniqueEdges"	 : "path",
-						"uniqueVertices" : "path"
-					}
-					FILTER path.edges[*].predicate ALL == ${predicate}
-					   AND ${identifier} IN edge.branches[*]
-				RETURN vertex
-			`).toArray();
-
-		//
-		// Prepend target type and remove root.
-		//
-		result.unshift( type );
-		result.pop();
-
-		return result;																// ==>
-
-	}	// getTypeHierarchy
-
-	/**
 	 * Traverse enumeration
 	 *
 	 * This method will perform an inbound or outbound traversal of the schemas graph
@@ -1689,6 +1825,190 @@ class Schema
 		return result;																// ==>
 
 	}	// traverseEnum
+	
+	/**
+	 * Traverse type
+	 *
+	 * This method will perform an inbound or outbound traversal of the schemas graph
+	 * following the type-of predicate starting from 'theRoot' in 'theBranch' branch
+	 * returning either the flattened the list visited elements, or the list of root
+	 * nodes with their children in the '_children' property.
+	 *
+	 * The method accepts the following parameters:
+	 *
+	 * 	- theRequest:	Used to retrieve the session language and to raise eventual
+	 * 					exceptions.
+	 * 	- theRoot:		Determines the traversal origin node, it must be provided as
+	 * 					an object.
+	 * 	- theBranch:	Determines which branch to follow, it must be provided as a
+	 * 					term _id.
+	 * 	- theDirection:	Determines the traversal direction: 'in' means inbound and
+	 * 					'out' means outbound; inbound traversals will visit the tree
+	 * 					from the root to the leaves, outbound traversals will visit
+	 * 					the tree from the leaf to its root.
+	 * 	- theMinDepth:	Represents the minimum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theMaxDepth:	Represents the maximum depth of the traversal, it must be
+	 * 					provided as an integer, or can be null, to ignore it.
+	 * 	- theVertexFld:	References the field(s) that should be included in the vertex.
+	 * 					If the provided value is null, the vertex value will be the
+	 * 					original document. If provided as a string, it must be the
+	 * 					_key of a descriptor and the resulting vertex value will
+	 * 					become the value of the vertex field matched by the provided
+	 * 					reference; if the reference does not match a field in the
+	 * 					document, the value will be null. If provided as an array, the
+	 * 					elements must be strings representing descriptor _key values:
+	 * 					the resulting vertex value will be the original document
+	 * 					containing only the fields that match the provided references.
+	 * 	- theEdgeFld:	References the field(s) that should be included in the edge.
+	 * 					This parameter behaves exactly as the previous one, except
+	 * 					that it refers to edges; this parameter is only relevant if
+	 * 					the 'doEdge' parameter is true.
+	 * 	- doTree:		If this parameter is true, the result will be a tree that
+	 * 					represents the traversed paths: the node children will be set
+	 * 					in the '_children' field.
+	 * 	- doChoices:	If this parameter is true, only enumeration choices, nodes
+	 * 					pointed by the 'enum-of' predicate, will be included in the
+	 * 					results.
+	 * 	- doLanguage:	If this parameter is true, the label, definition, description,
+	 * 					note and example of both the vertex and the edge, if
+	 * 					requested, will be set to the current session language. This
+	 * 					means that these fields, instead of being objects indexed by
+	 * 					the language code, will hold the value matched by the session
+	 * 					language code. I the session language doesn't match any
+	 * 					element, the field will remain untouched.
+	 * 	- doEdge:		If this parameter is true, the result nodes will be an object
+	 * 					with two elements: '_vertex' will contain the vertex and '_edge'
+	 * 					will contain the edge.
+	 *
+	 * The method assumes the terms and schemas collections to exist.
+	 *
+	 * @param theRequest	{Object}			The current service request.
+	 * @param theRoot		{Object}			Graph traversal origin.
+	 * @param theBranch		{String}			Graph branch.
+	 * @param theDirection	{String}			Traversal direction: 'in' or 'out'.
+	 * @param theMinDepth	{Number}|{null}		Minimum traversal depth.
+	 * @param theMaxDepth	{Number}|{null}		Maximum traversal depth.
+	 * @param theVertexFld	{String}|{null}		Vertex property name.
+	 * @param theEdgeFld	{String}|{null}		Edge property name.
+	 * @param doTree		{boolean}			Return a tree.
+	 * @param doChoices		{boolean}			Restrict to choices.
+	 * @param doLanguage	{boolean}			Restrict labels to current language.
+	 * @param doEdge		{boolean}			Include edge.
+	 * @returns {Array}|{Object}				List or tree of enumeration elements.
+	 */
+	static traverseType
+	(
+		theRequest,
+		theRoot,
+		theBranch,
+		theDirection,
+		theMinDepth = null,
+		theMaxDepth = null,
+		theVertexFld = null,
+		theEdgeFld = null,
+		doTree = false,
+		doChoices = false,
+		doLanguage = false,
+		doEdge = false
+	)
+	{
+		//
+		// Normalise parameters for tree.
+		//
+		if( doTree )
+		{
+			//
+			// Prevent choices selection.
+			//
+			doChoices = false;
+			
+			//
+			// Normalise vertex field selectors.
+			//
+			if( (! doEdge)								// Without edges
+			 && (theVertexFld !== null)					// with vertex fields selector
+			 && (! Array.isArray( theVertexFld )) )		// which is not an array:
+				theVertexFld = [ theVertexFld ];		// make it into an array.
+		}
+		
+		//
+		// Init configuration.
+		//
+		const config =  {
+			datasource	: traversal.collectionDatasourceFactory( 'schemas' ),
+			strategy	: "depthfirst",
+			expander	: ( theDirection === 'in' )
+						  ? traversal.inboundExpander
+						  : traversal.outboundExpander,
+			order		: "preorder-expander",
+			uniqueness	: {
+				edges		: 'path',
+				vertices	: 'path'
+			},
+			
+			visitor		: this.enumVisitor,
+			// filter		: this.enumFilter,
+			expandFilter: this.enumExpandFilter,
+			
+			custom		: {
+				dir			: theDirection,
+				branch		: theBranch,
+				predicates	: 'terms/' + Dict.term.kPredicateTypeOf,
+				language	: theRequest.application.language,
+				vField		: theVertexFld,
+				eField		: theEdgeFld,
+				doTree		: Boolean( doTree ),
+				doEdge		: Boolean( doEdge ),
+				doChoices	: Boolean( doChoices ),
+				doLanguage	: Boolean( doLanguage )
+			}
+		};
+		
+		//
+		// Set sort callback.
+		// Inbound traversals are expected to be single element paths.
+		//
+		if( theDirection === 'in' )
+			config.sort = this.enumSort;
+		
+		//
+		// Set depth.
+		//
+		if( theMinDepth === null )
+		{
+			config.minDepth = 0;
+			config.custom.doRoot = true;
+		}
+		else
+		{
+			config.minDepth = theMinDepth;
+			config.custom.doRoot = ( config.minDepth <= 0 );
+		}
+		
+		if( theMaxDepth !== null )
+			config.maxDepth = theMaxDepth;
+		
+		//
+		// Add nodes dictionary.
+		//
+		if( doTree )
+			config.custom.dict = {};
+		
+		//
+		// Init result.
+		//
+		const result = [];
+		
+		//
+		// Traverse.
+		//
+		const traverser = new traversal.Traverser( config );
+		traverser.traverse( result, theRoot );
+		
+		return result;																// ==>
+		
+	}	// traverseType
 	
 	/**
 	 * Traverse form
