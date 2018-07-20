@@ -221,6 +221,13 @@ describe('Term class tests:', function ()
 			message = `Check ${key} instance elements`;
 			expect( doc.document[ Dict.descriptor.kInstances ], `${message} - ${action}` )
 				.to.include( Dict.term.kInstanceNamespace );
+			
+			//
+			// Ensure global identifier and key match.
+			//
+			message = `Check ${key} global identifier and _key`;
+			expect( doc.document[ Dict.descriptor.kGID ], `${message} - ${action}` )
+				.to.equal( doc.document._key );
 		}
 	});
 	
@@ -260,6 +267,13 @@ describe('Term class tests:', function ()
 			message = `Check ${key} instance`;
 			expect( doc.document, `${message} - ${action}` )
 				.not.to.have.property( Dict.descriptor.kInstances );
+			
+			//
+			// Ensure global identifier and key match.
+			//
+			message = `Check ${key} global identifier and _key`;
+			expect( doc.document[ Dict.descriptor.kGID ], `${message} - ${action}` )
+				.to.equal( doc.document._key );
 		}
 	});
 });
