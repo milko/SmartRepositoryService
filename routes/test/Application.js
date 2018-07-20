@@ -606,37 +606,41 @@ router.get(
 		const Dict = require( '../../dictionary/Dict' );
 		const Term = require( '../../classes/Term' );
 		
+		const collection = 'test_Document';
 		const data = {};
-		data[ Dict.descriptor.kNID ] = 'NS';
+		data[ Dict.descriptor.kNID ] = `NS`;
 		data[ Dict.descriptor.kLID ] = 'ID';
 		
-		let meta;
+		if( ! db._collection( collection ) )
+			db._createDocumentCollection( collection );
+		
+		let meta = null;
 		try
 		{
 			const doc =
 				new Term(
 					request,
 					data,
-					'test_Document'
+					collection
 				);
-			
+
 			meta = doc.document;
-			
+
 			// meta = doc.insertDocument( true, false );
+			
+			response.send({ result : meta });
 		}
 		catch( error )
 		{
 			response.throw( error );
 		}
-		
-		response.send({ result : meta });
 	},
 	'generic'
 )
 	.response(
 		200,
 		[ 'application/json' ],
-		"User token"
+		"Test result"
 	)
 	.summary(
 		"Generic test."

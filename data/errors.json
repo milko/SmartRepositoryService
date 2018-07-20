@@ -230,7 +230,7 @@
   {
     "_key" : "BadNamespaceReference",
     "label" : {
-      "ISO:639:3:eng" : "Invalida namespace reference: "
+      "ISO:639:3:eng" : "Invalid namespace reference: "
     }
   },
   {

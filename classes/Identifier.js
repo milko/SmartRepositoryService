@@ -66,17 +66,24 @@ class Identifier extends Persistent
 			// Compute the global identifier.
 			// Will raise an exception if it is unable to compute (doAssert).
 			//
-			const gid = Dictionary.compileGlobalIdentifier( this._document, doAssert );
+			const gid =
+				Dictionary.compileGlobalIdentifier(
+					this._request, this._document, doAssert
+				);
 			
 			//
 			// Set global identifier.
 			//
 			if( gid !== null )
+			{
+				//
+				// Set global identifier.
+				//
 				this._document[ Dict.descriptor.kGID ] = gid;
-			else
-				return false;														// ==>
-			
-			return true;															// ==>
+				
+				return true;														// ==>
+				
+			}	// Resolved global identifier.
 			
 		}	// Parent method passed.
 		
@@ -114,7 +121,10 @@ class Identifier extends Persistent
 			// Compute the global identifier.
 			// Will raise an exception if it is unable to compute (doAssert).
 			//
-			const gid = Dictionary.compileGlobalIdentifier( this._document, doAssert );
+			const gid =
+				Dictionary.compileGlobalIdentifier(
+					this._request, this._document, doAssert
+				);
 			
 			//
 			// Set global identifier.

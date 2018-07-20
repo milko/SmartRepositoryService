@@ -136,6 +136,11 @@ describe('Term class tests:', function ()
 			data[ Dict.descriptor.kLID ] = ( trans ) ? 'ID_TRANS' : 'ID';
 			
 			//
+			// Add collection reference to _id.
+			//
+			data[ Dict.descriptor.kNID ] = `${collection}/${data[ Dict.descriptor.kNID ]}`;
+			
+			//
 			// Instantiate test object.
 			//
 			message = "Instantiate identifier";

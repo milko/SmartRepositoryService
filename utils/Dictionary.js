@@ -3,15 +3,10 @@
 //
 // Frameworks.
 //
-const fs = require('fs');
 const _ = require('lodash');
 const db = require('@arangodb').db;
-const aql = require('@arangodb').aql;
 const errors = require('@arangodb').errors;
 const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
-const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
-const ARANGO_CONFLICT = errors.ERROR_ARANGO_CONFLICT.code;
-const ARANGO_CROSS_COLLECTION = errors.ERROR_ARANGO_CROSS_COLLECTION_REQUEST.code;
 const ARANGO_ILLEGAL_DOCUMENT_HANDLE = errors.ERROR_ARANGO_DOCUMENT_HANDLE_BAD.code;
 
 //
@@ -20,7 +15,6 @@ const ARANGO_ILLEGAL_DOCUMENT_HANDLE = errors.ERROR_ARANGO_DOCUMENT_HANDLE_BAD.c
 const K = require( './Constants' );					// Application constants.
 const MyError = require( './MyError' );				// Custom errors.
 const Dict = require( '../dictionary/Dict' );		// Data dictionary.
-const Schema = require( './Schema' );		// Schema class.
 
 /**
  * Data dictionary class
@@ -365,21 +359,26 @@ class Dictionary
 	 * contents.
 	 *
 	 * The global identifier is composed by combining the namespace identifier global
-	 * identifier andf the local identifier separated by a colon. If the namespace is
+	 * identifier and the local identifier separated by a colon. If the namespace is
 	 * missing and the second parameter is true, the method will raise an exception,
 	 * if false, the method will return null.
 	 *
-	 * @param theRecord	{Object}	The object to identify.
-	 * @param doAssert	{Boolean}	If true, raise an exception if unable to identify.
-	 * @returns {String}|{null}		The global identifier, or null.
+	 * The method will raise an exception regardless of the last parameter if the
+	 * namespace cannot be resolved.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theRecord		{Object}	The object to identify.
+	 * @param doAssert		{Boolean}	If true, raise an exception if unable to identify.
+	 * @returns {String}|{null}			The global identifier, or null.
 	 */
-	static compileGlobalIdentifier( theRecord, doAssert = true )
+	static compileGlobalIdentifier( theRequest, theRecord, doAssert = true )
 	{
 		//
 		// Init local storage.
 		//
 		let nid = null;
 		let lid = null;
+		let namespace = null;
 		
 		//
 		// Handle namespace.
@@ -389,34 +388,50 @@ class Dictionary
 			//
 			// Attempt to resolve namespace.
 			//
-			let namespace;
 			try
 			{
 				namespace = db._document( theRecord[ Dict.descriptor.kNID ] );
 			}
 			catch( error )
 			{
-				if( doAssert )
+				//
+				// Handle known errors.
+				//
+				if( error.isArangoError )
 				{
-					//
-					// Handle illegal document handle error.
-					//
-					if( error.isArangoError
-					 && (error.errorNum === ARANGO_ILLEGAL_DOCUMENT_HANDLE) )
-						throw(
-							new MyError(
-								'BadNamespaceReference',			// Error name.
-								K.error.BadDocumentHandle,			// Message code.
-								this._request.application.language,	// Language.
-								theRecord[ Dict.descriptor.kNID ],	// Error value.
-								400									// HTTP error code.
-							)
-						);														// !@! ==>
-					
-					throw( error );												// !@! ==>
+					switch( error.errorNum )
+					{
+						//
+						// Handle document not found error.
+						//
+						case ARANGO_NOT_FOUND:
+							throw(
+								new MyError(
+									'BadNamespaceReference',			// Error name.
+									K.error.InvalidObjReference,		// Message code.
+									theRequest.application.language,	// Language.
+									theRecord[ Dict.descriptor.kNID ],	// Error value.
+									400									// HTTP error code.
+								)
+							);													// !@! ==>
+						
+						//
+						// Handle illegal document handle error.
+						//
+						case ARANGO_ILLEGAL_DOCUMENT_HANDLE:
+							throw(
+								new MyError(
+									'BadNamespaceReference',			// Error name.
+									K.error.BadDocumentHandle,			// Message code.
+									theRequest.application.language,	// Language.
+									theRecord[ Dict.descriptor.kNID ],	// Error value.
+									400									// HTTP error code.
+								)
+							);													// !@! ==>
+					}
 				}
 				
-				return null;														// ==>
+				throw( error );													// !@! ==>
 			}
 			
 			//
@@ -431,7 +446,7 @@ class Dictionary
 						new MyError(
 							'ConstraintViolated',				// Error name.
 							K.error.NoGlobalIdentifier,			// Message code.
-							this._request.application.language,	// Language.
+							theRequest.application.language,	// Language.
 							namespace._id,						// Namespace ID.
 							409									// HTTP error code.
 						)
@@ -453,7 +468,7 @@ class Dictionary
 					new MyError(
 						'ConstraintViolated',				// Error name.
 						K.error.NoLocalIdentifier,			// Message code.
-						this._request.application.language,	// Language.
+						theRequest.application.language,	// Language.
 						null,								// No arguments.
 						409									// HTTP error code.
 					)
