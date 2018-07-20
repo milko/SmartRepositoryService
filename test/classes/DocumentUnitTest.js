@@ -4705,88 +4705,95 @@ class DocumentUnitTest extends UnitTest
 		let message;
 		
 		//
-		// Instantiate empty object.
+		// Test with and without transaction.
 		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					null,
-					this.defaultTestCollection
+		for( const trans of [ false, true ] )
+		{
+			//
+			// Instantiate empty object.
+			//
+			message = "Instantiation";
+			func = () => {
+				doc =
+					new theClass(
+						this.parameters.request,
+						null,
+						this.defaultTestCollection
+					);
+			};
+			expect( func, `${message}` ).not.to.throw();
+			
+			//
+			// Handle required fields.
+			//
+			if( doc.requiredFields.length > 0 )
+			{
+				//
+				// Insert object.
+				//
+				action = ( trans ) ? "Insertion with transaction" : "Insertion";
+				func = () => {
+					result = doc.insertDocument( true, trans );
+				};
+				
+				//
+				// Assert exception.
+				//
+				expect( func, `${message} - ${action}`
+				).to.throw(
+					MyError,
+					/missing required fields/
 				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Handle required fields.
-		//
-		if( doc.requiredFields.length > 0 )
-		{
-			//
-			// Insert object.
-			//
-			action = "Insertion";
-			func = () => {
-				result = doc.insertDocument( true );
-			};
+			}
 			
 			//
-			// Assert exception.
+			// Handle no required fields.
 			//
-			expect( func, `${message} - ${action}`
-			).to.throw(
-				MyError,
-				/missing required fields/
-			);
-		}
-		
-		//
-		// Handle no required fields.
-		//
-		else
-		{
-			//
-			// Insert object.
-			//
-			action = "Insertion";
-			func = () => {
-				result = doc.insertDocument( true );
-			};
+			else
+			{
+				//
+				// Insert object.
+				//
+				action = ( trans ) ? "Insertion with transaction" : "Insertion";
+				func = () => {
+					result = doc.insertDocument( true, trans );
+				};
+				
+				//
+				// Assert no exception.
+				//
+				expect( func, `${message} - ${action}` ).not.to.throw();
+				
+				//
+				// Check object persistent state.
+				//
+				action = "Insertion result";
+				expect( result, `${message} - ${action}` ).to.be.true;
+				action = "Contents";
+				expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+				action = "Collection";
+				expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+				action = "Persistent";
+				expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+				action = "Modified";
+				expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+				
+				//
+				// Check local fields.
+				//
+				this.checkLocalProperties(
+					message,
+					doc,
+					( Array.isArray(theParam) ) ? theParam : []
+				);
+				
+				//
+				// Remove document.
+				//
+				db._remove( doc.document._id );
+			}
 			
-			//
-			// Assert no exception.
-			//
-			expect( func, `${message} - ${action}` ).not.to.throw();
-			
-			//
-			// Check object persistent state.
-			//
-			action = "Insertion result";
-			expect( result, `${message} - ${action}` ).to.be.true;
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
-			
-			//
-			// Check local fields.
-			//
-			this.checkLocalProperties(
-				message,
-				doc,
-				( Array.isArray(theParam) ) ? theParam : []
-			);
-			
-			//
-			// Remove document.
-			//
-			db._remove( doc.document._id );
-		}
+		}	// With and witout transaction.
 		
 	}	// testInsertEmptyObject
 	
@@ -4857,159 +4864,170 @@ class DocumentUnitTest extends UnitTest
 		}
 		
 		//
-		// Instantiate object with contents.
+		// Test with and without transaction.
 		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					no_reserved,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Set reserved values.
-		//
-		this.setReservedProperties( doc, reserved_values );
-		
-		//
-		// Handle document with required fields.
-		//
-		if( required.length > 0 )
+		for( const trans of [ false, true ] )
 		{
 			//
-			// Iterate required fields.
+			// Instantiate object with contents.
 			//
-			for( const field of required )
-			{
-				//
-				// Remove from current document.
-				//
-				reserved = false;
-				if( doc.document.hasOwnProperty( field ) )
-				{
-					//
-					// Remove field.
-					//
-					const data = {};
-					data[ field ] = null;
-					message = `Remove [${field}]`;
-					func = () => {
-						doc.setDocumentProperties( data, true );
-					};
-					
-					//
-					// Handle reserved.
-					//
-					if( doc.reservedFields.includes( field ) )
-					{
-						reserved = true;
-						action = "Reserved";
-						expect( func, `${message} - ${action}`
-						).to.throw(
-							MyError,
-							/Property is reserved/
-						);
-					}
-					
-					//
-					// Handle other types.
-					//
-					else
-					{
-						action = "Not reserved";
-						expect( func, `${message}` ).not.to.throw();
-						expect( doc.document, message ).not.to.have.property( field );
-					}
-					
-				}	// Removed existing field.
-				
-				//
-				// Insert.
-				// Except if reserved field was deleted.
-				//
-				if( ! reserved )
-				{
-					message = `Insert without [${field}]`;
-					func = () => {
-						result = doc.insertDocument( true );
-					};
-					expect( func, `${message}`
-					).to.throw(
-						MyError,
-						/missing required fields/
-					);
-				}
-				
-				//
-				// Restore the full object.
-				//
-				message = "Instantiate full object";
-				func = () => {
-					doc =
-						new theClass(
-							this.parameters.request,
-							no_reserved,
-							this.defaultTestCollection
-						);
-				};
-				expect( func, `${message}` ).not.to.throw();
-				
-				//
-				// Set reserved values.
-				//
-				this.setReservedProperties( doc, reserved_values );
-				
-			}	// Iterating featured required fields.
-			
-		}	// Features required fields.
-		
-		//
-		// Handle no required fields.
-		//
-		else
-		{
-			//
-			// Insert object.
-			//
-			message = "Insertion without required fields";
+			message = "Instantiation";
 			func = () => {
-				result = doc.insertDocument( true );
+				doc =
+					new theClass(
+						this.parameters.request,
+						no_reserved,
+						this.defaultTestCollection
+					);
 			};
 			expect( func, `${message}` ).not.to.throw();
 			
 			//
-			// Check object persistent state.
+			// Set reserved values.
 			//
-			action = "Insertion result";
-			expect( result, `${message} - ${action}` ).to.be.true;
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			this.setReservedProperties( doc, reserved_values );
 			
 			//
-			// Check local fields.
+			// Handle document with required fields.
 			//
-			this.checkLocalProperties(
-				message,
-				doc,
-				param_excluded
-			);
+			if( required.length > 0 )
+			{
+				//
+				// Iterate required fields.
+				//
+				for( const field of required )
+				{
+					//
+					// Remove from current document.
+					//
+					reserved = false;
+					if( doc.document.hasOwnProperty( field ) )
+					{
+						//
+						// Remove field.
+						//
+						const data = {};
+						data[ field ] = null;
+						message = `Remove [${field}]`;
+						func = () => {
+							doc.setDocumentProperties( data, true );
+						};
+						
+						//
+						// Handle reserved.
+						//
+						if( doc.reservedFields.includes( field ) )
+						{
+							reserved = true;
+							action = "Reserved";
+							expect( func, `${message} - ${action}`
+							).to.throw(
+								MyError,
+								/Property is reserved/
+							);
+						}
+						
+						//
+						// Handle other types.
+						//
+						else
+						{
+							action = "Not reserved";
+							expect( func, `${message}` ).not.to.throw();
+							expect( doc.document, message ).not.to.have.property( field );
+						}
+						
+					}	// Removed existing field.
+					
+					//
+					// Insert.
+					// Except if reserved field was deleted.
+					//
+					if( ! reserved )
+					{
+						message = ( trans )
+								? `Insert without [${field}] with transaction`
+								: `Insert without [${field}]`;
+						func = () => {
+							result = doc.insertDocument( true, trans );
+						};
+						expect( func, `${message}`
+						).to.throw(
+							MyError,
+							/missing required fields/
+						);
+					}
+					
+					//
+					// Restore the full object.
+					//
+					message = "Instantiate full object";
+					func = () => {
+						doc =
+							new theClass(
+								this.parameters.request,
+								no_reserved,
+								this.defaultTestCollection
+							);
+					};
+					expect( func, `${message}` ).not.to.throw();
+					
+					//
+					// Set reserved values.
+					//
+					this.setReservedProperties( doc, reserved_values );
+					
+				}	// Iterating featured required fields.
+				
+			}	// Features required fields.
 			
 			//
-			// Remove document.
+			// Handle no required fields.
 			//
-			db._remove( doc.document._id );
+			else
+			{
+				//
+				// Insert object.
+				//
+				message = ( trans )
+						? "Insertion with transaction without required fields"
+						  : "Insertion without required fields";
+				func = () => {
+					result = doc.insertDocument( true, trans );
+				};
+				expect( func, `${message}` ).not.to.throw();
+				
+				//
+				// Check object persistent state.
+				//
+				action = "Insertion result";
+				expect( result, `${message} - ${action}` ).to.be.true;
+				action = "Contents";
+				expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+				action = "Collection";
+				expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+				action = "Persistent";
+				expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+				action = "Modified";
+				expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+				
+				//
+				// Check local fields.
+				//
+				this.checkLocalProperties(
+					message,
+					doc,
+					param_excluded
+				);
+				
+				//
+				// Remove document.
+				//
+				db._remove( doc.document._id );
+				
+			} // Has no required fields.
 			
-		} // Has no required fields.
+		}	// With and witout transaction.
 		
 	}	// testInsertWithoutRequiredFields
 	
@@ -5079,179 +5097,188 @@ class DocumentUnitTest extends UnitTest
 		}
 		
 		//
-		// Instantiate object with contents.
+		// Test with and without transaction.
 		//
-		message = "Instantiation";
-		func = () => {
-			doc =
-				new theClass(
-					this.parameters.request,
-					no_reserved,
-					this.defaultTestCollection
-				);
-		};
-		expect( func, `${message}` ).not.to.throw();
-		
-		//
-		// Set reserved values.
-		//
-		this.setReservedProperties( doc, reserved_values );
-		
-		//
-		// Handle document with significant fields.
-		//
-		if( significant.length > 0 )
+		for( const trans of [ false, true ] )
 		{
 			//
-			// Iterate significant fields.
+			// Instantiate object with contents.
 			//
-			for( const field of significant )
-			{
-				//
-				// Remove from current document.
-				//
-				if( doc.document.hasOwnProperty( field ) )
-				{
-					//
-					// Remove field.
-					//
-					const data = {};
-					data[ field ] = null;
-					message = `Remove [${field}]`;
-					func = () => {
-						doc.setDocumentProperties( data, true );
-					};
-					expect( func, `${message}` ).not.to.throw();
-					expect( doc.document, message ).not.to.have.property( field );
-					
-				}	// Removed existing field.
-				
-				//
-				// Insert function.
-				//
-				message = `Insert without [${field}]`;
-				func = () => {
-					result = doc.insertDocument( true );
-				};
-				
-				//
-				// Handle also required.
-				// Should raise an exception.
-				//
-				if( doc.requiredFields.includes( field ) )
-					expect( func, `${message}`
-					).to.throw(
-						MyError,
-						/missing required fields/
-					);
-				
-				//
-				// Handle only significant.
-				// Should not raise an exception.
-				//
-				else
-				{
-					//
-					// Insert.
-					//
-					expect( func, `${message}` ).not.to.throw();
-					
-					//
-					// Check object persistent state.
-					//
-					action = "Insertion result";
-					expect( result, `${message} - ${action}` ).to.be.true;
-					action = "Contents";
-					expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-					action = "Collection";
-					expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-					action = "Persistent";
-					expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-					action = "Modified";
-					expect( doc.modified, `${message} - ${action}` ).to.equal( true );
-					
-					//
-					// Check local fields.
-					//
-					this.checkLocalProperties(
-						message,
-						doc,
-						param_excluded
-					);
-					
-					//
-					// Remove document.
-					//
-					db._remove( doc.document._id );
-					
-				}	// Field is not required.
-				
-				//
-				// Restore the full object.
-				//
-				message = "Instantiate full object";
-				func = () => {
-					doc =
-						new theClass(
-							this.parameters.request,
-							no_reserved,
-							this.defaultTestCollection
-						);
-				};
-				expect( func, `${message}` ).not.to.throw();
-				
-				//
-				// Set reserved values.
-				//
-				this.setReservedProperties( doc, reserved_values );
-				
-			}	// Iterating featured significant fields.
-			
-		}	// Features significant fields.
-		
-		//
-		// Handle no significant fields.
-		//
-		else
-		{
-			//
-			// Insert object.
-			//
-			message = "Insertion without significant fields";
+			message = "Instantiation";
 			func = () => {
-				result = doc.insertDocument( true );
+				doc =
+					new theClass(
+						this.parameters.request,
+						no_reserved,
+						this.defaultTestCollection
+					);
 			};
 			expect( func, `${message}` ).not.to.throw();
 			
 			//
-			// Check object persistent state.
+			// Set reserved values.
 			//
-			action = "Insertion result";
-			expect( result, `${message} - ${action}` ).to.be.true;
-			action = "Contents";
-			expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
-			action = "Collection";
-			expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
-			action = "Persistent";
-			expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
-			action = "Modified";
-			expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+			this.setReservedProperties( doc, reserved_values );
 			
 			//
-			// Check local fields.
+			// Handle document with significant fields.
 			//
-			this.checkLocalProperties(
-				message,
-				doc,
-				param_excluded
-			);
+			if( significant.length > 0 )
+			{
+				//
+				// Iterate significant fields.
+				//
+				for( const field of significant )
+				{
+					//
+					// Remove from current document.
+					//
+					if( doc.document.hasOwnProperty( field ) )
+					{
+						//
+						// Remove field.
+						//
+						const data = {};
+						data[ field ] = null;
+						message = `Remove [${field}]`;
+						func = () => {
+							doc.setDocumentProperties( data, true );
+						};
+						expect( func, `${message}` ).not.to.throw();
+						expect( doc.document, message ).not.to.have.property( field );
+						
+					}	// Removed existing field.
+					
+					//
+					// Insert function.
+					//
+					message = ( trans )
+							  ? `Insert without [${field}] with transaction`
+							  : `Insert without [${field}]`;
+					func = () => {
+						result = doc.insertDocument( true, trans );
+					};
+					
+					//
+					// Handle also required.
+					// Should raise an exception.
+					//
+					if( doc.requiredFields.includes( field ) )
+						expect( func, `${message}`
+						).to.throw(
+							MyError,
+							/missing required fields/
+						);
+					
+					//
+					// Handle only significant.
+					// Should not raise an exception.
+					//
+					else
+					{
+						//
+						// Insert.
+						//
+						expect( func, `${message}` ).not.to.throw();
+						
+						//
+						// Check object persistent state.
+						//
+						action = "Insertion result";
+						expect( result, `${message} - ${action}` ).to.be.true;
+						action = "Contents";
+						expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+						action = "Collection";
+						expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+						action = "Persistent";
+						expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+						action = "Modified";
+						expect( doc.modified, `${message} - ${action}` ).to.equal( true );
+						
+						//
+						// Check local fields.
+						//
+						this.checkLocalProperties(
+							message,
+							doc,
+							param_excluded
+						);
+						
+						//
+						// Remove document.
+						//
+						db._remove( doc.document._id );
+						
+					}	// Field is not required.
+					
+					//
+					// Restore the full object.
+					//
+					message = "Instantiate full object";
+					func = () => {
+						doc =
+							new theClass(
+								this.parameters.request,
+								no_reserved,
+								this.defaultTestCollection
+							);
+					};
+					expect( func, `${message}` ).not.to.throw();
+					
+					//
+					// Set reserved values.
+					//
+					this.setReservedProperties( doc, reserved_values );
+					
+				}	// Iterating featured significant fields.
+				
+			}	// Features significant fields.
 			
 			//
-			// Remove document.
+			// Handle no significant fields.
 			//
-			db._remove( doc.document._id );
+			else
+			{
+				//
+				// Insert object.
+				//
+				message = "Insertion without significant fields";
+				func = () => {
+					result = doc.insertDocument( true );
+				};
+				expect( func, `${message}` ).not.to.throw();
+				
+				//
+				// Check object persistent state.
+				//
+				action = "Insertion result";
+				expect( result, `${message} - ${action}` ).to.be.true;
+				action = "Contents";
+				expect( doc.document, `${message} - ${action}` ).not.to.be.empty;
+				action = "Collection";
+				expect( doc.collection, `${message} - ${action}` ).to.equal(this.defaultTestCollection);
+				action = "Persistent";
+				expect( doc.persistent, `${message} - ${action}` ).to.equal( true );
+				action = "Modified";
+				expect( doc.modified, `${message} - ${action}` ).to.equal( false );
+				
+				//
+				// Check local fields.
+				//
+				this.checkLocalProperties(
+					message,
+					doc,
+					param_excluded
+				);
+				
+				//
+				// Remove document.
+				//
+				db._remove( doc.document._id );
+				
+			} // Has no significant fields.
 			
-		} // Has no significant fields.
+		}	// With and witout transaction.
 		
 	}	// testInsertWithoutSignificantFields
 	

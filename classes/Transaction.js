@@ -52,7 +52,8 @@ const MyError = require( '../utils/MyError' );
  * 	- data:			The operation data, this represents, according to the operation:
  * 		- I:		The data to be inserted.
  * 		- U:		The update data.
- * 		- AS:		The element to append as { field : element }.
+ * 		- AS:		The element to append as { field : element }; element must be a
+ * 					scalar.
  * 		- R:		The replacement data.
  * 		- D:		Not used when removing.
  *
@@ -377,21 +378,33 @@ class Transaction
 							);													// !@! ==>
 						
 						//
-						// Extract field and element to append.
+						// Extract selector elements.
 						//
-						let descriptor;
-						let element;
+						let sel_key;
+						let sel_val;
+						for( const field in record.selector )
+						{
+							sel_key = field;
+							sel_val = record.selector[ field ];
+						}
+						
+						//
+						// Extract set elements.
+						//
+						let dat_key;
+						let dat_val;
 						for( const field in record.data )
 						{
-							descriptor = field;
-							element = record.data[ field ];
+							dat_key = field;
+							dat_val = record.data[ field ];
 						}
 						
 						db._query( aql`
 							FOR doc IN ${collection}
-								FILTER ${record.selector}
-							UPDATE doc WITH { ${descriptor} : APPEND( doc.${descriptor}, ${[ element ]}, true ) }
-							IN ${collection}
+								FILTER doc.${sel_key} == ${sel_val}
+							UPDATE doc WITH {
+								${dat_key} : APPEND( doc.${dat_key}, ${[ dat_val ]}, true )
+							} IN ${collection}
 						`);
 						break;
 					

@@ -1074,28 +1074,6 @@ class User extends Persistent
 	 ************************************************************************************/
 	
 	/**
-	 * Insert
-	 *
-	 * This method will insert the document into the database, it expects the current
-	 * object to have the collection reference.
-	 *
-	 * The method exists in order to concentrate in one place database operations,
-	 * this allows derived objects to implement transactions where required.
-	 *
-	 * The method should be called after validation and normalisation operations, this
-	 * means that if the doPersist flag is off this method should not be called.
-	 *
-	 * The method should return the database operation result.
-	 *
-	 * @returns {Object}			The inserted document metadata.
-	 */
-	doInsert()
-	{
-		return db._collection( this._collection ).insert( this._document );			// ==>
-		
-	}	// doInsert
-	
-	/**
 	 * Remove
 	 *
 	 * We overload this method to implement a transaction, removing a user involves

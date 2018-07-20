@@ -129,6 +129,89 @@ class Identifier extends Persistent
 	
 	
 	/************************************************************************************
+	 * CORE PERSISTENCE METHODS															*
+	 ************************************************************************************/
+	
+	/**
+	 * Insert
+	 *
+	 * This method will insert the document into the database, it expects the current
+	 * object to have the collection reference.
+	 *
+	 * The method exists in order to concentrate in one place database operations,
+	 * this allows derived objects to implement transactions where required.
+	 *
+	 * We overload this method to add the namespace instance to the namespace document.
+	 *
+	 * Note that transactions will be activated by default.
+	 *
+	 * @param theTransaction	{Transaction}|{null}	The transaction object.
+	 * @returns {Object}								The inserted document metadata.
+	 */
+	doInsert( theTransaction = null )
+	{
+		//
+		// Call parent method.
+		//
+		const meta = super.doInsert( theTransaction );
+		
+		//
+		// Handle namespace.
+		//
+		if( this._document.hasOwnProperty( Dict.descriptor.kNID ) )
+		{
+			//
+			// Init local storage.
+			//
+			const nid = this._document[ Dict.descriptor.kNID ];
+			const nid_parts = nid.split( '/' );
+			const nid_collection = nid_parts[ 0 ];
+			const nid_key = nid_parts[ 1 ];
+			const data = {};
+			data[ Dict.descriptor.kInstances ] = Dict.term.kInstanceNamespace;
+			
+			//
+			// Handle transaction.
+			//
+			if( theTransaction !== null )
+				theTransaction.addOperation(
+					'AS',								// Operation code.
+					nid_collection,						// Collection name.
+					{ _key : nid_key },					// Selector.
+					data,								// Data.
+					false,								// waitForSync.
+					false,								// Use result.
+					false								// Stop after.
+				);
+			
+			//
+			// Handle without transaction.
+			//
+			else
+			{
+				const collection = db._collection( nid_collection );
+				
+				db._query( aql`
+					FOR doc IN ${collection}
+						FILTER doc._id == ${nid}
+					UPDATE doc WITH {
+						${Dict.descriptor.kInstances} :
+							APPEND(
+								doc.${Dict.descriptor.kInstances},
+								${[ Dict.term.kInstanceNamespace ]},
+								true
+							)
+					} IN ${collection}
+				`);
+			}
+		}
+		
+		return meta;																// ==>
+		
+	}	// doInsert
+	
+	
+	/************************************************************************************
 	 * GETTER METHODS																	*
 	 ************************************************************************************/
 	

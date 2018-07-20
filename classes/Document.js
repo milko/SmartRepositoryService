@@ -1309,10 +1309,11 @@ class Document
 	 * Derived classes should maintain this signature and add eventual parameters
 	 * after the persist flag.
 	 *
-	 * @param doPersist	{Boolean}	True means write to database.
+	 * @param doPersist		{Boolean}	True means write to database.
+	 * @param doTransaction	{Boolean}	True means use transaction.
 	 * @returns {Boolean}	True if inserted.
 	 */
-	insertDocument( doPersist )
+	insertDocument( doPersist, doTransaction = false )
 	{
 		//
 		// Prevent inserting persistent objects.
@@ -1342,10 +1343,25 @@ class Document
 				//
 				if( doPersist )
 				{
+					let meta;
+					let trans = null;
+					
+					//
+					// Create transaction.
+					//
+					if( doTransaction )
+						trans = new Transaction();
+						
 					//
 					// Write to database.
 					//
-					const meta = this.doInsert();
+					meta = this.doInsert( trans );
+					
+					//
+					// Execute transaction.
+					//
+					if( trans !== null )
+						meta = trans.execute();
 					
 					//
 					// Update metadata.
@@ -2281,10 +2297,29 @@ class Document
 	 *
 	 * The method should return the database operation result.
 	 *
-	 * @returns {Object}			The inserted document metadata.
+	 * @param theTransaction	{Transaction}|{null}	The transaction object.
+	 * @returns {Object}								The inserted document metadata.
 	 */
-	doInsert()
+	doInsert( theTransaction = null )
 	{
+		//
+		// Handle transaction.
+		//
+		if( theTransaction !== null )
+		{
+			theTransaction.addOperation(
+				'I',								// Operation code.
+				this._collection,					// Collection name.
+				null,								// Selector.
+				this._document,						// Data.
+				false,								// waitForSync.
+				true,								// Use result.
+				false								// Stop after.
+			);
+			
+			return null;															// ==>
+		}
+		
 		return db._collection( this._collection ).insert( this._document );			// ==>
 		
 	}	// doInsert
