@@ -11,6 +11,8 @@ const errors = require('@arangodb').errors;
 const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
 const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
 const ARANGO_CONFLICT = errors.ERROR_ARANGO_CONFLICT.code;
+const ARANGO_CROSS_COLLECTION = errors.ERROR_ARANGO_CROSS_COLLECTION_REQUEST.code;
+const ARANGO_ILLEGAL_DOCUMENT_HANDLE = errors.ERROR_ARANGO_DOCUMENT_HANDLE_BAD.code;
 
 //
 // Application.
@@ -384,7 +386,42 @@ class Dictionary
 		//
 		if( theRecord.hasOwnProperty( Dict.descriptor.kNID ) )
 		{
-			const namespace = db._document( theRecord[ Dict.descriptor.kNID ] );
+			//
+			// Attempt to resolve namespace.
+			//
+			let namespace;
+			try
+			{
+				namespace = db._document( theRecord[ Dict.descriptor.kNID ] );
+			}
+			catch( error )
+			{
+				if( doAssert )
+				{
+					//
+					// Handle illegal document handle error.
+					//
+					if( error.isArangoError
+					 && (error.errorNum === ARANGO_ILLEGAL_DOCUMENT_HANDLE) )
+						throw(
+							new MyError(
+								'BadNamespaceReference',			// Error name.
+								K.error.BadDocumentHandle,			// Message code.
+								this._request.application.language,	// Language.
+								theRecord[ Dict.descriptor.kNID ],	// Error value.
+								400									// HTTP error code.
+							)
+						);														// !@! ==>
+					
+					throw( error );												// !@! ==>
+				}
+				
+				return null;														// ==>
+			}
+			
+			//
+			// Get namespace global identifier.
+			//
 			if( namespace.hasOwnProperty( Dict.descriptor.kGID ) )
 				nid = namespace[ Dict.descriptor.kGID ];
 			else

@@ -588,3 +588,59 @@ router.get(
 	.description(dd`
   The service will return the user authentication token.
 `);
+
+
+/**
+ * Generic test
+ *
+ * The service will return the user token.
+ *
+ * @path		/generic/test
+ * @verb		get
+ * @response	{String}	The result.
+ */
+router.get(
+	'/generic/test',
+	(request, response) =>
+	{
+		const Dict = require( '../../dictionary/Dict' );
+		const Term = require( '../../classes/Term' );
+		
+		const data = {};
+		data[ Dict.descriptor.kNID ] = 'NS';
+		data[ Dict.descriptor.kLID ] = 'ID';
+		
+		let meta;
+		try
+		{
+			const doc =
+				new Term(
+					request,
+					data,
+					'test_Document'
+				);
+			
+			meta = doc.document;
+			
+			// meta = doc.insertDocument( true, false );
+		}
+		catch( error )
+		{
+			response.throw( error );
+		}
+		
+		response.send({ result : meta });
+	},
+	'generic'
+)
+	.response(
+		200,
+		[ 'application/json' ],
+		"User token"
+	)
+	.summary(
+		"Generic test."
+	)
+	.description(dd`
+  The service is used for generic tests.
+`);

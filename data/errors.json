@@ -228,6 +228,12 @@
     }
   },
   {
+    "_key" : "BadNamespaceReference",
+    "label" : {
+      "ISO:639:3:eng" : "Invalida namespace reference: "
+    }
+  },
+  {
     "_key" : "AmbiguousDocumentReference",
     "label" : {
       "ISO:639:3:eng" : "Ambiguous document reference: "
