@@ -4,6 +4,7 @@
 // Frameworks.
 //
 const db = require('@arangodb').db;
+const aql = require('@arangodb').aql;
 
 //
 // Application.
@@ -35,6 +36,7 @@ const MyError = require( '../utils/MyError' );
  * 	- op:			The operation, it can be:
  * 		- I:		Insert: waitForSync on.
  * 		- U:		Update: waitForSync on, keepNull off and mergeObjects off.
+ * 		- AS:		Append to set: appends an element to a set.
  * 		- R:		Replace: waitForSync on and overwrite off.
  * 		- D:		Remove.
  *
@@ -43,12 +45,14 @@ const MyError = require( '../utils/MyError' );
  * 	- selector:		The selector according to the operation:
  * 		- I:		Not used for inserting.
  * 		- U:		The update target selector.
+ * 		- AS:		The document _id.
  * 		- R:		The replacement selector.
  * 		- D:		The selector for the removed object.
  *
  * 	- data:			The operation data, this represents, according to the operation:
  * 		- I:		The data to be inserted.
  * 		- U:		The update data.
+ * 		- AS:		The element to append as { field : element }.
  * 		- R:		The replacement data.
  * 		- D:		Not used when removing.
  *
@@ -117,7 +121,7 @@ class Transaction
 	 */
 	addOperation
 	(
-		theOp,				// Operation code [I, U, R, D].
+		theOp,				// Operation code [I, U, AS, R, D].
 		theCollection,		// Collection name.
 		theSelector,		// Object selector.
 		theData,			// Object data.
@@ -143,7 +147,7 @@ class Transaction
 				record.op = theOp;
 				record.collection = theCollection;
 				record.data = theData;
-				record.symc = doSync;
+				record.sync = doSync;
 				record.result = doResult;
 				record.abort = doAbort;
 				
@@ -158,7 +162,23 @@ class Transaction
 				record.collection = theCollection;
 				record.data = theData;
 				record.selector = theSelector;
-				record.symc = doSync;
+				record.sync = doSync;
+				record.result = doResult;
+				record.abort = doAbort;
+				
+				this.addReadCollection( theCollection );
+				this.addWriteCollection( theCollection );
+				break;
+			
+			//
+			// Append to set.
+			//
+			case 'AS':
+				record.op = theOp;
+				record.collection = theCollection;
+				record.data = theData;
+				record.selector = theSelector;
+				record.sync = doSync;
 				record.result = doResult;
 				record.abort = doAbort;
 				
@@ -174,7 +194,7 @@ class Transaction
 				record.collection = theCollection;
 				record.data = theData;
 				record.selector = theSelector;
-				record.symc = doSync;
+				record.sync = doSync;
 				record.result = doResult;
 				record.abort = doAbort;
 				
@@ -189,7 +209,7 @@ class Transaction
 				record.op = theOp;
 				record.collection = theCollection;
 				record.selector = theSelector;
-				record.symc = doSync;
+				record.sync = doSync;
 				record.result = doResult;
 				record.abort = doAbort;
 				
@@ -334,6 +354,45 @@ class Transaction
 								mergeObjects: false
 							}
 						);
+						break;
+					
+					//
+					// Add to set.
+					//
+					case 'AS':
+						//
+						// Assert data.
+						//
+						if( ! record.hasOwnProperty( 'data' ) )
+							throw new Error(
+								"Missing data parameter in add to set transaction record."
+							);													// !@! ==>
+						
+						//
+						// Assert selector.
+						//
+						if( ! record.hasOwnProperty( 'selector' ) )
+							throw new Error(
+								"Missing selector parameter in add to set transaction record."
+							);													// !@! ==>
+						
+						//
+						// Extract field and element to append.
+						//
+						let descriptor;
+						let element;
+						for( const field in record.data )
+						{
+							descriptor = field;
+							element = record.data[ field ];
+						}
+						
+						db._query( aql`
+							FOR doc IN ${collection}
+								FILTER ${record.selector}
+							UPDATE doc WITH { ${descriptor} : APPEND( doc.${descriptor}, ${[ element ]}, true ) }
+							IN ${collection}
+						`);
 						break;
 					
 					//

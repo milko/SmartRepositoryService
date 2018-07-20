@@ -45,9 +45,10 @@ const param = require( './parameters/Transaction' );
  *
  * @param theTransaction	{TestClass}	The transaction instance.
  * @param theParameters		{Object}	The transaction parameters.
- * @param doFail			{Boolean}	If true prepail fail scenario.
+ * @param theOperations		{Array}		The list of perations to perform.
+ * @param doFail			{Boolean}	If true prepare fail scenario.
  */
-function loadTransaction( theTransaction, theParameters, doFail = false )
+function loadTransaction( theTransaction, theParameters, theOperations, doFail = false )
 {
 	let idx;
 	let data;
@@ -66,7 +67,7 @@ function loadTransaction( theTransaction, theParameters, doFail = false )
 		//
 		// Iterate operations.
 		//
-		for( const op of [ 'I', 'U', 'R', 'D' ] )
+		for( const op of theOperations )
 		{
 			switch( op )
 			{
@@ -111,7 +112,7 @@ function loadTransaction( theTransaction, theParameters, doFail = false )
 					selector = {
 						_key : doc._key
 					};
-					action = "Update doeument";
+					action = "Update document";
 					func = () => {
 						theTransaction.addOperation(
 							op,									// Operation code.
@@ -140,6 +141,52 @@ function loadTransaction( theTransaction, theParameters, doFail = false )
 							);
 						};
 						expect( func, `${message} - ${action}` ).not.to.throw();
+					}
+					break;
+				
+				case 'AS':
+					action = "Add to set";
+					selector = {
+						_key : doc._key
+					};
+					for( let run = 1; run < 3; run++ )
+					{
+						for( let counter = 1; counter < 10; counter++ )
+						{
+							data = {
+								set : `Element ${counter}`
+							};
+							
+							func = () => {
+								theTransaction.addOperation(
+									op,									// Operation code.
+									theParameters.collection_document,	// Collection name.
+									selector,							// Selector.
+									data,								// Data.
+									false,								// waitForSync.
+									false,								// Use result.
+									false								// Stop after.
+								);
+							};
+							expect( func, `${message} - ${action}` ).not.to.throw();
+							
+							if( idx > 0 )
+							{
+								action = "Update edge";
+								func = () => {
+									theTransaction.addOperation(
+										op,									// Operation code.
+										theParameters.collection_edge,		// Collection name.
+										{ _key : `EDGE${idx}` },			// Selector.
+										{ set: `New element ${counter}` },	// Data.
+										false,								// waitForSync.
+										false,								// Use result.
+										false								// Stop after.
+									);
+								};
+								expect( func, `${message} - ${action}` ).not.to.throw();
+							}
+						}
 					}
 					break;
 				
@@ -318,10 +365,98 @@ describe( "Document class tests:", function ()
 		});
 		
 		//
-		// Fill transaction.
+		// Transaction without delete.
 		//
-		it( "Filled transaction", function ()
+		it( "Transaction without delete", function ()
 		{
+			let tmp;
+			let func;
+			let cursor;
+			let result;
+			let message;
+			
+			//
+			// Instantiate ransaction.
+			//
+			const trans = new TestClass();
+			
+			//
+			// Fill transaction.
+			//
+			loadTransaction( trans, param, [ 'I', 'U', 'AS', 'R' ] );
+			
+			//
+			// Execute transaction.
+			//
+			message = "Executing transaction";
+			func = () => {
+				result = trans.execute();
+			};
+			expect( func, `${message}` ).not.to.throw();
+			expect( result, `${message} - Result` ).to.be.an.object;
+			
+			//
+			// Validate edge record count.
+			//
+			tmp = trans.record.collections.write[ 1 ];
+			message = `Validating ${tmp} record count`;
+			func = () => {
+				result = db._collection( tmp ).count();
+			};
+			expect( func, `${message} - Counting records` ).not.to.throw();
+			expect( result, `${message} - Record count` ).to.equal( 3 );
+			
+			//
+			// Validate edge sets.
+			//
+			cursor = db._collection( tmp ).all();
+			while( cursor.hasNext() )
+			{
+				const doc = cursor.next();
+				if( doc.hasOwnProperty( 'set' ) )
+					expect( doc.set.length, `${tmp} set elements for ${doc._key}` )
+						.to.equal( 9 );
+			}
+			
+			//
+			// Validate document record count.
+			//
+			tmp = trans.record.collections.write[ 0 ];
+			message = `Validating ${tmp} record count`;
+			func = () => {
+				result = db._collection( tmp ).count();
+			};
+			expect( func, `${message} - Counting records` ).not.to.throw();
+			expect( result, `${message} - Record count` ).to.equal( 4 );
+			
+			//
+			// Validate document sets.
+			//
+			cursor = db._collection( tmp ).all();
+			while( cursor.hasNext() )
+			{
+				const doc = cursor.next();
+				if( doc.hasOwnProperty( 'set' ) )
+					expect( doc.set.length, `${tmp} set elements for ${doc._key}` )
+						.to.equal( 9 );
+			}
+		});
+		
+		//
+		// Clear collections.
+		//
+		it( "Clear collections", function ()
+		{
+			db._collection( param.collection_edge ).truncate();
+			db._collection( param.collection_document ).truncate();
+		});
+		
+		//
+		// Transaction with delete.
+		//
+		it( "Transactions with delete", function ()
+		{
+			let tmp;
 			let func;
 			let result;
 			let message;
@@ -334,7 +469,7 @@ describe( "Document class tests:", function ()
 			//
 			// Fill transaction.
 			//
-			loadTransaction( trans, param );
+			loadTransaction( trans, param, [ 'I', 'U', 'AS', 'R', 'D' ] );
 			
 			//
 			// Execute transaction.
@@ -349,11 +484,12 @@ describe( "Document class tests:", function ()
 			//
 			// Validate transaction.
 			//
-			message = "Validating transaction";
+			tmp = trans.record.collections.write[ 0 ];
+			message = `Validating ${tmp} record count`;
 			func = () => {
-				result = db._collection( trans.record.collections.write[ 0 ] ).count();
+				result = db._collection( tmp ).count();
 			};
-			expect( func, `${message} - Countring records` ).not.to.throw();
+			expect( func, `${message} - Counting records` ).not.to.throw();
 			expect( result, `${message} - Record count` ).to.equal( 0 );
 		});
 		
@@ -374,7 +510,7 @@ describe( "Document class tests:", function ()
 			//
 			// Fill transaction.
 			//
-			loadTransaction( trans, param, true );
+			loadTransaction( trans, param, [ 'I', 'U', 'AS', 'R', 'D' ], true );
 			
 			//
 			// Execute transaction.
@@ -392,7 +528,7 @@ describe( "Document class tests:", function ()
 			func = () => {
 				result = db._collection( trans.record.collections.write[ 0 ] ).count();
 			};
-			expect( func, `${message} - Countring records` ).not.to.throw();
+			expect( func, `${message} - Counting records` ).not.to.throw();
 			expect( result, `${message} - Record count` ).to.equal( 0 );
 		});
 	
