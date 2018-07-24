@@ -15,9 +15,8 @@ const Identifier = require( './Identifier' );
 /**
  * Term class
  *
- * This class extends the Persistent class by adding the global identifier property,
- * The local and global identifier properties are required, the namespace identifier
- * is optional.
+ * This class extends the Identifier class by ensuring the _key to be equal to the
+ * global dentifier and by adding the namespace instance to the referenced namespace.
  */
 class Term extends Identifier
 {

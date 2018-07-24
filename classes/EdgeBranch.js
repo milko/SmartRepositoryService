@@ -34,7 +34,7 @@ const Edge = require( './Edge' );
  * constolled vocabulary, but you may also want it to appear in the locations
  * controlled vocabulary, rather than duplicating edges, we keep a single edge, but we
  * mark each path that traverses it, so that the number of edges is reduced and it
- * becomes possible to easily move gub-graphs around. The paths that traverse the
+ * becomes possible to easily move sub-graphs around. The paths that traverse the
  * current edge are stored in the 'branches' property, which is an array of _id
  * references that mark the path: by following a specific reference in the graph, we
  * can traverse the graph using a specific path.
