@@ -226,7 +226,7 @@ router.post
 				// Handle MyError exceptions.
 				//
 				if( (error.constructor.name === 'MyError')
-					&& error.hasOwnProperty( 'param_http' ) )
+				 && error.hasOwnProperty( 'param_http' ) )
 					http = error.param_http;
 				
 				response.throw( http, error );										// !@! ==>

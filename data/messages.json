@@ -849,6 +849,30 @@
     }
   },
   {
+    "_key" : "s:schema:validateProperty",
+    "body" : {
+      "ISO:639:3:eng" : "<p>The service expects the following parameters from the body:</p><ul><li><strong>descriptor</strong>: the <code>_key</code> of the descriptor that defines the property.</li><li><strong>value</strong>: the property value.</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "If the service was successful, it will return the same object as it was provided with the property value cast to the correct data type. If the service was unsuccessful, it will return an object, <code>{ error : record }</code>, where record will contain the error record."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "<p>The service can be used to validate a property value, it expects an object in the POST body containing two properties:<ul><li><strong>descriptor</strong>: The <code>_key</code> of the descriptor corresponding to the property name.</li><li><strong>value</strong>: The value of the property.</ul></p><p>If the value is valid, the service will return the same object as was provided, with the value cast to the correct type. If the value is invalid, the service will return an object, <code>{ error : record }</code>, where record will contain the error record.</p>"
+    }
+  },
+  {
+    "_key" : "s:schema:validateStructure",
+    "body" : {
+      "ISO:639:3:eng" : "<p>The service expects the following parameters from the body:</p><ul><li><strong>data</strong>: the object structure to validate.</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "If the service was successful, it will return the same object as it was provided with the structure property values cast to their correct data type. If the service was unsuccessful, it will return an object, <code>{ error : record }</code>, where record will contain the error record."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "<p>The service can be used to validate an object structure, it expects an object in the POST body containing one property:<ul><li><strong>data</strong>: The object structure to validate.</li></ul></p><p>If the structure is valid, the service will return the same object as was provided, with the structure property values cast to their correct data types. If the structure contains invalid data, the service will return an object, <code>{ error : record }</code>, where record will contain the error record.</p>"
+    }
+  },
+  {
     "_key" : "s:session:ping",
     "response" : {
       "ISO:639:3:eng" : "The object <code>{ result : 'pong' }</code>."

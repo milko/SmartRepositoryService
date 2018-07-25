@@ -570,7 +570,12 @@ router.post
 		// Init timer.
 		//
 		const stamp = time();
-
+		
+		//
+		// Set debug options.
+		//
+		const debug = true;
+		
 		//
 		// Test method.
 		//
@@ -593,18 +598,33 @@ router.post
 		catch( error )
 		{
 			//
-			// Init local storage.
+			// Raise exception.
 			//
-			let http = 500;
-
+			if( ! debug )
+			{
+				//
+				// Init local storage.
+				//
+				let http = 500;
+				
+				//
+				// Handle MyError exceptions.
+				//
+				if( (error.constructor.name === 'MyError')
+				 && error.hasOwnProperty( 'param_http' ) )
+					http = error.param_http;
+				
+				response.throw( http, error );										// !@! ==>
+			}
+			
 			//
-			// Handle MyError exceptions.
+			// Return error object.
 			//
-			if( (error.constructor.name === 'MyError')
-			 && error.hasOwnProperty( 'param_http' ) )
-				http = error.param_http;
-
-			response.throw( http, error );										// !@! ==>
+			else
+			{
+				error.description = error.getCodeMessage();
+				response.send(error);
+			}
 		}
 	},
 	'validateProperty'
@@ -658,7 +678,12 @@ router.post
 		// Init timer.
 		//
 		const stamp = time();
-
+		
+		//
+		// Set debug options.
+		//
+		const debug = true;
+		
 		//
 		// Test method.
 		//
@@ -678,18 +703,33 @@ router.post
 		catch( error )
 		{
 			//
-			// Init local storage.
+			// Raise exception.
 			//
-			let http = 500;
-
+			if( ! debug )
+			{
+				//
+				// Init local storage.
+				//
+				let http = 500;
+				
+				//
+				// Handle MyError exceptions.
+				//
+				if( (error.constructor.name === 'MyError')
+					&& error.hasOwnProperty( 'param_http' ) )
+					http = error.param_http;
+				
+				response.throw( http, error );									// !@! ==>
+			}
+			
 			//
-			// Handle MyError exceptions.
+			// Return error object.
 			//
-			if( (error.constructor.name === 'MyError')
-			 && error.hasOwnProperty( 'param_http' ) )
-				http = error.param_http;
-
-			response.throw( http, error );										// !@! ==>
+			else
+			{
+				error.description = error.getCodeMessage();
+				response.send(error);
+			}
 		}
 	},
 	'validateStructure'

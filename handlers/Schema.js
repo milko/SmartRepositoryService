@@ -1010,5 +1010,134 @@ module.exports = {
 			theResponse.throw( http, error );									// !@! ==>
 		}
 		
-	}	// getUserManagedTree
+	},	// getUserManagedTree
+	
+	/**
+	 * Validate property value
+	 *
+	 * The service can be used to validate a property value, it expects an object in the
+	 * body with two properties:
+	 *
+	 * 	- property:	The property _key.
+	 * 	- value:	The property value.
+	 *
+	 * The service will return the same object as provided, if the operation was
+	 * successful, with the value cast to the correct type. If there is an error, the
+	 * service will return an object, { error : error }, where error is the error record.
+	 *
+	 * If the method raises an exception, the service will forward it using the
+	 * HTTP code if the exception is of class MyError.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 */
+	validateProperty : ( theRequest, theResponse ) =>
+	{
+		//
+		// Framework.
+		//
+		const Validation = require( '../utils/Validation' );
+		
+		//
+		// Try handler.
+		//
+		try
+		{
+			//
+			// Make test.
+			//
+			const result =
+				Validation.validateProperty(
+					theRequest,
+					theRequest.body.descriptor,
+					theRequest.body.value );
+			
+			//
+			// Build result.
+			//
+			const response = {};
+			response.descriptor = theRequest.body.descriptor;
+			response.value = result;
+			
+			theResponse.send( response );											// ==>
+		}
+		catch( error )
+		{
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+			{
+				error.description = error.getCodeMessage();
+				theResponse.send({ error : error });								// ==>
+			}
+			else
+				theResponse.throw( 500, error );								// !@! ==>
+		}
+		
+	},	// validateProperty
+	
+	/**
+	 * Validate structure
+	 *
+	 * The service can be used to validate an object structure, it expects the POST body
+	 * to contain an object that contains a single property, data, which contains the
+	 * structure to be validated.
+	 *
+	 * The service will return the same object as provided, if the operation was
+	 * successful, with the values cast to the correct types. If there is an error, the
+	 * service will return an object, { error : error }, where error is the error record.
+	 *
+	 * If the method raises an exception, the service will forward it using the
+	 * HTTP code if the exception is of class MyError.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 */
+	validateStructure : ( theRequest, theResponse ) =>
+	{
+		//
+		// Framework.
+		//
+		const Validation = require( '../utils/Validation' );
+		
+		//
+		// Try handler.
+		//
+		try
+		{
+			//
+			// Make test.
+			//
+			const result =
+				Validation.validateStructure(
+					theRequest,
+					theRequest.body.data
+				);
+			
+			//
+			// Build result.
+			//
+			const response = {};
+			response.data = result;
+			
+			theResponse.send( response );											// ==>
+		}
+		catch( error )
+		{
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+			{
+				error.description = error.getCodeMessage();
+				theResponse.send({ error : error });								// ==>
+			}
+			else
+				theResponse.throw( 500, error );								// !@! ==>
+		}
+		
+	}	// validateStructure
 };

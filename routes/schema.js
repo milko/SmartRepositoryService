@@ -807,3 +807,85 @@ router.post( '/user/managed/tree', Handlers.getUserManagedTree, 'userGetTree' )
 		Application.getServiceDescription(
 			'schema', 'userManagedTree', 'description', module.context.configuration.defaultLanguage )
 	);
+
+
+/**
+ * Validate property value
+ *
+ * The service can be used to validate a property value, it expects an object in the
+ * body with two properties:
+ *
+ * 	- descriptor:	The descriptor _key.
+ * 	- value:		The property value.
+ *
+ * The service will return the same object as provided, if the operation was
+ * successful, with the value cast to the correct type. If there is an error, the
+ * service will return an object, { error : error }, where error is the error record.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/validate/property
+ * @verb		post
+ * @request		{Object}	Property and value.
+ * @response	{Object}	Property and value, or error.
+ */
+router.post( '/validate/property', Handlers.validateProperty, 'validateProperty' )
+	.body(
+		require( '../models/schema/schemaValidateProperty' ),
+		Application.getServiceDescription(
+			'schema', 'validateProperty', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/schema/schemaValidateProperty' ),
+		Application.getServiceDescription(
+			'schema', 'validateProperty', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Validate a property value."
+	)
+	.description(
+		Application.getServiceDescription(
+			'schema', 'validateProperty', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Validate structure
+ *
+ * The service can be used to validate an object structure, it expects the POST body
+ * to contain an object that contains a single property, data, which contains the
+ * structure to be validated.
+ *
+ * The service will return the same object as provided, if the operation was
+ * successful, with the values cast to the correct types. If there is an error, the
+ * service will return an object, { error : error }, where error is the error record.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/validate/structure
+ * @verb		post
+ * @request		{Object}	Property and value.
+ * @response	{Object}	Property and value, or error.
+ */
+router.post( '/validate/structure', Handlers.validateStructure, 'validateStructure' )
+	.body(
+		require( '../models/schema/schemaValidateStructure' ),
+		Application.getServiceDescription(
+			'schema', 'validateStructure', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/schema/schemaValidateStructure' ),
+		Application.getServiceDescription(
+			'schema', 'validateStructure', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Validate an object structure."
+	)
+	.description(
+		Application.getServiceDescription(
+			'schema', 'validateStructure', 'description', module.context.configuration.defaultLanguage )
+	);
