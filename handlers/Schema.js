@@ -398,7 +398,7 @@ module.exports = {
 			// Handle MyError exceptions.
 			//
 			if( (error.constructor.name === 'MyError')
-				&& error.hasOwnProperty( 'param_http' ) )
+			 && error.hasOwnProperty( 'param_http' ) )
 				http = error.param_http;
 
 			theResponse.throw( http, error );									// !@! ==>
@@ -1037,6 +1037,12 @@ module.exports = {
 		// Framework.
 		//
 		const Validation = require( '../utils/Validation' );
+		const Middleware = require( '../middleware/user' );
+		
+		//
+		// Assertions.
+		//
+		Middleware.assert.hasUser( theRequest, theResponse );
 		
 		//
 		// Try handler.
@@ -1066,8 +1072,7 @@ module.exports = {
 			//
 			// Handle MyError exceptions.
 			//
-			if( (error.constructor.name === 'MyError')
-			 && error.hasOwnProperty( 'param_http' ) )
+			if( error.constructor.name === 'MyError' )
 			{
 				error.description = error.getCodeMessage();
 				theResponse.send({ error : error });								// ==>
@@ -1101,6 +1106,12 @@ module.exports = {
 		// Framework.
 		//
 		const Validation = require( '../utils/Validation' );
+		const Middleware = require( '../middleware/user' );
+		
+		//
+		// Assertions.
+		//
+		Middleware.assert.hasUser( theRequest, theResponse );
 		
 		//
 		// Try handler.
@@ -1129,8 +1140,7 @@ module.exports = {
 			//
 			// Handle MyError exceptions.
 			//
-			if( (error.constructor.name === 'MyError')
-			 && error.hasOwnProperty( 'param_http' ) )
+			if( error.constructor.name === 'MyError' )
 			{
 				error.description = error.getCodeMessage();
 				theResponse.send({ error : error });								// ==>
@@ -1139,5 +1149,81 @@ module.exports = {
 				theResponse.throw( 500, error );								// !@! ==>
 		}
 		
-	}	// validateStructure
+	},	// validateStructure
+	
+	/**
+	 * Validate form
+	 *
+	 * The service can be used to validate a data structure associated to a form, it
+	 * expects the POST body to contain the following parameters:
+	 *
+	 * 	- form:	The form term _key.
+	 * 	- data:	The data applied to the form.
+	 *
+	 * If there are no errors, the service will return { result : form } where form is the
+	 * form structure with for each form element corresponding to a data element an
+	 * additional property, _value, which will contain the value cast to the correct
+	 * types. If there is an error, the service will return an object, { error : error },
+	 * where error is the error record.
+	 *
+	 * If the method raises an exception, the service will forward it using the
+	 * HTTP code if the exception is of class MyError.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 */
+	validateForm : ( theRequest, theResponse ) =>
+	{
+		//
+		// Framework.
+		//
+		const Form = require( '../classes/Form' );
+		const Middleware = require( '../middleware/user' );
+		
+		//
+		// Assertions.
+		//
+		Middleware.assert.hasUser( theRequest, theResponse );
+		
+		//
+		// Try handler.
+		//
+		try
+		{
+			//
+			// Instantiate form.
+			//
+			const form =
+				new Form(
+					theRequest,
+					theRequest.body.form,
+					theRequest.body.data
+				);
+			
+			//
+			// Validate.
+			//
+			form.validate( theRequest );
+			
+			theResponse.send({
+				_branch : form.branch,
+				_fields : form.fields,
+				_form   : form.form
+			});
+		}
+		catch( error )
+		{
+			//
+			// Handle MyError exceptions.
+			//
+			if( error.constructor.name === 'MyError' )
+			{
+				error.description = error.getCodeMessage();
+				theResponse.send({ error : error });								// ==>
+			}
+			else
+				theResponse.throw( 500, error );								// !@! ==>
+		}
+		
+	}	// validateForm
 };

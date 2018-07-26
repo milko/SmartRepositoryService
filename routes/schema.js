@@ -889,3 +889,47 @@ router.post( '/validate/structure', Handlers.validateStructure, 'validateStructu
 		Application.getServiceDescription(
 			'schema', 'validateStructure', 'description', module.context.configuration.defaultLanguage )
 	);
+
+
+/**
+ * Validate form
+ *
+ * The service can be used to validate a data structure associated to a form, it
+ * expects the POST body to contain the following parameters:
+ *
+ * 	- form:	The form term _key.
+ * 	- data:	The data applied to the form.
+ *
+ * If there are no errors, the service will return { result : form } where form is the
+ * form structure with for each form element corresponding to a data element an
+ * additional property, _value, which will contain the value cast to the correct
+ * types. If there is an error, the service will return an object, { error : error },
+ * where error is the error record.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/validate/form
+ * @verb		post
+ * @request		{Object}	Property and value.
+ * @response	{Object}	Property and value, or error.
+ */
+router.post( '/validate/form', Handlers.validateForm, 'validateForm' )
+	.body(
+		require( '../models/schema/schemaValidateForm' ),
+		Application.getServiceDescription(
+			'schema', 'validateForm', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/schema/schemaValidateForm' ),
+		Application.getServiceDescription(
+			'schema', 'validateForm', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Validate a form associated to a data structure."
+	)
+	.description(
+		Application.getServiceDescription(
+			'schema', 'validateForm', 'description', module.context.configuration.defaultLanguage )
+	);
