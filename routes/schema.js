@@ -933,3 +933,96 @@ router.post( '/validate/form', Handlers.validateForm, 'validateForm' )
 		Application.getServiceDescription(
 			'schema', 'validateForm', 'description', module.context.configuration.defaultLanguage )
 	);
+
+
+/**
+ * Get term
+ *
+ * The service can be used to retrieve a specific term, it expects the POST body to
+ * contain the following parameters:
+ *
+ * 	- reference:	The term reference provided in one of these two forms:
+ * 		- string:	The term reference as its _id or _key.
+ * 		- object:	An object containing the term significant fields.
+ *
+ * The service will return an object, { term : value }, where value will be the found
+ * term object.
+ *
+ * When providing the term reference as an object, if the search results in more than
+ * one term, the service will raise an exception.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/term
+ * @verb		post
+ * @request		{Object}	Term reference.
+ * @response	{Object}	Term document.
+ */
+router.post( '/term', Handlers.getTerm, 'getTerm' )
+	.body(
+		require( '../models/schema/schemaGetDocument' ),
+		Application.getServiceDescription(
+			'schema', 'getTerm', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/schema/schemaGetDocument' ),
+		Application.getServiceDescription(
+			'schema', 'getTerm', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Retrieve a single term."
+	)
+	.description(
+		Application.getServiceDescription(
+			'schema', 'getTerm', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Get terms
+ *
+ * The service can be used to retrieve a list of terms, it expects the POST body to
+ * contain the following parameters:
+ *
+ * 	- reference:	The term reference provided in one of these two forms:
+ * 		- string:	The term reference as its _id or _key.
+ * 		- object:	An object containing the term properties to be matched.
+ * 	- doCount:		A boolean flag where:
+ * 		- true:		The service will return only the match count.
+ * 		- false:	The service will return the list of matched documents.
+ * 	- doLanguage:	A boolean flag where:
+ * 		- true:		Restrict language strings to the current user preferred language.
+ * 		- false:	Do not restrict language.
+ *
+ * The service will return an object, { term : value }, where value will be the list
+ * of matched terms, or the matched count, if the second parameter is true.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/terms
+ * @verb		post
+ * @request		{Object}	Term property matches.
+ * @response	{Object}	Term documents.
+ */
+router.post( '/terms', Handlers.getTerms, 'getTerms' )
+	.body(
+		require( '../models/schema/schemaGetDocuments' ),
+		Application.getServiceDescription(
+			'schema', 'getTerms', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/schema/schemaGetDocuments' ),
+		Application.getServiceDescription(
+			'schema', 'getTerms', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Retrieve a list of terms or the match count."
+	)
+	.description(
+		Application.getServiceDescription(
+			'schema', 'getTerms', 'description', module.context.configuration.defaultLanguage )
+	);

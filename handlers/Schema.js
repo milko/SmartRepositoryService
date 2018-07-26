@@ -1225,5 +1225,292 @@ module.exports = {
 				theResponse.throw( 500, error );								// !@! ==>
 		}
 		
-	}	// validateForm
+	},	// validateForm
+	
+	/**
+	 * Get term
+	 *
+	 * The service can be used to retrieve a specific term, it expects the POST body to
+	 * contain the following parameters:
+	 *
+	 * 	- reference:	The term reference provided in one of these two forms:
+	 * 		- string:	The term reference as its _id or _key.
+	 * 		- object:	An object containing the term significant fields.
+	 *
+	 * The service will return an object, { document : value }, where value will be the
+	 * found
+	 * term object.
+	 *
+	 * When providing the term reference as an object, if the search results in more than
+	 * one term, the service will raise an exception.
+	 *
+	 * If the method raises an exception, the service will forward it using the
+	 * HTTP code if the exception is of class MyError.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 */
+	getTerm : ( theRequest, theResponse ) =>
+	{
+		//
+		// Framework.
+		//
+		const Term = require( '../classes/Term' );
+		const Middleware = require( '../middleware/user' );
+		
+		//
+		// Assertions.
+		//
+		Middleware.assert.hasUser( theRequest, theResponse );
+		
+		//
+		// Try handler.
+		//
+		try
+		{
+			//
+			// Instantiate term.
+			//
+			const object =
+				new Term(
+					theRequest,
+					theRequest.body.reference
+				);
+			
+			//
+			// Resolve term.
+			//
+			if( ! object.persistent )
+				object.resolveDocument( true, true );
+			
+			theResponse.send({
+				document : object.document
+			});
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			theResponse.throw( http, error );									// !@! ==>
+		}
+		
+	},	// getTerm
+	
+	/**
+	 * Get terms
+	 *
+	 * The service can be used to retrieve a list of terms, it expects the POST body to
+	 * contain the following parameters:
+	 *
+	 * 	- reference:	The term reference provided in one of these two forms:
+	 * 		- string:	The term reference as its _id or _key.
+	 * 		- object:	An object containing the term properties to be matched.
+	 * 	- doCount:		A boolean flag where:
+	 * 		- true:		The service will return only the match count.
+	 * 		- false:	The service will return the list of matched documents.
+	 * 	- doLanguage:	A boolean flag where:
+	 * 		- true:		Restrict language strings to the current user preferred language.
+	 * 		- false:	Do not restrict language.
+	 *
+	 * The service will return an object, { term : value }, where value will be the list
+	 * of matched terms, or the matched count, if the second parameter is true.
+	 *
+	 * If the method raises an exception, the service will forward it using the
+	 * HTTP code if the exception is of class MyError.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 */
+	getTerms : ( theRequest, theResponse ) =>
+	{
+		//
+		// Framework.
+		//
+		const db = require('@arangodb').db;
+		const errors = require('@arangodb').errors;
+		
+		//
+		// Application.
+		//
+		const K = require( '../utils/Constants' );
+		const Dict = require( '../dictionary/Dict' );
+		const Dictionary = require( '../utils/Dictionary' );
+		const Middleware = require( '../middleware/user' );
+		const ARANGO_NOT_FOUND = errors.ERROR_ARANGO_DOCUMENT_NOT_FOUND.code;
+		
+		//
+		// Assertions.
+		//
+		Middleware.assert.hasUser( theRequest, theResponse );
+		
+		//
+		// Try handler.
+		//
+		try
+		{
+			//
+			// Handle object reference.
+			//
+			if( K.function.isObject( theRequest.body.reference ) )
+			{
+				//
+				// Query terms.
+				//
+				const cursor = db._collection( 'terms' ).byExample( theRequest.body.reference );
+				
+				//
+				// Handle count.
+				//
+				if( theRequest.body.doCount )
+					theResponse.send({
+						document : cursor.count()
+					});
+				
+				//
+				// Handle list of terms.
+				//
+				else
+				{
+					//
+					// Get list of documents.
+					//
+					const list = cursor.toArray();
+					
+					//
+					// Restrict language.
+					//
+					if( theRequest.body.doLanguage )
+						theResponse.send({
+							document : list.map( (document) => {
+								Dictionary.restrictLanguage(
+									document,
+									theRequest.application.user[ Dict.descriptor.kLanguage ] );
+								
+								return document;
+							})
+						});
+					
+					//
+					// Return unchanged.
+					//
+					else
+						theResponse.send({
+							document : list
+						});
+				}
+				
+			}	// Provided object.
+			
+			//
+			// Handle string reference.
+			//
+			else
+			{
+				//
+				// Resolve reference.
+				//
+				try
+				{
+					//
+					// Get document.
+					//
+					const document = db._collection( 'terms' ).document( theRequest.body.reference );
+					
+					//
+					// Handle count.
+					//
+					if( theRequest.body.doCount )
+						theResponse.send({
+							document : 1
+						});
+					
+					//
+					// Handle list of terms.
+					//
+					else
+					{
+						//
+						// Restrict language.
+						//
+						if( theRequest.body.doLanguage )
+							Dictionary.restrictLanguage(
+								document,
+								theRequest.application.user[ Dict.descriptor.kLanguage ]
+							);
+						
+						theResponse.send({
+							document : [ document ]
+						});
+					}
+				}
+				catch( error )
+				{
+					//
+					// Ignore not found.
+					//
+					if( (! error.isArangoError)
+					 || (error.errorNum !== ARANGO_NOT_FOUND) )
+					{
+						//
+						// Init local storage.
+						//
+						let http = 500;
+						
+						//
+						// Handle MyError exceptions.
+						//
+						if( (error.constructor.name === 'MyError')
+							&& error.hasOwnProperty( 'param_http' ) )
+							http = error.param_http;
+						
+						theResponse.throw( http, error );						// !@! ==>
+					}
+					
+					//
+					// Handle count.
+					//
+					if( theRequest.body.doCount )
+						theResponse.send({
+							document : 0
+						});
+					
+					//
+					// Handle document.
+					//
+					else
+						theResponse.send({
+							document : []
+						});
+				}
+			}
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			theResponse.throw( http, error );									// !@! ==>
+		}
+		
+	}	// getTerms
+
 };
