@@ -160,7 +160,6 @@ class Validation
 
 		//
 		// Handle list of containers.
-		// MILKO - this might not work: need to test thoroughly.
 		//
 		if( ( (type === Dict.term.kTypeDataStruct)		// Descriptor type is structure
 		   || (type === Dict.term.kTypeDataObject) )	// or object,

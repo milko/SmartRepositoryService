@@ -9,6 +9,7 @@ module.context.use( "/schema", require( './routes/schema'), 'schema');
 module.context.use( "/user", require( './routes/user'), 'user');
 module.context.use( "/descriptor", require( './routes/descriptor'), 'descriptor');
 module.context.use( "/dataset", require( './routes/dataset'), 'dataset');
+module.context.use( "/utils", require( './routes/utils'), 'utils');
 
 //
 // Test routes.

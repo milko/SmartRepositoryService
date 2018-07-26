@@ -672,6 +672,12 @@
     }
   },
   {
+    "_key" : "e113",
+    "label" : {
+      "ISO:639:3:eng" : "only the system administrator is allowed to perform this operation."
+    }
+  },
+  {
     "_key" : "s:init:descriptors",
     "response" : {
       "ISO:639:3:eng" : "The operation result."
@@ -1107,6 +1113,30 @@
     },
     "description" : {
       "ISO:639:3:eng" : "The service is used to register a dataset from the filled contents of the dataset registration form.<p>The service expects the following information in the request POST body:</p><ul><li><strong><code>data</code></strong>: the dataset registration <em>form contents</em> object.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the dataset registration object.</p>"
+    }
+  },
+  {
+    "_key" : "s:utils:tokenAdmin",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>refresh</code></strong>: <code>false</code> will retrieve the token with the current authentication record; <code>true</code> will first refresh the authentication record, then return the token.i</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service returns an object <code>{ token : value }</code>, where <code>value</code> is the administrator user authentication token."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "<p>The service can be used to retrieve the administrator user authentication token and, optionally, refresh the authentication record before returning the token.</p><p>The token is used by some services as an additional authentication when performing operations reserved to the system administrator. The token is a string that these services expect as one of their parameters.</p><p>The service expects a boolean paramater in the POST body, <code>refresh</code>, that indicates whether or not to refresh the authentication record:<ul><li><code>false</code>: The authentication record is not refreshed, the token will not change.</li><li><code>true</code>: The authentication record will be refreshed and the resulting token will be different. Note that in this case all encoded tokens returned in the past will be invalidated, this means that you have to be sure no pending tokens will be provided to the application services. <em>Tokens are encoded objects that the application uses for authentication purposes, refreshing the authentication record should only be done when there are security issues.</em></li></ul></p>The service will return an object <code>{ token : value }</code>, where <code>value</code> will be the administrator user authentication token.</p><p>This service should fail only if the setup script has not been executed yet.</p>"
+    }
+  },
+  {
+    "_key" : "s:utils:tokenUser",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>refresh</code></strong>: <code>false</code> will retrieve the token with the current authentication record; <code>true</code> will first refresh the authentication record, then return the token.i</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service returns an object <code>{ token : value }</code>, where <code>value</code> is the user authentication token."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "<p>The service can be used to retrieve the user authentication token and, optionally, refresh the authentication record before returning the token.</p><p>The token is used by some services as an additional authentication when performing operations reserved to registered users. The token is a string that these services expect as one of their parameters.</p><p>The service expects a boolean paramater in the POST body, <code>refresh</code>, that indicates whether or not to refresh the authentication record:<ul><li><code>false</code>: The authentication record is not refreshed, the token will not change.</li><li><code>true</code>: The authentication record will be refreshed and the resulting token will be different. Note that in this case all encoded tokens returned in the past will be invalidated, this means that you have to be sure no pending tokens will be provided to the application services. <em>Tokens are encoded objects that the application uses for authentication purposes, refreshing the authentication record should only be done when there are security issues. In particular, all tokens returned to users who are expected to sign-in will become invalid</em></li></ul></p>The service will return an object <code>{ token : value }</code>, where <code>value</code> will be the user authentication token.</p><p>This service should fail only if the setup script has not been executed yet.</p>"
     }
   }
 ]

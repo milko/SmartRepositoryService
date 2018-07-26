@@ -380,7 +380,7 @@ class Application
 		};
 
 	}	// createSessionData
-
+	
 	/**
 	 * Create authentication file
 	 *
@@ -417,20 +417,20 @@ class Application
 		// Init local storage.
 		//
 		const result = { admin : false, user : false, cookie : false };
-
+		
 		//
 		// Ensure directory.
 		//
 		if( ! fs.isDirectory( K.defaultDirectories.kData ) )
 			fs.makeDirectory( K.defaultDirectories.kData );
-
+		
 		//
 		// Set file path.
 		//
 		const file = K.defaultDirectories.kData
-				   + fs.pathSeparator
-				   + 'auth.json';
-
+			+ fs.pathSeparator
+			+ 'auth.json';
+		
 		//
 		// Get file contents.
 		//
@@ -440,7 +440,7 @@ class Application
 			const contents = fs.read( file );
 			auth = JSON.parse( contents );
 		}
-
+		
 		//
 		// Handle admin authentication.
 		//
@@ -452,7 +452,7 @@ class Application
 			auth.admin.pass = crypto.genRandomAlphaNumbers( 16 );
 			result.admin = true;
 		}
-
+		
 		//
 		// Handle user authentication.
 		//
@@ -464,7 +464,7 @@ class Application
 			auth.user.pass = crypto.genRandomAlphaNumbers( 16 );
 			result.user = true;
 		}
-
+		
 		//
 		// Handle cookie authentication.
 		//
@@ -474,15 +474,15 @@ class Application
 			auth.cookie.key = crypto.genRandomAlphaNumbers( 48 );
 			result.cookie = true;
 		}
-
+		
 		//
 		// Refresh/create file.
 		//
 		if( result.admin || result.user || result.cookie )
 			fs.write( file, JSON.stringify( auth ) );
-
+		
 		return result;																// ==>
-
+		
 	}	// createAuthFile
 
 	/**

@@ -373,7 +373,8 @@ module.exports = Object.freeze(
 			ObjectIsImmutable	: 109,
 			BadTransOpCode		: 110,
 			SessionUserChanged	: 111,
-			CannotUpload		: 112
+			CannotUpload		: 112,
+			OnlySysAdmAllowed	: 113
 		},
 
 		//
