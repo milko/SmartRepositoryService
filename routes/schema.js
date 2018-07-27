@@ -945,7 +945,7 @@ router.post( '/validate/form', Handlers.validateForm, 'validateForm' )
  * 		- string:	The term reference as its _id or _key.
  * 		- object:	An object containing the term significant fields.
  *
- * The service will return an object, { term : value }, where value will be the found
+ * The service will return an object, { document : value }, where value will be the found
  * term object.
  *
  * When providing the term reference as an object, if the search results in more than
@@ -977,4 +977,94 @@ router.post( '/term', Handlers.getTerm, 'getTerm' )
 	.description(
 		Application.getServiceDescription(
 			'schema', 'getTerm', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Get descriptor
+ *
+ * The service can be used to retrieve a specific descriptor, it expects the POST body to
+ * contain the following parameters:
+ *
+ * 	- reference:	The descriptor reference provided in one of these two forms:
+ * 		- string:	The descriptor reference as its _id or _key.
+ * 		- object:	An object containing the descriptor significant fields.
+ *
+ * The service will return an object, { document : value }, where value will be the
+ * found descriptor object.
+ *
+ * When providing the descriptor reference as an object, if the search results in more
+ * than one document, the service will raise an exception.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/term
+ * @verb		post
+ * @request		{Object}	Term reference.
+ * @response	{Object}	Term document.
+ */
+router.post( '/descriptor', Handlers.getDescriptor, 'getDescriptor' )
+	.body(
+		require( '../models/schema/schemaGetDocument' ),
+		Application.getServiceDescription(
+			'schema', 'getDescriptor', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/schema/schemaGetDocument' ),
+		Application.getServiceDescription(
+			'schema', 'getDescriptor', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Retrieve a single descriptor."
+	)
+	.description(
+		Application.getServiceDescription(
+			'schema', 'getDescriptor', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Get study
+ *
+ * The service can be used to retrieve a specific study, it expects the POST body to
+ * contain the following parameters:
+ *
+ * 	- reference:	The study reference provided in one of these two forms:
+ * 		- string:	The study reference as its _id or _key.
+ * 		- object:	An object containing the study significant fields.
+ *
+ * The service will return an object, { document : value }, where value will be the
+ * found study object.
+ *
+ * When providing the study reference as an object, if the search results in more
+ * than one document, the service will raise an exception.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/term
+ * @verb		post
+ * @request		{Object}	Term reference.
+ * @response	{Object}	Term document.
+ */
+router.post( '/study', Handlers.getStudy, 'getStudy' )
+	.body(
+		require( '../models/schema/schemaGetDocument' ),
+		Application.getServiceDescription(
+			'schema', 'getStudy', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/schema/schemaGetDocument' ),
+		Application.getServiceDescription(
+			'schema', 'getStudy', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Retrieve a single study."
+	)
+	.description(
+		Application.getServiceDescription(
+			'schema', 'getStudy', 'description', module.context.configuration.defaultLanguage )
 	);
