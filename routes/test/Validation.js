@@ -685,6 +685,11 @@ router.post
 		const debug = true;
 		
 		//
+		// Init paths list.
+		//
+		const paths = [];
+		
+		//
 		// Test method.
 		//
 		try
@@ -693,10 +698,11 @@ router.post
 			// Make test.
 			//
 			const result =
-				Validation.validateStructure( request, request.body );
+				Validation.validateStructure( request, request.body, paths );
 
 			response.send({
 				what : result,
+				paths: paths,
 				time : time() - stamp
 			});
 		}
@@ -785,6 +791,7 @@ router.get
 		// Init local storage.
 		//
 		const stamp = time();
+		const paths = [];
 		let object = null;
 		let reference = null;
 
@@ -822,7 +829,7 @@ router.get
 				//
 				// Validate.
 				//
-				const value = Validation.validateStructure( request, object );
+				const value = Validation.validateStructure( request, object, paths );
 
 				//
 				// Update counter.
@@ -835,6 +842,7 @@ router.get
 			//
 			response.send({
 				what : count,
+				paths: paths,
 				time : time() - stamp
 			});
 		}
@@ -918,6 +926,7 @@ router.get
 		// Init local storage.
 		//
 		const stamp = time();
+		const paths = [];
 		let count = 0;
 		let object = null;
 		let reference = null;
@@ -959,7 +968,7 @@ router.get
 				//
 				let value = null;
 				if( reference !== "terms/:" )
-					value = Validation.validateStructure( request, object );
+					value = Validation.validateStructure( request, object, paths );
 
 				//
 				// Update counter.
@@ -972,6 +981,7 @@ router.get
 			//
 			response.send({
 				what : count,
+				paths: paths,
 				time : time() - stamp
 			});
 		}
@@ -1056,6 +1066,7 @@ router.get
 		// Init local storage.
 		//
 		const stamp = time();
+		const paths = [];
 		let count = 0;
 		let object = null;
 		let reference = null;
@@ -1097,7 +1108,7 @@ router.get
 				//
 				let value = null;
 				if( reference !== "terms/:" )
-					value = Validation.validateStructure( request, object );
+					value = Validation.validateStructure( request, object, paths );
 
 				//
 				// Update counter.
@@ -1188,12 +1199,13 @@ router.get
 		//
 		// Debug flag.
 		//
-		const debug = false;
+		const debug = true;
 
 		//
 		// Init local storage.
 		//
 		const stamp = time();
+		const paths = [];
 		let count = 0;
 		let object = null;
 		let reference = null;
@@ -1235,7 +1247,7 @@ router.get
 				//
 				let value = null;
 				if( reference !== "terms/:" )
-					value = Validation.validateStructure( request, object );
+					value = Validation.validateStructure( request, object, paths );
 
 				//
 				// Update counter.
@@ -1248,6 +1260,7 @@ router.get
 			//
 			response.send({
 				what : count,
+				paths: paths,
 				time : time() - stamp
 			});
 		}
@@ -1332,6 +1345,7 @@ router.get
 		// Init local storage.
 		//
 		const stamp = time();
+		const paths = [];
 		let count = 0;
 		let object = null;
 		let reference = null;
@@ -1373,7 +1387,7 @@ router.get
 				//
 				let value = null;
 				if( reference !== "terms/:" )
-					value = Validation.validateStructure( request, object );
+					value = Validation.validateStructure( request, object, paths );
 
 				//
 				// Update counter.
@@ -1470,6 +1484,7 @@ router.get
 		// Init local storage.
 		//
 		const stamp = time();
+		const paths = [];
 		let count = 0;
 		let object = null;
 		let reference = null;
@@ -1511,7 +1526,7 @@ router.get
 				//
 				let value = null;
 				if( reference !== "terms/:" )
-					value = Validation.validateStructure( request, object );
+					value = Validation.validateStructure( request, object, paths );
 
 				//
 				// Update counter.
@@ -1524,6 +1539,7 @@ router.get
 			//
 			response.send({
 				what : count,
+				paths: paths,
 				time : time() - stamp
 			});
 		}

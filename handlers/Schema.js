@@ -1114,6 +1114,11 @@ module.exports = {
 		Middleware.assert.hasUser( theRequest, theResponse );
 		
 		//
+		// Init paths.
+		//
+		const paths = [];
+		
+		//
 		// Try handler.
 		//
 		try
@@ -1124,7 +1129,8 @@ module.exports = {
 			const result =
 				Validation.validateStructure(
 					theRequest,
-					theRequest.body.data
+					theRequest.body.data,
+					paths
 				);
 			
 			//

@@ -1,6 +1,11 @@
 'use strict';
 
 //
+// Frameworks.
+//
+const db = require('@arangodb').db;
+
+//
 // Application.
 //
 const K = require( '../utils/Constants' );
@@ -49,6 +54,72 @@ class Study extends Term
 		this._instance = 'Study';
 		
 	}	// initDocumentMembers
+	
+	
+	/************************************************************************************
+	 * MODIFICATION METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Normalise insert properties
+	 *
+	 * This method should load any default properties set when inserting the object.
+	 *
+	 * In this class we overload this method to collect the list of leaf descriptors
+	 * and the list of descriptor paths used in the current document.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	normaliseInsertProperties( doAssert = true )
+	{
+		//
+		// Call parent method.
+		//
+		const result = super.normaliseInsertProperties( doAssert );
+		if( result )
+			this._document[ Dict.descriptor.kDocDesc ] =
+				this.computeDescriptorPaths();
+		
+		return result;																// ==>
+		
+	}	// normaliseInsertProperties
+	
+	/**
+	 * Normalise replace properties
+	 *
+	 * This method should load any default properties set when replacing the object.
+	 *
+	 * In this class we compute the current descriptor paths and compare them with the
+	 * old ones, the method will save the count differences in the object _diffs local
+	 * member.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	normaliseReplaceProperties( doAssert = true )
+	{
+		//
+		// Call parent method.
+		//
+		const result = super.normaliseReplaceProperties( doAssert );
+		if( result )
+		{
+			//
+			// Clone current stats.
+			//
+			const old = K.function.clone( this._document[ Dict.descriptor.kDocDesc ] );
+			
+			//
+			// Set differences in object.
+			//
+			this.computeDescriptorPathsDiffs( old, this.computeDescriptorPaths() );
+			
+		}	// Parent method succeeded.
+		
+		return result;																// ==>
+		
+	}	// normaliseReplaceProperties
 	
 	
 	/************************************************************************************

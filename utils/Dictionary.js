@@ -1365,6 +1365,26 @@ class Dictionary
 		];																			// ==>
 		
 	}	// listUserPrivateProperties
+	
+	/**
+	 * Get non tracked properties
+	 *
+	 * This method will return an array containing the list of properties that will
+	 * not be tracked when computing the document descriptor instance paths.
+	 *
+	 * @returns {Array}	The list of non tracked path properties.
+	 */
+	static get listIgnoredPathProperties()
+	{
+		return [
+			'_id',						// Document ID.
+			'_key',						// Document key.
+			'_rev',						// Document revision.
+			'_from',					// Edge source vertex.
+			'_to'						// Edge destination vertex.
+		];																			// ==>
+		
+	}	// listIgnoredPathProperties
 }
 
 module.exports = Dictionary;

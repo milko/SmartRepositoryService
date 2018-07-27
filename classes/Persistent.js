@@ -4,6 +4,7 @@
 // Application.
 //
 const Dict = require( '../dictionary/Dict' );
+const Dictionary = require( '../utils/Dictionary' );
 
 //
 // Parent.
@@ -85,6 +86,145 @@ class Persistent extends Document
 		return result;																// ==>
 		
 	}	// normaliseReplaceProperties
+	
+	/**
+	 * Compute descriptor paths
+	 *
+	 * This method can be used to compute the document descriptor instances structure,
+	 * doc_desc, it will return the computed structure.
+	 *
+	 * This method should not fail.
+	 *
+	 * @returns {Object}			The document descriptor instances stats record.
+	 */
+	computeDescriptorPaths()
+	{
+		//
+		// Init local storage.
+		//
+		const deleted = [];
+		const stats = { _fields : [] };
+		const excluded = Dictionary.listIgnoredPathProperties;
+		
+		//
+		// Compute leaf path descriptor instances.
+		//
+		this._paths.forEach( path => {
+			const parts = path.split( '.' );
+			const part = parts[ parts.length - 1 ];
+			
+			if( (! excluded.includes( part ))
+			 && (! stats._fields.includes( part )) )
+				stats._fields.push( part );
+			else
+				deleted.push( path );
+		});
+		
+		//
+		// Remove ignored descriptors from paths.
+		//
+		this._paths = this._paths.filter( path => {
+			const parts = path.split( '.' );
+			const part = parts[ parts.length - 1 ];
+			
+			return ( ! excluded.includes( part ) );
+		});
+		
+		//
+		// Save paths.
+		//
+		stats._paths = this._paths;
+		
+		return stats;																// ==>
+		
+	}	// computeDescriptorPaths
+	
+	/**
+	 * Compute descriptor paths difference
+	 *
+	 * This method can be used to compute the difference between the existing
+	 * descriptor paths and the current ones, it will set the current object's _diffs
+	 * data member with the the difference as an object whose property names
+	 * correspond to descriptor keys and the values correspond to the difference
+	 * count, negative if the descriptor was removed or positive if it was added.
+	 *
+	 * This method should not fail.
+	 *
+	 * @param theOld	{Object}	Old descriptor stats.
+	 * @param theNew	{Object}	New descriptor stats.
+	 */
+	computeDescriptorPathsDiffs( theOld, theNew )
+	{
+		//
+		// Init data member.
+		//
+		this._diffs = {};
+		
+		//
+		// Compute removals.
+		//
+		for( let path of theOld._paths )
+		{
+			//
+			// Handle deleted element.
+			//
+			if( ! theNew._paths.includes( path ) )
+			{
+				//
+				// Compute field.
+				//
+				const parts = path.split( '.' );
+				const part = parts[ parts.length - 1 ];
+				
+				//
+				// Init field element.
+				//
+				if( ! this._diffs.hasOwnProperty( part ) )
+					this._diffs[ part ] = -1;
+				
+				//
+				// Update difference.
+				//
+				else
+					this._diffs[ part ]--;
+				
+			}	// Removed.
+			
+		}	// Iterating old paths.
+		
+		//
+		// Compute additions.
+		//
+		for( let path of theNew._paths )
+		{
+			//
+			// Handle deleted element.
+			//
+			if( ! theOld._paths.includes( path ) )
+			{
+				//
+				// Compute field.
+				//
+				const parts = path.split( '.' );
+				const part = parts[ parts.length - 1 ];
+				
+				//
+				// Init field element.
+				//
+				if( ! this._diffs.hasOwnProperty( part ) )
+					this._diffs[ part ] = 1;
+				
+				//
+				// Update difference.
+				//
+				else
+					this._diffs[ part ]++;
+				
+			}	// Added.
+			
+		}	// Iterating new paths.
+		
+	}	// computeDescriptorPathsDiffs
 	
 	
 	/************************************************************************************

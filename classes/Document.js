@@ -320,6 +320,8 @@ class Document
 		this._persistent = false;
 		this._revised = false;
 		this._modified = false;
+		this._paths = [];
+		this._diffs = {};
 		
 	}	// initDocumentMembers
 	
@@ -783,6 +785,11 @@ class Document
 		const Validation = require( '../utils/Validation' );
 		
 		//
+		// Reset descriptor paths array.
+		//
+		this._paths = [];
+		
+		//
 		// Validate document.
 		//
 		try
@@ -793,7 +800,8 @@ class Document
 			this._document =
 				Validation.validateStructure(
 					this._request,
-					this._document
+					this._document,
+					this._paths
 				);
 			
 			return true;															// ==>

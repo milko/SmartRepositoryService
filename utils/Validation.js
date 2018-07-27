@@ -37,10 +37,11 @@ class Validation
 	 *
 	 * @param theRequest	{Object}	The current request.
 	 * @param theObject		{Object}	The object.
+	 * @param thePaths		{Array}		The object property paths.
 	 * @param thePath		{String}	The property path.
 	 * @returns {Object}				The eventually normalised object.
 	 */
-	static validateStructure( theRequest, theObject, thePath = null )
+	static validateStructure( theRequest, theObject, thePaths = [], thePath = null )
 	{
 		//
 		// Assert structure.
@@ -78,6 +79,12 @@ class Validation
 			const path = ( thePath === null )
 					   ? property
 					   : `${thePath}.${property}`;
+			
+			//
+			// Add path.
+			//
+			if( ! thePaths.includes( path ) )
+				thePaths.push( path );
 
 			//
 			// Validate property.
@@ -87,6 +94,7 @@ class Validation
 					theRequest,
 					property,
 					theObject[ property ],
+					thePaths,
 					path
 				);
 		}
@@ -107,10 +115,11 @@ class Validation
 	 * @param theRequest	{Object}	The current request.
 	 * @param theProperty	{String}	The property name.
 	 * @param theValue		{*}			The property value.
+	 * @param thePaths		{Array}		The object property paths.
 	 * @param thePath		{String}	The property path.
 	 * @returns {*}						The eventually normalised property value.
 	 */
-	static validateProperty( theRequest, theProperty, theValue, thePath )
+	static validateProperty( theRequest, theProperty, theValue, thePaths, thePath )
 	{
 		//
 		// Handle property.
@@ -178,6 +187,7 @@ class Validation
 							Validation.validateStructure(
 								theRequest,
 								theValue[ i ],
+								thePaths,
 								thePath
 							);
 						break;
@@ -188,6 +198,7 @@ class Validation
 								theRequest,
 								theValidation,
 								theValue[ i ],
+								thePaths,
 								thePath
 							);
 						break;
@@ -205,6 +216,7 @@ class Validation
 					theRequest,
 					descriptor[ Dict.descriptor.kValidation ],
 					theValue,
+					thePaths,
 					thePath
 				);
 
@@ -222,10 +234,11 @@ class Validation
 	 * @param theRequest	{Object}	The current resuest.
 	 * @param theValidation	{Object}	The validation structure.
 	 * @param theValue		{*}			The value to test.
+	 * @param thePaths		{Array}		The object property paths.
 	 * @param thePath		{String}	The property path.
 	 * @returns {*}						The eventually normalised property value.
 	 */
-	static validateValue( theRequest, theValidation, theValue, thePath )
+	static validateValue( theRequest, theValidation, theValue, thePaths, thePath )
 	{
 		//
 		// Parse by type.
@@ -253,6 +266,7 @@ class Validation
 					Validation.validateStructure(
 						theRequest,
 						theValue,
+						thePaths,
 						thePath
 					);
 				break;
@@ -263,6 +277,7 @@ class Validation
 						theRequest,
 						theValidation,
 						theValue,
+						thePaths,
 						thePath
 					);
 				break;
@@ -282,6 +297,99 @@ class Validation
 		return theValue;															// ==>
 
 	}	// validateValue
+	
+	/**
+	 * Validate object
+	 *
+	 * This method will validate the provided object value using the provided validation
+	 * structure, it will use the key and value parts of the validation structure to
+	 * check all the object elements. The method will return the value, eventually
+	 * normalised, if the test passes, or raise an exception if the test doesn't pass.
+	 *
+	 * @param theRequest	{Object}	The current resuest.
+	 * @param theValidation	{Object}	The validation structure.
+	 * @param theValue		{Object}	The value to test.
+	 * @param thePaths		{Array}		The object property paths.
+	 * @param thePath		{String}	The property path.
+	 * @returns {*}						The eventually normalised property value.
+	 */
+	static validateObject( theRequest, theValidation, theValue, thePaths, thePath )
+	{
+		//
+		// Assert structure.
+		//
+		if( ! K.function.isObject( theValue ) )
+		{
+			//
+			// Compile error.
+			//
+			const error =
+				new MyError(
+					'BadValue',							// Error name.
+					K.error.MustBeObject,				// Message code.
+					theRequest.application.language,	// Language.
+					null,								// Error value.
+					400									// HTTP error code.
+				);
+			
+			//
+			// Add path.
+			//
+			error.path = thePath;
+			
+			throw( error );														// !@! ==>
+		}
+		
+		//
+		// Joi validation.
+		//
+		theValue =
+			Validation.validateJoiValue
+			(
+				theRequest,
+				theValidation,
+				theValue,
+				thePath
+			);
+		
+		//
+		// Iterate data members.
+		//
+		for( let property in theValue )
+		{
+			//
+			// Set current path.
+			//
+			const path = thePath + '.' + property;
+			
+			//
+			// Handle key.
+			//
+			if( theValidation.hasOwnProperty( Dict.descriptor.kTypeKey ) )
+				Validation.validateScalar(
+					theRequest,
+					theValidation[ Dict.descriptor.kTypeKey ],
+					property,
+					path
+				);
+			
+			//
+			// Handle value.
+			//
+			if( theValidation.hasOwnProperty( Dict.descriptor.kTypeValue ) )
+				theValue[ property ] =
+					Validation.validateValue(
+						theRequest,
+						theValidation[ Dict.descriptor.kTypeValue ],
+						theValue[ property ],
+						thePaths,
+						path
+					);
+		}
+		
+		return theValue;															// ==>
+		
+	}	// validateObject
 
 	/**
 	 * Validate scalar
@@ -334,97 +442,6 @@ class Validation
 		return theValue;															// ==>
 
 	}	// validateScalar
-
-	/**
-	 * Validate object
-	 *
-	 * This method will validate the provided object value using the provided validation
-	 * structure, it will use the key and value parts of the validation structure to
-	 * check all the object elements. The method will return the value, eventually
-	 * normalised, if the test passes, or raise an exception if the test doesn't pass.
-	 *
-	 * @param theRequest	{Object}	The current resuest.
-	 * @param theValidation	{Object}	The validation structure.
-	 * @param theValue		{Object}	The value to test.
-	 * @param thePath		{String}	The property path.
-	 * @returns {*}						The eventually normalised property value.
-	 */
-	static validateObject( theRequest, theValidation, theValue, thePath )
-	{
-		//
-		// Assert structure.
-		//
-		if( ! K.function.isObject( theValue ) )
-		{
-			//
-			// Compile error.
-			//
-			const error =
-				new MyError(
-					'BadValue',							// Error name.
-					K.error.MustBeObject,				// Message code.
-					theRequest.application.language,	// Language.
-					null,								// Error value.
-					400									// HTTP error code.
-				);
-
-			//
-			// Add path.
-			//
-			error.path = thePath;
-
-			throw( error );														// !@! ==>
-		}
-
-		//
-		// Joi validation.
-		//
-		theValue =
-			Validation.validateJoiValue
-			(
-				theRequest,
-				theValidation,
-				theValue,
-				thePath
-			);
-
-		//
-		// Iterate data members.
-		//
-		for( let property in theValue )
-		{
-			//
-			// Set current path.
-			//
-			const path = thePath + '.' + property;
-
-			//
-			// Handle key.
-			//
-			if( theValidation.hasOwnProperty( Dict.descriptor.kTypeKey ) )
-					Validation.validateScalar(
-						theRequest,
-						theValidation[ Dict.descriptor.kTypeKey ],
-						property,
-						path
-					);
-
-			//
-			// Handle value.
-			//
-			if( theValidation.hasOwnProperty( Dict.descriptor.kTypeValue ) )
-				theValue[ property ] =
-					Validation.validateValue(
-						theRequest,
-						theValidation[ Dict.descriptor.kTypeValue ],
-						theValue[ property ],
-						path
-					);
-		}
-
-		return theValue;															// ==>
-
-	}	// validateObject
 
 	/**
 	 * Joi validation
