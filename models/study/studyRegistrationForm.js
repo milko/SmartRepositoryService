@@ -11,11 +11,11 @@ const Joi = require('joi');
 module.exports = {
 	
 	/**
-	 * Input schema
-	 *
-	 * In this service this is ignored.
+	 * Parameters schema
 	 */
-	schema : Joi.any(),
+	schema : Joi.object({
+		data:	Joi.object().default({}).required()
+	}).required(),
 	
 	/**
 	 * Transform response

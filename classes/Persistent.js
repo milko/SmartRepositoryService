@@ -123,12 +123,7 @@ class Persistent extends Document
 		//
 		// Remove ignored descriptors from paths.
 		//
-		this._paths = this._paths.filter( path => {
-			const parts = path.split( '.' );
-			const part = parts[ parts.length - 1 ];
-			
-			return ( ! excluded.includes( part ) );
-		});
+		this._paths = this._paths.filter( path => ! deleted.includes( path ) );
 		
 		//
 		// Save paths.

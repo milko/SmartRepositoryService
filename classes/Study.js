@@ -231,6 +231,26 @@ class Study extends Term
 		
 	}	// defaultEdgeCollection
 	
+	/**
+	 * Return local fields list
+	 *
+	 * This method should return an array containing all fields that should be
+	 * stripped from the document when resolving its contents with
+	 * resolveDocumentByContent().
+	 *
+	 * In this class we remove the descriptor paths property.
+	 *
+	 * @returns {Array}	The list of local fields.
+	 */
+	get localFields()
+	{
+		return super.localFields
+			.concat([
+				Dict.descriptor.kDocDesc	// Descriptors paths.
+			]);																		// ==>
+		
+	}	// localFields
+	
 	
 }	// Study.
 

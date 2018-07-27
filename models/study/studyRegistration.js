@@ -6,7 +6,7 @@
 const Joi = require('joi');
 
 /**
- * Register dataset
+ * Register study
  *
  * This schema is used to change the current session user profile; the detailed validation
  * will be performed by the handler.

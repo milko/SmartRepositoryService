@@ -24,8 +24,8 @@ module.exports = {
 	 */
 	schema : {
 		reference	: Joi.alternatives().try(
-			Joi.string(),
-			Joi.object()
+			Joi.string().reauired(),
+			Joi.object().reauired()
 		).required()
 	},
 	

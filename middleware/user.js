@@ -117,7 +117,7 @@ module.exports = {
 		/**
 		 * Assert current user can upload
 		 *
-		 * This middleware will check if the current user can manage users.
+		 * This middleware will check if the current user can upload.
 		 *
 		 * Must call 'hasUser' before this.
 		 *
@@ -140,6 +140,33 @@ module.exports = {
 				);																// !@! ==>
 			
 		},	// canUpload
+		
+		/**
+		 * Assert current user can manage metadata
+		 *
+		 * This middleware will check if the current user can handle metadata.
+		 *
+		 * Must call 'hasUser' before this.
+		 *
+		 * @param theRequest	{Object}	The request.
+		 * @param theResponse	{Object}	The response.
+		 */
+		canMeta : ( theRequest, theResponse ) =>
+		{
+			//
+			// Ensure user can manage.
+			//
+			if( ! theRequest.application.user.role.includes( Dict.term.kRoleMeta ) )
+				theResponse.throw(
+					403,
+					new MyError(
+						'ServiceUnavailable',			// Error name.
+						K.error.CannotUpload,			// Error code.
+						theRequest.application.language	// Error language.
+					)
+				);																// !@! ==>
+			
+		},	// canMeta
 		
 		/**
 		 * Assert administrator token

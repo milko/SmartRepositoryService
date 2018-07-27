@@ -678,6 +678,12 @@
     }
   },
   {
+    "_key" : "e114",
+    "label" : {
+      "ISO:639:3:eng" : "not authorised to manage metadata."
+    }
+  },
+  {
     "_key" : "s:init:descriptors",
     "response" : {
       "ISO:639:3:eng" : "The operation result."
@@ -1131,24 +1137,27 @@
     }
   },
   {
-    "_key" : "s:dataset:datasetRegistrationForm",
+    "_key" : "s:study:datasetRegistrationForm",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>data</code></strong>: the study <em>registration form contents</em> object.</li></ul>"
+    },
     "response" : {
-      "ISO:639:3:eng" : "The service returns an object <code>{ result : value }</code>, where <code>value</code> will be the dataset registration form."
+      "ISO:639:3:eng" : "The service returns an object <code>{ result : value }</code>, where <code>value</code> will be the study registration form."
     },
     "description" : {
-      "ISO:639:3:eng" : "The service returns the dataset registration form."
+      "ISO:639:3:eng" : "The service returns the study registration form, with the eventual provided data."
     }
   },
   {
-    "_key" : "s:dataset:datasetRegistration",
+    "_key" : "s:study:datasetRegistration",
     "body" : {
-      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>data</code></strong>: the dataset <em>registration form contents</em> object.</li></ul>"
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>data</code></strong>: the study <em>registration form contents</em> object.</li></ul>"
     },
     "response" : {
-      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the dataset registration object."
+      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the study registration object."
     },
     "description" : {
-      "ISO:639:3:eng" : "The service is used to register a dataset from the filled contents of the dataset registration form.<p>The service expects the following information in the request POST body:</p><ul><li><strong><code>data</code></strong>: the dataset registration <em>form contents</em> object.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the dataset registration object.</p>"
+      "ISO:639:3:eng" : "The service is used to register a study from the filled contents of the registration form.<p>The service expects the following information in the request POST body:</p><ul><li><strong><code>data</code></strong>: the study registration <em>form contents</em> object.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the study registration object.</p>"
     }
   },
   {

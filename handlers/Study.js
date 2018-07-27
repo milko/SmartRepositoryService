@@ -36,23 +36,25 @@ const Schema = require( '../utils/Schema' );
 const UserMiddleware = require( '../middleware/user' );
 
 /**
- * Dataset services
+ * Study services
  *
- * These handlers use the 'dataset' path, they implement services related to
- * datasets.
+ * These handlers use the 'study' path, they implement services related to
+ * studies.
  */
 
 module.exports = {
 	
 	/**
-	 * Return the dataset registration form
+	 * Return the study registration form
 	 *
-	 * This service can be used to retrieve the dataset registration form.
+	 * This service can be used to retrieve the study registration form, the service
+	 * expects one parameter in the POST body, data, which is an object whose properties
+	 * will be added to the form.
 	 *
 	 * The service will perform the following steps:
 	 *
 	 * 	- Assert there is a current user in the session.
-	 * 	- Assert the user can upload.
+	 * 	- Assert the user can handle metadata.
 	 * 	- Load the form structure.
 	 * 	- Return the form to the client.
 	 *
@@ -62,7 +64,7 @@ module.exports = {
 	 * @param theRequest	{Object}	The current request.
 	 * @param theResponse	{Object}	The current response.
 	 */
-	datasetRegistrationForm : ( theRequest, theResponse ) =>
+	studyRegistrationForm : ( theRequest, theResponse ) =>
 	{
 		//
 		// Procedures.
@@ -73,7 +75,7 @@ module.exports = {
 			// Assertions.
 			//
 			UserMiddleware.assert.hasUser( theRequest, theResponse );
-			UserMiddleware.assert.canUpload( theRequest, theResponse );
+			UserMiddleware.assert.canMeta( theRequest, theResponse );
 			
 			//
 			// Resolve profile form.
@@ -82,7 +84,7 @@ module.exports = {
 				new Form(
 					theRequest,								// Current request.
 					Dict.term.kFormSmart,					// Form _key.
-					theRequest.application.user,			// User profile record.
+					theRequest.body.data,					// Form data.
 					true									// Restrict form fields.
 				);
 			
@@ -105,21 +107,21 @@ module.exports = {
 			theResponse.throw( http, error );									// !@! ==>
 		}
 		
-	},	// datasetRegistrationForm
+	},	// studyRegistrationForm
 	
 	/**
-	 * Register dataset
+	 * Register study
 	 *
-	 * The service will register a dataset, it expects the following object in the body:
+	 * The service will register a study, it expects the following object in the body:
 	 *
-	 * 	- data:	 the dataset registration form contents.
+	 * 	- data:	 the study registration form contents.
 	 *
 	 * The service will perform the following steps:
 	 *
 	 * 	- Assert there is a current user in the session.
-	 * 	- Assert the user can upload.
+	 * 	- Assert the user can handle metadata.
 	 * 	- Validate form data.
-	 * 	- Insert the dataset.
+	 * 	- Insert the study.
 	 * 	- Insert the user registration reference.
 	 * 	- Return the registration record.
 	 *
@@ -131,7 +133,7 @@ module.exports = {
 	 * @param theRequest	{Object}	The current request.
 	 * @param theResponse	{Object}	The current response.
 	 */
-	datasetRegistration : ( theRequest, theResponse ) =>
+	studyRegistration : ( theRequest, theResponse ) =>
 	{
 		//
 		// Procedures.
@@ -147,7 +149,7 @@ module.exports = {
 			// Assertions.
 			//
 			UserMiddleware.assert.hasUser( theRequest, theResponse );
-			UserMiddleware.assert.canUpload( theRequest, theResponse );
+			UserMiddleware.assert.canMeta( theRequest, theResponse );
 			
 			//
 			// Restore language.
@@ -196,6 +198,102 @@ module.exports = {
 			theResponse.throw( http, error );									// !@! ==>
 		}
 		
-	},	// datasetRegistration
+	},	// studyRegistration
+	
+	/**
+	 * Return the study update form
+	 *
+	 * This service can be used to request the study registration form for updating
+	 * purposes, it will return an object, { form : <form> }, where form is the study
+	 * registration form.
+	 *
+	 * The service expects a parameter in the POST body, data, which is the study
+	 * reference. It can either be a string, in which case it must be the study _id or
+	 * _key, or an object containing the gid, or the nid and lid of the study.
+	 *
+	 * The service will perform the following steps:
+	 *
+	 * 	- Assert there is a current user in the session.
+	 * 	- Assert the user can handle metadata.
+	 * 	- Resolve the study.
+	 * 	- Load the form structure.
+	 * 	- Return the form to the client.
+	 *
+	 * If the method raises an exception, the service will forward it using the
+	 * HTTP code if the exception is of class MyError.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 */
+	studyUpdateForm : ( theRequest, theResponse ) =>
+	{
+		//
+		// Procedures.
+		//
+		try
+		{
+			//
+			// Assertions.
+			//
+			UserMiddleware.assert.hasUser( theRequest, theResponse );
+			UserMiddleware.assert.canMeta( theRequest, theResponse );
+			
+			//
+			// Instantiate study.
+			//
+			const study =
+				new Study(
+					theRequest,
+					theRequest.body.data
+				);
+			
+			//
+			// Resolve study.
+			//
+			if( ! study.persistent )
+				study.resolveDocument( true, true );
+			
+			//
+			// Remove unwanted properties.
+			//
+			const excluded = study.localFields;
+			const data = K.function.clone( study.document );
+			for( let field in data )
+			{
+				if( excluded.includes( field ) )
+					delete data[ field ];
+			}
+			
+			//
+			// Resolve form.
+			//
+			const form =
+				new Form(
+					theRequest,								// Current request.
+					Dict.term.kFormSmart,					// Form _key.
+					theRequest.body.data,					// Form data.
+					true									// Restrict form fields.
+				);
+			
+			theResponse.send({ result : form.form });								// ==>
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			theResponse.throw( http, error );									// !@! ==>
+		}
+		
+	},	// studyUpdateForm
 
 };
