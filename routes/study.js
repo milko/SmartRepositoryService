@@ -30,7 +30,7 @@ module.exports = router;
 //
 // Set router tags.
 //
-router.tag( 'SMART' );
+router.tag( 'study' );
 
 
 /**
@@ -71,38 +71,30 @@ router.post( '/registration/form', Handlers.studyRegistrationForm, 'studyRegistr
 /**
  * Register study
  *
- * The service will create a study, it expects the post body to contain the following
- * fields:
+ * The service will register a study, it expects the following object in the body:
  *
- * 	- token:	the user authentication token.
- * 	- encoded: 	the sign up token.
- * 	- data:		the signin form contents.
+ * 	- data:	 the study registration form contents.
  *
- * The service returns an object { result : <value> } where the value
- * represents the newly created user.
+ * The service will perform the following steps:
  *
- * The service will perform the following assertions:
- *
- * 	- Validate the user authentication token.
+ * 	- Assert there is a current user in the session.
+ * 	- Assert the user can handle metadata.
  * 	- Validate form data.
- * 	- Load user record.
- * 	- Authenticate the user.
- * 	- Update the authorisation data.
- * 	- Remove the status.
- * 	- Replace the user.
- * 	- Update the session.
- * 	- Return the user.
+ * 	- Insert the study.
+ * 	- Insert the user registration reference.
+ * 	- Return the registration record.
  *
- * The service may raise an exception, the HTTP code depends on the exception
- * class: if MyError and it contains the HTTP code, this will be used, in all
- * other cases, the code will be 500.
+ * The service returns the administrator user record.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
  *
  * @path		/registration
  * @verb		post
  * @request		{Object}	User authentication and signUp tokens, and signIn form data.
  * @response	{Object}	The result.
  */
-router.post( '/registration', Handlers.studyRegistration, 'singInUser' )
+router.post( '/registration', Handlers.studyRegistration, 'studyRegistration' )
 	.body(
 		require( '../models/study/studyRegistration' ),
 		Application.getServiceDescription(
@@ -164,4 +156,49 @@ router.post( '/update/form', Handlers.studyUpdateForm, 'studyUpdateForm' )
 	.description(
 		Application.getServiceDescription(
 			'study', 'studyUpdateForm', 'description', module.context.configuration.defaultLanguage )
+	);
+
+
+/**
+ * Update study
+ *
+ * The service will update the provided stusy, it expects the following object
+ * in the body:
+ *
+ * 	- data:	 the study update form contents.
+ *
+ * The service will perform the following steps:
+ *
+ * 	- Assert there is a current user in the session.
+ * 	- Assert the user can handle metadata.
+ * 	- Validate form data.
+ * 	- Replace the study.
+ * 	- Return the study record.
+ *
+ * If the method raises an exception, the service will forward it using the
+ * HTTP code if the exception is of class MyError.
+ *
+ * @path		/registration
+ * @verb		post
+ * @request		{Object}	User authentication and signUp tokens, and signIn form data.
+ * @response	{Object}	The result.
+ */
+router.post( '/update', Handlers.studyUpdate, 'studyUpdate' )
+	.body(
+		require( '../models/study/studyRegistration' ),
+		Application.getServiceDescription(
+			'study', 'studyUpdate', 'body', module.context.configuration.defaultLanguage )
+	)
+	.response(
+		200,
+		require( '../models/study/studyRegistration' ),
+		Application.getServiceDescription(
+			'study', 'studyUpdate', 'response', module.context.configuration.defaultLanguage )
+	)
+	.summary(
+		"Register study."
+	)
+	.description(
+		Application.getServiceDescription(
+			'study', 'studyUpdate', 'description', module.context.configuration.defaultLanguage )
 	);

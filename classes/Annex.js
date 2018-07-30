@@ -24,15 +24,15 @@ const Identified = require( './Identified' );
 
 
 /**
- * Study class
+ * Annex class
  *
- * This class extends the Identified class to implement a Study object, it adds the
- * document descriptor statistics field, doc_desc.
+ * This class extends the Identified class to implement a study Annex document object, it
+ * adds the document descriptor statistics field, doc_desc.
  *
  * This field is used to have a the list of descriptors used in the current document
  * that can be used for query purposes.
  */
-class Study extends Identified
+class Annex extends Identified
 {
 	/**
 	 * Init document properties
@@ -53,9 +53,72 @@ class Study extends Identified
 		//
 		// Set edge instance.
 		//
-		this._instance = 'Study';
+		this._instance = 'Annex';
 		
 	}	// initDocumentMembers
+	
+	
+	/************************************************************************************
+	 * VALIDATION METHODS																*
+	 ************************************************************************************/
+	
+	/**
+	 * Validate document
+	 *
+	 * This method will assert that the current document contents are valid and that
+	 * the object is ready to be stored in the database, it will perform the following
+	 * steps:
+	 *
+	 * 	- Normalise document: load any default or computed required property.
+	 * 	- Assert if all required properties are there.
+	 * 	- Validate all document properties.
+	 *
+	 * If the provided parameter is true, is any of these checks fails, the method
+	 * will raise an exception; if the parameter is false, the method will return a
+	 * boolean indicating whether the operation was successful, true, or not, false.
+	 *
+	 * We overload this method to ensure the namespace is a reference to a document in
+	 * the studies collection.
+	 *
+	 * @param doAssert	{Boolean}	True raises an exception on error (default).
+	 * @returns {Boolean}			True if valid.
+	 */
+	validateDocument( doAssert = true )
+	{
+		//
+		// Call parent method.
+		//
+		const result = super.validateDocument( doAssert );
+		if( result )
+		{
+			//
+			// Check namespace collection.
+			//
+			const parts = this._document[ Dict.descriptor.kNID ].split( '/' );
+			if( parts[ 0 ] !== 'studies' )
+			{
+				//
+				// Raise exception.
+				//
+				if( doAssert )
+					throw(
+						new MyError(
+							'BadValue',								// Error name.
+							K.error.NotAStudy,						// Message code.
+							this._request.application.language,		// Language.
+							this._document[ Dict.descriptor.kNID ],	// Arguments.
+							412										// HTTP error code.
+						)
+					);															// !@! ==>
+				
+				return false;														// ==>
+			}
+			
+		}	// Parent method passed.
+		
+		return result;																// ==>
+		
+	}	// validateDocument
 	
 	
 	/************************************************************************************
@@ -110,18 +173,12 @@ class Study extends Identified
 			//
 			// Clone current stats.
 			//
-			const previous = K.function.clone( this._document[ Dict.descriptor.kDocDesc ] );
-			const current = this.computeDescriptorPaths();
+			const old = K.function.clone( this._document[ Dict.descriptor.kDocDesc ] );
 			
 			//
 			// Set differences in object.
 			//
-			this.computeDescriptorPathsDiffs( previous, current );
-			
-			//
-			// Update field.
-			//
-			this._document[ Dict.descriptor.kDocDesc ] = current;
+			this.computeDescriptorPathsDiffs( old, this.computeDescriptorPaths() );
 			
 		}	// Parent method succeeded.
 		
@@ -131,76 +188,26 @@ class Study extends Identified
 	
 	
 	/************************************************************************************
-	 * CORE PERSISTENCE METHODS															*
+	 * GETTER METHODS																	*
 	 ************************************************************************************/
 	
 	/**
-	 * Insert
+	 * Return list of required fields
 	 *
-	 * This method will insert the document into the database, it expects the current
-	 * object to have the collection reference.
+	 * This method should return the list of required properties.
 	 *
-	 * The method exists in order to concentrate in one place database operations,
-	 * this allows derived objects to implement transactions where required.
+	 * In this class we add the annex type field.
 	 *
-	 * The method should be called after validation and normalisation operations, this
-	 * means that if the doPersist flag is off this method should not be called.
-	 *
-	 * The method should return the database operation result.
-	 *
-	 * In this class we overload this method to first store the study, then create the
-	 * link with the user who registered it; if anything goes wrong, the operation
-	 * will manually be reversed.
-	 *
-	 * @returns {Object}			The inserted document metadata.
+	 * @returns {Array}	List of required fields.
 	 */
-	doInsert()
+	get requiredFields()
 	{
-		//
-		// Call parent method.
-		//
-		const meta = super.doInsert();
+		return super.requiredFields
+			.concat([
+				Dict.descriptor.kTypeAnnex				// Annex type.
+			]);																		// ==>
 		
-		//
-		// Create user relationship.
-		// We have current object _id and user from request.
-		//
-		const selector = { _from: meta._id, _to: this._request.session.uid, };
-		selector[ Dict.descriptor.kPredicate ] = `terms/${Dict.term.kPredicateRegisteredBy}`;
-		
-		//
-		// Create user relationship.
-		//
-		const edge =
-			new Edge(
-				this._request,
-				selector,
-				this.defaultEdgeCollection
-			);
-		
-		//
-		// Try to insert relationship.
-		//
-		try
-		{
-			//
-			// Insert edge.
-			//
-			edge.insertDocument( true );
-			
-			return meta;															// ==>
-		}
-		catch( error )
-		{
-			//
-			// Remove study.
-			//
-			db._remove( meta );
-			
-			throw( error );														// !@! ==>
-		}
-	
-	}	// doInsert
+	}	// requiredFields
 	
 	
 	/************************************************************************************
@@ -221,23 +228,9 @@ class Study extends Identified
 	 */
 	get defaultCollection()
 	{
-		return 'studies';															// ==>
+		return 'annexes';															// ==>
 		
 	}	// defaultCollection
-	
-	/**
-	 * Return default edge collection name
-	 *
-	 * We implement this method to return the edge collection name used for user
-	 * relationskips.
-	 *
-	 * @returns {String}|{null}	The default edge collection name.
-	 */
-	get defaultEdgeCollection()
-	{
-		return 'hierarchy';															// ==>
-		
-	}	// defaultEdgeCollection
 	
 	/**
 	 * Return local fields list
@@ -260,6 +253,6 @@ class Study extends Identified
 	}	// localFields
 	
 	
-}	// Study.
+}	// Annex.
 
-module.exports = Study;
+module.exports = Annex;

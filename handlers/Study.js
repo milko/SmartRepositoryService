@@ -83,7 +83,7 @@ module.exports = {
 			const form =
 				new Form(
 					theRequest,								// Current request.
-					Dict.term.kFormSmart,					// Form _key.
+					Dict.term.kFormStudy,					// Form _key.
 					theRequest.body.data,					// Form data.
 					true									// Restrict form fields.
 				);
@@ -162,7 +162,7 @@ module.exports = {
 			//
 			// Validate form.
 			//
-			const form = new Form( theRequest, Dict.term.kFormSmart );
+			const form = new Form( theRequest, Dict.term.kFormStudy );
 			form.validate( theRequest, theRequest.body.data );
 			
 			//
@@ -256,13 +256,7 @@ module.exports = {
 			//
 			// Remove unwanted properties.
 			//
-			const excluded = study.localFields;
 			const data = K.function.clone( study.document );
-			for( let field in data )
-			{
-				if( excluded.includes( field ) )
-					delete data[ field ];
-			}
 			
 			//
 			// Resolve form.
@@ -270,8 +264,8 @@ module.exports = {
 			const form =
 				new Form(
 					theRequest,								// Current request.
-					Dict.term.kFormSmart,					// Form _key.
-					theRequest.body.data,					// Form data.
+					Dict.term.kFormStudyUpdate,				// Form _key.
+					data,									// Form data.
 					true									// Restrict form fields.
 				);
 			
@@ -295,5 +289,118 @@ module.exports = {
 		}
 		
 	},	// studyUpdateForm
+	
+	/**
+	 * Update study
+	 *
+	 * The service will update the provided stusy, it expects the following object
+	 * in the body:
+	 *
+	 * 	- data:	 the study update form contents.
+	 *
+	 * The service will perform the following steps:
+	 *
+	 * 	- Assert there is a current user in the session.
+	 * 	- Assert the user can handle metadata.
+	 * 	- Validate form data.
+	 * 	- Replace the study.
+	 * 	- Return the study record.
+	 *
+	 * If the method raises an exception, the service will forward it using the
+	 * HTTP code if the exception is of class MyError.
+	 *
+	 * @param theRequest	{Object}	The current request.
+	 * @param theResponse	{Object}	The current response.
+	 */
+	studyUpdate : ( theRequest, theResponse ) =>
+	{
+		//
+		// Procedures.
+		//
+		try
+		{
+			//
+			// Framework.
+			//
+			const Dictionary = require( '../utils/Dictionary' );
+			
+			//
+			// Assertions.
+			//
+			UserMiddleware.assert.hasUser( theRequest, theResponse );
+			UserMiddleware.assert.canMeta( theRequest, theResponse );
+			
+			//
+			// Collect properties to be deleted.
+			//
+			const deleted = {};
+			for( let field in theRequest.body.data )
+			{
+				if( theRequest.body.data[ field ] === null )
+				{
+					deleted[ field ] = null;
+					delete theRequest.body.data[ field ];
+				}
+			}
+			
+			//
+			// Restore language.
+			//
+			Dictionary.restoreLanguage(
+				theRequest.body.data,
+				theRequest.application.user[ Dict.descriptor.kLanguage ]
+			);
+			
+			//
+			// Validate form.
+			//
+			const form = new Form( theRequest, Dict.term.kFormStudyUpdate );
+			form.validate( theRequest, theRequest.body.data );
+			
+			//
+			// Instantiate study.
+			//
+			const study =
+				new Study(
+					theRequest,
+					theRequest.body.data
+				);
+			
+			//
+			// Resolve study.
+			//
+			if( ! study.persistent )
+				study.resolveDocument( false, true );
+			
+			//
+			// Remove deleted properties.
+			//
+			study.setDocumentProperties( deleted, true );
+			
+			//
+			// Replace study.
+			//
+			study.replaceDocument( true );
+			
+			theResponse.send({ result : study.document });							// ==>
+		}
+		catch( error )
+		{
+			//
+			// Init local storage.
+			//
+			let http = 500;
+			
+			//
+			// Handle MyError exceptions.
+			//
+			if( (error.constructor.name === 'MyError')
+			 && error.hasOwnProperty( 'param_http' ) )
+				http = error.param_http;
+			
+			theResponse.throw( http, error );									// !@! ==>
+		}
+		
+	},	// studyUpdate
 
 };

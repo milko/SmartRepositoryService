@@ -375,7 +375,8 @@ module.exports = Object.freeze(
 			SessionUserChanged	: 111,
 			CannotUpload		: 112,
 			OnlySysAdmAllowed	: 113,
-			CannotMetadata		: 114
+			CannotMetadata		: 114,
+			NotAStudy			: 115
 		},
 
 		//

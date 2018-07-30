@@ -684,6 +684,12 @@
     }
   },
   {
+    "_key" : "e115",
+    "label" : {
+      "ISO:639:3:eng" : "not a study reference [@arg@]."
+    }
+  },
+  {
     "_key" : "s:init:descriptors",
     "response" : {
       "ISO:639:3:eng" : "The operation result."
@@ -1137,7 +1143,7 @@
     }
   },
   {
-    "_key" : "s:study:datasetRegistrationForm",
+    "_key" : "s:study:studyRegistrationForm",
     "body" : {
       "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>data</code></strong>: the study <em>registration form contents</em> object.</li></ul>"
     },
@@ -1149,7 +1155,7 @@
     }
   },
   {
-    "_key" : "s:study:datasetRegistration",
+    "_key" : "s:study:studyRegistration",
     "body" : {
       "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>data</code></strong>: the study <em>registration form contents</em> object.</li></ul>"
     },
@@ -1158,6 +1164,30 @@
     },
     "description" : {
       "ISO:639:3:eng" : "The service is used to register a study from the filled contents of the registration form.<p>The service expects the following information in the request POST body:</p><ul><li><strong><code>data</code></strong>: the study registration <em>form contents</em> object.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the study registration object.</p>"
+    }
+  },
+  {
+    "_key" : "s:study:studyUpdateForm",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>data</code></strong>: The study reference as a string or object:</li><ul><li><em>string</em>: Either the study <code>_id</code> or <code>_key</code>.</li><li><em>object</em>: The study <em>significant fields</em> which can be used to locate the document.</li></ul></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service returns an object <code>{ result : value }</code>, where <code>value</code> will be the study update form which includes the referenced study data."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service can be used to retrieve the study update form, it expects the study reference in the <code>data</code> POST body as a string or object. The string must be either the study <code>_id</code> or <code>_key</code>. The object should contain the study <em>significant fields</em> which will be used to locate the document. The service will return the form structure including the resolved study data."
+    }
+  },
+  {
+    "_key" : "s:study:studyUpdate",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>data</code></strong>: the study <em>update form contents</em> object.</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the study updated object."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service is used to update a study from the filled contents of the update form.<p>The service expects the following information in the request POST body:</p><ul><li><strong><code>data</code></strong>: the study update <em>form contents</em> object.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the study updated object.</p>"
     }
   },
   {

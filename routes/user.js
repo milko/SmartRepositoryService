@@ -312,7 +312,7 @@ router.post( '/signin/user/form', Handlers.signInUserForm, 'signInUserForm' )
  * @request		{Object}	User authentication and signUp tokens, and signIn form data.
  * @response	{Object}	The result.
  */
-router.post( '/signin/user', Handlers.signInUser, 'singInUser' )
+router.post( '/signin/user', Handlers.signInUser, 'singnInUser' )
 	.body(
 		require( '../models/user/signInUser' ),
 		Application.getServiceDescription(
