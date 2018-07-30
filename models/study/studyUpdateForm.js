@@ -15,8 +15,8 @@ module.exports = {
 	 */
 	schema : Joi.object({
 		data	: Joi.alternatives().try(
-			Joi.string().reauired(),
-			Joi.object().reauired()
+			Joi.string().required(),
+			Joi.object().required()
 		).required()
 	}).required(),
 	

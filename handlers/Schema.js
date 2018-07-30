@@ -1369,7 +1369,7 @@ module.exports = {
 				// Handle exceptions.
 				//
 				if( (! error.isArangoError)
-					|| (error.errorNum !== ARANGO_NOT_FOUND) )
+				 || (error.errorNum !== ARANGO_NOT_FOUND) )
 					theResponse.throw( http, error );							// !@! ==>
 				
 				//
@@ -1391,7 +1391,7 @@ module.exports = {
 			}
 			
 		}	// Provided _id or _key.
-		
+	
 	},	// getTerm
 	
 	/**

@@ -2,21 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9a9bf10-56e7-4cf0-bd32-dbe1b2be3e74" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/models/study/studyUpdateForm.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/routes/smart.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/Persistent.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Persistent.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/Study.js" beforeDir="false" afterPath="$PROJECT_DIR$/classes/Study.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/messages.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/messages.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handlers/Dataset.js" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/Study.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/middleware/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/middleware/user.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/dataset/datasetRegistration.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/study/studyRegistration.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/dataset/datasetRegistrationForm.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/study/studyRegistrationForm.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dictionary/Dict.js" beforeDir="false" afterPath="$PROJECT_DIR$/dictionary/Dict.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/handlers/Schema.js" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/Schema.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/schema/schemaGetDocument.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/schema/schemaGetDocument.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paw/Services.paw" beforeDir="false" afterPath="$PROJECT_DIR$/paw/Services.paw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/dataset.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/Constants.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/Constants.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/study/studyUpdateForm.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/study/studyUpdateForm.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/disabled_test_Persistent.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_Persistent.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/test_Term.js" beforeDir="false" afterPath="$PROJECT_DIR$/test/disabled_test_Term.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -34,37 +26,37 @@
     <session id="1063937606">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="9" />
+          <entry key="project.closed" value="10" />
           <entry key="project.open.time.11" value="1" />
           <entry key="project.open.time.22" value="1" />
           <entry key="project.open.time.6" value="2" />
-          <entry key="project.open.time.7" value="3" />
+          <entry key="project.open.time.7" value="4" />
           <entry key="project.open.time.8" value="1" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="9" />
+          <entry key="project.opened" value="10" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="JSON" value="13" />
-          <entry key="JavaScript" value="106" />
+          <entry key="JavaScript" value="117" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="JSON" value="305" />
-          <entry key="JavaScript" value="13044" />
+          <entry key="JavaScript" value="13079" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="js" value="13044" />
+          <entry key="js" value="13079" />
           <entry key="json" value="305" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="js" value="106" />
+          <entry key="js" value="117" />
           <entry key="json" value="13" />
         </counts>
       </usages-collector>
@@ -73,11 +65,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/routes/smart.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="366">
-              <caret line="37" column="2" lean-forward="true" selection-start-line="37" selection-start-column="2" selection-end-line="37" selection-end-column="2" />
+            <state relative-caret-position="458">
+              <caret line="51" column="46" selection-start-line="51" selection-start-column="46" selection-end-line="51" selection-end-column="46" />
             </state>
           </provider>
         </entry>
@@ -92,19 +84,64 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/classes/Study.js">
+        <entry file="file://$PROJECT_DIR$/models/study/studyRegistrationForm.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3660">
-              <caret line="244" column="19" selection-start-line="244" selection-start-column="8" selection-end-line="244" selection-end-column="19" />
+            <state relative-caret-position="270">
+              <caret line="18" column="4" lean-forward="true" selection-start-line="18" selection-start-column="4" selection-end-line="18" selection-end-column="4" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/models/study/studyUpdateForm.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="345">
+              <caret line="23" column="18" selection-start-line="23" selection-start-column="18" selection-end-line="23" selection-end-column="18" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/models/study/studyUpdateForm.js">
+        <entry file="file://$PROJECT_DIR$/main.js">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="150">
-              <caret line="10" column="18" selection-start-line="10" selection-start-column="18" selection-end-line="10" selection-end-column="18" />
+              <caret line="10" column="54" selection-start-line="10" selection-start-column="49" selection-end-line="10" selection-end-column="54" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/routes/schema.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="491">
+              <caret line="1053" column="42" lean-forward="true" selection-start-line="1053" selection-start-column="42" selection-end-line="1053" selection-end-column="42" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/models/schema/schemaGetDocument.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="510">
+              <caret line="34" column="31" lean-forward="true" selection-start-line="34" selection-start-column="31" selection-end-line="34" selection-end-column="31" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/models/schema/schemaGetDocuments.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="285">
+              <caret line="19" column="41" lean-forward="true" selection-start-line="19" selection-start-column="41" selection-end-line="19" selection-end-column="41" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/handlers/Schema.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="185">
+              <caret line="1579" column="4" selection-start-line="1579" selection-start-column="4" selection-end-line="1579" selection-end-column="4" />
             </state>
           </provider>
         </entry>
@@ -112,26 +149,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/handlers/Study.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3885">
-              <caret line="259" column="26" selection-start-line="259" selection-start-column="26" selection-end-line="259" selection-end-column="26" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/utils/Constants.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5655">
-              <caret line="377" column="26" selection-start-line="377" selection-start-column="12" selection-end-line="377" selection-end-column="26" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/data/messages.json">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="10230">
-              <caret line="682" column="58" selection-start-line="682" selection-start-column="58" selection-end-line="682" selection-end-column="58" />
+            <state relative-caret-position="-2310">
+              <caret line="66" column="4" selection-start-line="66" selection-start-column="4" selection-end-line="66" selection-end-column="4" />
             </state>
           </provider>
         </entry>
@@ -165,7 +184,6 @@
       <find>module.context.configuration</find>
       <find>admin</find>
       <find>administrator</find>
-      <find>ARANGO_NOT_FOUND</find>
       <find>NotFound</find>
       <find>&gt; 1</find>
       <find>validateValue</find>
@@ -177,6 +195,7 @@
       <find>this._paths</find>
       <find>Cannot</find>
       <find>dataset</find>
+      <find>ARANGO_NOT_FOUND</find>
     </findStrings>
     <replaceStrings>
       <replace>compareValues</replace>
@@ -246,8 +265,6 @@
         <option value="$PROJECT_DIR$/models/schema/schemaGetDocuments.js" />
         <option value="$PROJECT_DIR$/data/auth.json" />
         <option value="$PROJECT_DIR$/handlers/User.js" />
-        <option value="$PROJECT_DIR$/routes/schema.js" />
-        <option value="$PROJECT_DIR$/handlers/Schema.js" />
         <option value="$PROJECT_DIR$/routes/test/Validation.js" />
         <option value="$PROJECT_DIR$/utils/Validation.js" />
         <option value="$PROJECT_DIR$/classes/Document.js" />
@@ -255,7 +272,6 @@
         <option value="$PROJECT_DIR$/classes/Persistent.js" />
         <option value="$PROJECT_DIR$/models/dataset/datasetRegistrationForm.js" />
         <option value="$PROJECT_DIR$/routes/dataset.js" />
-        <option value="$PROJECT_DIR$/main.js" />
         <option value="$PROJECT_DIR$/middleware/user.js" />
         <option value="$PROJECT_DIR$/utils/Constants.js" />
         <option value="$PROJECT_DIR$/data/messages.json" />
@@ -263,11 +279,14 @@
         <option value="$PROJECT_DIR$/models/dataset/datasetRegistration.js" />
         <option value="$PROJECT_DIR$/classes/Study.js" />
         <option value="$PROJECT_DIR$/models/study/studyRegistrationForm.js" />
-        <option value="$PROJECT_DIR$/models/schema/schemaGetDocument.js" />
-        <option value="$PROJECT_DIR$/models/study/studyUpdateForm.js" />
         <option value="$PROJECT_DIR$/routes/study.js" />
         <option value="$PROJECT_DIR$/handlers/Study.js" />
         <option value="$PROJECT_DIR$/routes/smart.js" />
+        <option value="$PROJECT_DIR$/handlers/Schema.js" />
+        <option value="$PROJECT_DIR$/routes/schema.js" />
+        <option value="$PROJECT_DIR$/models/schema/schemaGetDocument.js" />
+        <option value="$PROJECT_DIR$/main.js" />
+        <option value="$PROJECT_DIR$/models/study/studyUpdateForm.js" />
       </list>
     </option>
   </component>
@@ -299,7 +318,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -387,6 +405,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -571,6 +590,7 @@
       <workItem from="1532692946208" duration="9372000" />
       <workItem from="1532704485647" duration="4109000" />
       <workItem from="1532708837962" duration="56000" />
+      <workItem from="1532939853861" duration="1294000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring Document unit tests.&#10;Developed functions to make lengthy checks: will not transform functions into classes to make checks inherited and reusable.">
       <created>1528974578541</created>
@@ -604,14 +624,14 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1080544000" />
+    <option name="totallyTimeSpent" value="1081838000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1280" height="1001" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.39616254" visible="true" weight="0.22954726" />
-      <window_info id="Structure" order="1" sideWeight="0.6038375" side_tool="true" visible="true" weight="0.22954726" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.39503387" visible="true" weight="0.22954726" />
+      <window_info id="Structure" order="1" sideWeight="0.60496616" side_tool="true" visible="true" weight="0.22954726" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.49097064" />
@@ -771,13 +791,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/schema/schemaGetDocuments.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="22" selection-start-line="16" selection-end-line="22" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/data/auth.json">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
@@ -796,13 +809,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="29">
           <caret line="200" column="34" selection-start-line="200" selection-start-column="14" selection-end-line="200" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/utils/Schema.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="280">
-          <caret line="444" column="18" selection-start-line="444" selection-start-column="8" selection-end-line="444" selection-end-column="18" />
         </state>
       </provider>
     </entry>
@@ -827,7 +833,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_Term.js">
+    <entry file="file://$PROJECT_DIR$/test/disabled_test_Term.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="434">
           <caret line="49" selection-start-line="49" selection-end-line="50" />
@@ -838,13 +844,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="293">
           <caret line="3334" selection-start-line="3334" selection-end-line="3335" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/handlers/Schema.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="208">
-          <caret line="1134" column="12" lean-forward="true" selection-start-line="1134" selection-start-column="12" selection-end-line="1134" selection-end-column="12" />
         </state>
       </provider>
     </entry>
@@ -897,24 +896,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="10" column="64" selection-start-line="10" selection-start-column="64" selection-end-line="10" selection-end-column="64" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/middleware/user.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="641">
           <caret line="158" column="80" selection-start-line="158" selection-start-column="80" selection-end-line="158" selection-end-column="80" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/classes/Persistent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="686">
-          <caret line="269" selection-start-line="243" selection-end-line="269" />
         </state>
       </provider>
     </entry>
@@ -925,27 +910,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/schema/schemaGetDocument.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="435">
-          <caret line="29" selection-start-line="25" selection-end-line="29" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/routes/schema.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="491">
-          <caret line="1053" column="42" selection-start-line="1053" selection-start-column="42" selection-end-line="1053" selection-end-column="42" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/study/studyRegistrationForm.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="18" column="4" lean-forward="true" selection-start-line="18" selection-start-column="4" selection-end-line="18" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/classes/Identifier.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2147">
@@ -953,38 +917,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/routes/smart.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="366">
-          <caret line="37" column="2" lean-forward="true" selection-start-line="37" selection-start-column="2" selection-end-line="37" selection-end-column="2" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/study/studyRegistration.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="315">
-          <caret line="21" column="4" selection-start-line="21" selection-start-column="4" selection-end-line="21" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/classes/Study.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3660">
           <caret line="244" column="19" selection-start-line="244" selection-start-column="8" selection-end-line="244" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/study/studyUpdateForm.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="10" column="18" selection-start-line="10" selection-start-column="18" selection-end-line="10" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/handlers/Study.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3885">
-          <caret line="259" column="26" selection-start-line="259" selection-start-column="26" selection-end-line="259" selection-end-column="26" />
         </state>
       </provider>
     </entry>
@@ -999,6 +935,90 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="10230">
           <caret line="682" column="58" selection-start-line="682" selection-start-column="58" selection-end-line="682" selection-end-column="58" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/Schema.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="751">
+          <caret line="444" column="18" selection-start-line="444" selection-start-column="8" selection-end-line="444" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/Persistent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2053">
+          <caret line="239" column="26" selection-start-line="239" selection-start-column="26" selection-end-line="239" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/handlers/Schema.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="185">
+          <caret line="1579" column="4" selection-start-line="1579" selection-start-column="4" selection-end-line="1579" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/schema.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="491">
+          <caret line="1053" column="42" lean-forward="true" selection-start-line="1053" selection-start-column="42" selection-end-line="1053" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/schema/schemaGetDocuments.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="19" column="41" lean-forward="true" selection-start-line="19" selection-start-column="41" selection-end-line="19" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/schema/schemaGetDocument.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="510">
+          <caret line="34" column="31" lean-forward="true" selection-start-line="34" selection-start-column="31" selection-end-line="34" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="10" column="54" selection-start-line="10" selection-start-column="49" selection-end-line="10" selection-end-column="54" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/handlers/Study.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2310">
+          <caret line="66" column="4" selection-start-line="66" selection-start-column="4" selection-end-line="66" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/smart.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="458">
+          <caret line="51" column="46" selection-start-line="51" selection-start-column="46" selection-end-line="51" selection-end-column="46" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/study/studyRegistration.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="21" column="4" selection-start-line="21" selection-start-column="4" selection-end-line="21" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/study/studyRegistrationForm.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="18" column="4" lean-forward="true" selection-start-line="18" selection-start-column="4" selection-end-line="18" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/study/studyUpdateForm.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="345">
+          <caret line="23" column="18" selection-start-line="23" selection-start-column="18" selection-end-line="23" selection-end-column="18" />
         </state>
       </provider>
     </entry>
