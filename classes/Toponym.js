@@ -3,7 +3,7 @@
 //
 // Parent.
 //
-const Term = require( './Term' );
+const Identified = require( './Identified' );
 
 
 /**
@@ -11,7 +11,7 @@ const Term = require( './Term' );
  *
  * This class extends the Term class by setting the default collection and instance.
  */
-class Toponym extends Term
+class Toponym extends Identified
 {
 	/**
 	 * Init document properties
