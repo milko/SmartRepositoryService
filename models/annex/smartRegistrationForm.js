@@ -5,19 +5,20 @@
 //
 const Joi = require('joi');
 
-/**
- * Register study
- *
- * This schema is used to register a study; the detailed validation
- * will be performed by the handler.
- */
+//
+// Schema.
+//
 module.exports = {
 	
 	/**
 	 * Parameters schema
 	 */
 	schema : Joi.object({
-		data:	 Joi.object().required()
+		study	: Joi.alternatives().try(
+			Joi.string().required(),
+			Joi.object().required()
+		).required(),
+		data:	Joi.object().default({}).required()
 	}).required(),
 	
 	/**
@@ -26,7 +27,7 @@ module.exports = {
 	 * No transformations here.
 	 *
 	 * @param theResponse	{Object}	The service response.
-	 * @returns {Object}				No changes.
+	 * @returns {Object}				The filtered user record, or null.
 	 */
 	forClient( theResponse )
 	{
@@ -36,10 +37,11 @@ module.exports = {
 	/**
 	 * Transform request
 	 *
-	 * No transformations here.
+	 * Transform the service parameters request.
+	 * We do nothing here: it's a GET.
 	 *
-	 * @param theRequest	{Object}	The service parameters.
-	 * @returns {Object}				No transformation.
+	 * @param theRequest	{*}	The service parameters.
+	 * @returns {*}				No transformation.
 	 */
 	fromClient( theRequest )
 	{

@@ -1191,6 +1191,54 @@
     }
   },
   {
+    "_key" : "s:SMART:smartRegistrationForm",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>study</code></strong>: the study <em>reference</em> as either a string or object:</li><ul><li><em>string</em>: The study <code>_id</code> or <code>_key</code>.</li><li><em>object</em>: The study <em>significant fields</em>: the <code>gid</code> or the <code>nid</code> and <code>lid</code>.</li></ul><li><strong><code>data</code></strong>: the eventual dataset <em>registration form contents</em> object.</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service returns an object <code>{ result : value }</code>, where <code>value</code> will be the dataset registration form."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service returns the study SMART dataset annex registration form, with the eventual provided data."
+    }
+  },
+  {
+    "_key" : "s:SMART:smartRegistration",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>data</code></strong>: the dataset <em>registration form contents</em> object.</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the dataset registration object."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service is used to register a study SMART dataset annex from the filled contents of the registration form.<p>The service expects the following information in the request POST body:</p><ul><li><strong><code>data</code></strong>: the dataset registration <em>form contents</em> object.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the dataset registration object.</p>"
+    }
+  },
+  {
+    "_key" : "s:SMART:smartUpdateForm",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>data</code></strong>: The dataset reference as a string or object:</li><ul><li><em>string</em>: Either the dataset <code>_id</code> or <code>_key</code>.</li><li><em>object</em>: The dataset <em>significant fields</em> which can be used to locate the document.</li></ul></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service returns an object <code>{ result : value }</code>, where <code>value</code> will be the dataset update form which includes the referenced dataset data."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service can be used to retrieve the dataset update form, it expects the dataset reference in the <code>data</code> POST body as a string or object. The string must be either the dataset <code>_id</code> or <code>_key</code>. The object should contain the dataset <em>significant fields</em> which will be used to locate the document. The service will return the form structure including the resolved dataset data."
+    }
+  },
+  {
+    "_key" : "s:SMART:smartUpdate",
+    "body" : {
+      "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>data</code></strong>: the dataset <em>update form contents</em> object.</li></ul>"
+    },
+    "response" : {
+      "ISO:639:3:eng" : "The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the dataset updated object."
+    },
+    "description" : {
+      "ISO:639:3:eng" : "The service is used to update a study SMART dataset annex from the filled contents of the update form.<p>The service expects the following information in the request POST body:</p><ul><li><strong><code>data</code></strong>: the dataset update <em>form contents</em> object.</li></ul><p>The service will return an object, <code>{ result : value }</code>, where <em>value</em> will be the dataset updated object.</p>"
+    }
+  },
+  {
     "_key" : "s:utils:tokenAdmin",
     "body" : {
       "ISO:639:3:eng" : "Provide the following properties in the request POST body:<ul><li><strong><code>refresh</code></strong>: <code>false</code> will retrieve the token with the current authentication record; <code>true</code> will first refresh the authentication record, then return the token.i</li></ul>"

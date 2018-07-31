@@ -15,7 +15,6 @@ const Dict = require( '../dictionary/Dict' );
 // Classes.
 //
 const Edge = require( './Edge' );
-const Transaction = require( './Transaction' );
 
 //
 // Parent.

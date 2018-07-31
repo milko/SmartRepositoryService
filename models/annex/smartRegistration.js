@@ -6,9 +6,9 @@
 const Joi = require('joi');
 
 /**
- * Register study
+ * Register study SMART dataset annex
  *
- * This schema is used to register a study; the detailed validation
+ * This schema is used to register a SMART dataset; the detailed validation
  * will be performed by the handler.
  */
 module.exports = {

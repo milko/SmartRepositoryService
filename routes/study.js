@@ -34,9 +34,9 @@ router.tag( 'study' );
 
 
 /**
- * SMART registration form
+ * Study registration form
  *
- * This service can be used to request the SMART registration form, it will return
+ * This service can be used to request the study registration form, it will return
  * an object, { form : <form> }, where form is the study registration form.
  *
  * The service expects a parameter in the POST body, data, which is an object
@@ -151,7 +151,7 @@ router.post( '/update/form', Handlers.studyUpdateForm, 'studyUpdateForm' )
 			'study', 'studyUpdateForm', 'response', module.context.configuration.defaultLanguage )
 	)
 	.summary(
-		"Get study registration form"
+		"Get study update form"
 	)
 	.description(
 		Application.getServiceDescription(
@@ -162,7 +162,7 @@ router.post( '/update/form', Handlers.studyUpdateForm, 'studyUpdateForm' )
 /**
  * Update study
  *
- * The service will update the provided stusy, it expects the following object
+ * The service will update the provided study, it expects the following object
  * in the body:
  *
  * 	- data:	 the study update form contents.
@@ -196,7 +196,7 @@ router.post( '/update', Handlers.studyUpdate, 'studyUpdate' )
 			'study', 'studyUpdate', 'response', module.context.configuration.defaultLanguage )
 	)
 	.summary(
-		"Register study."
+		"Update study."
 	)
 	.description(
 		Application.getServiceDescription(

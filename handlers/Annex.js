@@ -1,34 +1,17 @@
 'use strict';
 
 //
-// Frameworks.
-//
-const db = require('@arangodb').db;
-const aql = require('@arangodb').aql;
-const crypto = require('@arangodb/crypto');
-
-//
-// Errors.
-//
-const errors = require('@arangodb').errors;
-const ARANGO_DUPLICATE = errors.ERROR_ARANGO_UNIQUE_CONSTRAINT_VIOLATED.code;
-
-//
 // Application.
 //
 const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
-const MyError = require( '../utils/MyError' );
-const Application = require( '../utils/Application' );
 
 //
 // Classes.
 //
-const User = require( '../classes/User' );
-const Edge = require( '../classes/Edge' );
 const Form = require( '../classes/Form' );
 const Study = require( '../classes/Study' );
-const Schema = require( '../utils/Schema' );
+const Annex = require( '../classes/Annex' );
 
 //
 // Middleware.
@@ -36,25 +19,30 @@ const Schema = require( '../utils/Schema' );
 const UserMiddleware = require( '../middleware/user' );
 
 /**
- * Study services
+ * SMART annex services
  *
- * These handlers use the 'study' path, they implement services related to
- * studies.
+ * These handlers use the 'annex' path, they implement services related to
+ * study SMART annex files.
  */
 
 module.exports = {
 	
 	/**
-	 * Return the study registration form
+	 * Return the SMART dataset annex registration form
 	 *
-	 * This service can be used to retrieve the study registration form, the service
-	 * expects one parameter in the POST body, data, which is an object whose properties
-	 * will be added to the form.
+	 * This service can be used to retrieve the annex registration form, the service
+	 * expects two parameters in the POST body:
+	 *
+	 * 	- study:		The study reference provided as:
+	 * 		- string:	The study _id or _key.
+	 * 		- object:	The study significant fields.
+	 * 	- data:			The eventual annex data record or an empty object.
 	 *
 	 * The service will perform the following steps:
 	 *
 	 * 	- Assert there is a current user in the session.
 	 * 	- Assert the user can handle metadata.
+	 * 	- Resolve the study.
 	 * 	- Load the form structure.
 	 * 	- Return the form to the client.
 	 *
@@ -64,7 +52,7 @@ module.exports = {
 	 * @param theRequest	{Object}	The current request.
 	 * @param theResponse	{Object}	The current response.
 	 */
-	studyRegistrationForm : ( theRequest, theResponse ) =>
+	smartRegistrationForm : ( theRequest, theResponse ) =>
 	{
 		//
 		// Procedures.
@@ -78,12 +66,33 @@ module.exports = {
 			UserMiddleware.assert.canMeta( theRequest, theResponse );
 			
 			//
-			// Resolve profile form.
+			// Instantiate study.
+			//
+			const study =
+				new Study(
+					theRequest,
+					theRequest.body.study
+				);
+			
+			//
+			// Resolve study.
+			//
+			if( ! study.persistent )
+				study.resolveDocument( true, true );
+			
+			//
+			// Set study reference and annex type.
+			//
+			theRequest.body.data[ Dict.descriptor.kNID ] = study.document._id;
+			theRequest.body.data[ Dict.descriptor.kTypeAnnex ] = Dict.term.kTypeAnnexDataset;
+			
+			//
+			// Resolve form.
 			//
 			const form =
 				new Form(
 					theRequest,								// Current request.
-					Dict.term.kFormStudy,					// Form _key.
+					Dict.term.kFormSmart,					// Form _key.
 					theRequest.body.data,					// Form data.
 					true									// Restrict form fields.
 				);
@@ -107,22 +116,22 @@ module.exports = {
 			theResponse.throw( http, error );									// !@! ==>
 		}
 		
-	},	// studyRegistrationForm
+	},	// smartRegistrationForm
 	
 	/**
-	 * Register study
+	 * Register study SMART dataset annex
 	 *
-	 * The service will register a study, it expects the following object in the body:
+	 * The service will register a study SMART dataset, it expects the following object
+	 * in the body:
 	 *
-	 * 	- data:	 the study registration form contents.
+	 * 	- data:	 the study SMART dataset registration form contents.
 	 *
 	 * The service will perform the following steps:
 	 *
 	 * 	- Assert there is a current user in the session.
 	 * 	- Assert the user can handle metadata.
 	 * 	- Validate form data.
-	 * 	- Insert the study.
-	 * 	- Insert the user registration reference.
+	 * 	- Insert the dataset.
 	 * 	- Return the registration record.
 	 *
 	 * The service returns the administrator user record.
@@ -133,7 +142,7 @@ module.exports = {
 	 * @param theRequest	{Object}	The current request.
 	 * @param theResponse	{Object}	The current response.
 	 */
-	studyRegistration : ( theRequest, theResponse ) =>
+	smartRegistration : ( theRequest, theResponse ) =>
 	{
 		//
 		// Procedures.
@@ -162,14 +171,14 @@ module.exports = {
 			//
 			// Validate form.
 			//
-			const form = new Form( theRequest, Dict.term.kFormStudy );
+			const form = new Form( theRequest, Dict.term.kFormSmart );
 			form.validate( theRequest, theRequest.body.data );
 			
 			//
 			// Instantiate study.
 			//
-			const study =
-				new Study(
+			const dataset =
+				new Annex(
 					theRequest,
 					theRequest.body.data
 				);
@@ -177,9 +186,9 @@ module.exports = {
 			//
 			// Insert study.
 			//
-			study.insertDocument( true );
+			dataset.insertDocument( true );
 			
-			theResponse.send({ result : study.document });							// ==>
+			theResponse.send({ result : dataset.document });						// ==>
 		}
 		catch( error )
 		{
@@ -198,24 +207,24 @@ module.exports = {
 			theResponse.throw( http, error );									// !@! ==>
 		}
 		
-	},	// studyRegistration
+	},	// smartRegistration
 	
 	/**
-	 * Return the study update form
+	 * Return the study SMART dataset update form
 	 *
-	 * This service can be used to request the study registration form for updating
-	 * purposes, it will return an object, { form : <form> }, where form is the study
-	 * registration form.
+	 * This service can be used to request the study SMART dataset registration form
+	 * for updating purposes, it will return an object, { form : <form> }, where form
+	 * is the dataset registration form.
 	 *
-	 * The service expects a parameter in the POST body, data, which is the study
-	 * reference. It can either be a string, in which case it must be the study _id or
-	 * _key, or an object containing the gid, or the nid and lid of the study.
+	 * The service expects a parameter in the POST body, data, which is the dataset
+	 * reference. It can either be a string, in which case it must be the dataset _id or
+	 * _key, or an object containing the gid, or the nid and lid of the dataset.
 	 *
 	 * The service will perform the following steps:
 	 *
 	 * 	- Assert there is a current user in the session.
 	 * 	- Assert the user can handle metadata.
-	 * 	- Resolve the study.
+	 * 	- Resolve the dataset.
 	 * 	- Load the form structure.
 	 * 	- Return the form to the client.
 	 *
@@ -225,7 +234,7 @@ module.exports = {
 	 * @param theRequest	{Object}	The current request.
 	 * @param theResponse	{Object}	The current response.
 	 */
-	studyUpdateForm : ( theRequest, theResponse ) =>
+	smartUpdateForm : ( theRequest, theResponse ) =>
 	{
 		//
 		// Procedures.
@@ -239,19 +248,19 @@ module.exports = {
 			UserMiddleware.assert.canMeta( theRequest, theResponse );
 			
 			//
-			// Instantiate study.
+			// Instantiate dataset.
 			//
-			const study =
-				new Study(
+			const dataset =
+				new Annex(
 					theRequest,
 					theRequest.body.data
 				);
 			
 			//
-			// Resolve study.
+			// Resolve dataset.
 			//
-			if( ! study.persistent )
-				study.resolveDocument( true, true );
+			if( ! dataset.persistent )
+				dataset.resolveDocument( true, true );
 			
 			//
 			// Resolve form.
@@ -259,8 +268,8 @@ module.exports = {
 			const form =
 				new Form(
 					theRequest,								// Current request.
-					Dict.term.kFormStudyUpdate,				// Form _key.
-					study.document,							// Form data.
+					Dict.term.kFormSmartUpdate,				// Form _key.
+					dataset.document,						// Form data.
 					true									// Restrict form fields.
 				);
 			
@@ -283,22 +292,22 @@ module.exports = {
 			theResponse.throw( http, error );									// !@! ==>
 		}
 		
-	},	// studyUpdateForm
+	},	// smartUpdateForm
 	
 	/**
-	 * Update study
+	 * Update study SMART dataset annex
 	 *
-	 * The service will update the provided stusy, it expects the following object
+	 * The service will update the provided dataset, it expects the following object
 	 * in the body:
 	 *
-	 * 	- data:	 the study update form contents.
+	 * 	- data:	 the dataset update form contents.
 	 *
 	 * The service will perform the following steps:
 	 *
 	 * 	- Assert there is a current user in the session.
 	 * 	- Assert the user can handle metadata.
 	 * 	- Validate form data.
-	 * 	- Replace the study.
+	 * 	- Replace the dataset.
 	 * 	- Return the study record.
 	 *
 	 * If the method raises an exception, the service will forward it using the
@@ -307,7 +316,7 @@ module.exports = {
 	 * @param theRequest	{Object}	The current request.
 	 * @param theResponse	{Object}	The current response.
 	 */
-	studyUpdate : ( theRequest, theResponse ) =>
+	smartUpdate : ( theRequest, theResponse ) =>
 	{
 		//
 		// Procedures.
@@ -349,35 +358,35 @@ module.exports = {
 			//
 			// Validate form.
 			//
-			const form = new Form( theRequest, Dict.term.kFormStudyUpdate );
+			const form = new Form( theRequest, Dict.term.kFormSmartUpdate );
 			form.validate( theRequest, theRequest.body.data );
 			
 			//
-			// Instantiate study.
+			// Instantiate dataset.
 			//
-			const study =
-				new Study(
+			const dataset =
+				new Annex(
 					theRequest,
 					theRequest.body.data
 				);
 			
 			//
-			// Resolve study.
+			// Resolve dataset.
 			//
-			if( ! study.persistent )
-				study.resolveDocument( false, true );
+			if( ! dataset.persistent )
+				dataset.resolveDocument( false, true );
 			
 			//
 			// Remove deleted properties.
 			//
-			study.setDocumentProperties( deleted, true );
+			dataset.setDocumentProperties( deleted, true );
 			
 			//
-			// Replace study.
+			// Replace dataset.
 			//
-			study.replaceDocument( true );
+			dataset.replaceDocument( true );
 			
-			theResponse.send({ result : study.document });							// ==>
+			theResponse.send({ result : dataset.document });							// ==>
 		}
 		catch( error )
 		{
@@ -396,6 +405,6 @@ module.exports = {
 			theResponse.throw( http, error );									// !@! ==>
 		}
 		
-	},	// studyUpdate
-
+	},	// smartUpdate
+	
 };

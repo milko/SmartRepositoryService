@@ -12,12 +12,6 @@ const K = require( '../utils/Constants' );
 const Dict = require( '../dictionary/Dict' );
 
 //
-// Classes.
-//
-const Edge = require( './Edge' );
-const Transaction = require( './Transaction' );
-
-//
 // Parent.
 //
 const Identified = require( './Identified' );
@@ -173,12 +167,18 @@ class Annex extends Identified
 			//
 			// Clone current stats.
 			//
-			const old = K.function.clone( this._document[ Dict.descriptor.kDocDesc ] );
+			const previous = K.function.clone( this._document[ Dict.descriptor.kDocDesc ] );
+			const current = this.computeDescriptorPaths();
 			
 			//
 			// Set differences in object.
 			//
-			this.computeDescriptorPathsDiffs( old, this.computeDescriptorPaths() );
+			this.computeDescriptorPathsDiffs( previous, current );
+			
+			//
+			// Update field.
+			//
+			this._document[ Dict.descriptor.kDocDesc ] = current;
 			
 		}	// Parent method succeeded.
 		
